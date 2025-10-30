@@ -216,7 +216,7 @@
             @yield('content')
             <div class="footer">
                 <div class='text-right'>
-                    WGROUP DEVELOPER &copy; {{date('Y')}}
+                    OBANANA &copy; {{date('Y')}}
                 </div>
             </div>
         </div>
