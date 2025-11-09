@@ -1,0 +1,186 @@
+    .dashboard-card {
+        border-radius: 5px;
+        padding: 20px;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dashboard-card .icon-circle {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .dashboard-card .icon-circle i {
+        font-size: 20px;
+    }
+    
+    .dashboard-card h2 {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .dashboard-card p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 14px;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .section-header h5 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .view-all-btn {
+        color: #d07e0a;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    
+    .view-all-btn:hover {
+        text-decoration: underline;
+    }
+    
+    .book-card {
+        border-radius: 5px;
+        overflow: hidden;
+        transition: transform 0.3s;
+        cursor: pointer;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .book-card:hover {
+        transform: translateY(-5px);
+    }
+    .book-card img {
+        width: 100%;
+        height: 250px;
+        object-fit: fit;
+    }
+    .book-card .book-info {
+        padding: 15px;
+        background: white;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+    
+    .book-card .book-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .book-card .book-author {
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    .table-responsive {
+        background: white;
+        border-radius: 5px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .book-table th,
+    .book-table td {
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .book-table tbody tr {
+        height: 55px;
+        background-color: #fff;
+        border-radius: 5px;
+    }
+
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .status-overdue {
+        background: #ffe5e5;
+        color: #ff6b6b;
+    }
+
+    .view-details {
+        background: #a3b8ff;
+        color: #ffffff;
+    }
+    .status-returned {
+        background: #e5f9e5;
+        color: #28a745;
+    }
+    
+    .chart-container {
+        position: relative;
+        background: #fff;
+        border-radius: 5px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        width: 100%;
+        height: 412px;
+        overflow: hidden;
+    }
+
+    .chart-container canvas {
+        width: 100% !important;
+        height: 90% !important;
+    }
+
+    
+    .add-new-btn {
+        background: #d07e0a;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .add-new-btn:hover {
+        background: #c17409;
+        color: white;
+    }
+
+    .btn-md, .btn-search
+    {
+        background-color: rgb(136, 0, 0) !important;
+        color: #fff;
+    }
+
+    .btn-md:hover, .btn-search:hover
+    {
+        background-color: rgb(104, 0, 0) !important;
+        color: #fff;
+    }

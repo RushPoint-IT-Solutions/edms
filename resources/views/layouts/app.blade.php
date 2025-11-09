@@ -29,7 +29,7 @@
         <link rel="stylesheet" type="text/css" href="{{asset('login_design/vendor/daterangepicker/daterangepicker.css')}}">
     <!--===============================================================================================-->
         <link rel="stylesheet" type="text/css" href="{{asset('login_design/css/util.css')}}">
-        <link rel="stylesheet" type="text/css" href="{{asset('login_design/css/main.css')}}">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
             .shownext { display: none; }
             li:hover + .shownext { display: block; }
@@ -62,7 +62,7 @@
     <!-- Styles -->
     {{-- <link href="{{ asset('css/app.css') }}" rel="stylesheet"> --}}
 </head>
-<body style="background-color: #666666;">
+
     <div id="loader" style="display:none;" class="loader">
     </div>
     @yield('content')
