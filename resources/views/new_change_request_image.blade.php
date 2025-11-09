@@ -1,16 +1,10 @@
 
-<div class="modal" id="myModal" tabindex="-1" role="dialog"  >
+<div class="modal" id="myModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl " role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <div class='col-md-10'>
-                    <h5 class="modal-title" id="exampleModalLabel">Create "New" Document Request</h5>
-                </div>
-                <div class='col-md-2'>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" >
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+                <h5 class="modal-title" id="exampleModalLabel">Create "New" Document Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
                 <div class="modal-body">
@@ -22,7 +16,7 @@
                     
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
         </div>
     </div>

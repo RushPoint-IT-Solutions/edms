@@ -1,16 +1,9 @@
-
 <div class="modal" id="changeRequest" tabindex="-1" role="dialog"  >
     <div class="modal-dialog modal-xl " role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <div class='col-md-10'>
-                    <h5 class="modal-title" id="exampleModalLabel">Change Request</h5>
-                </div>
-                <div class='col-md-2'>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" >
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+                <h5 class="modal-title" id="exampleModalLabel">Change Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             @php
                 $submit = 0; 
