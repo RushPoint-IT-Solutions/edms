@@ -379,7 +379,7 @@
                     @endphp
                     <tr>
                         <td>
-                            <button type="button" data-target="#viewPreAssessmentModal-{{$pa->id}}" data-toggle="modal" class='btn-action view'>
+                            <button type="button" data-bs-target="#viewPreAssessmentModal-{{$pa->id}}" data-bs-toggle="modal" class="btn-action view">
                                 <i class="fa fa-eye"></i>
                             </button>
                         </td>
