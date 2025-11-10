@@ -51,6 +51,40 @@
             background: #420906 !important;
         }
 
+        .navbar-menu .navbar-nav .nav-item.active .nav-link {
+            background-color: rgba(255, 193, 7, 0.15);
+            border-left: 4px solid #ffffff;
+            font-weight: 600;
+            padding-left: calc(1rem - 4px);
+        }
+
+        .navbar-menu .navbar-nav .nav-item.active .nav-link i {
+            color: #ffffff !important;
+        }
+
+        .navbar-menu .navbar-nav .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        /* .menu-dropdown .nav-item a.nav-link.active {
+            color: #ffffff !important;
+            font-weight: 600;
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 2px solid #ffffff;
+            padding-left: calc(0.75rem - 2px);
+        } */
+
+        .nav-item.active > .nav-link.collapsed {
+            background-color: rgba(255, 193, 7, 0.15);
+            border-left: 4px solid #ffffff;
+        }
+
+        .nav-item:has(.menu-dropdown .nav-link.active) > .nav-link {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffffff;
+        }
+
     </style>
     @yield('css')
     
@@ -293,6 +327,7 @@
                     <div id="two-column-menu"></div>
                     <ul class="navbar-nav" id="navbar-nav">
                         <li class="menu-title"><span data-key="t-menu">DOCUMENT MANAGEMENT SYSTEM</span></li>
+                        <li class="menu-title"><span data-key="t-menu">Menu</span></li>
                         
                         <!-- Dashboard (Hidden for Users) -->
                         @if((auth()->user()->role != "User"))
@@ -402,16 +437,16 @@
                                 <div class="menu-dropdown collapse" id="sidebarSettings">
                                     <ul class="nav nav-sm flex-column">
                                         <li class="nav-item">
-                                            <a href="{{url('/companies')}}" class="nav-link" data-key="t-companies">Companies</a>
+                                            <a href="{{url('/companies')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-companies">Companies</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/departments')}}" class="nav-link" data-key="t-departments">Departments</a>
+                                            <a href="{{url('/departments')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/users')}}" class="nav-link" data-key="t-users">Users</a>
+                                            <a href="{{url('/users')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/dco')}}" class="nav-link" data-key="t-dco">DCO</a>
+                                            <a href="{{url('/dco')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-dco">DCO</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -427,17 +462,17 @@
                                     <ul class="nav nav-sm flex-column">
                                         @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Management Representative'))
                                             <li class="nav-item">
-                                                <a href="{{url('/logs')}}" class="nav-link" data-key="t-logs">Logs</a>
+                                                <a href="{{url('/logs')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-logs">Logs</a>
                                             </li>
                                         @endif
                                         <li class="nav-item">
-                                            <a href="{{url('/dicr-reports')}}" class="nav-link" data-key="t-change-reports">Change Requests</a>
+                                            <a href="{{url('/dicr-reports')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-change-reports">Change Requests</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/copy-reports')}}" class="nav-link" data-key="t-copy-reports">Copy Requests</a>
+                                            <a href="{{url('/copy-reports')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-copy-reports">Copy Requests</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/dco-reports')}}" class="nav-link" data-key="t-dco-reports">DCO</a>
+                                            <a href="{{url('/dco-reports')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-dco-reports">DCO</a>
                                         </li>
                                     </ul>
                                 </div>
