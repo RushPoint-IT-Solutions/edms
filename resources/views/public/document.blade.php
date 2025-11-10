@@ -50,6 +50,15 @@
         .hover-effect {
             transition: all 0.3s ease;
         }
+        .approver-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+        .approver-card:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -141,18 +150,6 @@
                         </div>
                     </div>
 
-                    {{-- <div class="col-12 col-md-6">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="text-primary" style="font-size: 1.5rem;">
-                                <i class="ri-git-branch-line"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small mb-1">VERSION</div>
-                                <div class="fw-medium">Version 2.0</div>
-                            </div>
-                        </div>
-                    </div> --}}
-
                     <div class="col-12">
                         <div class="d-flex align-items-start gap-3">
                             <div class="text-primary" style="font-size: 1.5rem;">
@@ -184,53 +181,68 @@
                 
                 <hr class="my-4">
 
-                <div class="mb-4">
-                    <h6 class="fw-semibold text-dark mb-3">
-                        <i class="ri-shield-check-line text-success me-2"></i>
-                        Approval Details
-                    </h6>
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <div class="info-box">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="text-success" style="font-size: 1.5rem;">
-                                        <i class="ri-user-star-line"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-muted small mb-1">APPROVED BY</div>
-                                        <div class="fw-semibold">Jane Smith</div>
-                                        <div class="text-muted small">Quality Manager</div>
-                                    </div>
+                <div class="mb-3">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="ri-shield-check-line text-success" style="font-size: 1.5rem;"></i>
+                        <h6 class="fw-semibold text-dark mb-0">Approval Details</h6>
+                    </div>
+
+                    <div class="approver-card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <div class="fw-semibold text-dark" style="font-size: 0.9rem;">Jane Smith</div>
+                                    <span class="badge bg-success" style="font-size: 0.7rem;">Approved</span>
                                 </div>
+                                <div class="text-muted" style="font-size: 0.75rem;">Quality Manager • Nov 09, 2024 at 02:30 PM</div>
+                            </div>
+                            <button class="btn btn-link text-decoration-none p-0" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#approver1" 
+                                    aria-expanded="false" 
+                                    aria-controls="approver1"
+                                    onclick="this.querySelector('i').classList.toggle('ri-arrow-down-s-line'); this.querySelector('i').classList.toggle('ri-arrow-up-s-line');">
+                                <i class="ri-arrow-down-s-line text-muted" style="font-size: 1.25rem;"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="collapse mt-2" id="approver1">
+                            <div class="border-top pt-2 mt-2">
+                                <div class="text-muted small fw-semibold mb-1">
+                                    <i class="ri-chat-check-line me-1"></i>REMARKS
+                                </div>
+                                <div class="text-muted" style="font-size: 0.8rem;">Document reviewed and approved. All quality standards met and procedures are compliant with ISO 9001:2015 requirements.</div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-12 col-md-6">
-                            <div class="info-box">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="text-success" style="font-size: 1.5rem;">
-                                        <i class="ri-calendar-check-line"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-muted small mb-1">APPROVAL DATE</div>
-                                        <div class="fw-semibold">November 09, 2024</div>
-                                        <div class="text-muted small">02:30 PM</div>
-                                    </div>
+                    <div class="approver-card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <div class="fw-semibold text-dark" style="font-size: 0.9rem;">Michael Johnson</div>
+                                    <span class="badge bg-success" style="font-size: 0.7rem;">Approved</span>
                                 </div>
+                                <div class="text-muted" style="font-size: 0.75rem;">Operations Director • Nov 10, 2024 at 09:15 AM</div>
                             </div>
+                            <button class="btn btn-link text-decoration-none p-0" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#approver2" 
+                                    aria-expanded="false" 
+                                    aria-controls="approver2"
+                                    onclick="this.querySelector('i').classList.toggle('ri-arrow-down-s-line'); this.querySelector('i').classList.toggle('ri-arrow-up-s-line');">
+                                <i class="ri-arrow-down-s-line text-muted" style="font-size: 1.25rem;"></i>
+                            </button>
                         </div>
-
-                        <div class="col-12">
-                            <div class="info-box">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="text-success" style="font-size: 1.5rem;">
-                                        <i class="ri-chat-check-line"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-muted small mb-1">APPROVAL REMARKS</div>
-                                        <div class="fw-medium">Document reviewed and approved. All quality standards met and procedures are compliant with ISO 9001:2015 requirements.</div>
-                                    </div>
+                        
+                        <div class="collapse mt-2" id="approver2">
+                            <div class="border-top pt-2 mt-2">
+                                <div class="text-muted small fw-semibold mb-1">
+                                    <i class="ri-chat-check-line me-1"></i>REMARKS
                                 </div>
+                                <div class="text-muted" style="font-size: 0.8rem;">Procedures align with operational requirements. Document is comprehensive and ready for implementation.</div>
                             </div>
                         </div>
                     </div>
