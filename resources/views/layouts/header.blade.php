@@ -25,7 +25,7 @@
 
 
  
-    @yield('css')
+    
     <style>
         .helpdesk-link-wrapper {
             position: absolute;
@@ -52,6 +52,7 @@
         }
 
     </style>
+    @yield('css')
     
 
 </head>

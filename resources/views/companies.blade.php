@@ -378,15 +378,26 @@
                         @endif
                     </td>
                     <td data-id='{{$company->id}}' id='actioncompanytd{{$company->id}}'>
-                        @if($company->status)
-                            <button class="btn-action activate activate-company" id='{{$company->id}}' title="Activate">
-                                <i class="fa fa-check"></i> Activate
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="companyDropdown{{$company->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
                             </button>
-                        @else
-                            <button class="btn-action deactivate deactivate-company" id='{{$company->id}}' title='Deactivate'>
-                                <i class="fa fa-trash"></i> Deactivate
-                            </button>
-                        @endif
+                            <ul class="dropdown-menu" aria-labelledby="companyDropdown{{$company->id}}">
+                                @if($company->status)
+                                    <li>
+                                        <button class="dropdown-item activate-company" id='{{$company->id}}'>
+                                            <i class="ri-check-line me-2"></i>Activate
+                                        </button>
+                                    </li>
+                                @else
+                                    <li>
+                                        <button class="dropdown-item deactivate-company" id='{{$company->id}}'>
+                                            <i class="ri-close-line me-2"></i>Deactivate
+                                        </button>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
                     </td>
                 </tr>
                 @endforeach

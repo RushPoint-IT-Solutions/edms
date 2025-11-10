@@ -354,9 +354,18 @@
                 @foreach($requests as $request)
                 <tr>
                     <td>
-                        <a href="#" data-target="#view_request{{$request->id}}" data-toggle="modal" class='btn-action view'>
-                            <i class="fa fa-eye"></i>
-                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="requestDropdown{{$request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="requestDropdown{{$request->id}}">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request{{$request->id}}">
+                                        <i class="ri-eye-line me-2"></i>View
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                     <td><strong>CR-{{str_pad($request->id, 5, '0', STR_PAD_LEFT)}}</strong></td>
                     <td>{{date('M d Y',strtotime($request->created_at))}}</td>

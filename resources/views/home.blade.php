@@ -137,6 +137,63 @@
     .file-share-menu.show {
         display: block;
     }
+
+    .hover-effect {
+        transition: all 0.2s ease;
+    }
+
+    .hover-effect:hover {
+        transform: translateX(5px);
+    }
+
+    .hover-effect:hover span {
+        color: #0d6efd !important;
+        text-decoration: underline;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    .table-container {
+        overflow: visible;
+    }
+
+    @media (max-width: 991px) {
+        .table-container {
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .modern-table thead th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        padding: 15px 12px;
+        border-bottom: 2px solid #8B0000;
+        white-space: nowrap;
+    }
+
+    .modern-table tbody td {
+        padding: 12px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+        font-size: 14px;
+    }
+
+    .modern-table tbody tr:hover {
+        background: #f8f9fa;
+    }
 </style>
 @endsection
 
@@ -773,8 +830,8 @@
 </div>
 
 <!-- Documents Section -->
-<div class="card shadow-sm mb-3">
-    <div class="card-body">
+<div class="card shadow-sm mb-3" style="overflow: visible;">
+    <div class="card-body" style="overflow: visible;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="fw-semibold text-dark mb-0">Documents</h5>
         </div>
@@ -783,7 +840,7 @@
             <div class="col-12 col-lg-auto flex-lg-grow-1">
                 <div class="position-relative">
                     <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                    <input type="text" placeholder="Search Product" class="form-control form-control-sm ps-5" style="min-width: 250px;">
+                    <input type="text" placeholder="Search Document" class="form-control form-control-sm ps-5" style="min-width: 250px;">
                 </div>
             </div>
             <div class="col-auto d-flex align-items-center gap-2">
@@ -812,11 +869,146 @@
             </div>
         </div>
 
-        <div class="border-top" style="border-color: #7f1d1d !important; border-width: 2px !important;">
-            <div class="text-center py-5 px-3 text-muted">
-                <i class="ri-file-list-line" style="font-size: 3rem; opacity: 0.3;"></i>
-                <p class="mt-3 mb-0">No documents found</p>
+        <div class="table-container">
+            <table class="modern-table tables">
+                <thead class="table-light">
+                    <tr>
+                        <th style="font-size: 0.875rem; font-weight: 600;">Title</th>
+                        <th style="font-size: 0.875rem; font-weight: 600;">Attachment</th>
+                        <th style="font-size: 0.875rem; font-weight: 600;">Created By</th>
+                        <th style="font-size: 0.875rem; font-weight: 600;">Status</th>
+                        <th style="font-size: 0.875rem; font-weight: 600;">QR Code</th>
+                        <th style="font-size: 0.875rem; font-weight: 600;" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="fw-semibold text-dark" style="font-size: 0.875rem;">Quality Management System Manual</div>
+                            <small class="text-muted">Doc-2024-001</small>
+                        </td>
+                        <td>
+                            <a href="{{ asset('document_attachments/1722316806_sample.pdf') }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
+                                <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
+                                <span style="font-size: 0.875rem;" class="text-dark">QMS_Manual.pdf</span>
+                            </a>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.875rem;">John Doe</div>
+                            <small class="text-muted">Nov 8, 2024</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-success" style="font-size: 0.75rem;">Active</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="Doc-2024-001" data-doc-title="Quality Management System Manual">
+                                <i class="ri-qr-code-line"></i> View QR
+                            </button>
+                        </td>
+                        <td class="text-center">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-2-fill"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <button class="dropdown-item print-doc-btn">
+                                            <i class="ri-printer-line me-2"></i>Print
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item">
+                                            <i class="ri-pencil-line me-2"></i>Edit
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item">
+                                            <i class="ri-delete-bin-line me-2"></i>Delete
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted" style="font-size: 0.875rem;">
+                Showing 1 to 1 of 1 entries
             </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrCodeModalLabel">Document QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="card border-0 bg-light p-4 mb-3">
+                    <div id="qrCodeContainer" class="d-flex justify-content-center">
+                    </div>
+                </div>
+                <div class="alert alert-info mb-3" role="alert">
+                    <i class="ri-information-line"></i> Scan this QR code to access document details
+                </div>
+                <div class="mb-2">
+                    <strong>Document ID:</strong> <span id="qrDocId" class="text-primary">Doc-2024-001</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Document Title:</strong> <span id="qrDocTitle">Quality Management System Manual</span>
+                </div>
+                <div>
+                    <strong>URL:</strong> 
+                    <div class="input-group input-group-sm mt-1">
+                        <input type="text" class="form-control" id="qrDocUrl" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyUrlBtn">
+                            <i class="ri-file-copy-line"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="printQrBtn">
+                    <i class="ri-printer-line"></i> Print QR
+                </button>
+                <button type="button" class="btn btn-success" id="downloadQrBtn">
+                    <i class="ri-download-line"></i> Download QR
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="qrPrintTemplate" style="display: none;">
+    <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif;">
+        <h2 style="margin-bottom: 20px;">Document QR Code</h2>
+        <div id="qrPrintCode" style="margin: 30px auto;"></div>
+        <div style="margin-top: 30px;">
+            <p style="font-size: 18px; margin: 10px 0;"><strong>Document ID:</strong> <span id="qrPrintDocId"></span></p>
+            <p style="font-size: 18px; margin: 10px 0;"><strong>Title:</strong> <span id="qrPrintDocTitle"></span></p>
+            <p style="font-size: 14px; margin: 20px 0; color: #666;"><strong>URL:</strong> <span id="qrPrintDocUrl"></span></p>
+        </div>
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="font-size: 12px; color: #999;">Scan this QR code to access document details</p>
+            <p style="font-size: 12px; color: #999;">Generated on: <span id="qrPrintDate"></span></p>
         </div>
     </div>
 </div>
@@ -878,100 +1070,190 @@
 @endsection
 
 @section('js')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const moreButtons = document.querySelectorAll('.file-more-btn');
-        
-        moreButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                const dropdown = this.nextElementSibling;
-                const previewMenu = dropdown.nextElementSibling;
-                const shareMenu = previewMenu.nextElementSibling;
-                const fileCard = this.closest('.file-card');
-                
-                document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu').forEach(menu => {
-                    if (menu !== dropdown && menu !== previewMenu && menu !== shareMenu) {
-                        menu.classList.remove('show');
-                        menu.closest('.file-card')?.classList.remove('dropdown-open');
-                    }
-                });
-                
-                dropdown.classList.toggle('show');
-                previewMenu.classList.remove('show');
-                shareMenu.classList.remove('show');
-                
-                if (dropdown.classList.contains('show')) {
-                    fileCard.classList.add('dropdown-open');
-                } else {
-                    fileCard.classList.remove('dropdown-open');
-                }
+document.addEventListener('DOMContentLoaded', function() {
+    const qrModalElement = document.getElementById('qrCodeModal');
+    const qrModal = new bootstrap.Modal(qrModalElement);
+    
+    const viewQrButtons = document.querySelectorAll('.view-qr-btn');
+    
+    viewQrButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const docId = this.getAttribute('data-doc-id');
+            const docTitle = this.getAttribute('data-doc-title');
+            
+            const docUrl = window.location.origin + '/document/' + docId;
+            
+            document.getElementById('qrDocId').textContent = docId;
+            document.getElementById('qrDocTitle').textContent = docTitle;
+            document.getElementById('qrDocUrl').value = docUrl;
+            
+            const qrContainer = document.getElementById('qrCodeContainer');
+            qrContainer.innerHTML = '';
+            
+            new QRCode(qrContainer, {
+                text: docUrl,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
+            
+            qrModal.show();
         });
-
-        document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu')
-            .forEach(menu => {
-                menu.addEventListener('click', e => e.stopPropagation());
-            });
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.file-more-btn') &&
-                !e.target.closest('.file-dropdown-menu') &&
-                !e.target.closest('.file-preview-menu') &&
-                !e.target.closest('.file-share-menu')) {
-                document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu').forEach(menu => {
+    });
+    
+    document.getElementById('copyUrlBtn').addEventListener('click', function() {
+        const urlInput = document.getElementById('qrDocUrl');
+        urlInput.select();
+        document.execCommand('copy');
+        
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="ri-check-line"></i> Copied!';
+        setTimeout(() => {
+            this.innerHTML = originalText;
+        }, 2000);
+    });
+    
+    document.getElementById('printQrBtn').addEventListener('click', function() {
+        const docId = document.getElementById('qrDocId').textContent;
+        const docTitle = document.getElementById('qrDocTitle').textContent;
+        const docUrl = document.getElementById('qrDocUrl').value;
+        
+        document.getElementById('qrPrintDocId').textContent = docId;
+        document.getElementById('qrPrintDocTitle').textContent = docTitle;
+        document.getElementById('qrPrintDocUrl').textContent = docUrl;
+        document.getElementById('qrPrintDate').textContent = new Date().toLocaleString();
+        
+        const printQrContainer = document.getElementById('qrPrintCode');
+        printQrContainer.innerHTML = '';
+        new QRCode(printQrContainer, {
+            text: docUrl,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        setTimeout(() => {
+            const printContents = document.getElementById('qrPrintTemplate').innerHTML;
+            const originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload();
+        }, 500);
+    });
+    
+    document.getElementById('downloadQrBtn').addEventListener('click', function() {
+        const qrCanvas = document.querySelector('#qrCodeContainer canvas');
+        if (qrCanvas) {
+            const docId = document.getElementById('qrDocId').textContent;
+            const url = qrCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `QR_${docId}.png`;
+            link.href = url;
+            link.click();
+        }
+    });
+    
+    const moreButtons = document.querySelectorAll('.file-more-btn');
+    
+    moreButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            const dropdown = this.nextElementSibling;
+            const previewMenu = dropdown.nextElementSibling;
+            const shareMenu = previewMenu.nextElementSibling;
+            const fileCard = this.closest('.file-card');
+            
+            document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu').forEach(menu => {
+                if (menu !== dropdown && menu !== previewMenu && menu !== shareMenu) {
                     menu.classList.remove('show');
                     menu.closest('.file-card')?.classList.remove('dropdown-open');
-                });
+                }
+            });
+            
+            dropdown.classList.toggle('show');
+            previewMenu.classList.remove('show');
+            shareMenu.classList.remove('show');
+            
+            if (dropdown.classList.contains('show')) {
+                fileCard.classList.add('dropdown-open');
+            } else {
+                fileCard.classList.remove('dropdown-open');
             }
         });
+    });
 
-        document.querySelectorAll('.file-dropdown-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const action = this.getAttribute('data-action');
-                
-                if (action === 'preview') {
-                    const dropdown = this.closest('.file-dropdown-menu');
-                    const previewMenu = dropdown.nextElementSibling;
-                    dropdown.classList.remove('show');
-                    previewMenu.classList.add('show');
-                    return;
-                }
-                if (action === 'share') {
-                    const dropdown = this.closest('.file-dropdown-menu');
-                    const previewMenu = dropdown.nextElementSibling;
-                    const shareMenu = previewMenu.nextElementSibling;
-                    dropdown.classList.remove('show');
-                    shareMenu.classList.add('show');
-                    return;
-                }
-                if (action === 'back') {
-                    const previewMenu = this.closest('.file-preview-menu');
-                    const dropdown = previewMenu.previousElementSibling;
-                    previewMenu.classList.remove('show');
-                    dropdown.classList.add('show');
-                    return;
-                }
-                if (action === 'back-share') {
-                    const shareMenu = this.closest('.file-share-menu');
-                    const previewMenu = shareMenu.previousElementSibling;
-                    const dropdown = previewMenu.previousElementSibling;
-                    shareMenu.classList.remove('show');
-                    dropdown.classList.add('show');
-                    return;
-                }
+    document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu')
+        .forEach(menu => {
+            menu.addEventListener('click', e => e.stopPropagation());
+        });
 
-                const actionText = this.querySelector('span').textContent.trim();
-                console.log('Action clicked:', actionText);
-                
-                const menu = this.closest('.file-dropdown-menu, .file-preview-menu, .file-share-menu');
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.file-more-btn') &&
+            !e.target.closest('.file-dropdown-menu') &&
+            !e.target.closest('.file-preview-menu') &&
+            !e.target.closest('.file-share-menu')) {
+            document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu').forEach(menu => {
                 menu.classList.remove('show');
                 menu.closest('.file-card')?.classList.remove('dropdown-open');
             });
+        }
+    });
+
+    document.querySelectorAll('.file-dropdown-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const action = this.getAttribute('data-action');
+            
+            if (action === 'preview') {
+                const dropdown = this.closest('.file-dropdown-menu');
+                const previewMenu = dropdown.nextElementSibling;
+                dropdown.classList.remove('show');
+                previewMenu.classList.add('show');
+                return;
+            }
+            if (action === 'share') {
+                const dropdown = this.closest('.file-dropdown-menu');
+                const previewMenu = dropdown.nextElementSibling;
+                const shareMenu = previewMenu.nextElementSibling;
+                dropdown.classList.remove('show');
+                shareMenu.classList.add('show');
+                return;
+            }
+            if (action === 'back') {
+                const previewMenu = this.closest('.file-preview-menu');
+                const dropdown = previewMenu.previousElementSibling;
+                previewMenu.classList.remove('show');
+                dropdown.classList.add('show');
+                return;
+            }
+            if (action === 'back-share') {
+                const shareMenu = this.closest('.file-share-menu');
+                const previewMenu = shareMenu.previousElementSibling;
+                const dropdown = previewMenu.previousElementSibling;
+                shareMenu.classList.remove('show');
+                dropdown.classList.add('show');
+                return;
+            }
+
+            const actionText = this.querySelector('span').textContent.trim();
+            console.log('Action clicked:', actionText);
+            
+            const menu = this.closest('.file-dropdown-menu, .file-preview-menu, .file-share-menu');
+            menu.classList.remove('show');
+            menu.closest('.file-card')?.classList.remove('dropdown-open');
         });
     });
+});
 </script>
 
 {{-- Chart Scripts (COMMENTED OUT) --}}

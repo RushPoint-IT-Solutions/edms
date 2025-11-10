@@ -423,18 +423,31 @@
                         @endif
                     </td>
                     <td data-id='{{$department->id}}' id='actioncompanytd{{$department->id}}'>
-                        @if($department->status)
-                            <button class="btn-action activate activate-department" id='{{$department->id}}' title="Activate">
-                                <i class="fa fa-check"></i> Activate
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="departmentDropdown{{$department->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
                             </button>
-                        @else
-                            <button class="btn-action edit" title='Edit' data-target="#editDepartment{{$department->id}}" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#editDepartment{{$department->id}}">
-                                <i class="fa fa-edit"></i> Edit
-                            </button>
-                            <button class="btn-action deactivate deactivate-department" id='{{$department->id}}' title='Deactivate'>
-                                <i class="fa fa-trash"></i> Deactivate
-                            </button>
-                        @endif
+                            <ul class="dropdown-menu" aria-labelledby="departmentDropdown{{$department->id}}">
+                                @if($department->status)
+                                    <li>
+                                        <button class="dropdown-item activate-department" id='{{$department->id}}'>
+                                            <i class="ri-check-line me-2"></i>Activate
+                                        </button>
+                                    </li>
+                                @else
+                                    <li>
+                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment{{$department->id}}">
+                                            <i class="ri-pencil-line me-2"></i>Edit
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item deactivate-department" id='{{$department->id}}'>
+                                            <i class="ri-close-line me-2"></i>Deactivate
+                                        </button>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
                     </td>
                 </tr>
                 @endforeach

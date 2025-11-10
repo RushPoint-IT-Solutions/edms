@@ -119,3 +119,8 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
 });
+
+
+Route::get('/document/{documentId}', function($documentId) {
+    return view('public.document');
+})->name('document.public.view');

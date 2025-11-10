@@ -397,15 +397,26 @@
                         @endif
                     </td>
                     <td data-id='{{$user->id}}' id='actionuser{{$user->id}}'>
-                        @if($user->status)
-                            <button class="btn-action activate activate-user" data-bs-target="#editUser{{$user->id}}" data-bs-toggle="modal" id='{{$user->id}}' title="Activate">
-                                <i class="fa fa-user-o"></i>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="userDropdown{{$user->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
                             </button>
-                        @else
-                            <button class="btn-action edit" data-bs-target="#edit{{$user->id}}" data-bs-toggle="modal" title='Edit Departments'>
-                                <i class="fa fa-edit"></i>
-                            </button>
-                        @endif
+                            <ul class="dropdown-menu" aria-labelledby="userDropdown{{$user->id}}">
+                                @if($user->status)
+                                    <li>
+                                        <button class="dropdown-item activate-user" data-bs-toggle="modal" data-bs-target="#editUser{{$user->id}}" id='{{$user->id}}'>
+                                            <i class="fa fa-user-o me-2"></i>Activate
+                                        </button>
+                                    </li>
+                                @else
+                                    <li>
+                                        <button class="dropdown-item edit" data-bs-toggle="modal" data-bs-target="#edit{{$user->id}}">
+                                            <i class="fa fa-edit me-2"></i>Edit Departments
+                                        </button>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
                     </td>
                 </tr>
                 @include('edit_department_dco') 
@@ -488,7 +499,7 @@
         $('.tables').DataTable({
             pageLength: 25,
             responsive: true,
-            dom: '<"html5buttons"B>lTfgitp',
+            dom: '<"html5buttons"B>lfrtip',
             buttons: [
                 { extend: 'copy'},
                 {extend: 'csv'},

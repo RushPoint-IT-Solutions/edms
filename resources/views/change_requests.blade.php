@@ -511,18 +511,27 @@
                 @endif
                 <tr>
                     <td>
-                        <a href="#" data-target="#view_request{{$request->id}}" data-toggle="modal" class='btn-action view'>
-                            <i class="fa fa-eye"></i>
-                        </a>
-                        @if((auth()->user()->role == "Document Control Officer") || (auth()->user()->role == "Administrator"))
-                        @if($request->status == "Pending")
-                        @if($request->request_type == "Revision")
-                        <a href="#" data-target="#edit_request{{$request->id}}" data-toggle="modal" class='btn-action edit'>
-                            <i class="fa fa-edit"></i>
-                        </a>
-                        @endif
-                        @endif
-                        @endif
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="requestDropdown{{$request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="requestDropdown{{$request->id}}">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request{{$request->id}}">
+                                        <i class="ri-eye-line me-2"></i>View
+                                    </a>
+                                </li>
+                                @if((auth()->user()->role == "Document Control Officer") || (auth()->user()->role == "Administrator"))
+                                    @if($request->status == "Pending" && $request->request_type == "Revision")
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#edit_request{{$request->id}}">
+                                                <i class="ri-pencil-line me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                    @endif
+                                @endif
+                            </ul>
+                        </div>
                     </td>
                     <td>
                         @if(optional($request->preAssessment)->status != "Pending")
@@ -595,11 +604,11 @@
 <script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
 @if($status == null)
-<script type="text/javascript">
+{{-- <script type="text/javascript">
     $(window).on('load', function() {
         $('#myModal').modal('show');
     });
-</script>
+</script> --}}
 @endif
 <script>
     // var delayed = {!! json_encode($delayed) !!};
