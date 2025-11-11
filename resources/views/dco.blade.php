@@ -279,8 +279,8 @@
 
 <div class="row mb-4 dashboard-header">
     <div class="col-12">
-        <h4 class="mb-0">Document Control Officers</h4>
-        <p class="text-muted mb-0">Manage DCO and department assignments</p>
+        <h4 class="mb-0">Record Management Officers</h4>
+        <p class="text-muted mb-0">Manage RMO and department assignments</p>
     </div>
 </div>
 
@@ -291,7 +291,7 @@
                 <i class="fa fa-users"></i>
             </div>
             <h2>{{count($users)}}</h2>
-            <p>Total DCO</p>
+            <p>Total RMO</p>
         </div>
     </div>
     
@@ -321,7 +321,7 @@
                 <i class="fa fa-exclamation-triangle"></i>
             </div>
             <h2>{{count($departments->where('dco_count','=',0))}}</h2>
-            <p>Departments No DCO</p>
+            <p>Departments No RMO</p>
         </div>
     </div>
 </div>
@@ -347,7 +347,7 @@
                     <td>{{$department->code}}</td>
                     <td>
                         @if(count($department->dco) == 0) 
-                            <span class="badge-labels danger">No DCO</span>  
+                            <span class="badge-labels danger">No RMO</span>  
                         @else 
                             @foreach($department->dco as $dco) 
                                 <span class="badge-labels primary">{{$dco->user->name}}</span>
@@ -363,7 +363,7 @@
 
 <div class="table-section">
     <div class="section-header">
-        <h5 class="section-title">Document Control Officers</h5>
+        <h5 class="section-title">Record Management Officers</h5>
     </div>
 
     <div class="table-container">

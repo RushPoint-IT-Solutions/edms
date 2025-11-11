@@ -356,14 +356,14 @@
                         </li>
 
                         <!-- Pre-Assessment (Admin, DCO, or User ID 286 only) -->
-                        @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Document Control Officer") || (auth()->user()->id == "286"))
+                        {{-- @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Document Control Officer") || (auth()->user()->id == "286"))
                             <li class="nav-item {{ Route::current()->getName() == 'pre_assessment' ? 'active' : '' }}">
                                 <a class="nav-link menu-link" href="{{url('/pre_assessment')}}">
                                     <i class="ri-file-text-line"></i>
                                     <span data-key="t-pre-assessment">Pre-assessment</span>
                                 </a>
                             </li>
-                        @endif
+                        @endif --}}
 
                         <!-- Change Requests -->
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
@@ -446,7 +446,7 @@
                                             <a href="{{url('/users')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/dco')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-dco">DCO</a>
+                                            <a href="{{url('/dco')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -480,12 +480,12 @@
                         @endif
 
                         <!-- Memorandum (All users) -->
-                        <li class="nav-item @if(Request::is('memorandum')) active @endif">
+                        {{-- <li class="nav-item @if(Request::is('memorandum')) active @endif">
                             <a class="nav-link menu-link" href="{{url('memorandum')}}">
                                 <i class="ri-sticky-note-line"></i>
                                 <span data-key="t-memorandum">Memorandum</span>
                             </a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </div>
                 <!-- Sidebar -->
