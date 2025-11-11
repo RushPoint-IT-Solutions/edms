@@ -200,7 +200,7 @@
 @section('content')
 <div class="mb-4">
     <h4 class="fs-2 fw-semibold mb-1">Dashboard</h4>
-    <p class="text-muted">Overview of your library management system</p>
+    <p class="text-muted">Overview of your documents</p>
 </div>
 
 {{-- <div class="row g-3 mb-4">
