@@ -405,24 +405,40 @@
                         @endif
                     </td>
                     <td data-id='{{$user->id}}' id='actionuser{{$user->id}}'>
-                        @if($user->status)
-                            <button class="btn-action activate activate-user" id='{{$user->id}}' title="Activate">
-                                <i class="fa fa-check"></i>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="userDropdown{{$user->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
                             </button>
-                        @else
-                            <button class="btn-action change-pass" data-target="#change_pass{{$user->id}}" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#change_pass{{$user->id}}" title='Change Password'>
-                                <i class="fa fa-key"></i>
-                            </button>
-                            <button class="btn-action edit" title='Edit' data-target="#editUser{{$user->id}}" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#editUser{{$user->id}}">
-                                <i class="fa fa-edit"></i>
-                            </button>
-                            @if(Auth::user()->id != $user->id)
-                            <button class="btn-action deactivate deactivate-user" id='{{$user->id}}' title='Deactivate'>
-                                <i class="fa fa-trash"></i>
-                            </button>
-                            @endif
-                        @endif
+                            <ul class="dropdown-menu" aria-labelledby="userDropdown{{$user->id}}">
+                                @if($user->status)
+                                    <li>
+                                        <button class="dropdown-item activate-user" id='{{$user->id}}'>
+                                            <i class="ri-check-line me-2"></i>Activate
+                                        </button>
+                                    </li>
+                                @else
+                                    <li>
+                                        <button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass{{$user->id}}">
+                                            <i class="ri-key-line me-2"></i>Change Password
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item edit" data-bs-toggle="modal" data-bs-target="#editUser{{$user->id}}">
+                                            <i class="ri-pencil-line me-2"></i>Edit
+                                        </button>
+                                    </li>
+                                    @if(Auth::user()->id != $user->id)
+                                        <li>
+                                            <button class="dropdown-item deactivate-user" id='{{$user->id}}'>
+                                                <i class="ri-close-line me-2"></i>Deactivate
+                                            </button>
+                                        </li>
+                                    @endif
+                                @endif
+                            </ul>
+                        </div>
                     </td>
+
                 </tr>
                 @include('edit_user') 
                 @include('changepassword') 

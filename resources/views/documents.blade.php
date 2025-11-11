@@ -260,25 +260,45 @@
     .dataTables_wrapper .dataTables_length {
         float: right;
         margin-bottom: 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .dataTables_wrapper .dataTables_length label {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .dataTables_wrapper .dataTables_length select {
         padding: 6px 30px 6px 10px;
         border: 1px solid #dee2e6;
         border-radius: 4px;
-        margin: 0 5px;
+        margin: 0;
     }
 
     .dataTables_wrapper .dataTables_filter {
         float: left;
         margin-bottom: 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .dataTables_wrapper .dataTables_filter label {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .dataTables_wrapper .dataTables_filter input {
         padding: 6px 12px;
         border: 1px solid #dee2e6;
         border-radius: 4px;
-        margin-left: 5px;
+        margin: 0;
     }
 
     .dataTables_wrapper .dataTables_info {
@@ -314,6 +334,9 @@
         float: right;
         margin-bottom: 15px;
         margin-right: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
 
     .dt-button {
@@ -322,8 +345,11 @@
         color: #495057 !important;
         padding: 6px 12px !important;
         border-radius: 4px !important;
-        margin-right: 5px !important;
+        margin: 0 !important;
         font-size: 13px !important;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
     }
 
     .dt-button:hover {
@@ -455,9 +481,18 @@
                 @foreach($documents_na as $document)
                 <tr>
                     <td>
-                        <a href="{{url('view-document/'.$document->id)}}" target="_blank" class='btn-action view'>
-                            <i class="ri-eye-line"></i>
-                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="documentDropdown{{$document->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="documentDropdown{{$document->id}}">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url('view-document/'.$document->id) }}" target="_blank">
+                                        <i class="ri-eye-line me-2"></i>View Document
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                     <td><strong>{{$document->control_code}}</strong></td>
                     <td>{{$document->old_control_code}}</td>
@@ -537,7 +572,7 @@
                     $(win.document.body).find('table')
                         .addClass('compact')
                         .css('font-size', 'inherit');
-                 }
+                }
                 }
             ]
         });

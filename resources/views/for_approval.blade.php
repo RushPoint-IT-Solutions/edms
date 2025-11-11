@@ -368,10 +368,18 @@
                 @endphp
                 <tr>
                     <td>
-                        <a href="#" data-target="#view_request_copy{{$copy_approval->copy_request->id}}" 
-                           data-toggle="modal" class='btn-action btn-info' title="View Request">
-                            <i class="fa fa-eye"></i>
-                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="copyRequestDropdown{{$copy_approval->copy_request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="copyRequestDropdown{{$copy_approval->copy_request->id}}">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request_copy{{$copy_approval->copy_request->id}}">
+                                        <i class="ri-eye-line me-2"></i>View Request
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                     <td>
                         <span class="ref-badge">CR-{{str_pad($request->id, 5, '0', STR_PAD_LEFT)}}</span>
@@ -416,15 +424,14 @@
                 @endphp
                 <tr>
                     <td>
-                        <a href="#" data-target="#view_request_change{{$request->id}}" 
-                           data-toggle="modal" class='btn-action btn-info' title="View Request">
-                            <i class="fa fa-eye"></i>
+                        <a href="#" data-bs-target="#view_request_change{{$request->id}}" data-bs-toggle="modal" class="btn btn-sm btn-outline-info me-1" title="View Request">
+                            <i class="ri-eye-line"></i>
                         </a>
+
                         @if(auth()->user()->role == "Document Control Officer")
-                        <a href="#" data-target="#edit_title{{$request->id}}" 
-                           data-toggle="modal" class='btn-action btn-warning' title="Edit">
-                            <i class="fa fa-edit"></i>
-                        </a>
+                            <a href="#" data-bs-target="#edit_title{{$request->id}}" data-bs-toggle="modal" class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                                <i class="ri-pencil-line"></i>
+                            </a>
                         @endif
                     </td>
                     <td>

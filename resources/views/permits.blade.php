@@ -488,6 +488,7 @@
         <table class="modern-table tables">
             <thead>
                 <tr>
+                    <th>Action</th>
                     <th>Title</th>
                     <th>Description</th>
                     <th>Company</th>
@@ -498,12 +499,63 @@
                     <th>Type</th>
                     <th>Expiration Date</th>
                     <th>Status</th>
-                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($permits as $permit)
                 <tr>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="dropdownMenuButton{{$permit->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{$permit->id}}">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#upload{{$permit->id}}">
+                                        <i class="ri-upload-line me-2"></i>Upload
+                                    </a>
+                                </li>
+
+                                @if((auth()->user()->role != "User") && (auth()->user()->role != "Department Head") && (auth()->user()->role != "Documents and Records Controller"))
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change{{$permit->id}}">
+                                            <i class="ri-user-line me-2"></i>Transfer Department
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType{{$permit->id}}">
+                                            <i class="ri-edit-line me-2"></i>Change Types
+                                        </a>
+                                    </li>
+
+                                    @if($permit->status == null)
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="POST" action="{{ url('inactive-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
+                                                @csrf
+                                                <button type="button" class="dropdown-item text-danger inactiveBtn">
+                                                    <i class="ri-delete-bin-line me-2"></i>Inactive Permits
+                                                </button>
+                                            </form>
+                                        </li>
+                                    @endif
+
+                                    @if($permit->status == "Inactive")
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="POST" action="{{ url('activate-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
+                                                @csrf
+                                                <button type="button" class="dropdown-item text-success activatePermitsBtn">
+                                                    <i class="ri-check-line me-2"></i>Activate Permits
+                                                </button>
+                                            </form>
+                                        </li>
+                                    @endif
+                                @endif
+                            </ul>
+                        </div>
+                    </td>
                     <td>{{$permit->title}}</td>
                     <td>{{$permit->description}}</td>
                     <td>{{$permit->company->name}}</td>
@@ -537,39 +589,6 @@
                                 @else 
                                 <span class="badge-status active">Active</span> 
                                 @endif 
-                            @endif
-                        @endif
-                    </td>
-                    <td>
-                        <button class="btn btn-primary btn-action" title="Upload" data-bs-toggle="modal" data-bs-target="#upload{{$permit->id}}">
-                            <i class="fa fa-upload"></i>
-                        </button>
-
-                        @if((auth()->user()->role != "User") && (auth()->user()->role != "Department Head") && (auth()->user()->role != "Documents and Records Controller"))
-                            <button class="btn btn-warning btn-action" title="Transfer Department" data-bs-toggle="modal" data-bs-target="#change{{$permit->id}}">
-                                <i class="fa fa-users"></i>
-                            </button>
-
-                            <button class="btn btn-info btn-action" title="Change Types" data-bs-toggle="modal" data-bs-target="#changeType{{$permit->id}}">
-                                <i class="fa fa-edit"></i>
-                            </button>
-
-                            @if($permit->status == null)
-                                <form method="POST" action="{{ url('inactive-permits/'.$permit->id) }}" style="display: inline;">
-                                    @csrf
-                                    <button type="button" class="btn btn-danger btn-action inactiveBtn" title="Inactive Permits">
-                                        <i class="fa fa-trash" style="font-size: 17px;"></i>
-                                    </button>
-                                </form>
-                            @endif
-
-                            @if($permit->status == "Inactive")
-                                <form method="POST" action="{{ url('activate-permits/'.$permit->id) }}" style="display: inline;">
-                                    @csrf
-                                    <button type="button" class="btn btn-success btn-action activatePermitsBtn" title="Activate Permits">
-                                        <i class="fa fa-check"></i>
-                                    </button>
-                                </form>
                             @endif
                         @endif
                     </td>

@@ -356,14 +356,25 @@
                         @foreach ($memos as $memo)
                             <tr>
                                 <td>
-                                    <button type="button" class="btn-action btn-edit" title="Edit" data-toggle="modal" data-bs-toggle="modal" data-target="#edit{{$memo->id}}" data-bs-target="#edit{{$memo->id}}">
-                                        <i class="fa fa-pencil-square-o"></i>
-                                    </button>
-                                    @if(auth()->user()->role == 'Document Control Officer')
-                                        <button type="button" class="btn-action btn-delete deleteMemo" id="{{ $memo->id }}" title="Delete">
-                                            <i class="fa fa-trash"></i>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button" id="memoDropdown{{$memo->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ri-more-2-fill"></i>
                                         </button>
-                                    @endif
+                                        <ul class="dropdown-menu" aria-labelledby="memoDropdown{{$memo->id}}">
+                                            <li>
+                                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#edit{{$memo->id}}">
+                                                    <i class="fa fa-pencil-square-o me-2"></i>Edit
+                                                </button>
+                                            </li>
+                                            @if(auth()->user()->role == 'Document Control Officer')
+                                                <li>
+                                                    <button class="dropdown-item deleteMemo" id="{{ $memo->id }}">
+                                                        <i class="fa fa-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
                                 </td>
                                 <td>
                                     <form method="POST" action="{{url('update_status/'.$memo->id)}}" onsubmit="show()" id="updateStatusForm{{$memo->id}}">

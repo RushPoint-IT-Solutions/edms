@@ -379,9 +379,18 @@
                     @endphp
                     <tr>
                         <td>
-                            <button type="button" data-bs-target="#viewPreAssessmentModal-{{$pa->id}}" data-bs-toggle="modal" class="btn-action view">
-                                <i class="fa fa-eye"></i>
-                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" id="preAssessmentDropdown{{$pa->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-2-fill"></i>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="preAssessmentDropdown{{$pa->id}}">
+                                    <li>
+                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#viewPreAssessmentModal-{{$pa->id}}">
+                                            <i class="ri-eye-line me-2"></i>View
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                         <td>{{date('M d Y',strtotime($pa->created_at))}}</td>
                         <td><strong>{{$pa->control_code}}</strong></td>

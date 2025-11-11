@@ -378,16 +378,25 @@
                     @foreach($requests->where('acknowledgement', '!=', null) as $request)
                     <tr>
                         <td>
-                            <a href="#" data-target="#view_request{{$request->id}}" data-toggle="modal"
-                                class='btn-action btn-info' title="View Request">
-                                <i class="fa fa-eye"></i>
-                            </a>
-                            @if(auth()->user()->department_id != 8)
-                            <a href="#" data-target="#upload{{$request->id}}" data-toggle="modal"
-                                class='btn-action btn-warning' title="Upload">
-                                <i class="fa fa-upload"></i>
-                            </a>
-                            @endif
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" id="requestDropdown{{$request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="ri-more-2-fill"></i>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="requestDropdown{{$request->id}}">
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request{{$request->id}}">
+                                            <i class="ri-eye-line me-2"></i>View Request
+                                        </a>
+                                    </li>
+                                    @if(auth()->user()->department_id != 8)
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#upload{{$request->id}}">
+                                                <i class="ri-upload-line me-2"></i>Upload
+                                            </a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </div>
                         </td>
                         <td>
                             <span class="ref-badge">DICR-{{str_pad($request->id, 5, '0', STR_PAD_LEFT)}}</span>
@@ -436,14 +445,12 @@
                     @foreach($requests->where('acknowledgement',null) as $request)
                     <tr>
                         <td>
-                            <a href="#" data-target="#view_request{{$request->id}}" data-toggle="modal"
-                                class='btn-action btn-info' title="View Request">
+                            <a href="#" data-target="#view_request{{$request->id}}" class="btn btn-sm btn-outline-info me-1"  data-toggle="modal" title="View Request">
                                 <i class="fa fa-eye"></i>
                             </a>
                             @if(auth()->user()->department_id != 8)
-                            <a href="#" data-target="#upload{{$request->id}}" data-toggle="modal"
-                                class='btn-action btn-warning' title="Upload">
-                                <i class="fa fa-upload"></i>
+                            <a href="#" data-target="#upload{{$request->id}}" data-toggle="modal" class="btn btn-sm btn-outline-info me-1" title="Upload">
+                                <i class="ri-upload-line"></i>
                             </a>
                             @endif
                         </td>
