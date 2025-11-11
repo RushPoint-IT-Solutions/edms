@@ -18,6 +18,9 @@ Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
     
     Route::group(['middleware' => 'deactivate'], function() {
+        Route::get('/documents/create', 'DocumentController@create')->name('documents.create');
+        Route::post('/documents/store', 'DocumentController@store')->name('documents.store');
+
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/search', 'HomeController@search')->name('search');

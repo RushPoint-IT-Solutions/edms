@@ -7,6 +7,7 @@ use App\Department;
 use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
+use App\User;
 use Illuminate\Http\Request;
 use \setasign\Fpdi\PdfParser\StreamReader;
 use \setasign\Fpdi\PdfParser\CrossReference;
@@ -110,9 +111,10 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+   public function create()
     {
-        //
+        $approvers = User::all(); // populate approvers list
+        return view('documents.create', compact('approvers'));
     }
 
     /**

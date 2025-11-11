@@ -268,34 +268,29 @@
         <div class="card shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-semibold text-dark mb-0">My Documents</h5>
+                    <h5 class="fw-semibold text-dark mb-0">Pending Documents</h5>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
-                            <i class="ri-upload-line"></i> Upload
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm">
-                            <i class="ri-list-check"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm">
-                            <i class="ri-grid-line"></i>
-                        </button>
+                        <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                            <i class="ri-file-add-line"></i> New Document
+                        </a>
+                      
                     </div>
                 </div>
 
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-5 g-3 mb-3">
+                <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3 mb-3">
                     <a href='#'>
-                    <div class="col">
-                        <div class="card border file-card position-relative">
-                          
-                            <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Spark'" style="height: 120px; object-fit: fit;">
-                            <div class="card-body p-2 text-start">
-                                <div class="docu d-flex align-items-center gap-2">
-                                    <i class="ri-file-pdf-line text-danger" style="font-size: 1rem;"></i>
-                                    <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">Docu.pdf</div>
+                        <div class="col">
+                            <div class="card border file-card position-relative">
+                            
+                                <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Spark'" style="height: 120px; object-fit: fit;">
+                                <div class="card-body p-2 text-start">
+                                    <div class="docu d-flex align-items-center gap-2">
+                                        <i class="ri-file-pdf-line text-danger" style="font-size: 1rem;"></i>
+                                        <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">Docu.pdf</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                     </a>
 
                   

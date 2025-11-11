@@ -510,7 +510,7 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-sm-6">
-                            {{date('Y')}} © LiMS
+                            {{date('Y')}} © DMS
                         </div>
                         <div class="col-sm-6">
                             <div class="text-sm-end d-none d-sm-block">
@@ -552,21 +552,6 @@
     <script src="{{asset('/assets/libs/feather-icons/feather.min.js')}}"></script>
     <script src="{{asset('/assets/js/pages/plugins/lord-icon-2.1.0.js')}}"></script>
     <script src="{{asset('/assets/js/plugins.js')}}"></script>
-    <script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
-    <script src="{{ asset('login_css/js/jquery-3.1.1.min.js')}}"></script>
-    <script src="{{ asset('login_css/js/plugins/metisMenu/jquery.metisMenu.js')}}"></script>
-    <script src="{{ asset('login_css/js/plugins/slimscroll/jquery.slimscroll.min.js')}}"></script>
-
-    <script src="{{ asset('login_css/js/inspinia.js')}}"></script>
-    <script src="{{ asset('login_css/js/plugins/pace/pace.min.js')}}"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
 
     @yield('js')
