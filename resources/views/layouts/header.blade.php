@@ -51,38 +51,31 @@
             background: #420906 !important;
         }
 
-        .navbar-menu .navbar-nav .nav-item.active .nav-link {
-            background-color: rgba(255, 193, 7, 0.15);
-            border-left: 4px solid #ffffff;
-            font-weight: 600;
-            padding-left: calc(1rem - 4px);
-        }
-
-        .navbar-menu .navbar-nav .nav-item.active .nav-link i {
-            color: #ffffff !important;
-        }
-
-        .navbar-menu .navbar-nav .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        /* .menu-dropdown .nav-item a.nav-link.active {
-            color: #ffffff !important;
-            font-weight: 600;
+        .nav-item:has(.menu-dropdown .nav-link.active) > .nav-link {
             background-color: rgba(255, 193, 7, 0.1);
-            border-left: 2px solid #ffffff;
-            padding-left: calc(0.75rem - 2px);
-        } */
+            border-left: 3px solid #ffffff;
+        }
 
         .nav-item.active > .nav-link.collapsed {
             background-color: rgba(255, 193, 7, 0.15);
             border-left: 4px solid #ffffff;
         }
 
-        .nav-item:has(.menu-dropdown .nav-link.active) > .nav-link {
+        .menu-dropdown .nav-item a.nav-link.active {
+            color: #ffffff !important;
+            font-weight: 600;
             background-color: rgba(255, 193, 7, 0.1);
-            border-left: 3px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            padding-left: calc(0.75rem - 2px);
+        }
+
+        .menu-dropdown .nav-item a.nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .menu-dropdown .nav-item a.nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
         }
 
     </style>
@@ -429,54 +422,61 @@
                             </li>
 
                             <!-- Settings Submenu -->
-                            <li class="nav-item">
-                                <a class="nav-link menu-link collapsed {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarSettings">
+                            <li class="nav-item {{ Request::is('companies*') || Request::is('departments*') || Request::is('users*') || (Request::is('dco') || Request::is('dco/*')) ? 'active' : '' }}">
+                                <a class="nav-link menu-link {{ Request::is('companies*') || Request::is('departments*') || Request::is('users*') || (Request::is('dco') || Request::is('dco/*')) ? '' : 'collapsed' }}" 
+                                href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
+                                aria-expanded="{{ Request::is('companies*') || Request::is('departments*') || Request::is('users*') || (Request::is('dco') || Request::is('dco/*')) ? 'true' : 'false' }}" 
+                                aria-controls="sidebarSettings">
                                     <i class="ri-settings-3-line"></i> 
                                     <span data-key="t-settings">Settings</span>
                                 </a>
-                                <div class="menu-dropdown collapse" id="sidebarSettings">
+                                <div class="menu-dropdown collapse {{ Request::is('companies*') || Request::is('departments*') || Request::is('users*') || (Request::is('dco') || Request::is('dco/*')) ? 'show' : '' }}" id="sidebarSettings">
                                     <ul class="nav nav-sm flex-column">
                                         <li class="nav-item">
-                                            <a href="{{url('/companies')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-companies">Companies</a>
+                                            <a href="{{url('/companies')}}" class="nav-link {{ Request::is('companies*') ? 'active' : '' }}" data-key="t-companies">Companies</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/departments')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-departments">Departments</a>
+                                            <a href="{{url('/departments')}}" class="nav-link {{ Request::is('departments*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/users')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-users">Users</a>
+                                            <a href="{{url('/users')}}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/dco')}}" class="nav-link {{ Route::current()->getName() == 'settings' ? 'active' : '' }}" data-key="t-dco">DCO</a>
+                                            <a href="{{url('/dco')}}" class="nav-link {{ Request::is('dco') || Request::is('dco/*') ? 'active' : '' }}" data-key="t-dco">DCO</a>
                                         </li>
                                     </ul>
                                 </div>
                             </li>
-                            
+
                             <!-- Reports Submenu -->
-                            <li class="nav-item">
-                                <a class="nav-link menu-link collapsed {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarReports">
+                            <li class="nav-item {{ Request::is('logs*') || Request::is('dicr-reports*') || Request::is('copy-reports*') || Request::is('dco-reports*') ? 'active' : '' }}">
+                                <a class="nav-link menu-link {{ Request::is('logs*') || Request::is('dicr-reports*') || Request::is('copy-reports*') || Request::is('dco-reports*') ? '' : 'collapsed' }}" 
+                                href="#sidebarReports" data-bs-toggle="collapse" role="button" 
+                                aria-expanded="{{ Request::is('logs*') || Request::is('dicr-reports*') || Request::is('copy-reports*') || Request::is('dco-reports*') ? 'true' : 'false' }}" 
+                                aria-controls="sidebarReports">
                                     <i class="ri-file-chart-line"></i> 
                                     <span data-key="t-reports">Reports</span>
                                 </a>
-                                <div class="menu-dropdown collapse" id="sidebarReports">
+                                <div class="menu-dropdown collapse {{ Request::is('logs*') || Request::is('dicr-reports*') || Request::is('copy-reports*') || Request::is('dco-reports*') ? 'show' : '' }}" id="sidebarReports">
                                     <ul class="nav nav-sm flex-column">
                                         @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Management Representative'))
                                             <li class="nav-item">
-                                                <a href="{{url('/logs')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-logs">Logs</a>
+                                                <a href="{{url('/logs')}}" class="nav-link {{ Request::is('logs*') ? 'active' : '' }}" data-key="t-logs">Logs</a>
                                             </li>
                                         @endif
                                         <li class="nav-item">
-                                            <a href="{{url('/dicr-reports')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-change-reports">Change Requests</a>
+                                            <a href="{{url('/dicr-reports')}}" class="nav-link {{ Request::is('dicr-reports*') ? 'active' : '' }}" data-key="t-change-reports">Change Requests</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/copy-reports')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-copy-reports">Copy Requests</a>
+                                            <a href="{{url('/copy-reports')}}" class="nav-link {{ Request::is('copy-reports*') ? 'active' : '' }}" data-key="t-copy-reports">Copy Requests</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{url('/dco-reports')}}" class="nav-link {{ Route::current()->getName() == 'reports' ? 'active' : '' }}" data-key="t-dco-reports">DCO</a>
+                                            <a href="{{url('/dco-reports')}}" class="nav-link {{ Request::is('dco-reports*') ? 'active' : '' }}" data-key="t-dco-reports">DCO</a>
                                         </li>
                                     </ul>
                                 </div>
                             </li>
+                        </li>
                         @endif
 
                         <!-- Memorandum (All users) -->
