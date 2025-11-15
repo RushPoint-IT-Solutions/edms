@@ -117,6 +117,10 @@ class DocumentController extends Controller
         return view('documents.create', compact('approvers'));
     }
 
+    public function signature() {
+        return view('documents.signature-assignment');
+    }
+
     /**
      * Store a newly created resource in storage.
      *
