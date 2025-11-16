@@ -340,11 +340,11 @@
     </div>
 </div> --}}
 
-<div class="row g-4 mb-4">
+<div class="row g-4">
     <div class="col-12 col-lg-8">
         <div class="card shadow-sm">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-semibold text-dark mb-0">Pending Documents</h5>
                     <div class="d-flex gap-2">
                         <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
@@ -410,7 +410,7 @@
     </div>
 
     <div class="col-12 col-lg-4">
-        <div class="card shadow-sm h-100">
+        <div class="card shadow-sm">
             <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
                 
@@ -441,7 +441,7 @@
 </div>
 
 <!-- Documents Section -->
-<div class="card shadow-sm mb-3" style="overflow: visible;">
+<div class="card shadow-sm mb-5" style="overflow: visible;">
     <div class="card-body" style="overflow: visible;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="fw-semibold text-dark mb-0">Documents</h5>
@@ -499,7 +499,7 @@
                             <small class="text-muted">Doc-2024-001</small>
                         </td>
                         <td>
-                            <a href="{{ asset('document_attachments/1722316806_sample.pdf') }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
+                            <a href="{{ url('pdf-viewer', ['file' => '1762761235_LRC_MANUAL.pdf']) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
                                 <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
                                 <span style="font-size: 0.875rem;" class="text-dark">QMS_Manual.pdf</span>
                             </a>
@@ -722,9 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             switch(action) {
                 case 'display':
-                    console.log('Display action clicked');
-                    const pdfUrl = '{{ asset("document_attachments/1722316806_sample.pdf") }}';
-                    window.open(pdfUrl, '_blank');
+                    window.location.href = '{{ url('pdf-viewer', ['file' => '1762761235_LRC_MANUAL.pdf']) }}    ';
                     break;
                 case 'approve':
                     window.location.href = '{{ route("documents.signature") }}';
