@@ -4,196 +4,273 @@
 {{-- <link href="{{ asset('login_css/css/plugins/c3/c3.min.css') }}" rel="stylesheet">
 <link href="{{ asset('login_css/css/plugins/morris/morris-0.4.3.min.css') }}" rel="stylesheet"> --}}
 <style>
-    .file-card {
-        position: relative;
-        z-index: 1;
-    }
-    .file-card.dropdown-open {
-        z-index: 9999;
-    }
-    .file-card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
-        transform: translateY(-2px);
-    }
-    .file-card .more-btn {
+.file-card {
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.file-card.dropdown-open {
+    z-index: 9999;
+}
+
+.file-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.file-card .more-btn {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.file-card:hover .more-btn,
+.file-card.dropdown-open .more-btn {
+    opacity: 1;
+}
+
+.file-more-btn {
+    transition: all 0.2s ease;
+    background-color: white !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.file-more-btn:hover {
+    background-color: #f8f9fa !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+}
+
+.file-more-btn:active {
+    background-color: #e9ecef !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transform: scale(0.95);
+}
+
+.file-dropdown-menu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 200px;
+    z-index: 9999;
+    display: none;
+    margin-left: 8px;
+    overflow: hidden;
+    animation: dropdownFadeIn 0.15s ease-out;
+}
+
+.file-dropdown-menu.show {
+    display: block;
+}
+
+@keyframes dropdownFadeIn {
+    from {
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transform: translateY(-5px);
     }
-    .file-card:hover .more-btn,
-    .file-card.dropdown-open .more-btn {
+    to {
         opacity: 1;
+        transform: translateY(0);
     }
+}
 
-    .file-dropdown-menu {
-        position: absolute;
-        top: 100%;
-        left: 20%;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        min-width: 200px;
-        z-index: 9999;
-        display: none;
-        margin-top: 5px;
-        overflow: hidden;
-    }
-    .file-dropdown-menu.show {
-        display: block;
-    }
-    
-    .file-dropdown-item {
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        border: none;
-        background: none;
-        width: 100%;
-        text-align: left;
-        font-size: 0.875rem;
-        color: #212529;
-        position: relative;
-    }
-    .file-dropdown-item:hover {
-        background-color: #f8f9fa;
-    }
-    .file-dropdown-item i {
-        font-size: 1.25rem;
-        width: 20px;
-        text-align: center;
-    }
-    .file-dropdown-item .shortcut {
-        margin-left: auto;
-        font-size: 0.75rem;
-        color: #6c757d;
-    }
-    .file-dropdown-divider {
-        height: 1px;
-        background-color: #dee2e6;
-        margin: 4px 0;
-    }
-    .file-dropdown-item.submenu {
-        justify-content: space-between;
-    }
-    .file-dropdown-item.danger {
-        color: #dc3545;
-    }
-    .file-dropdown-item.danger:hover {
-        background-color: #fee;
-    }
+.file-dropdown-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 0.875rem;
+    color: #212529;
+    position: relative;
+    font-weight: 500;
+    user-select: none;
+}
 
-    .file-submenu {
-        position: absolute;
-        left: 100%;
-        top: 0;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        min-width: 200px;
-        z-index: 10000;
-        display: none;
-        margin-left: 5px;
-        overflow: hidden;
-    }
-    .file-submenu.show {
-        display: block;
-    }
-    .file-dropdown-item.submenu:hover .file-submenu {
-        display: block;
-    }
+.file-dropdown-item:hover {
+    background-color: #f8f9fa;
+}
 
-    .file-preview-menu {
-        position: absolute;
-        top: 100%;
-        left: 20%;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        min-width: 200px;
-        z-index: 9999;
-        display: none;
-        margin-top: 5px;
-        overflow: hidden;
-    }
-    .file-preview-menu.show {
-        display: block;
-    }
+.file-dropdown-item:active {
+    background-color: #e9ecef;
+    transform: scale(0.98);
+}
 
-    .file-share-menu {
-        position: absolute;
-        top: 100%;
-        left: 20%;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        min-width: 200px;
-        z-index: 9999;
-        display: none;
-        margin-top: 5px;
-        overflow: hidden;
-    }
-    .file-share-menu.show {
-        display: block;
-    }
+.file-dropdown-item i {
+    width: 20px;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
 
-    .hover-effect {
-        transition: all 0.2s ease;
-    }
+.file-dropdown-item:hover i {
+    transform: scale(1.1);
+}
 
-    .hover-effect:hover {
-        transform: translateX(5px);
-    }
+.file-dropdown-item .shortcut {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
 
-    .hover-effect:hover span {
-        color: #0d6efd !important;
-        text-decoration: underline;
-    }
+.file-dropdown-divider {
+    height: 1px;
+    background-color: #dee2e6;
+    margin: 4px 0;
+}
 
+.file-dropdown-item.submenu {
+    justify-content: space-between;
+}
+
+.file-dropdown-item.danger {
+    color: #dc3545;
+}
+
+.file-dropdown-item.danger:hover {
+    background-color: #fee;
+}
+
+.file-submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 200px;
+    z-index: 10000;
+    display: none;
+    margin-left: 5px;
+    overflow: hidden;
+}
+
+.file-submenu.show {
+    display: block;
+}
+
+.file-dropdown-item.submenu:hover .file-submenu {
+    display: block;
+}
+
+.file-preview-menu {
+    position: absolute;
+    top: 100%;
+    left: 20%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 200px;
+    z-index: 9999;
+    display: none;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.file-preview-menu.show {
+    display: block;
+}
+
+/* Share Menu Styles */
+.file-share-menu {
+    position: absolute;
+    top: 100%;
+    left: 20%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 200px;
+    z-index: 9999;
+    display: none;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.file-share-menu.show {
+    display: block;
+}
+
+.hover-effect {
+    transition: all 0.2s ease;
+}
+
+.hover-effect:hover {
+    transform: translateX(5px);
+}
+
+.hover-effect:hover span {
+    color: #0d6efd !important;
+    text-decoration: underline;
+}
+
+.table-container {
+    overflow: visible;
+}
+
+@media (max-width: 991px) {
     .table-container {
         overflow-x: auto;
         overflow-y: visible;
     }
+}
 
-    .table-container {
-        overflow: visible;
-    }
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
 
-    @media (max-width: 991px) {
-        .table-container {
-            overflow-x: auto;
-            overflow-y: visible;
-        }
-    }
+.modern-table thead th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    padding: 15px 12px;
+    border-bottom: 2px solid #8B0000;
+    white-space: nowrap;
+}
 
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
+.modern-table tbody td {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+    font-size: 14px;
+}
 
-    .modern-table thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        padding: 15px 12px;
-        border-bottom: 2px solid #8B0000;
-        white-space: nowrap;
-    }
+.modern-table tbody tr:hover {
+    background: #f8f9fa;
+}
 
-    .modern-table tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        vertical-align: middle;
-        font-size: 14px;
+@media (max-width: 768px) {
+    .file-dropdown-menu {
+        left: auto;
+        right: 0;
+        top: 100%;
+        margin-left: 0;
+        margin-top: 5px;
     }
-
-    .modern-table tbody tr:hover {
-        background: #f8f9fa;
+    
+    .file-preview-menu,
+    .file-share-menu {
+        left: auto;
+        right: 0;
+        min-width: 180px;
     }
+    
+    .file-submenu {
+        left: auto;
+        right: 100%;
+        margin-left: 0;
+        margin-right: 5px;
+    }
+}
 </style>
 @endsection
 
@@ -265,7 +342,7 @@
 
 <div class="row g-4 mb-4">
     <div class="col-12 col-lg-8">
-        <div class="card shadow-sm h-100">
+        <div class="card shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-semibold text-dark mb-0">Pending Documents</h5>
@@ -273,27 +350,41 @@
                         <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
                             <i class="ri-file-add-line"></i> New Document
                         </a>
-                      
                     </div>
                 </div>
 
-                <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3 mb-3">
-                    <a href='#'>
-                        <div class="col">
-                            <div class="card border file-card position-relative">
-                            
-                                <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Spark'" style="height: 120px; object-fit: fit;">
+                <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3">
+                    <div class="col">
+                        <div class="card border file-card position-relative">
+                            <div class="position-absolute top-0 end-0 m-2 more-btn">
+                                <button class="btn btn-sm btn-light p-1 file-more-btn" style="width: 28px; height: 28px; line-height: 1; border-radius: 6px;">
+                                    <i class="ri-more-2-fill"></i>
+                                </button>
+                            </div>
+
+                            <div class="file-dropdown-menu">
+                                <button class="file-dropdown-item" data-action="display">
+                                    <i class="ri-file-text-line"></i>
+                                    <span>View</span>
+                                </button>
+                                <div class="file-dropdown-divider"></div>
+                                <button class="file-dropdown-item" data-action="approve">
+                                    <i class="ri-checkbox-circle-line"></i>
+                                    <span>Approve</span>
+                                </button>
+                            </div>
+
+                            <a href='#' class="text-decoration-none" onclick="return false;">
+                                <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Sp ark'" style="height: 100%; object-fit: fit;">
                                 <div class="card-body p-2 text-start">
                                     <div class="docu d-flex align-items-center gap-2">
                                         <i class="ri-file-pdf-line text-danger" style="font-size: 1rem;"></i>
                                         <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">Docu.pdf</div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                    </a>
-
-                  
+                    </div>
                     {{-- Loop through actual files --}}
                     {{-- @foreach($files as $file)
                     <div class="col">
@@ -591,6 +682,81 @@
 
 @section('js')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const moreButtons = document.querySelectorAll('.file-more-btn');
+    
+    moreButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const dropdown = this.parentElement.nextElementSibling;
+            const fileCard = this.closest('.file-card');
+            
+            document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
+                if (menu !== dropdown) {
+                    menu.classList.remove('show');
+                    menu.closest('.file-card')?.classList.remove('dropdown-open');
+                }
+            });
+            
+            dropdown.classList.toggle('show');
+            
+            if (dropdown.classList.contains('show')) {
+                fileCard.classList.add('dropdown-open');
+            } else {
+                fileCard.classList.remove('dropdown-open');
+            }
+        });
+    });
+
+    document.querySelectorAll('.file-dropdown-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const action = this.getAttribute('data-action');
+            const actionText = this.querySelector('span').textContent.trim();
+            
+            switch(action) {
+                case 'display':
+                    console.log('Display action clicked');
+                    const pdfUrl = '{{ asset("document_attachments/1722316806_sample.pdf") }}';
+                    window.open(pdfUrl, '_blank');
+                    break;
+                case 'approve':
+                    window.location.href = '{{ route("documents.signature") }}';
+                    break;
+                case 'view':
+                    console.log('View action clicked');
+                    window.location.href = '{{ url("/documents/1") }}';
+                    break;
+            }
+            
+            const menu = this.closest('.file-dropdown-menu');
+            menu.classList.remove('show');
+            menu.closest('.file-card')?.classList.remove('dropdown-open');
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.file-more-btn') && 
+            !e.target.closest('.file-dropdown-menu')) {
+            document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+                menu.closest('.file-card')?.classList.remove('dropdown-open');
+            });
+        }
+    });
+
+    document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
+        menu.addEventListener('click', e => e.stopPropagation());
+    });
+});
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const qrModalElement = document.getElementById('qrCodeModal');
