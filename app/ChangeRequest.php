@@ -37,5 +37,12 @@ class ChangeRequest extends Model  implements Auditable
     {
         return $this->belongsTo(PreAssessment::class);
     }
-  
+    public function supporting_documents()
+    {
+        return $this->hasMany(SupportingDocument::class);
+    }
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

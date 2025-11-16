@@ -347,6 +347,61 @@
 
 <div class="requests-section">
     <div class="section-header">
+        <h5 class="section-title">Change Requests</h5>
+    </div>
+
+    <div class="table-container">
+        <table class="modern-table tables">
+            <thead>
+                <tr>
+                    <th>Actions</th>
+                    <th>Reference</th>
+                    <th>Date</th>
+                    <th>Document</th>
+                    <th>Requested By</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($change_for_approvals->where('status','Pending') as $change_approval)
+                @php
+                    $request = $change_approval->change_request;
+                @endphp
+                <tr>
+                    <td>
+                        <a href={{ url('change-request/for_approval/'.$request->id) }} class="btn btn-sm btn-outline-info me-1" title="View Request">
+                            <i class="ri-eye-line"></i>
+                        </a>
+
+                        {{-- @if(auth()->user()->role == "Document Control Officer")
+                            <a href="#" data-bs-target="#edit_title{{$request->id}}" data-bs-toggle="modal" class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                                <i class="ri-pencil-line"></i>
+                            </a>
+                        @endif --}}
+                    </td>
+                    <td>
+                        <span class="ref-badge">DOC-{{ date('Y', strtotime($request->created_at)) }}-{{ str_pad($request->id,3,'0',STR_PAD_LEFT) }}</span>
+                    </td>
+                    <td>{{date('M d, Y',strtotime($request->created_at))}}</td>
+                    <td>
+                        <small>
+                            <strong>DOC-{{ date('Y', strtotime($request->created_at)) }}-{{ str_pad($request->id,3,'0',STR_PAD_LEFT) }} Rev. {{$request->revision}}</strong><br>
+                            {{$request->title}}<br>
+                        </small>
+                    </td>
+                    <td>{{$request->user->name}}</td>
+                    <td>
+                        {{ $request->type }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="requests-section">
+    <div class="section-header">
         <h5 class="section-title">Copy Requests</h5>
     </div>
 
@@ -400,77 +455,13 @@
     </div>
 </div>
 
-<div class="requests-section">
-    <div class="section-header">
-        <h5 class="section-title">Change Requests</h5>
-    </div>
-
-    <div class="table-container">
-        <table class="modern-table tables">
-            <thead>
-                <tr>
-                    <th>Actions</th>
-                    <th>Reference</th>
-                    <th>Date</th>
-                    <th>Document</th>
-                    <th>Requested By</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($change_for_approvals->where('status','Pending') as $change_approval)
-                @php
-                    $request = $change_approval->change_request;
-                @endphp
-                <tr>
-                    <td>
-                        <a href="#" data-bs-target="#view_request_change{{$request->id}}" data-bs-toggle="modal" class="btn btn-sm btn-outline-info me-1" title="View Request">
-                            <i class="ri-eye-line"></i>
-                        </a>
-
-                        @if(auth()->user()->role == "Document Control Officer")
-                            <a href="#" data-bs-target="#edit_title{{$request->id}}" data-bs-toggle="modal" class="btn btn-sm btn-outline-primary me-1" title="Edit">
-                                <i class="ri-pencil-line"></i>
-                            </a>
-                        @endif
-                    </td>
-                    <td>
-                        <span class="ref-badge">DICR-{{str_pad($request->id, 5, '0', STR_PAD_LEFT)}}</span>
-                    </td>
-                    <td>{{date('M d, Y',strtotime($request->created_at))}}</td>
-                    <td>
-                        <small>
-                            <strong>{{$request->control_code}} Rev. {{$request->revision}}</strong><br>
-                            {{$request->title}}<br>
-                            {{$request->type_of_document}}
-                        </small>
-                    </td>
-                    <td>{{$request->user->name}}</td>
-                    <td>
-                        @if($request->request_type == 'New')
-                            <span class="type-badge new">New</span>
-                        @elseif($request->request_type == 'Revision')
-                            <span class="type-badge revision">Revision</span>
-                        @elseif($request->request_type == 'Obsolete')
-                            <span class="type-badge obsolete">Obsolete</span>
-                        @else
-                            <span class="type-badge">{{$request->request_type}}</span>
-                        @endif
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-
-@foreach($change_for_approvals->where('status','Pending') as $change_approval)
+{{-- @foreach($change_for_approvals->where('status','Pending') as $change_approval)
 @php
 $request = $change_approval->change_request;
 @endphp
 @include('view_approval_change')
 @include('edit_title')
-@endforeach
+@endforeach --}}
 
 @foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
 @php

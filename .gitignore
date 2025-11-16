@@ -10,3 +10,5 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 public/memorandum_files
+public/attachment/
+public/supporting_documents/

@@ -10,8 +10,6 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-
 Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 
 Auth::routes();
@@ -45,9 +43,14 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('copy-request-action/{id}','CopyController@action');
     
         //ChangeRequest
-        Route::post('change-request','RequestController@store');
-        Route::post('change-request-action/{id}','RequestController@action');
-        Route::post('new-change-request','RequestController@new_request');
+        Route::prefix('change-request')->group(function() {
+            Route::get('for_approval/{id}', 'RequestController@show');
+            
+            Route::post('store','RequestController@store');
+            Route::post('comments', 'RequestController@comments');
+            Route::post('change-request-action/{id}','RequestController@action');
+            // Route::post('new-change-request','RequestController@new_request');
+        });
     
     
         Route::get('/permits', 'PermitController@index')->name('permits');
