@@ -76,9 +76,9 @@ class HomeController extends Controller
             {
                 $departments = Department::whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray())->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
                 // $change_requests = ChangeRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-                $change_requests = ChangeRequest::get();
+                $change_requests = ChangeRequest::with('user')->get();
                 $copy_requests = CopyRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-                $documents = Document::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('status',null)->get();
+                $documents = Document::with('change_requests')->where('user_id', auth()->user()->id)->get();
                 $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
             }
 

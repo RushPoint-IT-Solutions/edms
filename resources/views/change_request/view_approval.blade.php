@@ -82,7 +82,7 @@
                     <hr class="mt-2">
                     @php
                         $request = ($change_request->approvers)->where('user_id', auth()->user()->id)->where('status', 'Pending');
-                        $if_start_request = ($change_request->approvers)->whereIn('status', ['Pending', 'Waiting']);
+                        $if_start_request = ($change_request->approvers)->whereIn('status', ['Pending', 'Waiting','Approved']);
                     @endphp
                     @if(count($request) > 0)
                         <form method="POST" action="{{ url('change-request/change-request-action/'.$change_request->id) }}">

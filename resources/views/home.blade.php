@@ -493,26 +493,30 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @foreach ($change_requests as $change_request)
+                    @php
+                        $code = "DOC-".date('Y', strtotime($change_request->created_at)).'-'.str_pad($change_request->id,3,'0',STR_PAD_LEFT);
+                    @endphp
                     <tr>
                         <td>
-                            <div class="fw-semibold text-dark" style="font-size: 0.875rem;">Quality Management System Manual</div>
-                            <small class="text-muted">Doc-2024-001</small>
+                            <div class="fw-semibold text-dark" style="font-size: 0.875rem;">{{ $change_request->title }}</div>
+                            <small class="text-muted">{{ $code }}</small>
                         </td>
                         <td>
-                            <a href="{{ url('pdf-viewer', ['file' => '1762761235_LRC_MANUAL.pdf']) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
+                            <a href="{{ url($change_request->file) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
                                 <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
-                                <span style="font-size: 0.875rem;" class="text-dark">QMS_Manual.pdf</span>
+                                <span style="font-size: 0.875rem;" class="text-dark">{{ $change_request->title }}.pdf</span>
                             </a>
                         </td>
                         <td>
-                            <div style="font-size: 0.875rem;">John Doe</div>
-                            <small class="text-muted">Nov 8, 2024</small>
+                            <div style="font-size: 0.875rem;">{{ $change_request->user->name }}</div>
+                            <small class="text-muted">{{ date('M d Y', strtotime($change_request->created_at)) }}</small>
                         </td>
                         <td>
                             <span class="badge bg-success" style="font-size: 0.75rem;">Active</span>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="Doc-2024-001" data-doc-title="Quality Management System Manual">
+                            <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="{{ $code }}" data-doc-title="{{ $change_request->title }}">
                                 <i class="ri-qr-code-line"></i> View QR
                             </button>
                         </td>
@@ -541,6 +545,7 @@
                             </div>
                         </td>
                     </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
