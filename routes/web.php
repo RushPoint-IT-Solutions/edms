@@ -128,3 +128,7 @@ Route::group(['middleware' => 'auth'], function () {
 Route::get('/document/{documentId}', function($documentId) {
     return view('public.document');
 })->name('document.public.view');
+
+Route::get('/pdf-viewer/{file}', function($file) {
+    return view('pdf-viewer', ['pdfFile' => $file]);
+})->name('pdf.viewer');
