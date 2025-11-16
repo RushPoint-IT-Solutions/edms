@@ -310,7 +310,7 @@
 @endsection
 
 @section('content')
-@include('error')
+{{-- @include('error') --}}
 
 <div class="row mb-4 dashboard-header">
     <div class="col-12">
@@ -326,10 +326,7 @@
                 <i class="fa fa-clock-o"></i>
             </div>
             <h2>
-                <form method="GET" style="display: inline;">
-                    <input type="hidden" name="status" value="NotDelayed">
-                    <input type="submit" value="{{$notDelayedCount}}" style="background: none; border: none; cursor: pointer; padding: 0; color: #2c3e50; font-size: 28px; font-weight: 700;">
-                </form>
+                0
             </h2>
             <p>Pending</p>
         </div>
@@ -341,10 +338,7 @@
                 <i class="fa fa-times-circle"></i>
             </div>
             <h2>
-                <form method="GET" style="display: inline;">
-                    <input type="hidden" name="status" value="Declined">
-                    <input type="submit" value="{{$declinedCount}}" style="background: none; border: none; cursor: pointer; padding: 0; color: #2c3e50; font-size: 28px; font-weight: 700;">
-                </form>
+                0
             </h2>
             <p>Declined</p>
         </div>
@@ -356,10 +350,7 @@
                 <i class="fa fa-check-circle"></i>
             </div>
             <h2>
-                <form method="GET" style="display: inline;">
-                    <input type="hidden" name="status" value="Approved">
-                    <input type="submit" value="{{$approvedCount}}" style="background: none; border: none; cursor: pointer; padding: 0; color: #2c3e50; font-size: 28px; font-weight: 700;">
-                </form>
+                0
             </h2>
             <p>Approved</p>
         </div>
@@ -371,10 +362,7 @@
                 <i class="fa fa-exclamation-triangle"></i>
             </div>
             <h2>
-                <form method="GET" style="display: inline;">
-                    <input type="hidden" name="status" value="Delayed">
-                    <input type="submit" value="{{ $delayedCount }}" style="background: none; border: none; cursor: pointer; padding: 0; color: #2c3e50; font-size: 28px; font-weight: 700;">
-                </form>
+                0
             </h2>
             <p>Delayed</p>
         </div>
@@ -392,11 +380,11 @@
             @if(auth()->user()->role == "Document Control Officer")
             <button class="btn btn-success "  data-target="#newRequest" data-toggle="modal" type="button"><i class="fa fa-plus"></i>&nbsp;New </button>
             @endif --}}
-            @if(auth()->user()->role == "User")
+            {{-- @if(auth()->user()->role == "User")
                 <button class="btn-new" data-target="#newRequest" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#newRequest" type="button">
                     <i class="fa fa-plus"></i> New Request
                 </button>
-            @endif
+            @endif --}}
         </div>
     </div>
 
@@ -405,113 +393,23 @@
             <thead>
                 <tr>
                     <th>Actions</th>
-                    <th>Reference No.</th>
-                    <th>Request Type</th>
-                    <th>Date Requested</th>
-                    <th>Code</th>
+                    <th>Doc ID</th>
                     <th>Title</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Privacy</th>
                     <th>Revision</th>
-                    <th>Type</th>
                     <th>Requested By</th>
-                    <th>Target Date</th>
-                    <th>Approved Date</th>
+                    <th>Date Requested</th>
                     <th>Status</th>
+                    <th>Request Status</th>
                 </tr>
             </thead>
             <tbody>
-                @php
-                    $delayed = 0;
-                @endphp
                 @foreach($requests as $request)
-                
-                @if(($request->type_of_document == "FORM") || ($request->type_of_document == "ANNEX") ||($request->type_of_document == "TEMPLATE"))
-                    @php
-                        $date_push = date('Y-m-d', strtotime('2024-08-22'));
-                        if ($date_push > date('Y-m-d', strtotime($request->created_at)))
-                        {
-                            $target = date('Y-m-d', strtotime("+7 days", strtotime($request->created_at))); 
-                        }
-                        else
-                        {
-                            // $departmentHeadApproval = date('Y-m-d', strtotime($request->department_head_approved));
-                            // if ($departmentHeadApproval !=  null) {
-                            //     $target = date('Y-m-d', strtotime("+7 days", strtotime($departmentHeadApproval)));
-                            // }
-                            // else
-                            // {
-                            //     $target = date('Y-m-d');
-                            // }
-                            if ($request->department_head_approved != null)
-                            {
-                                $target = date('Y-m-d', strtotime("+7 days", strtotime($request->department_head_approved)));
-                            }
-                            else
-                            {
-                                if ($request->preAssessment != null)
-                                {
-                                    if ($request->preAssessment->status == 'Approved')
-                                    {
-                                        $target = "";
-                                    }
-                                    else
-                                    {
-                                        $target = date('Y-m-d', strtotime("+10 days", strtotime($request->preAssessment->created_at)));
-                                    }
-                                }
-                                else
-                                {
-                                    // For old data that does not have pre assessment
-                                    $target = date('Y-m-d', strtotime("+7 days", strtotime($request->created_at))); 
-                                }
-                            }
-                        }
-                    @endphp
-                @else
-                    @php
-                        $date_push = '2024-08-22';
-                        if ($date_push > date('Y-m-d', strtotime($request->created_at)))
-                        {
-                            $target = date('Y-m-d', strtotime("+1 month", strtotime($request->created_at))); 
-                        }
-                        else
-                        {
-                            // $departmentHeadApproval = date('Y-m-d', strtotime($request->department_head_approved));
-                            // if ($departmentHeadApproval != null) {
-                            //     $target = date('Y-m-d', strtotime("+1 month", strtotime($departmentHeadApproval)));
-                            // }
-                            // else
-                            // {
-                            //     $target = date('Y-m-d');
-                            // }
-                            if ($request->department_head_approved != null)
-                            {
-                                $target = date('Y-m-d', strtotime("+1 month", strtotime($request->department_head_approved))); 
-                            }
-                            else
-                            {
-                                if ($request->preAssessment != null)
-                                {
-                                    if ($request->preAssessment->status == 'Approved')
-                                    {
-                                        $target = "";
-                                    }
-                                    else
-                                    {
-                                        $target = date('Y-m-d', strtotime("+10 days", strtotime($request->preAssessment->created_at)));
-                                    }
-                                }
-                                else
-                                {
-                                    // For old data that does not have pre assessment
-                                    $target = date('Y-m-d', strtotime("+1 month", strtotime($request->created_at))); 
-                                }
-                            }
-                        } 
-                    @endphp
-                @endif
                 <tr>
                     <td>
-                        <div class="dropdown">
+                        {{-- <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary" type="button" id="requestDropdown{{$request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="ri-more-2-fill"></i>
                             </button>
@@ -531,89 +429,38 @@
                                     @endif
                                 @endif
                             </ul>
-                        </div>
+                        </div> --}}
+                        <a href="{{ url('change-request/for_approval/'.$request->id) }}" class="btn btn-sm btn-outline-info me-1" target="_blank">
+                            <i class="ri-eye-line"></i>
+                        </a>
                     </td>
-                    <td>
-                        @if(optional($request->preAssessment)->status != "Pending")
-                        <strong>DICR-{{str_pad($request->id, 5, '0', STR_PAD_LEFT)}}</strong>
-                        @endif
-                    </td>
-                    <td>{{$request->request_type}}</td>
-                    <td>{{date('Y-m-d',strtotime($request->created_at))}}</td>
-                    @if($request->document_id != null)
-                    <td>{{$request->control_code}}</td>   
-                    <td>{{$request->title}}</td>   
-                    <td>{{$request->revision}}</td>   
-                    @else
-                    <td></td>
-                    <td>{{$request->title}}</td>
-                    <td></td>
-                    @endif
-                    <td>{{$request->type_of_document}}</td>   
-                    <td>{{$request->user->name}}</td>
-                    <td>
-                        @if($target != null)
-                            {{date('Y-m-d', strtotime($target))}}
-                        @endif
-                    </td>
-                    <td>
-                        @if($request->status == 'Approved')
-                            {{date('Y-m-d', strtotime($request->updated_at))}}
-                        @endif
-                    </td>
-                    <td> 
-                        @if(optional($request->preAssessment)->status == "Pending")
-                            <span class="badge-status pre-assessment">Pre-Assessment</span>
-                        @else
-                            @if($request->status == "Pending")
-                                @if($target != null)
-                                    @if($target < date('Y-m-d'))
-                                    @php
-                                        $delayed++;
-                                    @endphp
-                                    <span class='badge-status delayed'>Delayed - {{$request->status}}</span>
-                                    @else
-                                    <span class='badge-status pending'>{{$request->status}}</span>
-                                    @endif
-                                @else
-                                    <span class='badge-status pending'>{{$request->status}}</span>
-                                @endif
-                            @elseif($request->status == "Approved")
-                                <span class='badge-status approved'>{{$request->status}}</span>
-                            @elseif($request->status == "Declined")
-                                <span class='badge-status declined'>{{$request->status}}</span>
-                            @else
-                                <span class='badge-status pending'>{{$request->status}}</span>
-                            @endif
-                        @endif
-                    </td>
+                    <td>DOC-{{ date('Y', strtotime($request->created_at)) }}-{{ str_pad($request->id,3,'0',STR_PAD_LEFT) }}</td>
+                    <td>{{ $request->title }}</td>
+                    <td>{{ $request->description }}</td>
+                    <td>{{ $request->category }}</td>
+                    <td>{{ $request->privacy }}</td>
+                    <td>{{ $request->revision }}</td>
+                    <td>{{ $request->user->name }}</td>
+                    <td>{{ date('Y-m-d', strtotime($request->created_at)) }}</td>
+                    <td>{{ $request->status }}</td>
+                    <td>{{ $request->request_status }}</td>
                 </tr>
-                @include('view_change_request')
-                @include('edit_change_request')
+                {{-- @include('view_change_request') --}}
+                {{-- @include('edit_change_request') --}}
                 @endforeach
             </tbody>
         </table>
     </div>
 </div>
 
-@include('new_change_request_image')
-@include('new_change_request')
+{{-- @include('new_change_request_image')
+@include('new_change_request') --}}
 @endsection
 
 @section('js')
 <script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-@if($status == null)
-{{-- <script type="text/javascript">
-    $(window).on('load', function() {
-        $('#myModal').modal('show');
-    });
-</script> --}}
-@endif
 <script>
-    // var delayed = {!! json_encode($delayed) !!};
-    // document.getElementById('delayed').innerText = delayed;
-    // document.getElementById('delayed').value = delayed;
     $(document).ready(function(){
         $('.cat').chosen({width: "100%"});
         
