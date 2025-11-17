@@ -11,6 +11,8 @@
 |
 */
 Route::get('email_notif','PermitController@email_notif')->name('email-notif');
+Route::get('auth/google', 'GoogleController@redirectToGoogle');
+Route::get('auth/google/callback','GoogleController@handleGoogleCallback');
 
 Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
