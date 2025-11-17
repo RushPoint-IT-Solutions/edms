@@ -45,4 +45,8 @@ class ChangeRequest extends Model  implements Auditable
     {
         return $this->hasMany(Comment::class);
     }
+    public function document()
+    {
+        return $this->belongsTo(Document::class);
+    }
 }

@@ -82,29 +82,22 @@
                     <hr class="mt-2">
                     @php
                         $request = ($change_request->approvers)->where('user_id', auth()->user()->id)->where('status', 'Pending');
-                        $if_start_request = ($change_request->approvers)->whereIn('status', ['Pending', 'Waiting']);
+                        $if_return = ($change_request->approvers)->whereIn('status', 'Returned');
                     @endphp
                     @if(count($request) > 0)
-                        <form method="POST" action="{{ url('change-request/change-request-action/'.$change_request->id) }}">
-                            @csrf
-                            
-                            <input type="hidden" name="action" value="Approved">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-success w-100 mt-2" data-bs-toggle="modal" data-bs-target="#approve{{ $change_request->id }}">Approved Documents</button>
 
-                            <div class="col-md-12">
-                                <button type="submit" class="btn btn-success w-100 mt-2">Approved Documents</button>
-                            </div>
-                        </form>
-                        <form method="POST" action="{{ url('change-request/change-request-action/'.$change_request->id) }}">
-                            @csrf
+                            @include('change_request.approve_modal')
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-danger w-100 mt-2" data-bs-toggle="modal" data-bs-target="#return{{ $change_request->id }}">Return Documents</button>
 
-                            <input type="hidden" name="action" value="Returned">
-
-                            <div class="col-md-12">
-                                <button type="submit" class="btn btn-danger w-100 mt-2">Return Documents</button>
-                            </div>
-                        </form>
+                            @include('change_request.return_modal')
+                        </div>
                     @endif
-                    @if(count($if_start_request) == 0 && (auth()->user()->id == $change_request->user_id))
+                    @if(count($if_return) > 0 && (auth()->user()->id == $change_request->user_id))
                     <form action="{{ url('change-request/change-request-action/'.$change_request->id) }}" method="POST">
                         @csrf
 
@@ -118,16 +111,20 @@
                 </div>
                 <hr>
                 <div class="row">
+                    @if(count($change_request->comments) > 0)
                     @foreach ($change_request->comments as $comment)
                     <div class="col-md-12">
                         <strong>{{ $comment->user->name }}<span class="ms-2 text-muted"><i class="fa fa-clock-o"></i> {{ date('h:i A', strtotime($comment->created_at)) }} {{ date('M d Y', strtotime($comment->created_at)) }}</span></strong>
                         <div class="row">
-                            <div class="col-md-12 my-2">{!! nl2br(e($comment->comment)) !!}</div>
+                            <div class="col-md-12 my-2">{!! $comment->comment !!}</div>
                             {{-- <div class="col-md-12">Pending -> Returned</div> --}}
                         </div>
                     </div>
                     <hr class="m-2">
                     @endforeach
+                    @else
+                    <p style="font-style: italic;">No comment...</p>
+                    @endif
                 </div>
             </div>
         </div>

@@ -402,7 +402,7 @@
                     <th>Requested By</th>
                     <th>Date Requested</th>
                     <th>Status</th>
-                    <th>Request Status</th>
+                    {{-- <th>Request Status</th> --}}
                 </tr>
             </thead>
             <tbody>
@@ -443,7 +443,7 @@
                     <td>{{ $request->user->name }}</td>
                     <td>{{ date('Y-m-d', strtotime($request->created_at)) }}</td>
                     <td>{{ $request->status }}</td>
-                    <td>{{ $request->request_status }}</td>
+                    {{-- <td>{{ $request->request_status }}</td> --}}
                 </tr>
                 {{-- @include('view_change_request') --}}
                 {{-- @include('edit_change_request') --}}

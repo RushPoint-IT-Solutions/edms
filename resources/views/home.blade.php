@@ -354,6 +354,7 @@
                 </div>
 
                 <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3">
+                    @foreach ($change_requests as $change_request)
                     <div class="col">
                         <div class="card border file-card position-relative">
                             <div class="position-absolute top-0 end-0 m-2 more-btn">
@@ -365,6 +366,7 @@
                             <div class="file-dropdown-menu">
                                 <button class="file-dropdown-item" data-action="display">
                                     <i class="ri-file-text-line"></i>
+                                    <input type="hidden" id="file" value="{{ $change_request->file }}" />
                                     <span>View</span>
                                 </button>
                                 <div class="file-dropdown-divider"></div>
@@ -375,16 +377,22 @@
                             </div>
 
                             <a href='#' class="text-decoration-none" onclick="return false;">
-                                <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Sp ark'" style="height: 100%; object-fit: fit;">
+                                {{-- <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Sp ark'" style="height: 100%; object-fit: fit;"> --}}
+                                <iframe src="{{ url($change_request->file) }}" loading="lazy" class="card-img-top" style="height: 100%;" scrolling="no" frameborder="0"></iframe>
                                 <div class="card-body p-2 text-start">
                                     <div class="docu d-flex align-items-center gap-2">
                                         <i class="ri-file-pdf-line text-danger" style="font-size: 1rem;"></i>
-                                        <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">Docu.pdf</div>
+                                        @php
+                                            $file = $change_request->file;
+                                            $filename = explode('/',$file);
+                                        @endphp 
+                                        <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">{{ $filename[2] }}</div>
                                     </div>
                                 </div>
                             </a>
                         </div>
                     </div>
+                    @endforeach
                     {{-- Loop through actual files --}}
                     {{-- @foreach($files as $file)
                     <div class="col">
@@ -493,26 +501,30 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @foreach ($change_requests->where('user_id', auth()->user()->id)->where('status','Approved') as $change_request)
+                    @php
+                        $code = "DOC-".date('Y', strtotime($change_request->created_at)).'-'.str_pad($change_request->id,3,'0',STR_PAD_LEFT);
+                    @endphp
                     <tr>
                         <td>
-                            <div class="fw-semibold text-dark" style="font-size: 0.875rem;">Quality Management System Manual</div>
-                            <small class="text-muted">Doc-2024-001</small>
+                            <div class="fw-semibold text-dark" style="font-size: 0.875rem;">{{ $change_request->title }}</div>
+                            <small class="text-muted">{{ $code }}</small>
                         </td>
                         <td>
-                            <a href="{{ url('pdf-viewer', ['file' => '1762761235_LRC_MANUAL.pdf']) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
+                            <a href="{{ url($change_request->file) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
                                 <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
-                                <span style="font-size: 0.875rem;" class="text-dark">QMS_Manual.pdf</span>
+                                <span style="font-size: 0.875rem;" class="text-dark">{{ $change_request->title }}.pdf</span>
                             </a>
                         </td>
                         <td>
-                            <div style="font-size: 0.875rem;">John Doe</div>
-                            <small class="text-muted">Nov 8, 2024</small>
+                            <div style="font-size: 0.875rem;">{{ $change_request->user->name }}</div>
+                            <small class="text-muted">{{ date('M d Y', strtotime($change_request->created_at)) }}</small>
                         </td>
                         <td>
                             <span class="badge bg-success" style="font-size: 0.75rem;">Active</span>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="Doc-2024-001" data-doc-title="Quality Management System Manual">
+                            <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="{{ $code }}" data-doc-title="{{ $change_request->title }}">
                                 <i class="ri-qr-code-line"></i> View QR
                             </button>
                         </td>
@@ -541,6 +553,7 @@
                             </div>
                         </td>
                     </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -719,17 +732,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const action = this.getAttribute('data-action');
             const actionText = this.querySelector('span').textContent.trim();
+            const filePath = this.querySelector("#file").value
             
             switch(action) {
                 case 'display':
-                    window.location.href = '{{ url('pdf-viewer', ['file' => '1762761235_LRC_MANUAL.pdf']) }}    ';
+                    window.location.href = "{{ url('') }}/" + filePath;
                     break;
                 case 'approve':
                     window.location.href = '{{ route("documents.signature") }}';
                     break;
                 case 'view':
-                    console.log('View action clicked');
-                    window.location.href = '{{ url("/documents/1") }}';
+                    window.location.href = filePath;
                     break;
             }
             
