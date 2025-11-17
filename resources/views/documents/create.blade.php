@@ -12,24 +12,24 @@
             <div class="card">
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label" for="document-title-input">Document Title</label>
+                        <label class="form-label" for="document-title-input">Document Title <span class="text-danger">*</span></label>
                         <input type="text" name="title" class="form-control" id="document-title-input" placeholder="Enter document title" required>
                     </div>
     
                     <div class="mb-3">
-                        <label class="form-label" for="document-type-input">Document Type</label>
+                        <label class="form-label" for="document-type-input">Document Type <span class="text-danger">*</span></label>
                         <input type="text" name="type" class="form-control" id="document-type-input" placeholder="Enter document type" required>
                     </div>
     
                     <div class="mb-3">
-                        <label class="form-label">Document Description</label>
+                        <label class="form-label">Document Description <span class="text-danger">*</span></label>
                         <textarea name="description" class="form-control" cols="30" rows="10" placeholder="Enter document description" required></textarea>
                     </div>
     
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="mb-3 mb-lg-0">
-                                <label for="choices-category-input" class="form-label">Category</label>
+                                <label for="choices-category-input" class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category" class="form-select" data-choices data-choices-search-false id="choices-category-input" required>
                                     <option value="">-- Select Category --</option>
                                     <option value="Personal">Personal</option>
@@ -39,8 +39,8 @@
                         </div>
                         <div class="col-lg-6">
                             <div class="mb-3 mb-lg-0">
-                                <label for="choices-status-input" class="form-label">Status</label>
-                                <select name="status" class="form-select" data-choices data-choices-search-false id="choices-status-input">
+                                <label for="choices-status-input" class="form-label">Status <span class="text-danger">*</span></label>
+                                <select name="status" class="form-select" data-choices data-choices-search-false id="choices-status-input" required>
                                     <option value="Draft" selected>Draft</option>
                                     <option value="For Approval">For Approval</option>
                                     <option value="Approved">Approved</option>
@@ -54,7 +54,7 @@
             <!-- Approvers Section -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Approvers</h5>
+                    <h5 class="card-title mb-0">Approvers <span class="text-danger">*</span></h5>
                 </div>
                 <div class="card-body">
                     <div id="approvers-wrapper">
@@ -79,7 +79,7 @@
             <!-- Attached Files Section -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Attached Files</h5>
+                    <h5 class="card-title mb-0">Attached Files <span class="text-danger">*</span></h5>
                 </div>
                 <div class="card-body">
                     <div class="row">

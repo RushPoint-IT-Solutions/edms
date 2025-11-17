@@ -290,16 +290,19 @@ class RequestController extends Controller
             $approvers->save();
         }
 
-        $documents = $request->file('supporting_documents');
-        foreach($documents as $document)
+        if ($request->hasFile('supporting_documents'))
         {
-            $name = time().'_'.$document->getClientOriginalName();
-            $document->move(public_path('supporting_documents'),$name);
-
-            $supporting_documents = new SupportingDocument;
-            $supporting_documents->change_request_id = $change_request->id;
-            $supporting_documents->file = '/supporting_documents/'.$name;
-            $supporting_documents->save();
+            $documents = $request->file('supporting_documents');
+            foreach($documents as $document)
+            {
+                $name = time().'_'.$document->getClientOriginalName();
+                $document->move(public_path('supporting_documents'),$name);
+    
+                $supporting_documents = new SupportingDocument;
+                $supporting_documents->change_request_id = $change_request->id;
+                $supporting_documents->file = '/supporting_documents/'.$name;
+                $supporting_documents->save();
+            }
         }
         
         Alert::success('Successfully Submitted')->persistent('Dismiss');
