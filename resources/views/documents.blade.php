@@ -467,12 +467,12 @@
                     <th>Public</th>
                     @endif
                     <th>Revisions</th>
-                    <th>Company</th>
-                    <th>Department</th>
+                    {{-- <th>Company</th> --}}
+                    {{-- <th>Department</th> --}}
                     <th>Document</th>
                     <th>Type of Document</th>
                     <th>Effective Date</th>
-                    <th>Process Owner</th>
+                    {{-- <th>Process Owner</th> --}}
                     <th>Uploaded By</th>
                     <th>Status</th>
                 </tr>
@@ -502,18 +502,18 @@
                     </td>
                     @endif
                     <td>{{$document->version}}</td>
-                    <td>{{$document->company->name}}</td>
-                    <td>{{$document->department->name}}</td>
+                    {{-- <td>{{$document->company->name}}</td> --}}
+                    {{-- <td>{{$document->department->name}}</td> --}}
                     <td>{{$document->title}}</td>
                     <td>{{$document->category}}</td>
                     <td>{{date('M d, Y',strtotime($document->updated_at))}}</td>
-                    <td>
+                    {{-- <td>
                         @if($document->process_owner != null)
                             <span class="badge-info">{{$document->processOwner->name}}</span>
                         @else 
                             <span class="badge-info">{{$document->department->dep_head->name}}</span>
                         @endif
-                    </td>
+                    </td> --}}
                     <td>{{$document->user->name}}</td>
                     <td>
                         @if($document->status == null)
