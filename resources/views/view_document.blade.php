@@ -478,15 +478,15 @@
                     <span class="detail-label">Type of Document</span>
                     <span class="detail-value">{{$document->category}}</span>
                 </div>
-                <div class="detail-item">
+                {{-- <div class="detail-item">
                     <span class="detail-label">Company</span>
                     <span class="detail-value">{{$document->company->name}}</span>
-                </div>
-                <div class="detail-item">
+                </div> --}}
+                {{-- <div class="detail-item">
                     <span class="detail-label">Department</span>
                     <span class="detail-value">{{$document->department->name}}</span>
-                </div>
-                <div class="detail-item">
+                </div> --}}
+                {{-- <div class="detail-item">
                     <span class="detail-label">Department Head</span>
                     <span class="detail-value">
                         @if($document->department->dep_head)
@@ -495,7 +495,7 @@
                             <span class="danger-badge">No Department Head</span>
                         @endif
                     </span>
-                </div>
+                </div> --}}
                 <div class="detail-item">
                     <span class="detail-label">Created</span>
                     <span class="detail-value">{{date('M, d Y',strtotime($document->created_at))}}</span>
@@ -520,7 +520,7 @@
                         @endif
                     </span>
                 </div> --}}
-                <div class="detail-item">
+                {{-- <div class="detail-item">
                     <span class="detail-label">Process Owner</span>
                     <span class="detail-value">
                         @if($document->process_owner != null)
@@ -529,7 +529,7 @@
                             <span class="owner-badge">{{$document->department->dep_head->name}}</span>
                         @endif
                     </span>
-                </div>
+                </div> --}}
                 {{-- <div class="detail-item">
                     <span class="detail-label">Access</span>
                     <span class="detail-value project-people">
@@ -546,34 +546,34 @@
         @php
             $allow = 0;
         @endphp
-        @foreach($document->department->drc as $drc)
+        {{-- @foreach($document->department->drc as $drc)
             @if($drc->id == auth()->user()->id)
                 @php
                     $allow = 1;
                 @endphp
             @endif
-        @endforeach
-        @foreach(auth()->user()->department_head as $dep)
+        @endforeach --}}
+        {{-- @foreach(auth()->user()->department_head as $dep)
             @if($dep->id == $document->department_id)
                 @php
                     $allow = 1;
                 @endphp
             @endif
-        @endforeach
-        @foreach($document->department->dco as $dco)
+        @endforeach --}}
+        {{-- @foreach($document->department->dco as $dco)
             @if($dco->user_id == auth()->user()->id)
                 @php
                     $allow = 1;
                 @endphp
             @endif
-        @endforeach
-        @foreach($document->department->departments as $depa)
+        @endforeach --}}
+        {{-- @foreach($document->department->departments as $depa)
             @if($depa->user_id == auth()->user()->id)
                 @php
                     $allow = 1;
                 @endphp
             @endif
-        @endforeach
+        @endforeach --}}
         
         @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Business Process Manager") || (auth()->user()->role == "Management Representative"))
             @php
@@ -742,7 +742,7 @@
                                         <th>Type of Request</th>
                                         <th>Requested Date</th>
                                         <th>Requestor</th>
-                                        <th>Department</th>
+                                        {{-- <th>Department</th> --}}
                                         <th>Proposed Effective Date</th>
                                         <th>Type of Document</th>
                                         <th>Status</th>
@@ -755,7 +755,7 @@
                                             <td>{{$change_req->request_type}}</td>
                                             <td>{{date('M d Y',strtotime($change_req->created_at))}}</td>
                                             <td>{{$change_req->user->name}}</td>
-                                            <td>{{$change_req->department->name}}</td>
+                                            {{-- <td>{{$change_req->department->name}}</td> --}}
                                             <td>{{date('M d, Y',strtotime($change_req->effective_date))}}</td>
                                             <td>{{$change_req->type_of_document}}</td>
                                             <td>
@@ -889,10 +889,10 @@
     </div>
 </div>
 
-@include('obsolete_request_image')
-@include('copy_request')
-@include('change_request')
-@include('obsolete_request')
+{{-- @include('obsolete_request_image') --}}
+{{-- @include('copy_request') --}}
+{{-- @include('change_request') --}}
+{{-- @include('obsolete_request') --}}
 @endsection
 
 
