@@ -281,6 +281,7 @@ class RequestController extends Controller
             if($key == 0)
             {
                 $approvers->status = "Pending";
+                $approvers->start_date = date('Y-m-d');
             }
             else
             {
@@ -532,6 +533,13 @@ class RequestController extends Controller
 
                 $changeRequest->level = $changeRequest->level+1;
                 $changeRequest->save();
+
+                $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
+                $comments = new Comment;
+                $comments->change_request_id = $changeRequest->id;
+                $comments->comment = $comment;
+                $comments->user_id = auth()->user()->id;
+                $comments->save();
             }
 
             Alert::success('Successfully Approved')->persistent('Dismiss');
@@ -542,6 +550,13 @@ class RequestController extends Controller
             $changeRequest->status = "Pending";
             $changeRequest->level = 1;
             $changeRequest->save(); 
+
+            $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
+            $comments = new Comment;
+            $comments->change_request_id = $changeRequest->id;
+            $comments->comment = $comment;
+            $comments->user_id = auth()->user()->id;
+            $comments->save();
 
             Alert::success('Successfully Returned')->persistent('Dismiss');
             return redirect('/for-approval');
