@@ -30,72 +30,75 @@ class HomeController extends Controller
      */
     public function index()
     {
-        
         $change_requests = ChangeRequest::get();
-        $copy_requests = CopyRequest::get();
-
-        $yearChangeRequests = ChangeRequest::whereYear('created_at',date('Y'))->get();
-        $yearCopyRequests = CopyRequest::whereYear('created_at',date('Y'))->get();
-        $documents = Document::where('status',null)->get();
-        $departments = Department::whereHas('documents')->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-        $permits = Permit::with('company', 'department')->get();
-        $months = [];
-       
-        for ($m=1; $m<=12; $m++) {
-            $object = new \stdClass();
-            $object->y =date('M-Y', mktime(0,0,0,$m, 1, date('Y')));
-            $change_requests_count = ChangeRequest::whereYear('created_at',date('Y'))->whereMonth('created_at',date('m',mktime(0,0,0,$m, 1, date('Y'))))->count();
-            $copy_requests_count = CopyRequest::whereYear('created_at',date('Y'))->whereMonth('created_at',date('m',mktime(0,0,0,$m, 1, date('Y'))))->count();
-            $object->a =$change_requests_count;
-            $object->b =$copy_requests_count;
-            $months[$m-1]=  $object;
-        }
-        // dd($months);
-        if((auth()->user()->role != "Administrator") || (auth()->user()->role != "Management Representative") || (auth()->user()->role != "Business Process Manager"))
+        if (auth()->user()->role != "Administrator")
         {
-            if((auth()->user()->role == "Department Head"))
-            {
-                $departments = Department::whereIn('id',(auth()->user()->department_head)->pluck('id')->toArray())->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-                $change_requests = ChangeRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
-                $copy_requests = CopyRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
-                $documents = Document::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->where('status',null)->toArray())->get();
-                $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
-           
-            }
-            elseif((auth()->user()->role == "Documents and Records Controller"))
-            {
-                $departments = Department::where('id',auth()->user()->department_id)->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-                $change_requests = ChangeRequest::where('user_id',auth()->user()->id)->get();
-                $copy_requests = CopyRequest::where('user_id',auth()->user()->id)->get();
-                $documents = Document::where('department_id',auth()->user()->department_id)->where('status',null)->get();
-                $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
-           
-
-            }
-            elseif((auth()->user()->role == "Document Control Officer"))
-            {
-                $departments = Department::whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray())->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-                // $change_requests = ChangeRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-                $change_requests = ChangeRequest::with('user')->get();
-                $copy_requests = CopyRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-                $documents = Document::with('change_requests')->where('user_id', auth()->user()->id)->get();
-                $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-            }
-
+            $change_requests = ChangeRequest::where('user_id', auth()->user()->id)->get();
         }
+        // $copy_requests = CopyRequest::get();
 
-        $categories = DocumentType::get();
+        // $yearChangeRequests = ChangeRequest::whereYear('created_at',date('Y'))->get();
+        // $yearCopyRequests = CopyRequest::whereYear('created_at',date('Y'))->get();
+        // $documents = Document::where('status',null)->get();
+        // $departments = Department::whereHas('documents')->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
+        // $permits = Permit::with('company', 'department')->get();
+        // $months = [];
+       
+        // for ($m=1; $m<=12; $m++) {
+        //     $object = new \stdClass();
+        //     $object->y =date('M-Y', mktime(0,0,0,$m, 1, date('Y')));
+        //     $change_requests_count = ChangeRequest::whereYear('created_at',date('Y'))->whereMonth('created_at',date('m',mktime(0,0,0,$m, 1, date('Y'))))->count();
+        //     $copy_requests_count = CopyRequest::whereYear('created_at',date('Y'))->whereMonth('created_at',date('m',mktime(0,0,0,$m, 1, date('Y'))))->count();
+        //     $object->a =$change_requests_count;
+        //     $object->b =$copy_requests_count;
+        //     $months[$m-1]=  $object;
+        // }
+        // dd($months);
+        // if((auth()->user()->role != "Administrator") || (auth()->user()->role != "Management Representative") || (auth()->user()->role != "Business Process Manager"))
+        // {
+        //     if((auth()->user()->role == "Department Head"))
+        //     {
+        //         $departments = Department::whereIn('id',(auth()->user()->department_head)->pluck('id')->toArray())->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
+        //         $change_requests = ChangeRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
+        //         $copy_requests = CopyRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
+        //         $documents = Document::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->where('status',null)->toArray())->get();
+        //         $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
+           
+        //     }
+        //     elseif((auth()->user()->role == "Documents and Records Controller"))
+        //     {
+        //         $departments = Department::where('id',auth()->user()->department_id)->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
+        //         $change_requests = ChangeRequest::where('user_id',auth()->user()->id)->get();
+        //         $copy_requests = CopyRequest::where('user_id',auth()->user()->id)->get();
+        //         $documents = Document::where('department_id',auth()->user()->department_id)->where('status',null)->get();
+        //         $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
+           
+
+        //     }
+        //     elseif((auth()->user()->role == "Document Control Officer"))
+        //     {
+        //     }
+            
+        // }
+        // $departments = Department::whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray())->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
+        // // $change_requests = ChangeRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
+        // $change_requests = ChangeRequest::with('user')->get();
+        // $copy_requests = CopyRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
+        // $documents = Document::with('change_requests')->where('user_id', auth()->user()->id)->get();
+        // $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
+
+        // $categories = DocumentType::get();
         return view('home',
         array(
-            'permits' =>  $permits,
-            'departments' =>  $departments,
+            // 'permits' =>  $permits,
+            // 'departments' =>  $departments,
             'change_requests' =>  $change_requests,
-            'documents' =>  $documents,
-            'categories' =>  $categories,
-            'copy_requests' =>  $copy_requests,
-            'months' =>  $months,
-            'yearChangeRequests' =>  $yearChangeRequests,
-            'yearCopyRequests' =>  $yearCopyRequests,
+            // 'documents' =>  $documents,
+            // 'categories' =>  $categories,
+            // 'copy_requests' =>  $copy_requests,
+            // 'months' =>  $months,
+            // 'yearChangeRequests' =>  $yearChangeRequests,
+            // 'yearCopyRequests' =>  $yearCopyRequests,
 
         ));
     }
