@@ -18,21 +18,24 @@ Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
     
     Route::group(['middleware' => 'deactivate'], function() {
-        Route::get('/documents/create', 'DocumentController@create')->name('documents.create');
-        Route::post('/documents/store', 'DocumentController@store')->name('documents.store');
-        Route::get('/documents/signature', 'DocumentController@signature')->name('documents.signature');
+        // Documents
+        Route::get('/documents', 'DocumentController@index')->name('documents');
+        Route::prefix('documents')->group(function() {
+            Route::get('create', 'DocumentController@create')->name('documents.create');
+            Route::get('signature', 'DocumentController@signature')->name('documents.signature');
+            
+            Route::post('store', 'DocumentController@store')->name('documents.store');
+        });
 
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/search', 'HomeController@search')->name('search');
     
         Route::get('/request', 'RequestController@index')->name('requests');
-        Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::post('change-request-edit/{id}','RequestController@editRequest')->name('change-requests');
         Route::get('/for-approval','RequestController@forApproval')->name('for-approval');
         Route::post('/edit-title/{id}','RequestController@editTile');
     
-        Route::get('/documents', 'DocumentController@index')->name('documents');
         Route::post('/upload-file/{id}', 'DocumentController@upload')->name('documents');
         Route::post('view-document/edit-document/{id}','DocumentController@edit');
         Route::get('audits','DocumentController@audit')->name('audit');
@@ -46,6 +49,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('copy-request-action/{id}','CopyController@action');
     
         //ChangeRequest
+        Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::prefix('change-request')->group(function() {
             Route::get('for_approval/{id}', 'RequestController@show');
             

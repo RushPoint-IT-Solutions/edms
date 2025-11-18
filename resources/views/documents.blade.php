@@ -431,13 +431,13 @@
         </div>
     </div>
 
-    <form method="GET" action="" class="custom_form" enctype="multipart/form-data">
+    {{-- <form method="GET" action="" class="custom_form" enctype="multipart/form-data">
         <div class="search-filter-bar">
             <div class="filter-group">
                 <label>Department</label>
-                            {{-- <div class="col-md-3">
+                            <div class="col-md-3">
                                 <input type='text' class='form-control' name='search' placeholder="Search Control Code,Title,Type of Document" >
-                            </div> --}}
+                            </div>
                 <select class='form-control cat' name='department'>
                     <option value=''>Select All Departments</option>
                     @foreach($departments as $department)
@@ -451,7 +451,7 @@
                 <i class="ri-search-line"></i> Search
             </button>
         </div>
-    </form>
+    </form> --}}
 
      
 
@@ -475,10 +475,11 @@
                     {{-- <th>Process Owner</th> --}}
                     <th>Uploaded By</th>
                     <th>Status</th>
+                    <th>QR Code</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($documents_na as $document)
+                @foreach($documents as $document)
                 <tr>
                     <td>
                         <div class="dropdown">
@@ -522,6 +523,11 @@
                             <span class="badge-status obsolete">Obsolete</span>
                         @endif
                     </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="asdasd" data-doc-title="asdadasdds">
+                            <i class="ri-qr-code-line"></i> View QR
+                        </button>
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -529,13 +535,14 @@
     </div>
 </div>
 
-@include('upload_document')
+@include('documents.upload_document')
 @endsection
 
 @section('js')
 <script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
 <script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
     function public_info(value, id) {

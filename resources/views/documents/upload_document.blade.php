@@ -12,15 +12,18 @@
                         <div class='col-md-12'>
                             <label class="form-label">Control Code *</label>
                             <input type="text" class="form-control" value="{{ old('control_code') }}" name="control_code" required/>
+                            @if($errors->has('control_code'))
+                                {{ $errors->first('control_code') }}
+                            @endif
                         </div>
                         <div class='col-md-12'>
                             <label class="form-label">Title *</label>
                             <input type="text" class="form-control" value="{{ old('title') }}" name="title" required/>
                         </div>
                         
-                        <div class="col-12"><hr class="divider"></div>
+                        {{-- <div class="col-12"><hr class="divider"></div> --}}
                         
-                        <div class='col-md-5'>
+                        {{-- <div class='col-md-5'>
                             <label class="form-label">Company *</label>
                             <select name='company' class='form-control cat' required>
                                 <option value=""></option>
@@ -30,8 +33,8 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class='col-md-5'>
+                        </div> --}}
+                        {{-- <div class='col-md-5'>
                             <label class="form-label">Department *</label>
                             <select name='department' class='form-control cat' required>
                                 <option value=""></option>
@@ -41,14 +44,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class='col-md-2'>
-                            <div class="checkbox-label">
-                                <input type="checkbox" name='public' value='1' id='public'>
-                                <label for='public' class="form-label mb-0">Public</label>
-                            </div>
-                        </div>
-                        
+                        </div> --}}
                         <div class='col-md-4'>
                             <label class="form-label">Type of Document *</label>
                             <select name='document_type' class='form-control cat' required>
@@ -62,7 +58,13 @@
                         </div>
                         <div class='col-md-4'>
                             <label class="form-label">Effective Date *</label>
-                            <input type="date" class="form-control" name="effective_date" required/>
+                            <input type="date" class="form-control" name="effective_date" value="{{ old('effective_date') }}" required/>
+                        </div>
+                        <div class='col-md-4'>
+                            <div class="checkbox-label">
+                                <input type="checkbox" name='public' value='1' id='public'>
+                                <label for='public' class="form-label mb-0">Public</label>
+                            </div>
                         </div>
                         <div class='col-md-4'>
                             <label class="form-label">Revision *</label>
