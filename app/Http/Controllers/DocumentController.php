@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\ChangeRequest;
 use App\Document;
 use App\Obsolete;
 use App\Department;
@@ -117,8 +119,15 @@ class DocumentController extends Controller
         return view('documents.create', compact('approvers'));
     }
 
-    public function signature() {
-        return view('documents.signature-assignment');
+    public function signature($id) {
+        
+        $change_request = ChangeRequest::findOrFail($id);
+
+        return view('documents.signature-assignment',
+            array(
+                'change_request' => $change_request
+            )
+        );
     }
 
     /**

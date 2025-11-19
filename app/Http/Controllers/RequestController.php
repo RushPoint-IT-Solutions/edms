@@ -516,6 +516,16 @@ class RequestController extends Controller
                 $changeRequest->control_code = $new_document->control_code;
                 $changeRequest->revision = 0;
                 $changeRequest->status = "Approved";
+                if ($request->hasFile('file'))
+                {
+                    $modified_file = $request->file('file');
+                    $name = time().'_'.$modified_file->getClientOriginalName();
+                    $modified_file->move(public_path('attachment'),$name);
+
+                    $attachment = '/attachment/'.$name;
+
+                    $changeRequest->file = $attachment;
+                }
                 $changeRequest->save();
 
                 // $approvedRequestsNotif = User::where('id',$copyRequest->user_id)->first();
@@ -534,6 +544,16 @@ class RequestController extends Controller
                 $requestApprover->status = "Pending";
                 $requestApprover->save();
 
+                if ($request->hasFile('file'))
+                {
+                    $modified_file = $request->file('file');
+                    $name = time().'_'.$modified_file->getClientOriginalName();
+                    $modified_file->move(public_path('attachment'),$name);
+
+                    $attachment = '/attachment/'.$name;
+
+                    $changeRequest->file = $attachment;
+                }
                 $changeRequest->level = $changeRequest->level+1;
                 $changeRequest->save();
 
@@ -545,8 +565,12 @@ class RequestController extends Controller
                 $comments->save();
             }
 
-            Alert::success('Successfully Approved')->persistent('Dismiss');
-            return redirect('/for-approval');
+            // Alert::success('Successfully Approved')->persistent('Dismiss');
+            // return redirect('/for-approval');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Successfully Approved'
+            ]);
         }
         elseif($request->action == "Returned")
         {

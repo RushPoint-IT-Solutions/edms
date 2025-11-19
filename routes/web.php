@@ -22,7 +22,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/documents', 'DocumentController@index')->name('documents');
         Route::prefix('documents')->group(function() {
             Route::get('create', 'DocumentController@create')->name('documents.create');
-            Route::get('signature', 'DocumentController@signature')->name('documents.signature');
+            Route::get('signature/{id}', 'DocumentController@signature')->name('documents.signature');
             
             Route::post('store', 'DocumentController@store')->name('documents.store');
         });
