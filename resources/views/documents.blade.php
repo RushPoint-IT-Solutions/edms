@@ -524,7 +524,7 @@
                         @endif
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="asdasd" data-doc-title="asdadasdds">
+                        <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="{{ $document->control_code }}" data-doc-title="{{ $document->title }}">
                             <i class="ri-qr-code-line"></i> View QR
                         </button>
                     </td>
@@ -532,6 +532,50 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+</div>
+
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrCodeModalLabel">Document QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="card border-0 bg-light p-4 mb-3">
+                    <div id="qrCodeContainer" class="d-flex justify-content-center">
+                    </div>
+                </div>
+                <div class="alert alert-info mb-3" role="alert">
+                    <i class="ri-information-line"></i> Scan this QR code to access document details
+                </div>
+                <div class="mb-2">
+                    <strong>Document ID:</strong> <span id="qrDocId" class="text-primary">Doc-2024-001</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Document Title:</strong> <span id="qrDocTitle">Quality Management System Manual</span>
+                </div>
+                <div>
+                    <strong>URL:</strong> 
+                    <div class="input-group input-group-sm mt-1">
+                        <input type="text" class="form-control" id="qrDocUrl" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyUrlBtn">
+                            <i class="ri-file-copy-line"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="printQrBtn">
+                    <i class="ri-printer-line"></i> Print QR
+                </button>
+                <button type="button" class="btn btn-success" id="downloadQrBtn">
+                    <i class="ri-download-line"></i> Download QR
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -543,6 +587,102 @@
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
 <script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const qrModalElement = document.getElementById('qrCodeModal');
+        const qrModal = new bootstrap.Modal(qrModalElement);
+        
+        const viewQrButtons = document.querySelectorAll('.view-qr-btn');
+        
+        viewQrButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                console.log('asdasd');
+                
+                
+                const docId = this.getAttribute('data-doc-id');
+                const docTitle = this.getAttribute('data-doc-title');
+                
+                const docUrl = window.location.origin + '/document/' + docId;
+                
+                document.getElementById('qrDocId').textContent = docId;
+                document.getElementById('qrDocTitle').textContent = docTitle;
+                document.getElementById('qrDocUrl').value = docUrl;
+                
+                const qrContainer = document.getElementById('qrCodeContainer');
+                qrContainer.innerHTML = '';
+                
+                new QRCode(qrContainer, {
+                    text: docUrl,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                qrModal.show();
+            });
+        });
+
+        document.getElementById('copyUrlBtn').addEventListener('click', function() {
+            const urlInput = document.getElementById('qrDocUrl');
+            urlInput.select();
+            document.execCommand('copy');
+            
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="ri-check-line"></i> Copied!';
+            setTimeout(() => {
+                this.innerHTML = originalText;
+            }, 2000);
+        });
+    
+        document.getElementById('printQrBtn').addEventListener('click', function() {
+            const docId = document.getElementById('qrDocId').textContent;
+            const docTitle = document.getElementById('qrDocTitle').textContent;
+            const docUrl = document.getElementById('qrDocUrl').value;
+            
+            document.getElementById('qrPrintDocId').textContent = docId;
+            document.getElementById('qrPrintDocTitle').textContent = docTitle;
+            document.getElementById('qrPrintDocUrl').textContent = docUrl;
+            document.getElementById('qrPrintDate').textContent = new Date().toLocaleString();
+            
+            const printQrContainer = document.getElementById('qrPrintCode');
+            printQrContainer.innerHTML = '';
+            new QRCode(printQrContainer, {
+                text: docUrl,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            setTimeout(() => {
+                const printContents = document.getElementById('qrPrintTemplate').innerHTML;
+                const originalContents = document.body.innerHTML;
+                document.body.innerHTML = printContents;
+                window.print();
+                document.body.innerHTML = originalContents;
+                location.reload();
+            }, 500);
+        });
+        
+        document.getElementById('downloadQrBtn').addEventListener('click', function() {
+            const qrCanvas = document.querySelector('#qrCodeContainer canvas');
+            if (qrCanvas) {
+                const docId = document.getElementById('qrDocId').textContent;
+                const url = qrCanvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `QR_${docId}.png`;
+                link.href = url;
+                link.click();
+            }
+        });
+    })
+</script>
 
 <script>
     function public_info(value, id) {
