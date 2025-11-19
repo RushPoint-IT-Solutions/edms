@@ -10,20 +10,30 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="card">
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label" for="document-title-input">Document Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" id="document-title-input" placeholder="Enter document title" required>
+                        <input type="text" name="title" class="form-control" id="document-title-input" value="{{ old('title') }}" placeholder="Enter document title" required>
                     </div>
     
                     <div class="mb-3">
                         <label class="form-label" for="document-type-input">Document Type <span class="text-danger">*</span></label>
-                        <input type="text" name="type" class="form-control" id="document-type-input" placeholder="Enter document type" required>
+                        <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" required>
                     </div>
     
                     <div class="mb-3">
                         <label class="form-label">Document Description <span class="text-danger">*</span></label>
-                        <textarea name="description" class="form-control" cols="30" rows="10" placeholder="Enter document description" required></textarea>
+                        <textarea name="description" class="form-control" cols="30" rows="10" placeholder="Enter document description" required>{{ old('description') }}</textarea>
                     </div>
     
                     <div class="row">
@@ -32,8 +42,8 @@
                                 <label for="choices-category-input" class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category" class="form-select" data-choices data-choices-search-false id="choices-category-input" required>
                                     <option value="">-- Select Category --</option>
-                                    <option value="Personal">Personal</option>
-                                    <option value="Departmental">Departmental</option>
+                                    <option value="Personal" @if(old('category') == "Personal") selected @endif>Personal</option>
+                                    <option value="Departmental" @if(old('category') == "Departmental") selected @endif>Departmental</option>
                                 </select>
                             </div>
                         </div>
@@ -41,9 +51,9 @@
                             <div class="mb-3 mb-lg-0">
                                 <label for="choices-status-input" class="form-label">Status <span class="text-danger">*</span></label>
                                 <select name="status" class="form-select" data-choices data-choices-search-false id="choices-status-input" required>
-                                    <option value="Draft" selected>Draft</option>
-                                    <option value="For Approval">For Approval</option>
-                                    <option value="Approved">Approved</option>
+                                    <option value="Draft" selected @if(old('status') == "Draft") selected @endif>Draft</option>
+                                    <option value="For Approval" @if(old('status') == "For Approval") selected @endif>For Approval</option>
+                                    <option value="Approved" @if(old('status') == "Approved") selected @endif>Approved</option>
                                 </select>
                             </div>
                         </div>
@@ -88,7 +98,7 @@
             
                             <div class="dropzone">
                                 <div class="fallback">
-                                    <input name="file" type="file" multiple="multiple">
+                                    <input name="file" type="file" accept=".pdf" multiple="multiple" required>
                                 </div>
                                 <div class="dz-message needsclick">
                                     <div class="mb-3">
@@ -123,9 +133,9 @@
                 <div class="card-body">
                     <label for="choices-privacy-status-input" class="form-label">Access</label>
                     <select name="privacy" class="form-select" data-choices data-choices-search-false id="choices-privacy-status-input">
-                        <option value="Private" selected>Private</option>
-                        <option value="Team">Team</option>
-                        <option value="Public">Public</option>
+                        <option value="Private" selected @if(old('privacy') == "Private") selected @endif>Private</option>
+                        <option value="Team" @if(old('privacy') == "Team") selected @endif>Team</option>
+                        <option value="Public" @if(old('privacy') == "Public") selected @endif>Public</option>
                     </select>
                 </div>
             </div>

@@ -254,6 +254,10 @@ class RequestController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
+        $request->validate([
+            'file' => 'mimes:pdf'
+        ]);
+
         $change_request = new ChangeRequest;
         $change_request->title = $request->title;
         $change_request->type = $request->type;
