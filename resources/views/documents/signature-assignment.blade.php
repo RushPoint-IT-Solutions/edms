@@ -222,6 +222,11 @@
 </div>
 @endsection
 
+@php
+    $file = explode("_", $change_request->file);
+    $file_name = $file[1];
+@endphp
+
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
@@ -235,7 +240,7 @@
   let currentSignatureData = null;
   let currentSignatureType = 'text';
   
-  const pdfUrl = '{{ asset("document_attachments/1722316806_sample.pdf") }}';
+  const pdfUrl = '{{ url($change_request->file) }}';
   const approveStampUrl = "{{asset('assets/images/approved.png')}}";
 
   const pdfContainer = document.getElementById("pdf-container");
@@ -542,18 +547,45 @@
         });
 
         const signedPdf = await pdfLibDoc.save();
-        const blob = new Blob([signedPdf], { type: "application/pdf" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "signed.pdf";
-        link.click();
+        // const blob = new Blob([signedPdf], { type: "application/pdf" });
+        // const link = document.createElement("a");
+        // link.href = URL.createObjectURL(blob);
+        // link.download = "signed.pdf";
+        // link.click();
+        
+        const filename = "<?php echo($file_name) ?>"
+        const changeRequestId = "<?php echo($change_request->id) ?>"
 
-        Swal.fire({
-          icon: 'success',
-          title: 'PDF Generated!',
-          text: 'Your signed PDF has been downloaded successfully.',
-          confirmButtonColor: '#0d6efd'
-        });
+        const formData = new FormData()
+        formData.append("old_status", "Pending")
+        formData.append("action", "Approved")
+        formData.append("file", new Blob([signedPdf],{type:"application/pdf"}), filename)
+
+        $.ajax({
+            type:"POST",
+            url:"{{ url('change-request/change-request-action') }}/" + changeRequestId,
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.status == "success") {
+                    Swal.fire({
+                        icon: 'success',
+                        title: response.message,
+                        confirmButtonColor: '#0d6efd'
+                    });
+
+                    setTimeout(() => {
+                        window.location.href = "{{ url('for-approval') }}"
+                    }, 1000)
+                }
+            }
+        })
+
+        
       } catch (error) {
         console.error("Error generating PDF:", error);
         Swal.fire({

@@ -89,9 +89,10 @@
                     @endphp
                     @if(count($request) > 0)
                         <div class="col-md-12">
-                            <button type="button" class="btn btn-success w-100 mt-2" data-bs-toggle="modal" data-bs-target="#approve{{ $change_request->id }}">Approved Documents</button>
+                            {{-- <button type="button" class="btn btn-success w-100 mt-2" data-bs-toggle="modal" data-bs-target="#approve{{ $change_request->id }}">Approved Documents</button>
 
-                            @include('change_request.approve_modal')
+                            @include('change_request.approve_modal') --}}
+                            <a href="{{ url('documents/signature/'.$change_request->id) }}" target="_blank" class="btn btn-success w-100 mt-2">Approved Documents</a>
                         </div>
                         
                         <div class="col-md-12">

@@ -736,7 +736,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($request_documents as $req_doc)
+                        {{-- @foreach($request_documents as $req_doc)
                             <tr>
                                 @php
                                     $attchment = ($req_doc->attachments)->where('type','pdf_copy')->first();
@@ -753,7 +753,7 @@
                                     {{$req_doc->department->code}}
                                 </td>
                             </tr>
-                        @endforeach
+                        @endforeach --}}
                     </tbody>
                 </table>
             </div>
