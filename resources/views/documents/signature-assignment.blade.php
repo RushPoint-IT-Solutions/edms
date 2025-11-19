@@ -204,7 +204,7 @@
         </div>
 
         <button id="savePdf" class="btn btn-primary w-100">
-          <i class="bi bi-file-earmark-pdf"></i> Generate Signed PDF
+          <i class="bi bi-file-earmark-pdf"></i> Approved PDF
         </button>
       </div>
     </div>
