@@ -203,6 +203,10 @@
           </div>
         </div>
 
+        <button onclick="placeBox({{ auth()->user()->id }})" class="btn btn-sm btn-outline-primary mb-2 w-100">
+          <i class="bi bi-cursor"></i> Place Signature
+        </button>
+
         <button id="savePdf" class="btn btn-primary w-100">
           <i class="bi bi-file-earmark-pdf"></i> Approved PDF
         </button>
@@ -506,45 +510,84 @@
         const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
         const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
 
-        signers.forEach(s => {
-          if (!s.box) return;
-          
-          const canvases = document.querySelectorAll(".pdf-page");
-          let pageIndex = 0;
-          let pageOffsetTop = 0;
-          
-          const boxTop = parseFloat(s.box.style.top);
-          
-          for (let i = 0; i < canvases.length; i++) {
+        // if (!s.box) return;
+        const box = document.querySelector('.signature-box')
+        
+        const canvases = document.querySelectorAll(".pdf-page");
+        let pageIndex = 0;
+        let pageOffsetTop = 0;
+        
+        const boxTop = parseFloat(box.style.top);
+        
+        for (let i = 0; i < canvases.length; i++) {
             const canvasTop = canvases[i].offsetTop;
             const canvasBottom = canvasTop + canvases[i].height;
             
             if (boxTop >= canvasTop && boxTop < canvasBottom) {
-              pageIndex = i;
-              pageOffsetTop = canvasTop;
-              break;
+                pageIndex = i;
+                pageOffsetTop = canvasTop;
+                break;
             }
-          }
+        }
 
-          const page = pdfLibDoc.getPage(pageIndex);
-          const { height } = page.getSize();
+        const page = pdfLibDoc.getPage(pageIndex);
+        const { height } = page.getSize();
 
-          const htmlLeft = parseFloat(s.box.style.left);
-          const htmlTop = parseFloat(s.box.style.top) - pageOffsetTop;
+        const htmlLeft = parseFloat(box.style.left);
+        const htmlTop = parseFloat(box.style.top) - pageOffsetTop;
 
-          const canvas = canvases[pageIndex];
-          const canvasLeft = canvas.offsetLeft;
+        const canvas = canvases[pageIndex];
+        const canvasLeft = canvas.offsetLeft;
 
-          const x = (htmlLeft - canvasLeft) / scale;
-          const y = height - (htmlTop / scale) - (80 / scale);
+        const x = (htmlLeft - canvasLeft) / scale;
+        const y = height - (htmlTop / scale) - (80 / scale);
 
-          page.drawImage(pngImage, {
+        page.drawImage(pngImage, {
             x,
             y,
             width: 180 / scale,
             height: 80 / scale
-          });
         });
+
+        // signers.forEach(s => {
+        //   if (!s.box) return;
+          
+        //   const canvases = document.querySelectorAll(".pdf-page");
+        //   let pageIndex = 0;
+        //   let pageOffsetTop = 0;
+          
+        //   const boxTop = parseFloat(s.box.style.top);
+          
+        //   for (let i = 0; i < canvases.length; i++) {
+        //     const canvasTop = canvases[i].offsetTop;
+        //     const canvasBottom = canvasTop + canvases[i].height;
+            
+        //     if (boxTop >= canvasTop && boxTop < canvasBottom) {
+        //       pageIndex = i;
+        //       pageOffsetTop = canvasTop;
+        //       break;
+        //     }
+        //   }
+
+        //   const page = pdfLibDoc.getPage(pageIndex);
+        //   const { height } = page.getSize();
+
+        //   const htmlLeft = parseFloat(s.box.style.left);
+        //   const htmlTop = parseFloat(s.box.style.top) - pageOffsetTop;
+
+        //   const canvas = canvases[pageIndex];
+        //   const canvasLeft = canvas.offsetLeft;
+
+        //   const x = (htmlLeft - canvasLeft) / scale;
+        //   const y = height - (htmlTop / scale) - (80 / scale);
+
+        //   page.drawImage(pngImage, {
+        //     x,
+        //     y,
+        //     width: 180 / scale,
+        //     height: 80 / scale
+        //   });
+        // });
 
         const signedPdf = await pdfLibDoc.save();
         // const blob = new Blob([signedPdf], { type: "application/pdf" });
@@ -672,7 +715,8 @@
     Swal.fire({
       icon: 'info',
       title: 'Place Signature Box',
-      text: `Click on the PDF to place signature box for: ${signers[index].name}`,
+    //   text: `Click on the PDF to place signature box for: ${signers[index].name}`,
+      text: `Click on the PDF to place signature box`,
       confirmButtonColor: '#0d6efd',
       timer: 3000
     });
@@ -683,7 +727,7 @@
     const x = e.clientX - rect.left + pdfContainer.scrollLeft;
     const y = e.clientY - rect.top + pdfContainer.scrollTop;
 
-    if (signers[index].box) pdfContainer.removeChild(signers[index].box);
+    // if (signers[index].box) pdfContainer.removeChild(signers[index].box);
 
     const sigBox = document.createElement("div");
     sigBox.classList.add("signature-box");
@@ -697,7 +741,7 @@
     } else {
       const number = document.createElement('span');
       number.className = 'box-number';
-      number.textContent = signers[index].order;
+    //   number.textContent = signers[index].order;
       sigBox.appendChild(number);
     }
 
@@ -707,14 +751,14 @@
     removeBtn.onclick = (ev) => {
       ev.stopPropagation();
       pdfContainer.removeChild(sigBox);
-      signers[index].box = null;
+    //   signers[index].box = null;
     };
     sigBox.appendChild(removeBtn);
 
     makeDraggable(sigBox);
     pdfContainer.appendChild(sigBox);
 
-    signers[index].box = sigBox;
+    // signers[index].box = sigBox;
   }
 
   function makeDraggable(el) {
