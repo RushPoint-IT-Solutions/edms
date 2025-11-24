@@ -463,12 +463,12 @@ $request = $change_approval->change_request;
 @include('edit_title')
 @endforeach --}}
 
-@foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
+{{-- @foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
 @php
 $request = $copy_approval->copy_request;
 @endphp
 @include('view_approval_copy')
-@endforeach
+@endforeach --}}
 @endsection
 
 @section('js')

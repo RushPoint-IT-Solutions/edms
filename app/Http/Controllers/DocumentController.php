@@ -9,6 +9,7 @@ use App\Department;
 use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
+use App\DocumentFolder;
 use App\User;
 use Illuminate\Http\Request;
 use \setasign\Fpdi\PdfParser\StreamReader;
@@ -38,7 +39,8 @@ class DocumentController extends Controller
         $document_types = DocumentType::orderBy('name','desc')->get();
         $search = $request->search;
         $department = $request->department;
-        $documents = Document::orderBy('control_code','asc')->get();
+        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
+        $document_folders = DocumentFolder::with('document')->get();
         $obsoletes = Obsolete::get();
 
         // $documents_filter = Document::query();
@@ -94,7 +96,7 @@ class DocumentController extends Controller
             // ->paginate(10);
         
  
-        return view('documents',
+        return view('documents.documents',
         array(
             'documents' => $documents,
             // 'documents_na' => $documents_na,
@@ -104,6 +106,7 @@ class DocumentController extends Controller
             'document_types' => $document_types,
             'search' => $search,
             'dep' => $department,
+            'document_folders' => $document_folders
             )
         );
     }
@@ -155,6 +158,7 @@ class DocumentController extends Controller
         $document->user_id = auth()->user()->id;
         $document->version = $request->version;
         $document->public = $request->public;
+        $document->folder_id = $request->folder;
         $document->save();
 
         foreach($request->file('attachment') as $key => $file)
@@ -360,5 +364,24 @@ class DocumentController extends Controller
                 'dep' => $department,
                 )
             );
+    }
+    public function addFolder(Request $request)
+    {
+        $folder = new DocumentFolder;
+        $folder->name = $request->name;
+        $folder->save();
+
+        Alert::success('Successfully Saved')->persistent('Dismiss');
+        return back();
+    }
+    public function folderView(Request $request,$id)
+    {
+        $folder = DocumentFolder::with('document')->findOrFail($id);
+
+        return view('documents.folder_view',
+            array(
+                'folder' => $folder
+            )
+        );
     }
 }

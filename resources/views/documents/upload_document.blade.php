@@ -11,7 +11,7 @@
                     <div class='row g-3'>
                         <div class='col-md-12'>
                             <label class="form-label">Control Code *</label>
-                            <input type="text" class="form-control" value="{{ old('control_code') }}" name="control_code" required/>
+                            <input type="text" class="form-control @if($errors->has('control_code')) is-invalid @endif" value="{{ old('control_code') }}" name="control_code" required/>
                             @if($errors->has('control_code'))
                                 {{ $errors->first('control_code') }}
                             @endif
@@ -50,7 +50,7 @@
                             <select name='document_type' class='form-control cat' required>
                                 <option value=""></option>
                                 @foreach($document_types as $types)
-                                    <option value='{{$types->name}}' @if(old('types') == $types->name) selected @endif>
+                                    <option value='{{$types->name}}' @if(old('document_type') == $types->name) selected @endif>
                                         {{$types->code}} - {{$types->name}}
                                     </option>
                                 @endforeach
@@ -69,6 +69,17 @@
                         <div class='col-md-4'>
                             <label class="form-label">Revision *</label>
                             <input type="number" class="form-control" value="{{ old('version') }}" min='0' name="version" required/>
+                        </div>
+                        <div class='col-md-4'>
+                            <label class="form-label">Choose Folder *</label>
+                            <select name='folder' class='form-control cat' required>
+                                <option value=""></option>
+                                @foreach($document_folders as $folder)
+                                    <option value='{{$folder->id}}' @if(old('folder') == $folder->id) selected @endif>
+                                        {{$folder->name}}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         
                         <div class="col-12"><hr class="divider"></div>
