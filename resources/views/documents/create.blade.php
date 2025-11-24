@@ -28,7 +28,7 @@
     
                     <div class="mb-3">
                         <label class="form-label" for="document-type-input">Document Type <span class="text-danger">*</span></label>
-                        <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" required>
+                        <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" readonly>
                     </div>
     
                     <div class="mb-3">
@@ -98,7 +98,7 @@
             
                             <div class="dropzone">
                                 <div class="fallback">
-                                    <input name="file" type="file" accept=".pdf" multiple="multiple" required>
+                                    <input name="file" type="file" multiple="multiple" required>
                                 </div>
                                 <div class="dz-message needsclick">
                                     <div class="mb-3">
@@ -191,4 +191,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     <!-- dropzone js -->
     <script src="{{asset('assets/libs/dropzone/dropzone-min.js')}}"></script>
+
+    <script>
+        $(document).ready(function() {
+            $("[name='file']").on('change', function(e) {
+                
+                var uploadFile = e.target.files[0]
+                var filename =  uploadFile.name.split('.')
+                var extension = filename[1]
+
+                $("[name='type']").val(extension)
+            })
+        })
+    </script>
 @endsection
