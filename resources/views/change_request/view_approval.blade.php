@@ -92,7 +92,7 @@
                             <div class="col-md-6">
                                 <div class="card border file-card position-relative">
                                     <a href='{{ url($document->file) }}' class="text-decoration-none" target="_blank">
-                                        <iframe src="{{ url($document->file) }}" loading="lazy" class="card-img-top"
+                                        <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($document->file)) }}&embedded=true" loading="lazy" class="card-img-top"
                                             style="height: 100%;" scrolling="no" frameborder="0"></iframe>
                                         <div class="card-body p-2 text-start">
                                             <div class="docu d-flex align-items-center gap-2">
