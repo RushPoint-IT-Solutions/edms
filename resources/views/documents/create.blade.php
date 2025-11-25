@@ -2,6 +2,7 @@
 @section('css')
  <link href="{{asset('/assets/libs/dropzone/dropzone.css')}}" rel="stylesheet" type="text/css" />
  <link rel="stylesheet" href="{{ asset('login_design/css/file-input-preview.css') }}">
+ <link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
  <style>
     .pdf-preview-container {
         position: sticky;
@@ -108,7 +109,13 @@
     
                     <div class="mb-3">
                         <label class="form-label" for="document-type-input">Document Type <span class="text-danger">*</span></label>
-                        <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" readonly>
+                        {{-- <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" readonly> --}}
+                        <select name="type" class="form-select cat" data-choices data-choices-search-false id="choices-category-input" required>
+                            <option value=""></option>
+                            @foreach ($document_types as $type)
+                                <option value="{{ $type->id }}" @if(old('type') == $type->name) selected @endif>{{ $type->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
     
                     <div class="mb-3">
@@ -179,6 +186,27 @@
                     <h5 class="card-title mb-0">Attached Files <span class="text-danger">*</span></h5>
                 </div>
                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p class="text-muted">Add attachments or supporting documents.</p>
+            
+                            <div class="dropzone">
+                                <div class="fallback">
+                                    <input name="file" type="file" multiple="multiple" accept=".pdf" required>
+                                </div>
+                                <div class="dz-message needsclick">
+                                    <div class="mb-3">
+                                        <i class="display-4 text-muted ri-upload-cloud-2-fill"></i>
+                                    </div>
+                                    <h5>Drop files here or click to upload.</h5>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <div class="col-md-12">
+                            Supporting Documents :
+                            <input type="file" name="supporting_documents[]" class="form-control" multiple>
+                        </div>
                     <p class="text-muted mb-3">Add PDF file to preview on the right</p>
                     
                     <div class="mb-3">
@@ -351,7 +379,14 @@ document.addEventListener('DOMContentLoaded', function () {
 @endsection
 @section('js')
     <script src="{{asset('assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js')}}"></script>
-    <script src="{{ asset('login_design/js/file-input-preview.js') }}"></script>
-
+    <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
     <script src="{{asset('assets/libs/dropzone/dropzone-min.js')}}"></script>
+
+    <script>
+        $(document).ready(function() {
+            $(".cat").chosen({
+                width: "100%"
+            });
+        })
+    </script>
 @endsection
