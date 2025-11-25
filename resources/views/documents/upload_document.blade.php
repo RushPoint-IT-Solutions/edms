@@ -81,6 +81,18 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tags *</label>
+                            <select name="tags[]" class="form-control cat" multiple="multiple" required>
+                                <option value=""></option>
+                                <option value="Confidential">Confidential</option>
+                                <option value="Urgent">Urgent</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Final">Final</option>
+                                <option value="Important">Important</option>
+                                <option value="Legal">Legal</option>
+                            </select>
+                        </div>
                         
                         <div class="col-12"><hr class="divider"></div>
                         
