@@ -354,7 +354,7 @@
                 </div>
 
                 <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3">
-                    @foreach ($change_requests->where('status','Pending') as $change_request)
+                    @foreach ($change_requests as $change_request)
                     <div class="col">
                         <div class="card border file-card position-relative">
                             <div class="position-absolute top-0 end-0 m-2 more-btn">

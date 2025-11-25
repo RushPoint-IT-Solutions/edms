@@ -532,6 +532,12 @@ class RequestController extends Controller
                 }
                 $changeRequest->save();
 
+                $document_attachment = new DocumentAttachment;
+                $document_attachment->document_id = $new_document->id;
+                $document_attachment->attachment = $changeRequest->file;
+                $document_attachment->type = "pdf_copy";
+                $document_attachment->save();
+
                 // $approvedRequestsNotif = User::where('id',$copyRequest->user_id)->first();
                 // $approvedRequestsNotif->notify(new ApprovedRequest($copyRequest,"DICR-","Document Information Change Request","request"));
 

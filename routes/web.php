@@ -16,15 +16,17 @@ Route::get('auth/google/callback','GoogleController@handleGoogleCallback');
 
 Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
-    
     Route::group(['middleware' => 'deactivate'], function() {
+        
         // Documents
         Route::get('/documents', 'DocumentController@index')->name('documents');
         Route::prefix('documents')->group(function() {
             Route::get('create', 'DocumentController@create')->name('documents.create');
             Route::get('signature/{id}', 'DocumentController@signature')->name('documents.signature');
+            Route::get('folder/{id}','DocumentController@folderView');
             
             Route::post('store', 'DocumentController@store')->name('documents.store');
+            Route::post('store-folder','DocumentController@addFolder');
         });
 
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
