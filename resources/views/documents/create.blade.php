@@ -2,6 +2,7 @@
 @section('css')
  <link href="{{asset('/assets/libs/dropzone/dropzone.css')}}" rel="stylesheet" type="text/css" />
  <link rel="stylesheet" href="{{ asset('login_design/css/file-input-preview.css') }}">
+<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
 @endsection
 @section('content')
 <form method="POST" action="{{ url('change-request/store') }}" enctype="multipart/form-data" onsubmit="show()">
@@ -28,7 +29,13 @@
     
                     <div class="mb-3">
                         <label class="form-label" for="document-type-input">Document Type <span class="text-danger">*</span></label>
-                        <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" readonly>
+                        {{-- <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" readonly> --}}
+                        <select name="type" class="form-select cat" data-choices data-choices-search-false id="choices-category-input" required>
+                            <option value=""></option>
+                            @foreach ($document_types as $type)
+                                <option value="{{ $type->id }}" @if(old('type') == $type->name) selected @endif>{{ $type->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
     
                     <div class="mb-3">
@@ -98,7 +105,7 @@
             
                             <div class="dropzone">
                                 <div class="fallback">
-                                    <input name="file" type="file" multiple="multiple" required>
+                                    <input name="file" type="file" multiple="multiple" accept=".pdf" required>
                                 </div>
                                 <div class="dz-message needsclick">
                                     <div class="mb-3">
@@ -187,21 +194,16 @@ document.addEventListener('DOMContentLoaded', function () {
 @endsection
 @section('js')
     <script src="{{asset('assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js')}}"></script>
-    <script src="{{ asset('login_design/js/file-input-preview.js') }}"></script>
+    <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
 
     <!-- dropzone js -->
     <script src="{{asset('assets/libs/dropzone/dropzone-min.js')}}"></script>
 
     <script>
         $(document).ready(function() {
-            $("[name='file']").on('change', function(e) {
-                
-                var uploadFile = e.target.files[0]
-                var filename =  uploadFile.name.split('.')
-                var extension = filename[1]
-
-                $("[name='type']").val(extension)
-            })
+            $(".cat").chosen({
+                width: "100%"
+            });
         })
     </script>
 @endsection

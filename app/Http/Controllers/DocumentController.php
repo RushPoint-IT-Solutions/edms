@@ -120,7 +120,8 @@ class DocumentController extends Controller
    public function create()
     {
         $approvers = User::all(); // populate approvers list
-        return view('documents.create', compact('approvers'));
+        $document_types = DocumentType::get();
+        return view('documents.create', compact('approvers','document_types'));
     }
 
     public function signature($id) {
