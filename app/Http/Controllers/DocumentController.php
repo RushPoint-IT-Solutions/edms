@@ -10,6 +10,7 @@ use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
 use App\DocumentFolder;
+use App\DocumentTag;
 use App\User;
 use Illuminate\Http\Request;
 use \setasign\Fpdi\PdfParser\StreamReader;
@@ -175,6 +176,15 @@ class DocumentController extends Controller
             $doc_attachment->save();
             
         }
+
+        foreach($request->tags as $tag)
+        {
+            $document_tag = new DocumentTag;
+            $document_tag->document_id = $document->id;
+            $document_tag->name = $tag;
+            $document_tag->save();
+        }   
+
         Alert::success('Successfully Uploaded')->persistent('Dismiss');
         return back();
         
