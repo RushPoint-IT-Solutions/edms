@@ -64,7 +64,7 @@
                                 <div class="card border file-card position-relative">
                                     <a href='{{ url($change_request->file) }}' class="text-decoration-none"
                                         target="_blank">
-                                        <iframe src="{{ url($change_request->file) }}" loading="lazy"
+                                        <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($change_request->file)) }}&embedded=true" loading="lazy"
                                             class="card-img-top" style="height: 100%;" scrolling="no"
                                             frameborder="0"></iframe>
                                         <div class="card-body p-2 text-start">
