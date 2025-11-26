@@ -31,6 +31,7 @@ class HomeController extends Controller
     public function index()
     {
         $change_requests = ChangeRequest::get();
+        $documents = Document::where('public',1)->get();
         if (auth()->user()->role != "Administrator")
         {
             $change_requests = ChangeRequest::where('user_id', auth()->user()->id)->get();
@@ -93,7 +94,7 @@ class HomeController extends Controller
             // 'permits' =>  $permits,
             // 'departments' =>  $departments,
             'change_requests' =>  $change_requests,
-            // 'documents' =>  $documents,
+            'documents' =>  $documents,
             // 'categories' =>  $categories,
             // 'copy_requests' =>  $copy_requests,
             // 'months' =>  $months,

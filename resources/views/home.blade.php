@@ -418,31 +418,49 @@
     </div>
 
     <div class="col-12 col-lg-4">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm" style="height: 300px; overflow-y:scroll;">
             <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
                 
-                <div class="d-flex flex-column gap-3">
+                {{-- <div class="d-flex flex-column gap-3">
+                    @foreach ($documents as $document)
                     <div class="d-flex align-items-center justify-content-between p-3 border rounded">
                         <div class="d-flex align-items-center gap-2">
                             <i class="ri-file-text-line" style="font-size: 1.5rem;"></i>
-                            <span class="fw-medium" style="font-size: 0.875rem;">Billing Statement</span>
+                            <p class="fs-5 text">{{ $document->control_code }}</p>
+                            <small>{{ $document->title }}</small>
                         </div>
-                        <button class="btn btn-sm btn-light">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
                     </div>
-
-                    <div class="d-flex align-items-center justify-content-between p-3 border rounded">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="ri-file-text-line" style="font-size: 1.5rem;"></i>
-                            <span class="fw-medium" style="font-size: 0.875rem;">Billing Statement</span>
+                    @endforeach
+                </div> --}}
+                <ul class="list-group">
+                    @foreach ($documents as $document)
+                    <li class="list-group-item">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0 avatar-xs">
+                                        @foreach($document->attachments->where('type','pdf_copy') as $attachment)
+                                        <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                            <div class="avatar-title bg-danger-subtle text-danger rounded">
+                                                <i class="ri-file-text-line"></i>
+                                            </div>
+                                        </a>
+                                        @endforeach
+                                    </div>
+                                    <div class="flex-shrink-0 ms-2">
+                                        <h6 class="fs-14 mb-0">{{ $document->control_code }}</h6>
+                                        <small class="text-dark">{{ $document->title }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- <div class="flex-shrink-0">
+                                <span class="text-danger">-$25.50</span>
+                            </div> --}}
                         </div>
-                        <button class="btn btn-sm btn-light">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
-                    </div>
-                </div>
+                    </li>
+                    @endforeach
+                </ul>
             </div>
         </div>
     </div>
