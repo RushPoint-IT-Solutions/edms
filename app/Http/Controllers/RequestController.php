@@ -695,6 +695,10 @@ class RequestController extends Controller
 
     public function comments(Request $request)
     {
+        $request->validate([
+            'comment' => 'required'
+        ]);
+
         $comments = new Comment;
         $comments->change_request_id = $request->change_request_id;
         $comments->comment = $request->comment;

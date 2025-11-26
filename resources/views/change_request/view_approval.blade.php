@@ -1,5 +1,9 @@
 @extends('layouts.header')
 
+@section('css')
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.css" rel="stylesheet">
+@endsection
+
 @section('content')
 <div class="row">
     <div class="col-md-4">
@@ -64,7 +68,7 @@
                                 <div class="card border file-card position-relative">
                                     <a href='{{ url($change_request->file) }}' class="text-decoration-none"
                                         target="_blank">
-                                        <iframe src="{{ url($change_request->file) }}" loading="lazy"
+                                        <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($change_request->file)) }}&embedded=true" loading="lazy"
                                             class="card-img-top" style="height: 100%;" scrolling="no"
                                             frameborder="0"></iframe>
                                         <div class="card-body p-2 text-start">
@@ -116,82 +120,11 @@
         </div>
     </div>
     <div class="col-md-4">
-        {{-- <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <form method="POST" action="{{ url('change-request/comments') }}" onsubmit="show()">
-                        @csrf
-                        <input type="hidden" name="change_request_id" value="{{ $change_request->id }}">
-                        <div class="col-md-12">
-                            <textarea name="comment" class="form-control" cols="30" rows="10"
-                                placeholder="Write a comment"></textarea>
-                        </div>
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary w-100 mt-2">Comment</button>
-                        </div>
-                        <div class="col-md-12">
-                            <a href="{{ url('change-requests') }}" class="btn btn-danger w-100 mt-2">Cancel</a>
-                        </div>
-                    </form>
-                    <hr class="mt-2">
-                    @php
-                    $request = ($change_request->approvers)->where('user_id', auth()->user()->id)->where('status',
-                    'Pending');
-                    $if_return = ($change_request->approvers)->whereIn('status', 'Returned');
-                    @endphp
-                    @if(count($request) > 0)
-                    <div class="col-md-12">
-                        <a href="{{ url('documents/signature/'.$change_request->id) }}" target="_blank"
-                            class="btn btn-success w-100 mt-2">Sign Documents</a>
-                    </div>
-
-                    <div class="col-md-12">
-                        <button type="submit" class="btn btn-danger w-100 mt-2" data-bs-toggle="modal"
-                            data-bs-target="#return{{ $change_request->id }}">Return Documents</button>
-
-                        @include('change_request.return_modal')
-                    </div>
-                    @endif
-                    @if(count($if_return) > 0 && (auth()->user()->id == $change_request->user_id))
-                    <form action="{{ url('change-request/change-request-action/'.$change_request->id) }}" method="POST">
-                        @csrf
-
-                        <input type="hidden" name="action" value="Submit">
-
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-success w-100 mt-2">Submit Documents</button>
-                        </div>
-                    </form>
-                    @endif
-                </div>
-                <hr>
-                <div class="row">
-                    @if(count($change_request->comments) > 0)
-                    @foreach ($change_request->comments as $comment)
-                    <div class="col-md-12">
-                        <strong>{{ $comment->user->name }}<span class="ms-2 text-muted"><i class="fa fa-clock-o"></i> {{
-                                date('h:i A', strtotime($comment->created_at)) }} {{ date('M d Y',
-                                strtotime($comment->created_at)) }}</span></strong>
-                        <div class="row">
-                            <div class="col-md-12 my-2">{!! $comment->comment !!}</div>
-                        </div>
-                    </div>
-                    <hr class="m-2">
-                    @endforeach
-                    @else
-                    <p style="font-style: italic;">No comment...</p>
-                    @endif
-                </div>
-            </div>
-
-
-        </div> --}}
-
         <div class="card">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1">Comments</h4>
                 <div class="flex-shrink-0">
-                    <div class="dropdown card-header-dropdown">
+                    {{-- <div class="dropdown card-header-dropdown">
                         <a class="text-reset dropdown-btn" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false">
                             <span class="text-muted">Recent<i class="mdi mdi-chevron-down ms-1"></i></span>
@@ -201,7 +134,7 @@
                             <a class="dropdown-item" href="#">Top Rated</a>
                             <a class="dropdown-item" href="#">Previous</a>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div><!-- end card header -->
 
@@ -254,8 +187,11 @@
                         <div class="col-12">
                             <label for="exampleFormControlTextarea1" class="form-label text-body">Leave a
                                 Comments</label>
-                            <textarea name="comment" class="form-control bg-light border-light" id="exampleFormControlTextarea1"
-                                rows="3" placeholder="Enter your comment..." required></textarea>
+                            <textarea name="comment" class="form-control {{ $errors->has('comment') ? 'is-invalid' : '' }}" id="summernote"
+                                rows="3" placeholder="Enter your comment..."></textarea>
+                            @if($errors->has('comment'))
+                                <p class="text-danger">{{ $errors->first('comment') }}</p>
+                            @endif
                         </div>
                         <div class="col-12 d-grid">
                             <button type="submit" class="btn btn-success">Post Comments</button>
@@ -296,4 +232,18 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('js')
+{{-- <script src="{{ asset('assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js') }}"></script> --}}
+<script src="{{ asset('assets/js/pages/form-editor.init.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#summernote').summernote({
+            height: 300,
+            placeholder:"Write a comment"
+        });
+    });
+</script>
 @endsection
