@@ -82,6 +82,17 @@
         color: #adb5bd;
         font-size: 16px;
     }
+    
+    @media (min-width: 992px) {
+        .form-column {
+            max-width: 45%;
+            flex: 0 0 45%;
+        }
+        .preview-column {
+            max-width: 55%;
+            flex: 0 0 55%;
+        }
+    }
  </style>
 @endsection
 @section('content')
@@ -89,7 +100,7 @@
     @csrf 
 
     <div class="row">
-        <div class="col-lg-5">
+        <div class="col-lg-5 form-column">
             <div class="card">
                 @if ($errors->any())
                     <div class="alert alert-danger">
@@ -109,7 +120,6 @@
     
                     <div class="mb-3">
                         <label class="form-label" for="document-type-input">Document Type <span class="text-danger">*</span></label>
-                        {{-- <input type="text" name="type" class="form-control" id="document-type-input" value="{{ old('type') }}" placeholder="Enter document type" readonly> --}}
                         <select name="type" class="form-select cat" data-choices data-choices-search-false id="choices-category-input" required>
                             <option value=""></option>
                             @foreach ($document_types as $type)
@@ -186,27 +196,6 @@
                     <h5 class="card-title mb-0">Attached Files <span class="text-danger">*</span></h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <p class="text-muted">Add attachments or supporting documents.</p>
-            
-                            <div class="dropzone">
-                                <div class="fallback">
-                                    <input name="file" type="file" multiple="multiple" accept=".pdf" required>
-                                </div>
-                                <div class="dz-message needsclick">
-                                    <div class="mb-3">
-                                        <i class="display-4 text-muted ri-upload-cloud-2-fill"></i>
-                                    </div>
-                                    <h5>Drop files here or click to upload.</h5>
-                                </div>
-                            </div>
-                        </div>
-        
-                        <div class="col-md-12">
-                            Supporting Documents :
-                            <input type="file" name="supporting_documents[]" class="form-control" multiple>
-                        </div>
                     <p class="text-muted mb-3">Add PDF file to preview on the right</p>
                     
                     <div class="mb-3">
@@ -216,7 +205,9 @@
 
                     <div>
                         <label class="form-label">Supporting Documents</label>
-                        <input type="file" name="supporting_documents[]" class="form-control" id="supporting-docs-input" accept=".pdf" multiple>
+                        <p class="text-muted small mb-2">You can select multiple files (hold Ctrl/Cmd to select multiple)</p>
+                        <input type="file" name="supporting_documents[]" class="form-control" id="supporting-docs-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" multiple>
+                        <div id="selected-files-list" class="mt-3"></div>
                     </div>
                 </div>
             </div>
@@ -227,7 +218,7 @@
             </div>
         </div>
     
-        <div class="col-lg-7 mb-4">
+        <div class="col-lg-7 preview-column mb-4">
             <div class="pdf-preview-container">
                 <div class="pdf-preview-header">
                     <ul class="preview-tabs">
@@ -271,7 +262,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const mainDocPreview = document.getElementById('main-doc-preview');
     const supportingDocsGrid = document.getElementById('supporting-docs-list');
     const supportingDocsEmpty = document.getElementById('supporting-docs-empty');
-    const supportingCount = document.getElementById('supporting-count');
     
     let supportingFiles = [];
 
@@ -305,8 +295,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    const selectedFilesList = document.getElementById('selected-files-list');
+    
+    function updateFilesList() {
+        if (supportingFiles.length > 0) {
+            selectedFilesList.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>${supportingFiles.length} file(s) selected:</strong>
+                    <ul class="mb-0 mt-2" style="max-height: 150px; overflow-y: auto;">
+                        ${supportingFiles.map(f => `<li>${f.name} (${(f.size / 1024).toFixed(2)} KB)</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        } else {
+            selectedFilesList.innerHTML = '';
+        }
+    }
+    
     supportingDocsInput.addEventListener('change', function(e) {
         supportingFiles = Array.from(e.target.files);
+        updateFilesList();
         
         if (supportingFiles.length > 0) {
             supportingDocsEmpty.style.display = 'none';
