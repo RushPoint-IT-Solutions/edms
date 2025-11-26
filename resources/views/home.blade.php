@@ -515,6 +515,7 @@
                         <th style="font-size: 0.875rem; font-weight: 600;">Created By</th>
                         <th style="font-size: 0.875rem; font-weight: 600;">Status</th>
                         <th style="font-size: 0.875rem; font-weight: 600;">QR Code</th>
+                        <th style="font-size: 0.875rem; font-weight: 600;">Bar Code</th>
                         <th style="font-size: 0.875rem; font-weight: 600;" class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -545,6 +546,16 @@
                             <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="{{ $code }}" data-doc-title="{{ $change_request->title }}">
                                 <i class="ri-qr-code-line"></i> View QR
                             </button>
+                        </td>
+                        <td>
+                            <svg class="barcode"
+                                jsbarcode-format="Code39"
+                                jsbarcode-value="{{ $code }}"
+                                jsbarcode-textmargin="0"
+                                jsbarcode-fontoptions="bold"
+                                jsbarcode-displayvalue="false"
+                                >
+                            </svg>
                         </td>
                         <td class="text-center">
                             <div class="dropdown">
@@ -713,8 +724,11 @@
 
 @section('js')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="{{ asset('barcode/JsBarcode.all.min.js') }}"></script>
 
 <script>
+JsBarcode(".barcode").init();
+
 document.addEventListener('DOMContentLoaded', function() {
     const moreButtons = document.querySelectorAll('.file-more-btn');
     
