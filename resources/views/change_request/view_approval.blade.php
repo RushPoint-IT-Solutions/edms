@@ -198,6 +198,7 @@
                         </div>
                     </div>
                 </form>
+                <a href="{{ url('for-approval') }}" class="btn btn-danger w-100 mt-2">Cancel</a>
                 @php
                 $request = ($change_request->approvers)->where('user_id', auth()->user()->id)->where('status',
                 'Pending');

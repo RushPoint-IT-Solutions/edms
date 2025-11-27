@@ -27,6 +27,8 @@ Route::group(['middleware' => 'auth'], function () {
             
             Route::post('store', 'DocumentController@store')->name('documents.store');
             Route::post('store-folder','DocumentController@addFolder');
+            Route::post('rename-folder/{id}','DocumentController@renameFolder');
+            Route::post('delete-folder/{id}','DocumentController@deleteFolder');
         });
 
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
