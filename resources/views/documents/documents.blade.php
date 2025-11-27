@@ -518,14 +518,20 @@
                                             <li><a class="dropdown-item view-item-btn"
                                                     href="{{ url('documents/folder/'.$folder->id) }}">Open</a></li>
                                             <li><a class="dropdown-item edit-folder-list"
-                                                    href="#createFolderModal" data-bs-toggle="modal"
+                                                    href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#renameFolderModal{{ $folder->id }}"
                                                     role="button">Rename</a></li>
-                                            <li><a class="dropdown-item" href="#removeFolderModal"
-                                                    data-bs-toggle="modal" role="button">Delete</a>
+                                            <li>
+                                                {{-- <a class="dropdown-item" href="{{ url('documents/delete-folder/'.$folder->id) }}" role="button" onclick="deleteFolder()">Delete</a> --}}
+                                                <form action="{{ url('documents/delete-folder/'.$folder->id) }}" method="POST">
+                                                    @csrf
+                                                    
+                                                    <button class="dropdown-item text-danger" type="submit">Delete</button>
+                                                </form>
                                             </li>
                                         </ul>
                                     </div>
                                 </div>
+                                
 
                                 <div class="text-center">
                                     <div class="mb-2">
@@ -875,6 +881,9 @@
 
 @include('documents.upload_document')
 @include('documents.add_folder')
+@foreach ($document_folders as $folder)
+    @include('documents.rename_folder')
+@endforeach
 @endsection
 
 @section('js')
@@ -994,6 +1003,11 @@
         }).fail(function(data) {
             console.error(data);
         });
+    }
+
+    function deleteFolder() {
+        event.preventDefault()
+        document.getElementById('deleteFolderForm').submit()
     }
 
     $(document).ready(function() {

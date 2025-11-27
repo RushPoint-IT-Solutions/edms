@@ -395,4 +395,29 @@ class DocumentController extends Controller
             )
         );
     }
+    public function renameFolder(Request $request,$id)
+    {
+        $folder = DocumentFolder::findOrFail($id);
+        $folder->name = $request->name;
+        $folder->save();
+
+        Alert::success('Successfully Rename')->persistent('Dismiss');
+        return back();
+    }
+    public function deleteFolder(Request $request,$id)
+    {
+        $folder = DocumentFolder::with('document')->findOrFail($id);
+        if (count($folder->document) > 0)
+        {
+            Alert::warning('Cannot delete folder because it contains files')->persistent('Dismiss');
+            return back();
+        }
+        else 
+        {
+            $folder->delete();
+
+            Alert::success('Successfully Deleted')->persistent('Dismiss');
+            return back();
+        }
+    }
 }
