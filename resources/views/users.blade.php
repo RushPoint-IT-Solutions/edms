@@ -218,7 +218,6 @@
         line-height: 1.6;
     }
 
-     
     .dataTables_wrapper {
         padding-top: 20px;
     }
@@ -297,7 +296,6 @@
         border-color: #8B0000 !important;
     }
 
-     
     .dataTables_wrapper:after {
         content: "";
         display: table;
@@ -306,6 +304,21 @@
 
     .table-container {
         clear: both;
+    }
+
+    .dataTables_processing {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 200px;
+        margin-left: -100px;
+        margin-top: -26px;
+        text-align: center;
+        padding: 20px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     @media (max-width: 768px) {
@@ -317,7 +330,6 @@
 @endsection
 
 @section('content')
- 
 <div class="row mb-4 dashboard-header">
     <div class="col-12">
         <h4 class="mb-0">User Management</h4>
@@ -333,7 +345,7 @@
             <div class="icon-circle">
                 <i class="fa fa-users"></i>
             </div>
-            <h2>{{count($users)}}</h2>
+            <h2>{{ $totalUsers }}</h2>
             <p>Total Users</p>
         </div>
     </div>
@@ -343,7 +355,7 @@
             <div class="icon-circle">
                 <i class="fa fa-check-circle"></i>
             </div>
-            <h2>{{count($users->where('status',""))}}</h2>
+            <h2>{{ $activeUsers }}</h2>
             <p>Active Users</p>
         </div>
     </div>
@@ -353,7 +365,7 @@
             <div class="icon-circle">
                 <i class="fa fa-times-circle"></i>
             </div>
-            <h2>{{count($users->where('status','1'))}}</h2>
+            <h2>{{ $inactiveUsers }}</h2>
             <p>Deactivated Users</p>
         </div>
     </div>
@@ -362,14 +374,13 @@
 <div class="users-section mb-5">
     <div class="section-header">
         <h5 class="section-title">Users List</h5>
-        <button class="btn-new-account" data-target="#new_account" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#new_account" type="button">
+        <button class="btn-new-account" data-bs-toggle="modal" data-bs-target="#new_account" type="button">
             <i class="fa fa-plus"></i>New Account
         </button>
     </div>
 
-    
     <div class="table-container">
-        <table class="modern-table tables">
+        <table class="modern-table" id="usersTable">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -383,70 +394,13 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($users as $user)
-                <tr>
-                    <td><strong>{{$user->name ?? 'N/A'}}</strong></td>
-                    <td>{{$user->email}}</td>
-                    <td>{{$user->company->name ?? 'N/A'}}</td>
-                    <td>{{optional($user->department)->name ?? 'N/A'}}</td>
-                    <td>
-                        <div class="dept-list">
-                            @foreach($user->departments as $department)
-                            {{$department->dep->name ?? 'N/A'}}<br>
-                            @endforeach
-                        </div>
-                    </td>
-                    <td>{{$user->role}}</td>
-                    <td id='statususer{{$user->id}}'>
-                        @if($user->status)
-                            <span class="badge-status inactive">Inactive</span>
-                        @else
-                            <span class="badge-status active">Active</span>
-                        @endif
-                    </td>
-                    <td data-id='{{$user->id}}' id='actionuser{{$user->id}}'>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="userDropdown{{$user->id}}" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="ri-more-2-fill"></i>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="userDropdown{{$user->id}}">
-                                @if($user->status)
-                                    <li>
-                                        <button class="dropdown-item activate-user" id='{{$user->id}}'>
-                                            <i class="ri-check-line me-2"></i>Activate
-                                        </button>
-                                    </li>
-                                @else
-                                    <li>
-                                        <button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass{{$user->id}}">
-                                            <i class="ri-key-line me-2"></i>Change Password
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item edit" data-bs-toggle="modal" data-bs-target="#editUser{{$user->id}}">
-                                            <i class="ri-pencil-line me-2"></i>Edit
-                                        </button>
-                                    </li>
-                                    @if(Auth::user()->id != $user->id)
-                                        <li>
-                                            <button class="dropdown-item deactivate-user" id='{{$user->id}}'>
-                                                <i class="ri-close-line me-2"></i>Deactivate
-                                            </button>
-                                        </li>
-                                    @endif
-                                @endif
-                            </ul>
-                        </div>
-                    </td>
-
-                </tr>
-                @include('edit_user') 
-                @include('changepassword') 
-                @endforeach
+                <!-- Data will be loaded via AJAX -->
             </tbody>
         </table>
     </div>
 </div>
+
+<div id="modalsContainer"></div>
 
 @include('new_account')
 @endsection
@@ -457,90 +411,162 @@
 <script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
 
 <script>
-    $(document).ready(function(){
-        $('.deactivate-user').click(function () {
-        
-        var id = this.id;
-            swal({
-                title: "Are you sure?",
-                text: "This user will be deactivated!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, deactivated it!",
-                closeOnConfirm: false
-            }, function (){
-                $.ajax({
-                    dataType: 'json',
-                    type:'POST',
-                    url:  '{{url("deactivate-user")}}',
-                    data:{id:id},
-                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                }).done(function(data){
-                    console.log(data);
-                    swal("Deactivated!", "User is now deactivated.", "success");
-                    location.reload();
-                }).fail(function(data)
-                {
-                    
-                    swal("Deactivated!", "User is now deactivated.", "success");
-                location.reload();
-                });
-            });
-        });
-        $('.activate-user').click(function () {
-        
-        var id = this.id;
-            swal({
-                title: "Are you sure?",
-                text: "This user will be activated!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, Activated it!",
-                closeOnConfirm: false
-            }, function (){
-                $.ajax({
-                    dataType: 'json',
-                    type:'POST',
-                    url:  '{{url("activate-user")}}',
-                    data:{id:id},
-                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                }).done(function(data){
-                    console.log(data);
-                    swal("Activated!", "User is now activated.", "success");
-                    location.reload();
-                }).fail(function(data)
-                {
-                    
-                    swal("Activated!", "User is now activated.", "success");
-                location.reload();
-                });
-            });
-        });
-        
-        $('.cat').chosen({width: "100%"});
-        $('.tables').DataTable({
-            pageLength: 25,
-            responsive: true,
-            stateSave: true,
-            dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>',
-            buttons: [
-                { extend: 'copy'},
-                {extend: 'csv'},
-                {extend: 'excel', title: 'Users'},
-                {extend: 'pdf', title: 'Users'},
-                {extend: 'print',
-                 customize: function (win){
-                        $(win.document.body).addClass('white-bg');
-                        $(win.document.body).css('font-size', '10px');
-                        $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
+$(document).ready(function(){
+    var table = $('#usersTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ route("users.data") }}',
+            type: 'GET',
+            error: function(xhr, error, code) {
+                console.log(xhr, error, code);
+            }
+        },
+        columns: [
+            { data: 'name', name: 'name' },
+            { data: 'email', name: 'email' },
+            { data: 'company', name: 'company', orderable: false },
+            { data: 'department', name: 'department', orderable: false },
+            { data: 'share_department', name: 'share_department', orderable: false },
+            { data: 'role', name: 'role' },
+            { data: 'status', name: 'status' },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        responsive: true,
+        dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>',
+        buttons: [
+            { extend: 'copy'},
+            { extend: 'csv'},
+            { extend: 'excel', title: 'Users'},
+            { extend: 'pdf', title: 'Users'},
+            { 
+                extend: 'print',
+                customize: function (win){
+                    $(win.document.body).addClass('white-bg');
+                    $(win.document.body).css('font-size', '10px');
+                    $(win.document.body).find('table')
+                        .addClass('compact')
+                        .css('font-size', 'inherit');
                 }
+            }
+        ],
+        language: {
+            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+            emptyTable: "No users found",
+            zeroRecords: "No matching users found"
+        },
+        drawCallback: function() {
+            loadModalsForVisibleUsers();
+        }
+    });
+
+    function loadModalsForVisibleUsers() {
+        var data = table.rows({page: 'current'}).data();
+        var userIds = [];
+        
+        data.each(function(row) {
+            if (row.user_id) {
+                userIds.push(row.user_id);
+            }
+        });
+
+        if (userIds.length > 0) {
+            $.ajax({
+                url: '{{ route("users.modals") }}',
+                type: 'POST',
+                data: {
+                    user_ids: userIds,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    $('#modalsContainer').html(response);
+                },
+                error: function(xhr, error, code) {
+                    console.log('Error loading modals:', error);
                 }
-            ]
+            });
+        }
+    }
+
+    $(document).on('click', '.deactivate-user', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        
+        swal({
+            title: "Are you sure?",
+            text: "This user will be deactivated!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, deactivate it!",
+            closeOnConfirm: false
+        }, function(){
+            $.ajax({
+                dataType: 'json',
+                type: 'POST',
+                url: '{{ url("deactivate-user") }}',
+                data: {
+                    id: id,
+                    _token: '{{ csrf_token() }}'
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(data) {
+                    swal("Deactivated!", "User is now deactivated.", "success");
+                    table.ajax.reload(null, false);
+                },
+                error: function(data) {
+                    swal("Deactivated!", "User is now deactivated.", "success");
+                    table.ajax.reload(null, false);
+                }
+            });
         });
     });
+
+    $(document).on('click', '.activate-user', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        
+        swal({
+            title: "Are you sure?",
+            text: "This user will be activated!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, activate it!",
+            closeOnConfirm: false
+        }, function(){
+            $.ajax({
+                dataType: 'json',
+                type: 'POST',
+                url: '{{ url("activate-user") }}',
+                data: {
+                    id: id,
+                    _token: '{{ csrf_token() }}'
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(data) {
+                    swal("Activated!", "User is now activated.", "success");
+                    table.ajax.reload(null, false);
+                },
+                error: function(data) {
+                    swal("Activated!", "User is now activated.", "success");
+                    table.ajax.reload(null, false);
+                }
+            });
+        });
+    });
+
+    $(document).on('hidden.bs.modal', '#new_account, [id^="editUser"], [id^="change_pass"]', function() {
+        table.ajax.reload(null, false);
+    });
+
+    $('.cat').chosen({width: "100%"});
+});
 </script>
 @endsection
