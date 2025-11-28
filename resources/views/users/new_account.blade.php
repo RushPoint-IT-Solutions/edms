@@ -5,19 +5,25 @@
                 <h5 class="modal-title" id="newAccountModalLabel">New Account</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method='post' action='new-account' onsubmit='show();' enctype="multipart/form-data">
+            <form method='post' action='{{ url('users/new-account') }}' onsubmit='show();' enctype="multipart/form-data">
                 <div class="modal-body">
                     {{ csrf_field() }}
                     <div class='row'>
                         <div class='col-md-12'>
                             <label>Name :</label>
-                            <input type="text" class="form-control-sm form-control" value="{{ old('name') }}" name="name" placeholder="Enter full name" required/>
+                            <input type="text" class="form-control-sm form-control mb-0" value="{{ old('name') }}" name="name" placeholder="Enter full name"/>
+                            @if($errors->has('name'))
+                                <span class="text-danger">{{ $errors->first('name') }}</span>
+                            @endif
                         </div>
                         <div class='col-md-12'>
                             <label>Email :</label>
-                            <input type="email" class="form-control-sm form-control" value="{{ old('email') }}" name="email" placeholder="Enter email address" required/>
+                            <input type="email" class="form-control-sm form-control mb-0" value="{{ old('email') }}" name="email" placeholder="Enter email address"/>
+                            @if($errors->has('email'))
+                                <span class="text-danger">{{ $errors->first('email') }}</span>
+                            @endif
                         </div>
-                        <div class='col-md-12'>
+                        {{-- <div class='col-md-12'>
                             <label>Company :</label>
                             <select name='company' class='form-control-sm form-control cat' required>
                                 <option value="">Select company...</option>
@@ -25,8 +31,8 @@
                                     <option value='{{$company->id}}' @if(old('company') == $company->id) selected @endif>{{$company->code}} - {{$company->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class='col-md-12'>
+                        </div> --}}
+                        {{-- <div class='col-md-12'>
                             <label>Department :</label>
                             <select name='department' class='form-control-sm form-control cat' required>
                                 <option value="">Select department...</option>
@@ -34,24 +40,30 @@
                                     <option value='{{$dep->id}}' @if(old('department') == $dep->id) selected @endif>{{$dep->code}} - {{$dep->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
+                        </div> --}}
                         <div class='col-md-12'>
                             <label>Role :</label>
-                            <select name='role' class='form-control-sm form-control cat' required>
+                            <select name='role' class='form-control-sm form-control cat'>
                                 <option value="">Select role...</option>
                                 @foreach($roles as $role)
                                     <option value='{{$role}}' @if(old('role') == $role) selected @endif>{{$role}}</option>
                                 @endforeach
                             </select>
+                            @if($errors->has('role'))
+                                <span class="text-danger">{{ $errors->first('role') }}</span>
+                            @endif
                         </div>
                         <div class='col-md-12'>
                             <label>Password :</label>
-                            <input type="password" class="form-control-sm form-control" name="password" placeholder="Enter password" required/>
+                            <input type="password" class="form-control-sm form-control" name="password" placeholder="Enter password"/>
                         </div>
                         <div class='col-md-12'>
                             <label>Password Confirmation :</label>
-                            <input type="password" class="form-control-sm form-control" name="password_confirmation" placeholder="Confirm password" required/>
+                            <input type="password" class="form-control-sm form-control mb-0" name="password_confirmation" placeholder="Confirm password"/>
                         </div>
+                        @if($errors->has('password'))
+                            <span class="text-danger">{{ $errors->first('password') }}</span>
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer">

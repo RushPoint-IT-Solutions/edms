@@ -77,10 +77,10 @@ class UserController extends Controller
                 ? '<span class="badge-status inactive">Inactive</span>' 
                 : '<span class="badge-status active">Active</span>';
 
-            $shareDepartments = '';
-            foreach($user->departments as $department) {
-                $shareDepartments .= ($department->dep->name ?? 'N/A') . '<br>';
-            }
+            // $shareDepartments = '';
+            // foreach($user->departments as $department) {
+            //     $shareDepartments .= ($department->dep->name ?? 'N/A') . '<br>';
+            // }
 
             $actions = '<div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
@@ -94,7 +94,7 @@ class UserController extends Controller
             } else {
                 $actions .= '<li><button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass'.$user->id.'">
                     <i class="ri-key-line me-2"></i>Change Password</button></li>';
-                $actions .= '<li><button class="dropdown-item edit" data-bs-toggle="modal" data-bs-target="#editUser'.$user->id.'">
+                $actions .= '<li><button class="dropdown-item edit" type="button" id="editUserBtn">
                     <i class="ri-pencil-line me-2"></i>Edit</button></li>';
                 
                 if(auth()->user()->id != $user->id) {
@@ -106,11 +106,11 @@ class UserController extends Controller
             $actions .= '</ul></div>';
 
             $data[] = [
-                'name' => '<strong>' . ($user->name ?? 'N/A') . '</strong>',
+                'name' => ($user->name ?? 'N/A'),
                 'email' => $user->email,
-                'company' => $user->company->name ?? 'N/A',
-                'department' => $user->department->name ?? 'N/A',
-                'share_department' => '<div class="dept-list">' . $shareDepartments . '</div>',
+                // 'company' => $user->company->name ?? 'N/A',
+                // 'department' => $user->department->name ?? 'N/A',
+                // 'share_department' => '<div class="dept-list">' . $shareDepartments . '</div>',
                 'role' => $user->role,
                 'status' => $statusBadge,
                 'action' => $actions,
@@ -146,6 +146,7 @@ class UserController extends Controller
             'name' => 'required|min:3|max:50',
             'email' => 'email|unique:users',
             'password' => 'required|confirmed|min:6',
+            'role' => 'required'
         ]);
 
 
@@ -189,34 +190,33 @@ class UserController extends Controller
 
         return "success";
     }
-    public function edit_user(Request $request, $id)
+    public function edit_user(Request $request)
     {
-
+        // dd($request->all());
         $this->validate($request, [
-            'email' => 'unique:users,email,' . $id,
+            'email' => 'unique:users,email,' . $request->id,
         ]);
 
-        $account = User::where('id', $id)->first();
-        $account->name = $request->name;
-        $account->email = $request->email;
-        $account->company_id = $request->company;
-        $account->department_id = $request->department;
+        $account = User::where('id', $request->id)->first();
+        // $account->name = $request->name;
+        // $account->email = $request->email;
+        // $account->company_id = $request->company;
+        // $account->department_id = $request->department;
         $account->role = $request->role;
         $account->save();
 
-        $share_department = UserDepartment::where('user_id',$id)->delete();
-        if($request->share_department)
-        {
-            foreach($request->share_department as $d)
-            {
-                $department = new UserDepartment;
-                $department->user_id = $id;
-                $department->department_id = $d;
-                $department->created_by = auth()->user()->id;
-                $department->save();
-            }
-        }
-      
+        // $share_department = UserDepartment::where('user_id',$id)->delete();
+        // if($request->share_department)
+        // {
+        //     foreach($request->share_department as $d)
+        //     {
+        //         $department = new UserDepartment;
+        //         $department->user_id = $id;
+        //         $department->department_id = $d;
+        //         $department->created_by = auth()->user()->id;
+        //         $department->save();
+        //     }
+        // }
 
         Alert::success('Successfully Updated')->persistent('Dismiss');
         return back();
@@ -236,27 +236,27 @@ class UserController extends Controller
         return $roles;
     }
 
-    public function addUserFromWpro(Request $request)
-    {
-        $user = User::where('email', $request->email)->first();
+    // public function addUserFromWpro(Request $request)
+    // {
+    //     $user = User::where('email', $request->email)->first();
         
-        if ($user == null)
-        {
-            $users = new User;
-            $users->name = $request->name;
-            $users->email = $request->email;
-            $users->password = $request->password;
-            $users->department_id = $request->department_id;
-            $users->company_id = $request->company_id;
-            $users->role = $request->role;
-            $users->save();
+    //     if ($user == null)
+    //     {
+    //         $users = new User;
+    //         $users->name = $request->name;
+    //         $users->email = $request->email;
+    //         $users->password = $request->password;
+    //         $users->department_id = $request->department_id;
+    //         $users->company_id = $request->company_id;
+    //         $users->role = $request->role;
+    //         $users->save();
 
-            return response()->json(['message' => 'Successfully Saved']);
-        }
-        else
-        {
-            return response()->json(['message' => 'Error! The email is existing in our system']);
-        }
+    //         return response()->json(['message' => 'Successfully Saved']);
+    //     }
+    //     else
+    //     {
+    //         return response()->json(['message' => 'Error! The email is existing in our system']);
+    //     }
         
-    }
+    // }
 }

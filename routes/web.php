@@ -31,6 +31,16 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('delete-folder/{id}','DocumentController@deleteFolder');
         });
 
+         //Users
+        Route::get('/users', 'UserController@index')->name('settings');
+        Route::prefix('users')->group(function() {
+            Route::post('new-account', 'UserController@create')->name('settings');
+            Route::post('/edit-user', 'UserController@edit_user')->name('settings');
+            Route::post('/change-password/{id}', 'UserController@changepassword')->name('settings');
+            Route::post('deactivate-user', 'UserController@deactivate_user')->name('settings');
+            Route::post('activate-user', 'UserController@activate_user')->name('settings');
+        });
+
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/search', 'HomeController@search')->name('search');
@@ -87,14 +97,6 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('remove-approvers','RequestController@removeApprover')->name('remove-approvers');
         Route::post('update-approvers/{id}','RequestController@removeApp')->name('remove-approvers');
     
-        //Users
-        Route::get('/users', 'UserController@index')->name('settings');
-        Route::post('new-account', 'UserController@create')->name('settings');
-        Route::post('/change-password/{id}', 'UserController@changepassword')->name('settings');
-        Route::post('/edit-user/{id}', 'UserController@edit_user')->name('settings');
-        Route::post('deactivate-user', 'UserController@deactivate_user')->name('settings');
-        Route::post('activate-user', 'UserController@activate_user')->name('settings');
-
         Route::get('/users/data', 'UserController@getUsersData')->name('users.data');
         Route::post('/users/modals', 'UserController@getUserModals')->name('users.modals');
     
