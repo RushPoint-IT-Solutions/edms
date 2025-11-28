@@ -385,14 +385,14 @@
             <tbody>
                 @foreach($users as $user)
                 <tr>
-                    <td><strong>{{$user->name}}</strong></td>
+                    <td><strong>{{$user->name ?? 'N/A'}}</strong></td>
                     <td>{{$user->email}}</td>
-                    <td>{{$user->company->name}}</td>
-                    <td>{{optional($user->department)->name}}</td>
+                    <td>{{$user->company->name ?? 'N/A'}}</td>
+                    <td>{{optional($user->department)->name ?? 'N/A'}}</td>
                     <td>
                         <div class="dept-list">
                             @foreach($user->departments as $department)
-                            {{$department->dep->name}}<br>
+                            {{$department->dep->name ?? 'N/A'}}<br>
                             @endforeach
                         </div>
                     </td>
