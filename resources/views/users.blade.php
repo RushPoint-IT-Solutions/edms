@@ -337,8 +337,6 @@
     </div>
 </div>
 
-@include('error')
-
 <div class="row g-3 mb-4">
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
@@ -385,9 +383,9 @@
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Company</th>
-                    <th>Department</th>
-                    <th>Share Department</th>
+                    {{-- <th>Company</th>
+                    <th>Department</th> --}}
+                    {{-- <th>Share Department</th> --}}
                     <th>Role</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -402,7 +400,8 @@
 
 <div id="modalsContainer"></div>
 
-@include('new_account')
+@include('users.new_account')
+@include('users.edit_user')
 @endsection
 
 @section('js')
@@ -425,9 +424,9 @@ $(document).ready(function(){
         columns: [
             { data: 'name', name: 'name' },
             { data: 'email', name: 'email' },
-            { data: 'company', name: 'company', orderable: false },
-            { data: 'department', name: 'department', orderable: false },
-            { data: 'share_department', name: 'share_department', orderable: false },
+            // { data: 'company', name: 'company', orderable: false },
+            // { data: 'department', name: 'department', orderable: false },
+            // { data: 'share_department', name: 'share_department', orderable: false },
             { data: 'role', name: 'role' },
             { data: 'status', name: 'status' },
             { data: 'action', name: 'action', orderable: false, searchable: false }
@@ -459,6 +458,16 @@ $(document).ready(function(){
         },
         drawCallback: function() {
             loadModalsForVisibleUsers();
+        },
+        rowCallback:function(row, data) {
+            $(row).find("#editUserBtn").on('click', function() {
+                $("#editUserModal").modal('show')
+
+                $("[name='id']").val(data.user_id)
+                $("[name='name']").val(data.name)
+                $("[name='email']").val(data.email)
+                $("[name='role']").val(data.role).trigger("chosen:updated")
+            })
         }
     });
 
@@ -493,6 +502,7 @@ $(document).ready(function(){
     $(document).on('click', '.deactivate-user', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
+        console.log(id);
         
         swal({
             title: "Are you sure?",
@@ -506,7 +516,7 @@ $(document).ready(function(){
             $.ajax({
                 dataType: 'json',
                 type: 'POST',
-                url: '{{ url("deactivate-user") }}',
+                url: '{{ url("users/deactivate-user") }}',
                 data: {
                     id: id,
                     _token: '{{ csrf_token() }}'
@@ -542,7 +552,7 @@ $(document).ready(function(){
             $.ajax({
                 dataType: 'json',
                 type: 'POST',
-                url: '{{ url("activate-user") }}',
+                url: '{{ url("users/activate-user") }}',
                 data: {
                     id: id,
                     _token: '{{ csrf_token() }}'

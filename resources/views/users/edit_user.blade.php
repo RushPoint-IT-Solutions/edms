@@ -1,59 +1,60 @@
-<div class="modal fade" id="editUser{{$user->id}}" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel{{$user->id}}" aria-hidden="true">
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editUserModalLabel{{$user->id}}">Edit User</h5>
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <form method='post' action='edit-user/{{$user->id}}' onsubmit='show();' enctype="multipart/form-data">
+            <form method='post' action='{{ url('users/edit-user') }}' onsubmit='show();' enctype="multipart/form-data">
                 <div class="modal-body">
                     {{ csrf_field() }}
+                    <input type="hidden" name="id">
                     <div class='row'>
                         <div class='col-md-12'>
                             <label>Name :</label>
-                            <input type="text" class="form-control-sm form-control bg-light" value="{{$user->name}}" readonly name="name" required/>
+                            <input type="text" class="form-control-sm form-control bg-light" name="name" readonly />
                             <small class="text-muted">Name cannot be changed</small>
                         </div>
                         <div class='col-md-12'>
                             <label>Email :</label>
-                            <input type="email" class="form-control-sm form-control bg-light" value="{{$user->email}}" readonly name="email" required/>
+                            <input type="email" class="form-control-sm form-control bg-light" name="email" readonly/>
                             <small class="text-muted">Email cannot be changed</small>
                         </div>
-                        <div class='col-md-12'>
+                        {{-- <div class='col-md-12'>
                             <label>Company :</label>
                             <select name='company' class='form-control-sm form-control cat' required>
                                 <option value="">Select company...</option>
                                 @foreach($companies as $company)
-                                    <option value='{{$company->id}}' @if($user->company_id == $company->id) selected @endif>{{$company->name}} - {{$company->code}}</option>
+                                    <option value='{{$company->id}}'>{{$company->name}} - {{$company->code}}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class='col-md-12'>
+                        </div> --}}
+                        {{-- <div class='col-md-12'>
                             <label>Department :</label>
                             <select name='department' class='form-control-sm form-control cat' required>
                                 <option value="">Select department...</option>
                                 @foreach($departments as $dep)
-                                    <option value='{{$dep->id}}' @if($user->department_id == $dep->id) selected @endif>{{$dep->code}} - {{$dep->name}}</option>
+                                    <option value='{{$dep->id}}'>{{$dep->code}} - {{$dep->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class='col-md-12'>
+                        </div> --}}
+                        {{-- <div class='col-md-12'>
                             <label>Share Department :</label>
                             <select name='share_department[]' class='form-control-sm form-control cat' multiple>
                                 <option value="">Select departments...</option>
                                 @foreach($departments->where('id','!=',$user->department_id) as $dep)
-                                    <option value='{{$dep->id}}' @foreach($user->departments as $d ) @if($d->department_id == $dep->id) selected @endif @endforeach>{{$dep->code}} - {{$dep->name}}</option>
+                                    <option value='{{$dep->id}}'>{{$dep->code}} - {{$dep->name}}</option>
                                 @endforeach
                             </select>
                             <small class="text-muted">Hold Ctrl/Cmd to select multiple departments</small>
-                        </div>
+                        </div> --}}
                         <div class='col-md-12'>
                             <label>Role :</label>
-                            <select name='role' class='form-control-sm form-control cat' required>
+                            <select name='role' class='form-control-sm form-control cat'>
                                 <option value="">Select role...</option>
                                 @foreach($roles as $role)
-                                    <option value='{{$role}}' @if($user->role == $role) selected @endif>{{$role}}</option>
+                                    <option value='{{$role}}'>{{$role}}</option>
                                 @endforeach
                             </select>
                         </div>
