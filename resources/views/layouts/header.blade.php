@@ -132,12 +132,14 @@
                         </form>
                     </div>
 
+                    @php
+                        $draft_requests = getDraftRequest();
+                    @endphp
                     <div class="d-flex align-items-center">
-                        
                         <div class="dropdown topbar-head-dropdown ms-1 header-item" id="notificationDropdown">
                             <button type="button" class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" id="page-header-notifications-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
                                 <i class='bx bx-bell fs-22'></i>
-                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">3<span class="visually-hidden">unread messages</span></span>
+                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">{{ count($draft_requests) }}<span class="visually-hidden">unread messages</span></span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown">
                                 <div class="dropdown-head bg-pattern rounded-top" style="background-color: #800000;">
@@ -147,7 +149,7 @@
                                                 <h6 class="m-0 fs-16 fw-semibold text-white"> Notifications </h6>
                                             </div>
                                             <div class="col-auto dropdown-tabs">
-                                                <span class="badge bg-light text-body fs-13"> 3 New</span>
+                                                <span class="badge bg-light text-body fs-13"> {{ count($draft_requests->where('created_at','>=', date('Y-m-d'))) }} New</span>
                                             </div>
                                         </div>
                                     </div>
@@ -156,59 +158,25 @@
                                 <div class="tab-content position-relative" id="notificationItemsTabContent">
                                     <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
                                         <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                            @foreach ($draft_requests as $draft_request)
                                             <div class="text-reset notification-item d-block dropdown-item position-relative">
                                                 <div class="d-flex">
                                                     <div class="avatar-xs me-3 flex-shrink-0">
                                                         <span class="avatar-title bg-info-subtle text-info rounded-circle fs-16">
-                                                            <i class="bx bx-badge-check"></i>
+                                                            <i class="bx bx-file"></i>
                                                         </span>
                                                     </div>
                                                     <div class="flex-grow-1">
-                                                        <a href="#!" class="stretched-link">
-                                                            <h6 class="mt-0 mb-2 lh-base">Your request has been approved</h6>
+                                                        <a href="{{ url('documents/create/'. $draft_request->id) }}" class="stretched-link">
+                                                            <h6 class="mt-0 mb-2 lh-base">DOC-{{ date('Y', strtotime($draft_request->created_at)) }}-{{ str_pad($draft_request->id,'3',0,STR_PAD_LEFT) }}</h6>
                                                         </a>
                                                         <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                            <span><i class="mdi mdi-clock-outline"></i> 2 min ago</span>
+                                                            <span><i class="mdi mdi-pencil"></i> {{ $draft_request->title }}</span>
                                                         </p>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div class="text-reset notification-item d-block dropdown-item position-relative">
-                                                <div class="d-flex">
-                                                    <div class="avatar-xs me-3 flex-shrink-0">
-                                                        <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-16">
-                                                            <i class="bx bx-message-square-dots"></i>
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <a href="#!" class="stretched-link">
-                                                            <h6 class="mt-0 mb-2 lh-base">New document uploaded</h6>
-                                                        </a>
-                                                        <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                            <span><i class="mdi mdi-clock-outline"></i> 1 hour ago</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-reset notification-item d-block dropdown-item position-relative">
-                                                <div class="d-flex">
-                                                    <div class="avatar-xs me-3 flex-shrink-0">
-                                                        <span class="avatar-title bg-danger-subtle text-danger rounded-circle fs-16">
-                                                            <i class="bx bx-error-circle"></i>
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <a href="#!" class="stretched-link">
-                                                            <h6 class="mt-0 mb-2 lh-base">Document expiring soon</h6>
-                                                        </a>
-                                                        <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                            <span><i class="mdi mdi-clock-outline"></i> 3 hours ago</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>

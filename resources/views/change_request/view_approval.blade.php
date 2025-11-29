@@ -40,15 +40,17 @@
                         {{ $approver->user->name }} -
                         @if($approver->status == "Pending")
                         <span class="badge bg-warning">
-                            @elseif($approver->status == "Approved")
-                            <span class="badge bg-success">
-                                @elseif($approver->status == "Returned")
-                                <span class="badge bg-danger">
-                                    @endif
-                                    {{ $approver->status }}
-                                </span>
-                                <br>
-                                @endforeach
+                        @elseif($approver->status == "Approved")
+                        <span class="badge bg-success">
+                        @elseif($approver->status == "Returned")
+                        <span class="badge bg-danger">
+                        @elseif($approver->status == "Waiting")
+                        <span class="badge bg-info">
+                        @endif
+                            {{ $approver->status }}
+                        </span>
+                        <br>
+                        @endforeach
                     </div>
                 </div>
             </div>
