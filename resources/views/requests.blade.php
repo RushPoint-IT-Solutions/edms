@@ -332,9 +332,6 @@
         <h5 class="section-title">All Copy Requests</h5>
     </div>
 
-     
-
-    
     <div class="table-container">
         <table class="modern-table tables">
             <thead>
@@ -386,12 +383,15 @@
                         @endif
                     </td>
                 </tr>
-                @include('view_copy_request')
                 @endforeach
             </tbody>
         </table>
     </div>
 </div>
+
+@foreach($requests as $request)
+    @include('view_copy_request')
+@endforeach
 
 @endsection
 

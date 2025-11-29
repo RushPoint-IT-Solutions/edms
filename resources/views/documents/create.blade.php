@@ -3,6 +3,7 @@
  <link href="{{asset('/assets/libs/dropzone/dropzone.css')}}" rel="stylesheet" type="text/css" />
  <link rel="stylesheet" href="{{ asset('login_design/css/file-input-preview.css') }}">
  <link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
  <style>
     .pdf-preview-container {
         position: sticky;
@@ -65,6 +66,7 @@
         height: calc(100% - 60px);
         overflow-y: auto;
         padding: 20px;
+        position: relative;
         text-align: center;
     }
     .pdf-preview-content iframe {
@@ -74,6 +76,11 @@
         border-radius: 4px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+
+    #pdf-container {
+        max-width: 100%;
+        margin: 0 auto;
+    }
     .no-preview {
         display: flex;
         align-items: center;
@@ -81,6 +88,54 @@
         height: 100%;
         color: #adb5bd;
         font-size: 16px;
+    }
+
+    #pdf-container {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    canvas.pdf-page {
+        display: block;
+        margin: 10px auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    }
+
+    .signature-box {
+        position: absolute;
+        border: 2px dashed #0d6efd;
+        background: rgba(13,110,253,0.1);
+        width: 180px;
+        height: 80px;
+        cursor: move;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .signature-box .box-number {
+        font-size: 24px;
+        color: #0d6efd;
+        font-weight: bold;
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 24px;
+        height: 24px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        font-size: 16px;
+        font-weight: bold;
+        line-height: 22px;
+        text-align: center;
+        cursor: pointer;
+        border: 2px solid white;
     }
     
     @media (min-width: 992px) {
@@ -96,12 +151,14 @@
  </style>
 @endsection
 @section('content')
-<form method="POST" action="{{ url('change-request/store') }}" enctype="multipart/form-data" onsubmit="show()">
+<form method="POST" action="{{ url('change-request/store') }}" enctype="multipart/form-data" onsubmit="return prepareSubmit()">
     @csrf 
 
     @if($change_request)
     <input type="hidden" name="id" value="{{ $change_request->id }}">
     @endif
+
+    <input type="hidden" name="signature_positions" id="signature-positions-input">
 
     <div class="row">
         <div class="col-lg-5 form-column">
@@ -178,11 +235,12 @@
                 <div class="card-body">
                     <div id="approvers-wrapper">
                         <div class="approver-row mb-2 d-flex align-items-center gap-2">
-                            <span class="approver-level badge bg-primary">Level 1</span>
-                            <select name="approvers[]" class="form-select w-50" required>
+                            <span class="approver-level badge bg-primary">1</span>
+                            <select name="approvers[]" class="form-select approver-select chosen-select" style="flex: 1;" required>
+                                <option value="">-- Select Approver --</option>
                                 @if($change_request)
                                 @foreach ($change_request->approvers as $approver)
-                                    <option value="{{ $approver->user_id }}">{{ $approver->user->name }}</option>
+                                    <option value="{{ $approver->user_id }}" selected>{{ $approver->user->name }}</option>
                                 @endforeach
                                 @else 
                                 @foreach($approvers as $user)
@@ -190,6 +248,9 @@
                                 @endforeach
                                 @endif
                             </select>
+                            <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="1">
+                                <i class="ri-add-circle-line"></i>
+                            </button>
                             <button type="button" class="btn btn-danger btn-sm remove-approver">
                                 <i class="ri-delete-bin-2-line"></i>
                             </button>
@@ -243,7 +304,9 @@
                 <div class="pdf-preview-content">
                     <div class="tab-content-item active" id="main-doc-content">
                         @if($change_request)
-                        <iframe src="{{ url($change_request->file) }}" type="application/pdf"></iframe>
+                        <div id="pdf-container">
+                            <iframe src="{{ url($change_request->file) }}" type="application/pdf"></iframe>
+                        </div>
                         @else
                         <div class="no-preview" id="main-doc-preview">
                             <div>
@@ -251,6 +314,7 @@
                                 <p class="mt-2">Upload a PDF to preview</p>
                             </div>
                         </div>
+                        <div id="pdf-container" style="display: none;"></div>
                         @endif
                     </div>
 
@@ -275,13 +339,67 @@
     </div>
 </form>
 
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+let pdfDoc = null;
+let scale = 1.0;
+let placingLevel = null;
+let approverBoxes = {};
+
+function prepareSubmit() {
+    const signatureData = [];
+    
+    Object.keys(approverBoxes).forEach(level => {
+        approverBoxes[level].forEach(box => {
+            const approverRow = document.querySelector(`[data-level="${level}"]`).closest('.approver-row');
+            const userId = approverRow.querySelector('.approver-select').value;
+            
+            const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
+            let pageNumber = 1;
+            let cumulativeHeight = 0;
+            
+            const boxTop = parseFloat(box.style.top);
+            
+            for (let i = 0; i < canvases.length; i++) {
+                const canvasHeight = canvases[i].height;
+                const canvasMargin = 10;
+                
+                if (boxTop < cumulativeHeight + canvasHeight) {
+                    pageNumber = i + 1;
+                    break;
+                }
+                cumulativeHeight += canvasHeight + canvasMargin;
+            }
+            
+            signatureData.push({
+                user_id: userId,
+                page_number: pageNumber,
+                x_position: parseFloat(box.style.left) / scale,
+                y_position: parseFloat(box.style.top) / scale,
+                width: 180 / scale,
+                height: 80 / scale
+            });
+        });
+    });
+    
+    document.getElementById('signature-positions-input').value = JSON.stringify(signatureData);
+    
+    if (typeof show === 'function') {
+        show();
+    }
+    
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const pdfInput = document.getElementById('pdf-file-input');
     const supportingDocsInput = document.getElementById('supporting-docs-input');
     const mainDocPreview = document.getElementById('main-doc-preview');
     const supportingDocsGrid = document.getElementById('supporting-docs-list');
     const supportingDocsEmpty = document.getElementById('supporting-docs-empty');
+    const pdfContainer = document.getElementById('pdf-container');
     
     let supportingFiles = [];
 
@@ -297,23 +415,140 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    pdfInput.addEventListener('change', function(e) {
+    pdfInput.addEventListener('change', async function(e) {
         const file = e.target.files[0];
         
         if (file && file.type === 'application/pdf') {
             const fileURL = URL.createObjectURL(file);
-            mainDocPreview.innerHTML = `<iframe src="${fileURL}" type="application/pdf"></iframe>`;
+            
+            if (mainDocPreview) {
+                mainDocPreview.style.display = 'none';
+            }
+            pdfContainer.style.display = 'block';
+            
+            await loadPdf(fileURL);
         } else {
-            mainDocPreview.innerHTML = `
-                <div class="no-preview">
-                    <div>
-                        <i class="ri-file-pdf-line" style="font-size: 48px;"></i>
-                        <p class="mt-2">Upload a PDF to preview</p>
-                    </div>
-                </div>
-            `;
+            if (mainDocPreview) {
+                mainDocPreview.style.display = 'flex';
+                pdfContainer.style.display = 'none';
+            }
         }
     });
+
+    async function loadPdf(url) {
+        try {
+            const loadingTask = pdfjsLib.getDocument(url);
+            pdfDoc = await loadingTask.promise;
+
+            pdfContainer.innerHTML = "";
+            
+            approverBoxes = {};
+            
+            const containerWidth = pdfContainer.offsetWidth;
+            
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                const page = await pdfDoc.getPage(pageNum);
+                
+                const unscaledViewport = page.getViewport({ scale: 1 });
+                const pageScale = (containerWidth - 40) / unscaledViewport.width;
+                scale = pageScale;
+                
+                const viewport = page.getViewport({ scale: pageScale });
+                const canvas = document.createElement("canvas");
+                canvas.className = "pdf-page";
+                const context = canvas.getContext("2d");
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                await page.render({ canvasContext: context, viewport }).promise;
+                pdfContainer.appendChild(canvas);
+            }
+
+            pdfContainer.onclick = (e) => {
+                if (placingLevel === null) return;
+                addSignatureBox(e, placingLevel);
+                placingLevel = null;
+                
+                document.querySelectorAll('.place-signature-btn').forEach(b => {
+                    b.classList.remove('btn-warning');
+                    b.classList.add('btn-success');
+                });
+            };
+        } catch (error) {
+            console.error("Error loading PDF:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'PDF Loading Error',
+                text: 'Error loading PDF: ' + error.message,
+                confirmButtonColor: '#0ab39c'
+            });
+        }
+    }
+
+    function addSignatureBox(e, level) {
+        const rect = pdfContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left + pdfContainer.parentElement.scrollLeft;
+        const y = e.clientY - rect.top + pdfContainer.parentElement.scrollTop;
+
+        const sigBox = document.createElement("div");
+        sigBox.classList.add("signature-box");
+        sigBox.style.left = x - 90 + "px";
+        sigBox.style.top = y - 40 + "px";
+        sigBox.dataset.level = level;
+
+        const number = document.createElement('span');
+        number.className = 'box-number';
+        number.textContent = level;
+        sigBox.appendChild(number);
+
+        const removeBtn = document.createElement("div");
+        removeBtn.classList.add("remove-btn");
+        removeBtn.textContent = "×";
+        removeBtn.onclick = (ev) => {
+            ev.stopPropagation();
+            pdfContainer.removeChild(sigBox);
+            
+            if (approverBoxes[level]) {
+                const index = approverBoxes[level].indexOf(sigBox);
+                if (index > -1) {
+                    approverBoxes[level].splice(index, 1);
+                }
+            }
+        };
+        sigBox.appendChild(removeBtn);
+
+        makeDraggable(sigBox);
+        pdfContainer.appendChild(sigBox);
+
+        if (!approverBoxes[level]) {
+            approverBoxes[level] = [];
+        }
+        approverBoxes[level].push(sigBox);
+    }
+
+    function makeDraggable(el) {
+        let offsetX, offsetY;
+        el.addEventListener("mousedown", (e) => {
+            if (e.target.classList.contains("remove-btn")) return;
+            
+            const rect = pdfContainer.getBoundingClientRect();
+            const boxRect = el.getBoundingClientRect();
+            
+            offsetX = e.clientX - boxRect.left;
+            offsetY = e.clientY - boxRect.top;
+            
+            document.onmousemove = (moveEvent) => {
+                const newLeft = moveEvent.clientX - rect.left + pdfContainer.parentElement.scrollLeft - offsetX;
+                const newTop = moveEvent.clientY - rect.top + pdfContainer.parentElement.scrollTop - offsetY;
+                
+                el.style.left = newLeft + "px";
+                el.style.top = newTop + "px";
+            };
+            document.onmouseup = () => {
+                document.onmousemove = null;
+                document.onmouseup = null;
+            };
+        });
+    }
 
     const selectedFilesList = document.getElementById('selected-files-list');
     
@@ -362,6 +597,10 @@ document.addEventListener('DOMContentLoaded', function () {
             supportingDocsGrid.style.display = 'none';
         }
     });
+
+    @if($change_request)
+    loadPdf('{{ url($change_request->file) }}');
+    @endif
 });
 </script>
 
@@ -369,38 +608,117 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
     const wrapper = document.getElementById('approvers-wrapper');
     const addBtn = document.getElementById('add-approver');
+    let approverCount = 1;
+
+    function initializeChosenSelects() {
+        $('.chosen-select').chosen({
+            width: "100%",
+            placeholder_text_single: "-- Select Approver --"
+        });
+    }
+
+    initializeChosenSelects();
 
     function updateLevels() {
         const rows = wrapper.querySelectorAll('.approver-row');
         rows.forEach((row, index) => {
-            row.querySelector('.approver-level').textContent = `Level ${index + 1}`;
+            const level = index + 1;
+            row.querySelector('.approver-level').textContent = level;
+            row.querySelector('.place-signature-btn').dataset.level = level;
+            
+            const oldLevel = row.dataset.oldLevel;
+            if (oldLevel && approverBoxes[oldLevel]) {
+                approverBoxes[level] = approverBoxes[oldLevel];
+                delete approverBoxes[oldLevel];
+                
+                approverBoxes[level].forEach(box => {
+                    box.dataset.level = level;
+                    box.querySelector('.box-number').textContent = level;
+                });
+            }
+            row.dataset.oldLevel = level;
         });
     }
 
     addBtn.addEventListener('click', function () {
         const count = wrapper.querySelectorAll('.approver-row').length;
+        const level = count + 1;
+        approverCount++;
+        
         const newRow = document.createElement('div');
         newRow.classList.add('approver-row', 'mb-2', 'd-flex', 'align-items-center', 'gap-2');
+        newRow.dataset.oldLevel = level;
         newRow.innerHTML = `
-            <span class="approver-level badge bg-primary">Level ${count + 1}</span>
-            <select name="approvers[]" class="form-select w-50" required>
+            <span class="approver-level badge bg-primary">${level}</span>
+            <select name="approvers[]" class="form-select approver-select chosen-select-${approverCount}" style="flex: 1;" required>
+                <option value="">-- Select Approver --</option>
                 @foreach($approvers as $user)
                     <option value="{{ $user->id }}">{{ $user->name }}</option>
                 @endforeach
             </select>
+            <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="${level}">
+                <i class="ri-add-circle-line"></i>
+            </button>
             <button type="button" class="btn btn-danger btn-sm remove-approver">
                 <i class="ri-delete-bin-2-line"></i>
             </button>
         `;
         wrapper.appendChild(newRow);
+        
+        $(`.chosen-select-${approverCount}`).chosen({
+            width: "100%",
+            placeholder_text_single: "-- Select Approver --"
+        });
+        
         updateLevels();
     });
 
     wrapper.addEventListener('click', function (e) {
         if (e.target.closest('.remove-approver')) {
-            e.target.closest('.approver-row').remove();
+            const row = e.target.closest('.approver-row');
+            const level = row.querySelector('.place-signature-btn').dataset.level;
+            
+            if (approverBoxes[level]) {
+                approverBoxes[level].forEach(box => {
+                    if (box.parentElement) {
+                        box.parentElement.removeChild(box);
+                    }
+                });
+                delete approverBoxes[level];
+            }
+            
+            const selectElement = row.querySelector('.approver-select');
+            $(selectElement).chosen('destroy');
+            
+            row.remove();
             updateLevels();
         }
+
+        if (e.target.closest('.place-signature-btn')) {
+            const btn = e.target.closest('.place-signature-btn');
+            const level = btn.dataset.level;
+            placingLevel = level;
+            
+            document.querySelectorAll('.place-signature-btn').forEach(b => {
+                b.classList.remove('btn-warning');
+                b.classList.add('btn-success');
+            });
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'Place Signature Box',
+                html: `Click on the PDF to place signature box for <strong>Approver ${level}</strong>`,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#0ab39c'
+            });
+        }
+    });
+
+    const rows = wrapper.querySelectorAll('.approver-row');
+    rows.forEach((row, index) => {
+        row.dataset.oldLevel = index + 1;
     });
 });
 </script>
