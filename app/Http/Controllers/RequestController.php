@@ -16,6 +16,7 @@ use App\RequestApprover;
 use App\ObsoleteAttachment;
 use App\Obsolete;
 use App\DocumentType;
+use App\Mail\RequestDocumentApproval;
 use App\User;
 use App\Notifications\ForApproval;
 use App\Notifications\NewPolicy;
@@ -29,6 +30,7 @@ use App\SupportingDocument;
 use Carbon\Carbon;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class RequestController extends Controller
 {
@@ -382,9 +384,11 @@ class RequestController extends Controller
                     $supporting_documents->save();
                 }
             }
+
+            $users = User::whereIn('id', $request->approvers)->get()->pluck('email')->toArray();
+            Mail::to($users)->send(new RequestDocumentApproval($change_request));
         }
 
-        
         Alert::success('Successfully Submitted')->persistent('Dismiss');
         return redirect('/change-requests');
 

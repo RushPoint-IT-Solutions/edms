@@ -150,3 +150,10 @@ Route::get('/document/{documentId}', function($documentId) {
 Route::get('/pdf-viewer/{file}', function($file) {
     return view('pdf-viewer', ['pdfFile' => $file]);
 })->name('pdf.viewer');
+
+Route::get('mailable', function () {
+    $change_request = App\ChangeRequest::find(1);
+    $user = App\User::find(1);
+ 
+    return new App\Mail\RequestDocumentApproval($change_request,$user);
+});
