@@ -365,8 +365,9 @@
             <tbody>
                 @foreach($change_for_approvals->where('status','Pending') as $change_approval)
                 @php
-                    $request = $change_approval->change_request;
+                    $request = ($change_approval->change_request);
                 @endphp
+                @if($request && $request->is_draft == null)
                 <tr>
                     <td>
                         <a href={{ url('change-request/for_approval/'.$request->id) }} class="btn btn-sm btn-outline-info me-1" title="View Request">
@@ -394,6 +395,7 @@
                         {{ $request->type }}
                     </td>
                 </tr>
+                @endif
                 @endforeach
             </tbody>
         </table>

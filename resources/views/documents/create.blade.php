@@ -99,6 +99,10 @@
 <form method="POST" action="{{ url('change-request/store') }}" enctype="multipart/form-data" onsubmit="show()">
     @csrf 
 
+    @if($change_request)
+    <input type="hidden" name="id" value="{{ $change_request->id }}">
+    @endif
+
     <div class="row">
         <div class="col-lg-5 form-column">
             <div class="card">
@@ -115,7 +119,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label" for="document-title-input">Document Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" id="document-title-input" value="{{ old('title') }}" placeholder="Enter document title" required>
+                        <input type="text" name="title" class="form-control" id="document-title-input" value="{{ old('title', $change_request->title ?? '' ) }}" placeholder="Enter document title" required>
                     </div>
     
                     <div class="mb-3">
@@ -123,14 +127,14 @@
                         <select name="type" class="form-select cat" data-choices data-choices-search-false id="choices-category-input" required>
                             <option value=""></option>
                             @foreach ($document_types as $type)
-                                <option value="{{ $type->id }}" @if(old('type') == $type->name) selected @endif>{{ $type->name }}</option>
+                                <option value="{{ $type->id }}" @if(old('type', $change_request->type ?? '') == $type->id) selected @endif>{{ $type->name }}</option>
                             @endforeach
                         </select>
                     </div>
     
                     <div class="mb-3">
                         <label class="form-label">Document Description <span class="text-danger">*</span></label>
-                        <textarea name="description" class="form-control" cols="30" rows="5" placeholder="Enter document description" required>{{ old('description') }}</textarea>
+                        <textarea name="description" class="form-control" cols="30" rows="5" placeholder="Enter document description" required>{{ old('description', $change_request->description ?? '') }}</textarea>
                     </div>
     
                     <div class="row">
@@ -139,8 +143,8 @@
                                 <label for="choices-category-input" class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category" class="form-select" data-choices data-choices-search-false id="choices-category-input" required>
                                     <option value="">-- Select Category --</option>
-                                    <option value="Personal" @if(old('category') == "Personal") selected @endif>Personal</option>
-                                    <option value="Departmental" @if(old('category') == "Departmental") selected @endif>Departmental</option>
+                                    <option value="Personal" @if(old('category', $change_request->category ?? '') == "Personal") selected @endif>Personal</option>
+                                    <option value="Departmental" @if(old('category', $change_request->category ?? '') == "Departmental") selected @endif>Departmental</option>
                                 </select>
                             </div>
                         </div>
@@ -148,9 +152,9 @@
                             <div class="mb-3">
                                 <label for="choices-status-input" class="form-label">Status <span class="text-danger">*</span></label>
                                 <select name="status" class="form-select" data-choices data-choices-search-false id="choices-status-input" required>
-                                    <option value="Draft" selected @if(old('status') == "Draft") selected @endif>Draft</option>
-                                    <option value="For Approval" @if(old('status') == "For Approval") selected @endif>For Approval</option>
-                                    <option value="Approved" @if(old('status') == "Approved") selected @endif>Approved</option>
+                                    <option value="Draft" selected @if(old('status', $change_request->status ?? '') == "Draft") selected @endif>Draft</option>
+                                    <option value="For Approval" @if(old('status', $change_request->status ?? '') == "For Approval") selected @endif>For Approval</option>
+                                    <option value="Approved" @if(old('status', $change_request->status ?? '') == "Approved") selected @endif>Approved</option>
                                 </select>
                             </div>
                         </div>
@@ -159,9 +163,9 @@
                     <div class="mb-3">
                         <label for="choices-privacy-status-input" class="form-label">Access</label>
                         <select name="privacy" class="form-select" data-choices data-choices-search-false id="choices-privacy-status-input">
-                            <option value="Private" selected @if(old('privacy') == "Private") selected @endif>Private</option>
-                            <option value="Team" @if(old('privacy') == "Team") selected @endif>Team</option>
-                            <option value="Public" @if(old('privacy') == "Public") selected @endif>Public</option>
+                            <option value="Private" selected @if(old('privacy', $change_request->privacy ?? '') == "Private") selected @endif>Private</option>
+                            <option value="Team" @if(old('privacy', $change_request->privacy ?? '') == "Team") selected @endif>Team</option>
+                            <option value="Public" @if(old('privacy', $change_request->privacy ?? '') == "Public") selected @endif>Public</option>
                         </select>
                     </div>
                 </div>
@@ -176,9 +180,15 @@
                         <div class="approver-row mb-2 d-flex align-items-center gap-2">
                             <span class="approver-level badge bg-primary">Level 1</span>
                             <select name="approvers[]" class="form-select w-50" required>
+                                @if($change_request)
+                                @foreach ($change_request->approvers as $approver)
+                                    <option value="{{ $approver->user_id }}">{{ $approver->user->name }}</option>
+                                @endforeach
+                                @else 
                                 @foreach($approvers as $user)
                                     <option value="{{ $user->id }}">{{ $user->name }}</option>
                                 @endforeach
+                                @endif
                             </select>
                             <button type="button" class="btn btn-danger btn-sm remove-approver">
                                 <i class="ri-delete-bin-2-line"></i>
@@ -200,7 +210,7 @@
                     
                     <div class="mb-3">
                         <label class="form-label">Main Document (PDF)</label>
-                        <input name="file" type="file" class="form-control" id="pdf-file-input" accept=".pdf" required>
+                        <input name="file" type="file" class="form-control" id="pdf-file-input" accept=".pdf" @if(!$change_request) required @endif>
                     </div>
 
                     <div>
@@ -213,7 +223,7 @@
             </div>
     
             <div class="text-end mb-4">
-                <button type="button" class="btn btn-secondary w-sm">Save as Draft</button>
+                <button type="submit" class="btn btn-secondary w-sm" name="save_as_draft">Save as Draft</button>
                 <button type="submit" class="btn btn-success w-sm">Upload</button>
             </div>
         </div>
@@ -232,21 +242,31 @@
                 </div>
                 <div class="pdf-preview-content">
                     <div class="tab-content-item active" id="main-doc-content">
+                        @if($change_request)
+                        <iframe src="{{ url($change_request->file) }}" type="application/pdf"></iframe>
+                        @else
                         <div class="no-preview" id="main-doc-preview">
                             <div>
                                 <i class="ri-file-pdf-line" style="font-size: 48px;"></i>
                                 <p class="mt-2">Upload a PDF to preview</p>
                             </div>
                         </div>
+                        @endif
                     </div>
 
                     <div class="tab-content-item" id="supporting-docs-content">
+                        @if($change_request)
+                            @foreach ($change_request->supporting_documents as $supporting_docs)
+                            <iframe src="{{ url($supporting_docs->file) }}" type="application/pdf"></iframe>
+                            @endforeach
+                        @else
                         <div class="no-preview" id="supporting-docs-empty">
                             <div>
                                 <i class="ri-folder-open-line" style="font-size: 48px;"></i>
                                 <p class="mt-2">No supporting documents uploaded</p>
                             </div>
                         </div>
+                        @endif
                         <div class="supporting-docs-list" id="supporting-docs-list" style="display: none;"></div>
                     </div>
                 </div>

@@ -117,11 +117,17 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-   public function create()
+   public function create($id = null)
     {
         $approvers = User::all(); // populate approvers list
         $document_types = DocumentType::get();
-        return view('documents.create', compact('approvers','document_types'));
+
+        $change_request = null;
+        if ($id)
+        {
+            $change_request = ChangeRequest::with('supporting_documents','approvers.user')->findOrFail($id);
+        }
+        return view('documents.create', compact('approvers','document_types','change_request'));
     }
 
     public function signature($id) {

@@ -37,109 +37,109 @@ class RequestController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function editTile (Request $request,$id)
-    {
-        $change_request = ChangeRequest::findOrfail($id);
-        $change_request->title = $request->title;
-        $change_request->type_of_document = $request->document_type;
-        $change_request->save();
-        Alert::success('Successfully Updated')->persistent('Dismiss');
-        return back();
-    }
-    public function editRequest (Request $request,$id)
-    {
-        $req = ChangeRequest::findOrfail($id);
-        $req->change_request = $request->description;
-        $req->indicate_clause = $request->from_clause;
-        $req->indicate_changes = $request->to_changes;
-        $req->save();
+    // public function editTile (Request $request,$id)
+    // {
+    //     $change_request = ChangeRequest::findOrfail($id);
+    //     $change_request->title = $request->title;
+    //     $change_request->type_of_document = $request->document_type;
+    //     $change_request->save();
+    //     Alert::success('Successfully Updated')->persistent('Dismiss');
+    //     return back();
+    // }
+    // public function editRequest (Request $request,$id)
+    // {
+    //     $req = ChangeRequest::findOrfail($id);
+    //     $req->change_request = $request->description;
+    //     $req->indicate_clause = $request->from_clause;
+    //     $req->indicate_changes = $request->to_changes;
+    //     $req->save();
 
-        Alert::success('Successfully Updated')->persistent('Dismiss');
-        return back();
-    }
-    public function test()
-    {
-          info("START DCO");
-        $users = User::where('status',null)->where('role','Document Control Officer')->get();
-        foreach($users as $user)
-        {
-            $change_requests = ChangeRequest::with('approvers')->whereIn('department_id',($user->dco)->pluck('department_id')->toArray())->where('status','Pending')->get();
+    //     Alert::success('Successfully Updated')->persistent('Dismiss');
+    //     return back();
+    // }
+    // public function test()
+    // {
+    //       info("START DCO");
+    //     $users = User::where('status',null)->where('role','Document Control Officer')->get();
+    //     foreach($users as $user)
+    //     {
+    //         $change_requests = ChangeRequest::with('approvers')->whereIn('department_id',($user->dco)->pluck('department_id')->toArray())->where('status','Pending')->get();
 
-            $table = "<table style='margin-bottom:10px;' width='100%' border='1' cellspacing=0><tr><th>Date Requested</th><th>Code</th><th>Approver</th></tr>";
-            foreach($change_requests as $request)
-            {
-                $approver = ($request->approvers)->where('level',$request->level)->first();
-                $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>CR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
-            }
-            $table .= "</table>";
-            if(count($change_requests) >0)
-            {
-                $user->notify(new PendingRequest($table));
-            }
+    //         $table = "<table style='margin-bottom:10px;' width='100%' border='1' cellspacing=0><tr><th>Date Requested</th><th>Code</th><th>Approver</th></tr>";
+    //         foreach($change_requests as $request)
+    //         {
+    //             $approver = ($request->approvers)->where('level',$request->level)->first();
+    //             $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>CR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
+    //         }
+    //         $table .= "</table>";
+    //         if(count($change_requests) >0)
+    //         {
+    //             $user->notify(new PendingRequest($table));
+    //         }
            
-        }
-        $users_d = User::where('status',null)->where('role','Business Process Manager')->orWhere('role','Management Representative')->get();
-        foreach($users_d as $user)
-        {
-            $change_requests = ChangeRequest::with('approvers')->where('status','Pending')->get();
+    //     }
+    //     $users_d = User::where('status',null)->where('role','Business Process Manager')->orWhere('role','Management Representative')->get();
+    //     foreach($users_d as $user)
+    //     {
+    //         $change_requests = ChangeRequest::with('approvers')->where('status','Pending')->get();
 
-            $table = "<table style='margin-bottom:10px;' width='100%' border='1' cellspacing=0><tr><th>Date Requested</th><th>Code</th><th>Approver</th></tr>";
-            foreach($change_requests as $request)
-            {
-                $approver = ($request->approvers)->where('level',$request->level)->first();
-                $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>CR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
-            }
-            $table .= "</table>";
-            if(count($change_requests) >0)
-            {
-                $user->notify(new PendingRequest($table));
-            }
-        }
+    //         $table = "<table style='margin-bottom:10px;' width='100%' border='1' cellspacing=0><tr><th>Date Requested</th><th>Code</th><th>Approver</th></tr>";
+    //         foreach($change_requests as $request)
+    //         {
+    //             $approver = ($request->approvers)->where('level',$request->level)->first();
+    //             $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>CR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
+    //         }
+    //         $table .= "</table>";
+    //         if(count($change_requests) >0)
+    //         {
+    //             $user->notify(new PendingRequest($table));
+    //         }
+    //     }
 
-        $users_approvers = User::where('status',null)->get();
-        foreach($users_approvers as $user)
-        {
-            $change_requests = ChangeRequest::whereHas('approvers',function($q) use($user){
-                $q->where('user_id',  $user->id)->where('status','Pending');
-            })->where('status','Pending')->get();
+    //     $users_approvers = User::where('status',null)->get();
+    //     foreach($users_approvers as $user)
+    //     {
+    //         $change_requests = ChangeRequest::whereHas('approvers',function($q) use($user){
+    //             $q->where('user_id',  $user->id)->where('status','Pending');
+    //         })->where('status','Pending')->get();
 
-            $copy_requests = CopyRequest::whereHas('approvers',function($q) use($user){
-                $q->where('user_id',  $user->id)->where('status','Pending');
-            })->where('status','Pending')->get();
+    //         $copy_requests = CopyRequest::whereHas('approvers',function($q) use($user){
+    //             $q->where('user_id',  $user->id)->where('status','Pending');
+    //         })->where('status','Pending')->get();
 
-            $table = "<table style='margin-bottom:10px;' width='100%' border='1' cellspacing=0><tr><th colspan='3'>For Your Approval</th></tr>";
-            if(count($change_requests) > 0)
+    //         $table = "<table style='margin-bottom:10px;' width='100%' border='1' cellspacing=0><tr><th colspan='3'>For Your Approval</th></tr>";
+    //         if(count($change_requests) > 0)
            
-            {
-                $table .= "<tr><th colspan='3'>Change Requests</th></tr>";
-            }
-            $table .= "<tr><th>Date Requested</th><th>Code</th><th>Approver</th></tr>";
-            foreach($change_requests as $request)
-            {
-                $approver = ($request->approvers)->where('level',$request->level)->first();
-                $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>DICR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
-            }
-            if(count($copy_requests) > 0)
-            {
-                $table .= "<tr><th colspan='3'>Copy Requests</th></tr>";
-            }
-                foreach($copy_requests as $request)
-                {
-                    $approver = ($request->approvers)->where('level',$request->level)->first();
-                    $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>CR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
-                }
+    //         {
+    //             $table .= "<tr><th colspan='3'>Change Requests</th></tr>";
+    //         }
+    //         $table .= "<tr><th>Date Requested</th><th>Code</th><th>Approver</th></tr>";
+    //         foreach($change_requests as $request)
+    //         {
+    //             $approver = ($request->approvers)->where('level',$request->level)->first();
+    //             $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>DICR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
+    //         }
+    //         if(count($copy_requests) > 0)
+    //         {
+    //             $table .= "<tr><th colspan='3'>Copy Requests</th></tr>";
+    //         }
+    //             foreach($copy_requests as $request)
+    //             {
+    //                 $approver = ($request->approvers)->where('level',$request->level)->first();
+    //                 $table .= "<tr><td>".date('Y-m-d',strtotime($request->created_at))."</td><td>CR-".str_pad($request->id, 5, '0', STR_PAD_LEFT)."</td><td>".$approver->user->name."</td></tr>";
+    //             }
         
             
-            $table .= "</table>";
+    //         $table .= "</table>";
 
-            if((count($change_requests) >0) ||(count($copy_requests) >0))
-            {
-                $user->notify(new PendingRequest($table));
-            }
-        }
+    //         if((count($change_requests) >0) ||(count($copy_requests) >0))
+    //         {
+    //             $user->notify(new PendingRequest($table));
+    //         }
+    //     }
       
-        info("END DCO");
-    }
+    //     info("END DCO");
+    // }
     public function index()
     {
         //
@@ -168,7 +168,7 @@ class RequestController extends Controller
     }
     public function changeRequests(Request $request)
     {
-        $requests = ChangeRequest::get();
+        $requests = ChangeRequest::whereNull('is_draft')->get();
 
         return view('change_requests',
         
@@ -219,11 +219,11 @@ class RequestController extends Controller
         //
         $document_types = DocumentType::get();
         $copy_for_approvals = CopyApprover::orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
-        $change_for_approvals = RequestApprover::orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
+        $change_for_approvals = RequestApprover::with('change_request')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
         if(auth()->user()->role == "Administrator")
         {
             $copy_for_approvals = CopyApprover::orderBy('id','desc')->get();
-            $change_for_approvals = RequestApprover::orderBy('id','desc')->get();
+            $change_for_approvals = RequestApprover::with('change_request')->orderBy('id','desc')->get();
         }
        
 
@@ -258,175 +258,251 @@ class RequestController extends Controller
             'file' => 'mimes:pdf'
         ]);
 
-        $change_request = new ChangeRequest;
-        $change_request->title = $request->title;
-        $change_request->type = $request->type;
-        $change_request->description = $request->description;
-        $change_request->category = $request->category;
-        $change_request->status = $request->status;
-        $change_request->privacy = $request->privacy;
-        $change_request->user_id = auth()->user()->id;
-        $change_request->revision = 0;
-        $change_request->request_status = "Pending";
-
-        $file = $request->file('file');
-        $name = time().'_'.$file->getClientOriginalName();
-        $file->move(public_path('attachment'),$name);
-        $change_request->file = '/attachment/'.$name;
-
-        $change_request->save();
-
-        foreach($request->approvers as $key=>$approver)
+        if ($request->has('id'))
         {
-            $approvers = new RequestApprover;
-            $approvers->change_request_id = $change_request->id;
-            $approvers->user_id = $approver;
-            $approvers->level = $key+1;
-            if($key == 0)
+            $change_request = ChangeRequest::findOrFail($request->id);
+            $change_request->title = $request->title;
+            $change_request->type = $request->type;
+            $change_request->description = $request->description;
+            $change_request->category = $request->category;
+            $change_request->status = $request->status;
+            $change_request->privacy = $request->privacy;
+            $change_request->user_id = auth()->user()->id;
+            $change_request->revision = 0;
+            $change_request->request_status = "Pending";
+            if($request->has('save_as_draft'))
             {
-                $approvers->status = "Pending";
-                $approvers->start_date = date('Y-m-d');
+                $change_request->is_draft = 1;
             }
             else
             {
-                $approvers->status = "Waiting";
+                $change_request->is_draft = null;
             }
-            $approvers->save();
-        }
-
-        if ($request->hasFile('supporting_documents'))
-        {
-            $documents = $request->file('supporting_documents');
-            foreach($documents as $document)
+            if ($request->hasFile('file'))
             {
-                $name = time().'_'.$document->getClientOriginalName();
-                $document->move(public_path('supporting_documents'),$name);
-    
-                $supporting_documents = new SupportingDocument;
-                $supporting_documents->change_request_id = $change_request->id;
-                $supporting_documents->file = '/supporting_documents/'.$name;
-                $supporting_documents->save();
+                $file = $request->file('file');
+                $name = time().'_'.$file->getClientOriginalName();
+                $file->move(public_path('attachment'),$name);
+                $change_request->file = '/attachment/'.$name;
+            }
+            $change_request->save();
+
+            $approvers = RequestApprover::where('change_request_id', $change_request->id)->delete();
+            foreach($request->approvers as $key=>$approver)
+            {
+                $approvers = new RequestApprover;
+                $approvers->change_request_id = $change_request->id;
+                $approvers->user_id = $approver;
+                $approvers->level = $key+1;
+                if($key == 0)
+                {
+                    $approvers->status = "Pending";
+                    $approvers->start_date = date('Y-m-d');
+                }
+                else
+                {
+                    $approvers->status = "Waiting";
+                }
+                $approvers->save();
+            }
+
+            if ($request->has('supporting_documents'))
+            {
+                $supporting_documents = SupportingDocument::where('change_request_id', $change_request->id)->delete();
+                if ($request->hasFile('supporting_documents'))
+                {
+                    $documents = $request->file('supporting_documents');
+                    foreach($documents as $document)
+                    {
+                        $name = time().'_'.$document->getClientOriginalName();
+                        $document->move(public_path('supporting_documents'),$name);
+            
+                        $supporting_documents = new SupportingDocument;
+                        $supporting_documents->change_request_id = $change_request->id;
+                        $supporting_documents->file = '/supporting_documents/'.$name;
+                        $supporting_documents->save();
+                    }
+                }
             }
         }
+        else 
+        {
+            $change_request = new ChangeRequest;
+            $change_request->title = $request->title;
+            $change_request->type = $request->type;
+            $change_request->description = $request->description;
+            $change_request->category = $request->category;
+            $change_request->status = $request->status;
+            $change_request->privacy = $request->privacy;
+            $change_request->user_id = auth()->user()->id;
+            $change_request->revision = 0;
+            $change_request->request_status = "Pending";
+            if($request->has('save_as_draft'))
+            {
+                $change_request->is_draft = 1;
+            }
+            if ($request->hasFile('file'))
+            {
+                $file = $request->file('file');
+                $name = time().'_'.$file->getClientOriginalName();
+                $file->move(public_path('attachment'),$name);
+                $change_request->file = '/attachment/'.$name;
+            }
+            $change_request->save();
+    
+            foreach($request->approvers as $key=>$approver)
+            {
+                $approvers = new RequestApprover;
+                $approvers->change_request_id = $change_request->id;
+                $approvers->user_id = $approver;
+                $approvers->level = $key+1;
+                if($key == 0)
+                {
+                    $approvers->status = "Pending";
+                    $approvers->start_date = date('Y-m-d');
+                }
+                else
+                {
+                    $approvers->status = "Waiting";
+                }
+                $approvers->save();
+            }
+    
+            if ($request->hasFile('supporting_documents'))
+            {
+                $documents = $request->file('supporting_documents');
+                foreach($documents as $document)
+                {
+                    $name = time().'_'.$document->getClientOriginalName();
+                    $document->move(public_path('supporting_documents'),$name);
+        
+                    $supporting_documents = new SupportingDocument;
+                    $supporting_documents->change_request_id = $change_request->id;
+                    $supporting_documents->file = '/supporting_documents/'.$name;
+                    $supporting_documents->save();
+                }
+            }
+        }
+
         
         Alert::success('Successfully Submitted')->persistent('Dismiss');
         return redirect('/change-requests');
 
     }
-    public function new_request(Request $request)
-    {
-        //
-        // dd($request->all());
-        $request->validate([
-            'supporting_document' => 'mimes:pdf',
-            // 'category' => 'required',
-            // 'reason_for_new_request' => 'required'
-        ]);
+    // public function new_request(Request $request)
+    // {
+    //     //
+    //     // dd($request->all());
+    //     $request->validate([
+    //         'supporting_document' => 'mimes:pdf',
+    //         // 'category' => 'required',
+    //         // 'reason_for_new_request' => 'required'
+    //     ]);
 
-        $preAssessment = new PreAssessment;
-        $preAssessment->request_type = $request->request_type;
-        $preAssessment->effective_date = $request->effective_date;
-        $preAssessment->department_id = $request->department;
-        $preAssessment->user_id = auth()->user()->id;
-        $preAssessment->type_of_document = $request->category;
-        $preAssessment->reason_for_changes = $request->reason_for_new_request;
-        $preAssessment->change_request = $request->description;
-        $preAssessment->supporting_documents = $request->supporting_document;
-        $preAssessment->link_draft = $request->draft_link;
-        $preAssessment->title = $request->title;
-        $preAssessment->company_id = $request->company;
-        $preAssessment->status = "Pending";
+    //     $preAssessment = new PreAssessment;
+    //     $preAssessment->request_type = $request->request_type;
+    //     $preAssessment->effective_date = $request->effective_date;
+    //     $preAssessment->department_id = $request->department;
+    //     $preAssessment->user_id = auth()->user()->id;
+    //     $preAssessment->type_of_document = $request->category;
+    //     $preAssessment->reason_for_changes = $request->reason_for_new_request;
+    //     $preAssessment->change_request = $request->description;
+    //     $preAssessment->supporting_documents = $request->supporting_document;
+    //     $preAssessment->link_draft = $request->draft_link;
+    //     $preAssessment->title = $request->title;
+    //     $preAssessment->company_id = $request->company;
+    //     $preAssessment->status = "Pending";
 
-        if($request->has('soft_copy'))
-        {
-            $attachment = $request->file('soft_copy');
+    //     if($request->has('soft_copy'))
+    //     {
+    //         $attachment = $request->file('soft_copy');
         
-            $name = time() . '_' . $attachment->getClientOriginalName();
-            $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
-            $file_name = '/pre_assessment_attachments/' . $name;
-            $preAssessment->soft_copy = $file_name;
-        }
-        if($request->has('pdf_copy'))
-        {
-            $attachment = $request->file('pdf_copy');
-            $name = time() . '_' . $attachment->getClientOriginalName();
-            $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
-            $file_name = '/pre_assessment_attachments/' . $name;
-            $preAssessment->pdf_copy = $file_name;
-        }
-        if($request->has('fillable_copy'))
-        {
-            $attachment = $request->file('fillable_copy');
-            $name = time() . '_' . $attachment->getClientOriginalName();
-            $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
-            $file_name = '/pre_assessment_attachments/' . $name;
-            $preAssessment->fillable_copy = $file_name;
-        }
-        if($request->has('supporting_document'))
-        {
-            $attachment = $request->file('supporting_document');
-            $name = time() . '_' . $attachment->getClientOriginalName();
-            $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
-            $file_name = '/pre_assessment_attachments/' . $name;
-            $preAssessment->supporting_documents = $file_name;
-        }
+    //         $name = time() . '_' . $attachment->getClientOriginalName();
+    //         $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
+    //         $file_name = '/pre_assessment_attachments/' . $name;
+    //         $preAssessment->soft_copy = $file_name;
+    //     }
+    //     if($request->has('pdf_copy'))
+    //     {
+    //         $attachment = $request->file('pdf_copy');
+    //         $name = time() . '_' . $attachment->getClientOriginalName();
+    //         $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
+    //         $file_name = '/pre_assessment_attachments/' . $name;
+    //         $preAssessment->pdf_copy = $file_name;
+    //     }
+    //     if($request->has('fillable_copy'))
+    //     {
+    //         $attachment = $request->file('fillable_copy');
+    //         $name = time() . '_' . $attachment->getClientOriginalName();
+    //         $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
+    //         $file_name = '/pre_assessment_attachments/' . $name;
+    //         $preAssessment->fillable_copy = $file_name;
+    //     }
+    //     if($request->has('supporting_document'))
+    //     {
+    //         $attachment = $request->file('supporting_document');
+    //         $name = time() . '_' . $attachment->getClientOriginalName();
+    //         $attachment->move(public_path() . '/pre_assessment_attachments/', $name);
+    //         $file_name = '/pre_assessment_attachments/' . $name;
+    //         $preAssessment->supporting_documents = $file_name;
+    //     }
 
-        $preAssessment->save();
+    //     $preAssessment->save();
 
-        $changeRequest = new ChangeRequest;
-        $changeRequest->request_type = $request->request_type;
-        $changeRequest->effective_date = $request->effective_date;
-        $changeRequest->department_id = $request->department;
-        $changeRequest->company_id = $request->company;
-        $changeRequest->title = $request->title;
-        $changeRequest->user_id = auth()->user()->id;
-        $changeRequest->type_of_document = $request->category;
-        $changeRequest->change_request = $request->description;
-        $changeRequest->link_draft = $request->draft_link;
-        $changeRequest->status = "Pending";
-        $changeRequest->level = 1;
-        $changeRequest->reason_for_changes = $request->reason_for_new_request;
-        $changeRequest->pre_assessment_id = $preAssessment->id;
-        if($request->has('soft_copy'))
-        {
-            $changeRequest->soft_copy = $preAssessment->soft_copy;
-        }
-        if($request->has('pdf_copy'))
-        {
-            $changeRequest->pdf_copy = $preAssessment->pdf_copy;
-        }
-        if($request->has('fillable_copy'))
-        {
-            $changeRequest->fillable_copy = $preAssessment->fillable_copy;
-        }
-        if($request->has('supporting_document'))
-        {
-            $changeRequest->supporting_documents = $preAssessment->supporting_documents ;
-        }
+    //     $changeRequest = new ChangeRequest;
+    //     $changeRequest->request_type = $request->request_type;
+    //     $changeRequest->effective_date = $request->effective_date;
+    //     $changeRequest->department_id = $request->department;
+    //     $changeRequest->company_id = $request->company;
+    //     $changeRequest->title = $request->title;
+    //     $changeRequest->user_id = auth()->user()->id;
+    //     $changeRequest->type_of_document = $request->category;
+    //     $changeRequest->change_request = $request->description;
+    //     $changeRequest->link_draft = $request->draft_link;
+    //     $changeRequest->status = "Pending";
+    //     $changeRequest->level = 1;
+    //     $changeRequest->reason_for_changes = $request->reason_for_new_request;
+    //     $changeRequest->pre_assessment_id = $preAssessment->id;
+    //     if($request->has('soft_copy'))
+    //     {
+    //         $changeRequest->soft_copy = $preAssessment->soft_copy;
+    //     }
+    //     if($request->has('pdf_copy'))
+    //     {
+    //         $changeRequest->pdf_copy = $preAssessment->pdf_copy;
+    //     }
+    //     if($request->has('fillable_copy'))
+    //     {
+    //         $changeRequest->fillable_copy = $preAssessment->fillable_copy;
+    //     }
+    //     if($request->has('supporting_document'))
+    //     {
+    //         $changeRequest->supporting_documents = $preAssessment->supporting_documents ;
+    //     }
         
-        $changeRequest->save();
+    //     $changeRequest->save();
 
-        $user = User::where('role', 'Document Control Officer')->where('status', null)->pluck('id')->toArray();
-        $dco = DepartmentDco::where('department_id', auth()->user()->department_id)->whereIn('user_id', $user)->first();
+    //     $user = User::where('role', 'Document Control Officer')->where('status', null)->pluck('id')->toArray();
+    //     $dco = DepartmentDco::where('department_id', auth()->user()->department_id)->whereIn('user_id', $user)->first();
 
-        if ($dco != null)
-        {
-            $preAssessmentApprover = new PreAssessmentApprover;
-            $preAssessmentApprover->pre_assessment_id = $preAssessment->id;
-            $preAssessmentApprover->user_id = $dco->user_id;
-            $preAssessmentApprover->status = "Pending";
-            $preAssessmentApprover->start_date = date('Y-m-d');
-            $preAssessmentApprover->save();
+    //     if ($dco != null)
+    //     {
+    //         $preAssessmentApprover = new PreAssessmentApprover;
+    //         $preAssessmentApprover->pre_assessment_id = $preAssessment->id;
+    //         $preAssessmentApprover->user_id = $dco->user_id;
+    //         $preAssessmentApprover->status = "Pending";
+    //         $preAssessmentApprover->start_date = date('Y-m-d');
+    //         $preAssessmentApprover->save();
 
-            $approvedRequestsNotif = User::where('id',$dco->user_id)->first();
+    //         $approvedRequestsNotif = User::where('id',$dco->user_id)->first();
 
-            $approvedRequestsNotif->notify(new NewPreAssessment($preAssessment, "Pre-Assessment Approval"));
-        }
+    //         $approvedRequestsNotif->notify(new NewPreAssessment($preAssessment, "Pre-Assessment Approval"));
+    //     }
 
-        Alert::success('Successfully Submitted')->persistent('Dismiss');
-        return redirect('/change-requests');
+    //     Alert::success('Successfully Submitted')->persistent('Dismiss');
+    //     return redirect('/change-requests');
         
-    }
+    // }
 
     /**
      * Display the specified resource.
