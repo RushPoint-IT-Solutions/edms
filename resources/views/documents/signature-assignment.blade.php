@@ -13,16 +13,6 @@
     border-right: 1px solid #dee2e6;
   }
 
-  #signers-list {
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
-  .signer-item {
-    background: #e7f3ff;
-    border: 1px solid #0d6efd;
-  }
-
   #sigPadWrapper {
     position: relative;
     width: 100%;
@@ -144,23 +134,6 @@
     <div class="col-md-4 col-lg-3" id="left-panel">
       <div class="p-4">
         <h4 class="mb-3">Signature Setup</h4>
-        
-        <div class="card mb-3">
-          <div class="card-body">
-            <h6 class="card-title fw-bold mb-3">Add Signatory</h6>
-            <div class="mb-2">
-              <input type="text" id="signerName" class="form-control form-control-sm" placeholder="Name">
-            </div>
-            <div class="mb-3">
-              <input type="email" id="signerEmail" class="form-control form-control-sm" placeholder="Email">
-            </div>
-            <button id="addSigner" class="btn btn-primary btn-sm w-100">
-              <i class="bi bi-plus-circle"></i> Add Signer
-            </button>
-
-            <div id="signers-list" class="mt-3"></div>
-          </div>
-        </div>
 
         <div class="card mb-3">
           <div class="card-body">
@@ -203,9 +176,9 @@
           </div>
         </div>
 
-        <button onclick="placeBox({{ auth()->user()->id }})" class="btn btn-sm btn-outline-primary mb-2 w-100">
+        {{-- <button onclick="placeBox({{ auth()->user()->id }})" class="btn btn-sm btn-outline-primary mb-2 w-100">
           <i class="bi bi-cursor"></i> Place Signature
-        </button>
+        </button> --}}
 
         <button id="savePdf" class="btn btn-primary w-100">
           <i class="bi bi-file-earmark-pdf"></i> Approved PDF
@@ -216,7 +189,7 @@
     <div class="col-md-8 col-lg-9" id="right-panel">
       <div class="p-4 pb-2">
         <h4 class="mb-2">PDF Preview</h4>
-        <p class="text-muted small mb-3">Select "Place Box" for a signer, then click anywhere on the PDF to drop their signature box.</p>
+        <p class="text-muted small mb-3">Select "Place Box" to place signature, then click anywhere on the PDF to drop the signature box.</p>
       </div>
       <div class="px-4 pb-4" style="flex-grow: 1; display: flex; flex-direction: column;">
         <div id="pdf-container"></div>
@@ -240,7 +213,6 @@
   let pdfDoc = null;
   let scale = 1.2;
   let placingSigner = null;
-  let signers = [];
   let currentSignatureData = null;
   let currentSignatureType = 'text';
   
@@ -357,10 +329,9 @@
       
       currentSignatureData = canvas.toDataURL('image/png');
       
-      signers.forEach(s => {
-        if (s.box) {
-          updateSignatureBoxDisplay(s.box, currentSignatureData);
-        }
+      const boxes = document.querySelectorAll('.signature-box');
+      boxes.forEach(box => {
+        updateSignatureBoxDisplay(box, currentSignatureData);
       });
 
       Swal.fire({
@@ -396,10 +367,9 @@
       
       currentSignatureData = canvas.toDataURL('image/png');
       
-      signers.forEach(s => {
-        if (s.box) {
-          updateSignatureBoxDisplay(s.box, currentSignatureData);
-        }
+      const boxes = document.querySelectorAll('.signature-box');
+      boxes.forEach(box => {
+        updateSignatureBoxDisplay(box, currentSignatureData);
       });
 
       Swal.fire({
@@ -430,10 +400,9 @@
 
       currentSignatureData = sigData;
 
-      signers.forEach(s => {
-        if (s.box) {
-          updateSignatureBoxDisplay(s.box, sigData);
-        }
+      const boxes = document.querySelectorAll('.signature-box');
+      boxes.forEach(box => {
+        updateSignatureBoxDisplay(box, sigData);
       });
 
       Swal.fire({
@@ -442,36 +411,6 @@
         text: 'Signature updated in all boxes!',
         confirmButtonColor: '#0d6efd',
         timer: 2000
-      });
-    });
-
-    // Add signers
-    document.getElementById("addSigner").addEventListener("click", () => {
-      const name = document.getElementById("signerName").value.trim();
-      const email = document.getElementById("signerEmail").value.trim();
-      if (!name || !email) {
-        return Swal.fire({
-          icon: 'warning',
-          title: 'Missing Information',
-          text: 'Enter both name and email.',
-          confirmButtonColor: '#0d6efd'
-        });
-      }
-
-      const order = signers.length + 1;
-      signers.push({ name, email, order, box: null });
-      renderSigners();
-
-      document.getElementById("signerName").value = "";
-      document.getElementById("signerEmail").value = "";
-      
-      Swal.fire({
-        icon: 'success',
-        title: 'Signer Added!',
-        text: `${name} has been added to the list.`,
-        confirmButtonColor: '#0d6efd',
-        timer: 1500,
-        showConfirmButton: false
       });
     });
 
@@ -510,7 +449,6 @@
         const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
         const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
 
-        // if (!s.box) return;
         const box = document.querySelector('.signature-box')
         
         const canvases = document.querySelectorAll(".pdf-page");
@@ -549,52 +487,7 @@
             height: 80 / scale
         });
 
-        // signers.forEach(s => {
-        //   if (!s.box) return;
-          
-        //   const canvases = document.querySelectorAll(".pdf-page");
-        //   let pageIndex = 0;
-        //   let pageOffsetTop = 0;
-          
-        //   const boxTop = parseFloat(s.box.style.top);
-          
-        //   for (let i = 0; i < canvases.length; i++) {
-        //     const canvasTop = canvases[i].offsetTop;
-        //     const canvasBottom = canvasTop + canvases[i].height;
-            
-        //     if (boxTop >= canvasTop && boxTop < canvasBottom) {
-        //       pageIndex = i;
-        //       pageOffsetTop = canvasTop;
-        //       break;
-        //     }
-        //   }
-
-        //   const page = pdfLibDoc.getPage(pageIndex);
-        //   const { height } = page.getSize();
-
-        //   const htmlLeft = parseFloat(s.box.style.left);
-        //   const htmlTop = parseFloat(s.box.style.top) - pageOffsetTop;
-
-        //   const canvas = canvases[pageIndex];
-        //   const canvasLeft = canvas.offsetLeft;
-
-        //   const x = (htmlLeft - canvasLeft) / scale;
-        //   const y = height - (htmlTop / scale) - (80 / scale);
-
-        //   page.drawImage(pngImage, {
-        //     x,
-        //     y,
-        //     width: 180 / scale,
-        //     height: 80 / scale
-        //   });
-        // });
-
         const signedPdf = await pdfLibDoc.save();
-        // const blob = new Blob([signedPdf], { type: "application/pdf" });
-        // const link = document.createElement("a");
-        // link.href = URL.createObjectURL(blob);
-        // link.download = "signed.pdf";
-        // link.click();
         
         const filename = "<?php echo($file_name) ?>"
         const changeRequestId = "<?php echo($change_request->id) ?>"
@@ -688,34 +581,11 @@
     }
   }
 
-  function renderSigners() {
-    const list = document.getElementById("signers-list");
-    list.innerHTML = "";
-    
-    if (signers.length === 0) return;
-    
-    list.innerHTML = '<div class="border-top pt-2 mt-2"></div>';
-    
-    signers.forEach((s, i) => {
-      const div = document.createElement("div");
-      div.className = "signer-item rounded p-2 mb-2";
-      div.innerHTML = `
-        <div class="fw-bold small">${s.order}. ${s.name}</div>
-        <div class="small text-muted">${s.email}</div>
-        <button onclick="placeBox(${i})" class="btn btn-sm btn-outline-primary mt-2 w-100">
-          <i class="bi bi-cursor"></i> Place Box
-        </button>
-      `;
-      list.appendChild(div);
-    });
-  }
-
   window.placeBox = (index) => {
     placingSigner = index;
     Swal.fire({
       icon: 'info',
       title: 'Place Signature Box',
-    //   text: `Click on the PDF to place signature box for: ${signers[index].name}`,
       text: `Click on the PDF to place signature box`,
       confirmButtonColor: '#0d6efd',
       timer: 3000
@@ -726,8 +596,6 @@
     const rect = pdfContainer.getBoundingClientRect();
     const x = e.clientX - rect.left + pdfContainer.scrollLeft;
     const y = e.clientY - rect.top + pdfContainer.scrollTop;
-
-    // if (signers[index].box) pdfContainer.removeChild(signers[index].box);
 
     const sigBox = document.createElement("div");
     sigBox.classList.add("signature-box");
@@ -741,7 +609,6 @@
     } else {
       const number = document.createElement('span');
       number.className = 'box-number';
-    //   number.textContent = signers[index].order;
       sigBox.appendChild(number);
     }
 
@@ -751,14 +618,11 @@
     removeBtn.onclick = (ev) => {
       ev.stopPropagation();
       pdfContainer.removeChild(sigBox);
-    //   signers[index].box = null;
     };
     sigBox.appendChild(removeBtn);
 
     makeDraggable(sigBox);
     pdfContainer.appendChild(sigBox);
-
-    // signers[index].box = sigBox;
   }
 
   function makeDraggable(el) {
