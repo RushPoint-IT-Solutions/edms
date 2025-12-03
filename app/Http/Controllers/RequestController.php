@@ -11,6 +11,7 @@ use App\Comment;
 use App\DocumentAttachment;
 use App\CopyApprover;
 use App\DepartmentDco;
+use App\DocumentSignaturePosition;
 use App\Notifications\NewPreAssessment;
 use App\RequestApprover;
 use App\ObsoleteAttachment;
@@ -382,9 +383,22 @@ class RequestController extends Controller
                     $supporting_documents->save();
                 }
             }
+            
+            foreach(json_decode($request->signature_positions) as $signature_position)
+            {
+                $document_signature_position = new DocumentSignaturePosition;
+                $document_signature_position->change_request_id = $change_request->id;
+                $document_signature_position->user_id = $signature_position->user_id;
+                $document_signature_position->page_number = $signature_position->page_number;
+                $document_signature_position->x_position = $signature_position->x_position;
+                $document_signature_position->y_position = $signature_position->y_position;
+                $document_signature_position->width = $signature_position->width;
+                $document_signature_position->height = $signature_position->height;
+                $document_signature_position->save();
+            }
         }
 
-        
+
         Alert::success('Successfully Submitted')->persistent('Dismiss');
         return redirect('/change-requests');
 

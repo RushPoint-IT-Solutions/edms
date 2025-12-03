@@ -1,7 +1,6 @@
 @extends('layouts.header')
 @section('css')
- <link href="{{asset('/assets/libs/dropzone/dropzone.css')}}" rel="stylesheet" type="text/css" />
- <link rel="stylesheet" href="{{ asset('login_design/css/file-input-preview.css') }}">
+ {{-- <link href="{{asset('/assets/libs/dropzone/dropzone.css')}}" rel="stylesheet" type="text/css" /> --}}
  <link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
  <style>
@@ -151,7 +150,7 @@
  </style>
 @endsection
 @section('content')
-<form method="POST" action="{{ url('change-request/store') }}" enctype="multipart/form-data" onsubmit="return prepareSubmit()">
+<form method="POST" action="{{ url('change-request/store') }}" enctype="multipart/form-data" onsubmit="return prepareSubmit(event)">
     @csrf 
 
     @if($change_request)
@@ -348,8 +347,11 @@ let scale = 1.0;
 let placingLevel = null;
 let approverBoxes = {};
 
-function prepareSubmit() {
+function prepareSubmit(event) {
+    // event.preventDefault()
+
     const signatureData = [];
+    const pdfContainer = document.getElementById('pdf-container');
     
     Object.keys(approverBoxes).forEach(level => {
         approverBoxes[level].forEach(box => {
@@ -726,7 +728,7 @@ document.addEventListener('DOMContentLoaded', function () {
 @section('js')
     <script src="{{asset('assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js')}}"></script>
     <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-    <script src="{{asset('assets/libs/dropzone/dropzone-min.js')}}"></script>
+    {{-- <script src="{{asset('assets/libs/dropzone/dropzone-min.js')}}"></script> --}}
 
     <script>
         $(document).ready(function() {

@@ -24,7 +24,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('create/{id?}', 'DocumentController@create')->name('documents.create');
             Route::get('signature/{id}', 'DocumentController@signature')->name('documents.signature');
             Route::get('folder/{id}','DocumentController@folderView');
-            
+            Route::post('signaturePosition','DocumentController@signaturePosition');
             Route::post('store', 'DocumentController@store')->name('documents.store');
             Route::post('store-folder','DocumentController@addFolder');
             Route::post('rename-folder/{id}','DocumentController@renameFolder');

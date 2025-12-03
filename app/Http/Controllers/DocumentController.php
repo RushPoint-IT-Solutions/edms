@@ -10,6 +10,7 @@ use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
 use App\DocumentFolder;
+use App\DocumentSignaturePosition;
 use App\DocumentTag;
 use App\User;
 use Illuminate\Http\Request;
@@ -425,5 +426,12 @@ class DocumentController extends Controller
             Alert::success('Successfully Deleted')->persistent('Dismiss');
             return back();
         }
+    }
+    public function signaturePosition(Request $request)
+    {
+        // dd($request->all());
+        $document_signature_position = DocumentSignaturePosition::where('user_id', $request->user_id)->where('change_request_id', $request->change_request_id)->first();
+        // dd($document_signature_position);
+        return $document_signature_position;
     }
 }
