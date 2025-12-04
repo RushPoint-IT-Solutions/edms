@@ -430,8 +430,11 @@ class DocumentController extends Controller
     public function signaturePosition(Request $request)
     {
         // dd($request->all());
-        $document_signature_position = DocumentSignaturePosition::where('user_id', $request->user_id)->where('change_request_id', $request->change_request_id)->first();
-        // dd($document_signature_position);
-        return $document_signature_position;
+        $document_signature_position = DocumentSignaturePosition::with('user')
+            ->where('user_id', $request->user_id)
+            ->where('change_request_id', $request->change_request_id)
+            ->get();
+        
+        return response()->json($document_signature_position);
     }
 }

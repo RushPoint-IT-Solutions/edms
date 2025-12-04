@@ -306,43 +306,101 @@
     });
 
     document.getElementById("generateTextSig").addEventListener("click", () => {
-      const text = document.getElementById("textSignatureInput").value.trim();
-      
-      if (!text) {
-        return Swal.fire({
-          icon: 'warning',
-          title: 'No Text',
-          text: 'Please enter your name first.',
-          confirmButtonColor: '#0d6efd'
-        });
-      }
+        $.ajax({
+            type:"POST",
+            url:"{{ url('documents/signaturePosition') }}",
+            data: {
+                user_id:"{{ auth()->user()->id }}",
+                change_request_id: "{{ $change_request->id }}",
+                _token:"{{ csrf_token() }}"
+            },
+            success: async function(res) {
+                const signature = res
+                const text = document.getElementById("textSignatureInput").value.trim();
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 300;
+                canvas.height = 120;
+                const ctx = canvas.getContext('2d');
+            
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '32px "Brush Script MT", cursive';
+                ctx.fillStyle = 'black';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+                
+                currentSignatureData = canvas.toDataURL('image/png');
 
-      const canvas = document.createElement('canvas');
-      canvas.width = 300;
-      canvas.height = 120;
-      const ctx = canvas.getContext('2d');
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = '32px "Brush Script MT", cursive';
-      ctx.fillStyle = 'black';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-      
-      currentSignatureData = canvas.toDataURL('image/png');
-      
-      const boxes = document.querySelectorAll('.signature-box');
-      boxes.forEach(box => {
-        updateSignatureBoxDisplay(box, currentSignatureData);
-      });
+                const response = await fetch(pdfUrl);
+                const pdfBytes = await response.arrayBuffer();
+                const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
+                const font = await pdfLibDoc.embedFont(PDFLib.StandardFonts.Helvetica)
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: 'Text signature generated and applied!',
-        confirmButtonColor: '#0d6efd',
-        timer: 2000
-      });
+                signature.forEach((element) => {
+                    // const canvases = document.querySelectorAll(".pdf-page");
+                    // let pageOffsetTop = 0;
+                    let pageIndex = Number(element.page_number) - 1;
+                    const page = pdfLibDoc.getPage(pageIndex);
+                    const { width, height } = page.getSize();
+    
+                    const pdfPageHeight = height
+                    const htmlY = Number(element.y_position)
+                    const yInsidePage = htmlY % pdfPageHeight;
+                    const correctedY = pdfPageHeight - yInsidePage - Number(element.height);
+                    
+                    page.drawImage(pngImage, {
+                        x: Number(element.x_position),
+                        y: correctedY,
+                        width:  Number(element.width),
+                        height: Number(element.height)
+                    });
+
+                    const printedName = element.user.name; // expect element.name in DB
+
+                    const fontSize = 10;
+                    const nameY = correctedY - 2;
+
+                    page.drawText(printedName, {
+                        x: Number(element.x_position) + 45,
+                        y: nameY,
+                        size: fontSize,
+                        font: font,
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+
+                    signaturePosition.push(element)
+                })
+
+                const signedPdf = await pdfLibDoc.save();
+                const blob = new Blob([signedPdf], { type: "application/pdf" });
+                const url = URL.createObjectURL(blob);
+                document.getElementById('pdf-container').src = url
+            }
+        })
+    
+        //   if (!text) {
+        //     return Swal.fire({
+        //       icon: 'warning',
+        //       title: 'No Text',
+        //       text: 'Please enter your name first.',
+        //       confirmButtonColor: '#0d6efd'
+        //     });
+        //   }
+
+    //   const boxes = document.querySelectorAll('.signature-box');
+    //   boxes.forEach(box => {
+    //     updateSignatureBoxDisplay(box, currentSignatureData);
+    //   });
+
+        // Swal.fire({
+        //     icon: 'success',
+        //     title: 'Success!',
+        //     text: 'Text signature generated and applied!',
+        //     confirmButtonColor: '#0d6efd',
+        //     timer: 2000
+        // });
     });
 
     // Use Approve Stamp
@@ -357,6 +415,8 @@
                 _token:"{{ csrf_token() }}"
             },
             success: async function(res) {
+                var signature = res
+                
                 const img = document.getElementById("approveStamp");
                 
                 const canvas = document.createElement('canvas');
@@ -383,33 +443,49 @@
                 const pdfBytes = await response.arrayBuffer();
                 const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
                 const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
-                
-                // const canvases = document.querySelectorAll(".pdf-page");
-                // let pageOffsetTop = 0;
+                const font = await pdfLibDoc.embedFont(PDFLib.StandardFonts.Helvetica)
 
-                let pageIndex = Number(res.page_number) - 1;
-                const page = pdfLibDoc.getPage(pageIndex);
-                const { width, height } = page.getSize();
-                // const correctedY = height - Number(res.y_position) - Number(res.height)
+                signature.forEach(async (element) => {
+                    // const canvases = document.querySelectorAll(".pdf-page");
+                    // let pageOffsetTop = 0;
+                    console.log(element.user.name);
+                    
+                    let pageIndex = Number(element.page_number) - 1;
+                    const page = pdfLibDoc.getPage(pageIndex);
+                    const { width, height } = page.getSize();
+    
+                    const pdfPageHeight = height
+                    const htmlY = Number(element.y_position)
+                    const yInsidePage = htmlY % pdfPageHeight;
+                    const correctedY = pdfPageHeight - yInsidePage - Number(element.height);
+                    
+                    page.drawImage(pngImage, {
+                        x: Number(element.x_position),
+                        y: correctedY,
+                        width:  Number(element.width),
+                        height: Number(element.height)
+                    });
 
-                const pdfPageHeight = height
-                const htmlY = Number(res.y_position)
-                const yInsidePage = htmlY % pdfPageHeight;
-                const correctedY = pdfPageHeight - yInsidePage - Number(res.height);
-                
-                page.drawImage(pngImage, {
-                    x: Number(res.x_position),
-                    y: correctedY,
-                    width:  Number(res.width),
-                    height: Number(res.height)
-                });
-                
+                    const printedName = element.user.name; // expect element.name in DB
+
+                    const fontSize = 10;
+                    const nameY = correctedY - 2;
+
+                    page.drawText(printedName, {
+                        x: Number(element.x_position) + 45,
+                        y: nameY,
+                        size: fontSize,
+                        font: font,
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+
+                    signaturePosition.push(element)
+                })
+
                 const signedPdf = await pdfLibDoc.save();
                 const blob = new Blob([signedPdf], { type: "application/pdf" });
                 const url = URL.createObjectURL(blob);
                 document.getElementById('pdf-container').src = url
-
-                signaturePosition.push(res)
             }
         })
         
@@ -451,6 +527,10 @@
                 // }
                 
                 // ctx.drawImage(img, (canvas.width - drawWidth) / 2, (canvas.height - drawHeight) / 2, drawWidth, drawHeight);
+                // const canvases = document.querySelectorAll(".pdf-page");
+
+                const signature = res 
+
                 const sigData = sigCanvas.toDataURL("image/png");
                 currentSignatureData = sigData;
                 
@@ -458,34 +538,50 @@
                 const pdfBytes = await response.arrayBuffer();
                 const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
                 const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
+                const font = await pdfLibDoc.embedFont(PDFLib.StandardFonts.Helvetica)
 
-                const canvases = document.querySelectorAll(".pdf-page");
+                signature.forEach(element => {
+                    
+                    let pageIndex = Number(element.page_number) - 1;
+                    let pageOffsetTop = 0;
+    
+                    const page = pdfLibDoc.getPage(pageIndex);
+                    const { width, height } = page.getSize();
+    
+                    // const correctedY = height - Number(element.y_position) - Number(element.height)
+                    const pdfPageHeight = height
+                    const htmlY = Number(element.y_position)
+                    const yInsidePage = htmlY % pdfPageHeight;
+                    const correctedY = pdfPageHeight - yInsidePage - Number(element.height);
+    
+                    page.drawImage(pngImage, {
+                        x: Number(element.x_position),
+                        y: correctedY,
+                        width:  Number(element.width),
+                        height: Number(element.height)
+                    });
 
-                let pageIndex = Number(res.page_number) - 1;
-                let pageOffsetTop = 0;
+                    const printedName = element.user.name; // expect element.name in DB
 
-                const page = pdfLibDoc.getPage(pageIndex);
-                const { width, height } = page.getSize();
+                    const fontSize = 10;
+                    const nameY = correctedY - 2;
 
-                // const correctedY = height - Number(res.y_position) - Number(res.height)
-                const pdfPageHeight = height
-                const htmlY = Number(res.y_position)
-                const yInsidePage = htmlY % pdfPageHeight;
-                const correctedY = pdfPageHeight - yInsidePage - Number(res.height);
+                    page.drawText(printedName, {
+                        x: Number(element.x_position) + 45,
+                        y: nameY,
+                        size: fontSize,
+                        font: font,
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
 
-                page.drawImage(pngImage, {
-                    x: Number(res.x_position),
-                    y: correctedY,
-                    width:  Number(res.width),
-                    height: Number(res.height)
-                });
+                    signaturePosition.push(element)
+                })
 
                 const signedPdf = await pdfLibDoc.save();
                 const blob = new Blob([signedPdf], { type: "application/pdf" });
                 const url = URL.createObjectURL(blob);
                 
                 document.getElementById('pdf-container').src = url
-                signaturePosition.push(res)
             }
         })
     
@@ -546,6 +642,7 @@
             const pdfBytes = await response.arrayBuffer();
             const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
             const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
+            const font = await pdfLibDoc.embedFont(PDFLib.StandardFonts.Helvetica)
 
             // const box = document.querySelector('.signature-box')
             
@@ -553,20 +650,34 @@
             // let pageIndex = 0;
             // let pageOffsetTop = 0;
 
-            const signaturePositionArray = signaturePosition[0]
-            const pageIndex = Number(signaturePositionArray.page_number) - 1
+            signaturePosition.forEach(element => {
+                const signaturePositionArray = element
+                const pageIndex = Number(signaturePositionArray.page_number) - 1
+    
+                const page = pdfLibDoc.getPage(pageIndex);
+                const { width, height } = page.getSize();
+    
+                const correctedY = height - Number(signaturePositionArray.y_position) - Number(signaturePositionArray.height)
+    
+                page.drawImage(pngImage, {
+                    x: Number(signaturePositionArray.x_position),
+                    y: correctedY,
+                    width:  Number(signaturePositionArray.width),
+                    height: Number(signaturePositionArray.height)
+                });
 
-            const page = pdfLibDoc.getPage(pageIndex);
-            const { width, height } = page.getSize();
+                const printedName = element.user.name; // expect element.name in DB
+                const fontSize = 10;
+                const nameY = correctedY - 2;
 
-            const correctedY = height - Number(signaturePositionArray.y_position) - Number(signaturePositionArray.height)
-
-            page.drawImage(pngImage, {
-                x: Number(signaturePositionArray.x_position),
-                y: correctedY,
-                width:  Number(signaturePositionArray.width),
-                height: Number(signaturePositionArray.height)
-            });
+                page.drawText(printedName, {
+                    x: Number(element.x_position) + 45,
+                    y: nameY,
+                    size: fontSize,
+                    font: font,
+                    color: PDFLib.rgb(0, 0, 0)
+                });
+            })
             
             // const boxTop = parseFloat(box.style.top);
             
