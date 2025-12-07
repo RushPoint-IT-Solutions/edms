@@ -1,0 +1,242 @@
+@extends('layouts.header')
+
+@section('css')
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.css" rel="stylesheet">
+<style>
+    .info-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .file-preview-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+
+    .file-preview-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .comment-item {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .comment-time {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .section-card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+        font-weight: 600;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        padding: 1rem 1.25rem;
+    }
+</style>
+@endsection
+
+@section('content')
+<div class="container-fluid">
+    <div class="mb-4">
+        <a href="{{ url('for-approval') }}" class="btn btn-secondary">
+            <i class="ri-arrow-left-line me-1"></i> Back to List
+        </a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card section-card">
+                <div class="card-header text-uppercase">
+                    <i class="ri-file-text-line me-2"></i>Document Information
+                </div>
+                <div class="card-body">
+                    <div class="info-label">Document ID</div>
+                    <div class="info-value">DOC-{{ date('Y', strtotime($change_request->created_at)) }}-{{
+                        str_pad($change_request->id,3,'0',STR_PAD_LEFT) }}</div>
+
+                    <div class="info-label">Title</div>
+                    <div class="info-value">{{ $change_request->title }}</div>
+
+                    <div class="info-label">Description</div>
+                    <div class="info-value">{!! nl2br(e($change_request->description)) !!}</div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="info-label">Category</div>
+                            <div class="info-value">{{ $change_request->category }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-label">Privacy</div>
+                            <div class="info-value">{{ $change_request->privacy }}</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="info-label">Revision</div>
+                            <div class="info-value">{{ $change_request->revision }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-label">Requested By</div>
+                            <div class="info-value">{{ $change_request->user->name }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card section-card">
+                <div class="card-header text-uppercase">
+                    <i class="ri-user-follow-line me-2"></i>Approvers
+                </div>
+                <div class="card-body">
+                    @foreach ($change_request->approvers as $approver)
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <span>{{ $approver->user->name }}</span>
+                        @if($approver->status == "Pending")
+                        <span class="badge bg-warning status-badge">
+                            @elseif($approver->status == "Approved")
+                            <span class="badge bg-success status-badge">
+                                @elseif($approver->status == "Returned")
+                                <span class="badge bg-danger status-badge">
+                                    @elseif($approver->status == "Waiting")
+                                    <span class="badge bg-info status-badge">
+                                        @endif
+                                        {{ $approver->status }}
+                                    </span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card section-card">
+                <div class="card-header text-uppercase">
+                    <i class="ri-attachment-2 me-2"></i>Attachments
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Main Document</h6>
+                        <div class="card border file-preview-card">
+                            <a href='{{ url($change_request->file) }}' class="text-decoration-none" target="_blank">
+                                <div class="position-relative"
+                                    style="height: 200px; overflow: hidden; background: #f8f9fa;">
+                                    <iframe
+                                        src="https://docs.google.com/gview?url={{ urlencode(url($change_request->file)) }}&embedded=true"
+                                        class="w-100 h-100 border-0"></iframe>
+                                </div>
+                                <div class="card-body p-3 bg-light">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="ri-file-pdf-line text-danger fs-4"></i>
+                                        @php
+                                        $file = $change_request->file;
+                                        $filename = explode('/',$file);
+                                        @endphp
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold text-dark text-truncate">{{ $filename[2] }}</div>
+                                            <small class="text-muted">Click to view full document</small>
+                                        </div>
+                                        <i class="ri-external-link-line text-primary"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    @if(count($change_request->supporting_documents) > 0)
+                    <div>
+                        <h6 class="text-muted mb-3">Supporting Documents</h6>
+                        <div class="row g-2">
+                            @foreach ($change_request->supporting_documents as $key=>$document)
+                            <div class="col-md-6">
+                                <div class="card border file-preview-card">
+                                    <a href='{{ url($document->file) }}' class="text-decoration-none" target="_blank">
+                                        <div class="position-relative"
+                                            style="height: 150px; overflow: hidden; background: #f8f9fa;">
+                                            <iframe
+                                                src="https://docs.google.com/gview?url={{ urlencode(url($document->file)) }}&embedded=true"
+                                                class="w-100 h-100 border-0"></iframe>
+                                        </div>
+                                        <div class="card-body p-2 bg-light">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="ri-file-pdf-line text-danger"></i>
+                                                @php
+                                                $file = $document->file;
+                                                $filename = explode('/',$file);
+                                                @endphp
+                                                <div class="fw-semibold text-dark text-truncate small flex-grow-1">{{
+                                                    $filename[2] }}</div>
+                                                <i class="ri-external-link-line text-primary small"></i>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card section-card">
+                <div class="card-header text-uppercase d-flex align-items-center">
+                    <i class="ri-chat-3-line me-2"></i>
+                    <span class="flex-grow-1">Comments</span>
+                </div>
+                <div class="card-body">
+                    <div data-simplebar style="max-height: 400px;" class="mb-3">
+                        @if(count($change_request->comments) > 0)
+                        @foreach ($change_request->comments as $comment)
+                        <div class="comment-item">
+                            <div class="d-flex align-items-start gap-2">
+                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
+                                    style="width: 32px; height: 32px;">
+                                <div class="flex-grow-1">
+                                    <div class="comment-author">{{ $comment->user->name }}</div>
+                                    <div class="comment-time">{{ date('d M Y - h:i A', strtotime($comment->created_at))
+                                        }}</div>
+                                    <div class="mt-2 text-muted">{!! $comment->comment !!}</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                        @else
+                        <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

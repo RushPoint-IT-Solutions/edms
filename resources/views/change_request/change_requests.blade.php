@@ -430,7 +430,7 @@
                                 @endif
                             </ul>
                         </div> --}}
-                        <a href="{{ url('change-request/for_approval/'.$request->id) }}" class="btn btn-sm btn-outline-info me-1">
+                        <a href="{{ url('change-request/view-change-request/'.$request->id) }}" class="btn btn-sm btn-outline-info me-1">
                             <i class="ri-eye-line"></i>
                         </a>
                     </td>

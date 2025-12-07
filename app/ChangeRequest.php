@@ -17,14 +17,14 @@ class ChangeRequest extends Model  implements Auditable
     {
         return $this->belongsTo(User::class);
     }
-    public function department()
-    {
-        return $this->belongsTo(Department::class);
-    }
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
-    }
+    // public function department()
+    // {
+    //     return $this->belongsTo(Department::class);
+    // }
+    // public function company()
+    // {
+    //     return $this->belongsTo(Company::class);
+    // }
     public function acknowledgement()
     {
         return $this->hasOne(Acknowledgement::class);
@@ -33,10 +33,10 @@ class ChangeRequest extends Model  implements Auditable
     {
         return $this->hasMany(RequestApprover::class, 'change_request_id', 'id');
     }
-    public function preAssessment()
-    {
-        return $this->belongsTo(PreAssessment::class);
-    }
+    // public function preAssessment()
+    // {
+    //     return $this->belongsTo(PreAssessment::class);
+    // }
     public function supporting_documents()
     {
         return $this->hasMany(SupportingDocument::class);

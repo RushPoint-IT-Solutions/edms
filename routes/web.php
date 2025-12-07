@@ -41,6 +41,17 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('activate-user', 'UserController@activate_user')->name('settings');
         });
 
+        //ChangeRequest
+        Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
+        Route::prefix('change-request')->group(function() {
+            Route::get('for_approval/{id}', 'RequestController@show');
+            Route::get('view-change-request/{id}','RequestController@viewChangeRequest');
+            
+            Route::post('store','RequestController@store');
+            Route::post('comments', 'RequestController@comments');
+            Route::post('change-request-action/{id}','RequestController@action');
+        });
+
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/search', 'HomeController@search')->name('search');
@@ -61,18 +72,6 @@ Route::group(['middleware' => 'auth'], function () {
         //copyrequest
         Route::post('copy-request','CopyController@store');
         Route::post('copy-request-action/{id}','CopyController@action');
-    
-        //ChangeRequest
-        Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
-        Route::prefix('change-request')->group(function() {
-            Route::get('for_approval/{id}', 'RequestController@show');
-            
-            Route::post('store','RequestController@store');
-            Route::post('comments', 'RequestController@comments');
-            Route::post('change-request-action/{id}','RequestController@action');
-            // Route::post('new-change-request','RequestController@new_request');
-        });
-    
     
         Route::get('/permits', 'PermitController@index')->name('permits');
         Route::post('new-permit', 'PermitController@store')->name('permits');

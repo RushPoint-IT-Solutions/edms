@@ -171,7 +171,7 @@ class RequestController extends Controller
     {
         $requests = ChangeRequest::whereNull('is_draft')->get();
 
-        return view('change_requests',
+        return view('change_request.change_requests',
         
         array(
             'requests' =>  $requests,
@@ -422,6 +422,7 @@ class RequestController extends Controller
         return redirect('/change-requests');
 
     }
+
     // public function new_request(Request $request)
     // {
     //     //
@@ -587,6 +588,7 @@ class RequestController extends Controller
     {
         //
     }
+
     public function action(Request $request,$id)
     {
         // dd($request->all());
@@ -709,98 +711,99 @@ class RequestController extends Controller
         }
     
     }
-    public function changeReports(Request $request)
-    {
-        $from = $request->from;
-        $to = $request->to;
-        if($from)
-        {
-        $requests = ChangeRequest::where('created_at', '>=', $from)
-        ->where('created_at', '<=', $to )->orderBy('id','desc')->get();
-        }
-        else
-        {
-            $requests = ChangeRequest::orderBy('id','desc')->get();
-        }
-        return view('change_reports',
-        array(
-            'requests' =>  $requests,
-            'from' =>  $from,
-            'to' =>  $to,
-        ));
-    }
-    public function docReports(Request $request)
-    {
-        $dco = $request->dco;
-        $dcos = User::where('role','Document Control Officer')->get();
-        $requests = ChangeRequest::orderBy('id','desc')->get();
-        if($dco != null)
-        {
+    
+    // public function changeReports(Request $request)
+    // {
+    //     $from = $request->from;
+    //     $to = $request->to;
+    //     if($from)
+    //     {
+    //     $requests = ChangeRequest::where('created_at', '>=', $from)
+    //     ->where('created_at', '<=', $to )->orderBy('id','desc')->get();
+    //     }
+    //     else
+    //     {
+    //         $requests = ChangeRequest::orderBy('id','desc')->get();
+    //     }
+    //     return view('change_reports',
+    //     array(
+    //         'requests' =>  $requests,
+    //         'from' =>  $from,
+    //         'to' =>  $to,
+    //     ));
+    // }
+    // public function docReports(Request $request)
+    // {
+    //     $dco = $request->dco;
+    //     $dcos = User::where('role','Document Control Officer')->get();
+    //     $requests = ChangeRequest::orderBy('id','desc')->get();
+    //     if($dco != null)
+    //     {
           
-            $user = User::where('id',$request->dco)->first();
-            $requests = ChangeRequest::whereIn('department_id',($user->dco)->pluck('department_id')->toArray())->orderBy('id','desc')->get();
-        }
+    //         $user = User::where('id',$request->dco)->first();
+    //         $requests = ChangeRequest::whereIn('department_id',($user->dco)->pluck('department_id')->toArray())->orderBy('id','desc')->get();
+    //     }
         
 
-        return view('dcoReports',
+    //     return view('dcoReports',
         
-        array(
-            'requests' =>  $requests,
-            'dcos' =>  $dcos,
-            'dco' =>  $dco,
-        ));
+    //     array(
+    //         'requests' =>  $requests,
+    //         'dcos' =>  $dcos,
+    //         'dco' =>  $dco,
+    //     ));
         
-    }
+    // }
 
-    public function delayedRequest(Request $request)
-    {
-        $departments = Department::where('id',auth()->user()->department_id)->where('status',null)->get();
-        $companies = Company::where('status',null)->get();
-        $document_types = DocumentType::get();
-        $approvers = DepartmentApprover::where('department_id',auth()->user()->department_id)->get();
-        $requests = ChangeRequest::orderBy('id','desc')
-            ->when($request->status, function($q)use($request) {
-                $q->where('status', $request->status);
-            })
-            ->get();
-        // $pre_assessment_approvers = DepartmentDco::where('department_id',auth()->user()->department_id)->get();
-        $pre_assessment_approvers = DepartmentDco::where('department_id',auth()->user()->department_id)
-            ->whereHas('user', function($query)use($request) {
-                $query->where('status', null);
-            })
-            ->get();
-        if(auth()->user()->role == "User")
-        {
-            $requests = ChangeRequest::where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
-        }
-        else if(auth()->user()->role == "Document Control Officer")
-        {
-            $requests = ChangeRequest::whereIn('department_id',(auth()->user()->dco)
-                ->pluck('department_id')->toArray())
-                ->when($request->status, function($q)use($request) {
-                    $q->where('status', $request->status);
-                })
-                ->orderBy('id','desc')->get();
-        }
-        else if(auth()->user()->role == "Department Head")
-        {
-            $requests = ChangeRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orderBy('id','desc')->get();
-        }
-        else if(auth()->user()->role == "Documents and Records Controller")
-        {
-            $requests = ChangeRequest::where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
-        }
-        return view('delay_request',
+    // public function delayedRequest(Request $request)
+    // {
+    //     $departments = Department::where('id',auth()->user()->department_id)->where('status',null)->get();
+    //     $companies = Company::where('status',null)->get();
+    //     $document_types = DocumentType::get();
+    //     $approvers = DepartmentApprover::where('department_id',auth()->user()->department_id)->get();
+    //     $requests = ChangeRequest::orderBy('id','desc')
+    //         ->when($request->status, function($q)use($request) {
+    //             $q->where('status', $request->status);
+    //         })
+    //         ->get();
+    //     // $pre_assessment_approvers = DepartmentDco::where('department_id',auth()->user()->department_id)->get();
+    //     $pre_assessment_approvers = DepartmentDco::where('department_id',auth()->user()->department_id)
+    //         ->whereHas('user', function($query)use($request) {
+    //             $query->where('status', null);
+    //         })
+    //         ->get();
+    //     if(auth()->user()->role == "User")
+    //     {
+    //         $requests = ChangeRequest::where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
+    //     }
+    //     else if(auth()->user()->role == "Document Control Officer")
+    //     {
+    //         $requests = ChangeRequest::whereIn('department_id',(auth()->user()->dco)
+    //             ->pluck('department_id')->toArray())
+    //             ->when($request->status, function($q)use($request) {
+    //                 $q->where('status', $request->status);
+    //             })
+    //             ->orderBy('id','desc')->get();
+    //     }
+    //     else if(auth()->user()->role == "Department Head")
+    //     {
+    //         $requests = ChangeRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orderBy('id','desc')->get();
+    //     }
+    //     else if(auth()->user()->role == "Documents and Records Controller")
+    //     {
+    //         $requests = ChangeRequest::where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
+    //     }
+    //     return view('delay_request',
         
-        array(
-            'requests' =>  $requests,
-            'pre_assessment_approvers' => $pre_assessment_approvers,
-            'companies' =>  $companies,
-            'departments' =>  $departments,
-            'approvers' =>  $approvers,
-            'document_types' =>  $document_types,
-        ));
-    }
+    //     array(
+    //         'requests' =>  $requests,
+    //         'pre_assessment_approvers' => $pre_assessment_approvers,
+    //         'companies' =>  $companies,
+    //         'departments' =>  $departments,
+    //         'approvers' =>  $approvers,
+    //         'document_types' =>  $document_types,
+    //     ));
+    // }
 
     public function comments(Request $request)
     {
@@ -816,6 +819,17 @@ class RequestController extends Controller
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
+    }
+
+    public function viewChangeRequest($id)
+    {
+        $changeRequest = ChangeRequest::with('user','comments','approvers','supporting_documents')->findOrFail($id);
+
+        return view('change_request.view_change_request',
+            array(
+                'change_request' => $changeRequest
+            )
+        );
     }
 }
 
