@@ -485,7 +485,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($documents as $document)
+                            @foreach ($documents->sortByDesc('id')->take(5) as $document)
                                 @php
                                     $attachment = $document->attachments->where('type','pdf_copy')->first();
                                 @endphp
