@@ -326,7 +326,7 @@
                 <i class="fa fa-clock-o"></i>
             </div>
             <h2>
-                0
+                {{ count($requests->where('status','Pending')) }}
             </h2>
             <p>Pending</p>
         </div>
@@ -338,7 +338,7 @@
                 <i class="fa fa-times-circle"></i>
             </div>
             <h2>
-                0
+                {{ count($requests->where('status','Declined')) }}
             </h2>
             <p>Declined</p>
         </div>
@@ -350,7 +350,7 @@
                 <i class="fa fa-check-circle"></i>
             </div>
             <h2>
-                0
+                {{ count($requests->where('status','Approved')) }}
             </h2>
             <p>Approved</p>
         </div>
