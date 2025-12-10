@@ -219,11 +219,11 @@ class RequestController extends Controller
     {
         //
         $document_types = DocumentType::get();
-        $copy_for_approvals = CopyApprover::orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
+        $copy_for_approvals = CopyApprover::with('copy_request.document.attachments')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
         $change_for_approvals = RequestApprover::with('change_request.document_type')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
         if(auth()->user()->role == "Administrator")
         {
-            $copy_for_approvals = CopyApprover::orderBy('id','desc')->get();
+            $copy_for_approvals = CopyApprover::with('copy_request.document.attachments')->orderBy('id','desc')->get();
             $change_for_approvals = RequestApprover::with('change_request.document_type')->orderBy('id','desc')->get();
         }
        

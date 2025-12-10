@@ -6,13 +6,13 @@
                 <div class='col-md-10'>
                     <h5 class="modal-title" id="exampleModalLabel">View Copy Request ({{$request->status}})</h5>
                 </div>
-                <div class='col-md-2'>
+                {{-- <div class='col-md-2'>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close" >
                         <span aria-hidden="true">&times;</span>
                     </button>
-                </div>
+                </div> --}}
             </div>
-            <form method='post' action='{{url('copy-request-action/'.$copy_approval->id)}}' onsubmit='show();' class="form-horizontal"  enctype="multipart/form-data" >
+            <form method='post' action='{{url('copy_request/copy-request-action/'.$copy_approval->id)}}' onsubmit='show();' class="form-horizontal"  enctype="multipart/form-data" >
                 {{ csrf_field() }}
                 <input type="hidden" name="id" value="{{$copy_approval->copy_request->document_id}}">
                 <input type="hidden" name="user_id" value="{{$request->user->id}}">
@@ -54,27 +54,27 @@
                         </div>
                     </div>
                     @php
-                        $document =$request->document;
+                        $document = $request->document;
                     @endphp
-                    @if($request->level > 1)
                     <hr>
-                     <div class="row">
-                            <div class="col-lg-12">
-                               Document Request : 
-                                        @foreach($document->attachments as $attachment)
-                                            @if($attachment->attachment != null)
-                                               @if($attachment->type == "pdf_copy")
-                                                    @if(($document->category == "FORM") || ($document->category == "TEMPLATE"))<a href='{{url($attachment->attachment)}}' target="_blank" ><i class="fa fa-file-pdf-o"></i> PDF Copy</a>
-                                                    @else<a href='{{url('view-pdf/'.$attachment->id)}}' target="_blank" ><i class="fa fa-file-pdf-o"></i> PDF Copy</a>
-                                                @endif
-                                                @endif
-                                             @endif
-                                        @endforeach
-                                   
-                                </dl>
-                            </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            Document Request : 
+                            @if($document)
+                                @foreach($document->attachments as $attachment)
+                                    @if($attachment->attachment != null)
+                                        @if($attachment->type == "pdf_copy")
+                                            @if(($document->category == "FORM") || ($document->category == "TEMPLATE"))
+                                                <a href='{{url($attachment->attachment)}}' target="_blank" ><i class="fa fa-file-pdf-o"></i> PDF Copy</a>
+                                            @else
+                                                <a href='{{url('view-pdf/'.$attachment->id)}}' target="_blank" ><i class="fa fa-file-pdf-o"></i> PDF Copy</a>
+                                            @endif
+                                        @endif
+                                    @endif
+                                @endforeach
+                            @endif
+                        </div>
                     </div>
-                    @endif
                     <hr>
                         <div class='row text-center'>
                             <div class='col-md-3 border  border-primary border-top-bottom border-left-right'>

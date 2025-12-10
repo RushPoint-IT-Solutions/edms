@@ -38,12 +38,18 @@ class DocumentController extends Controller
         //
         // $departments = Department::get();
         // $companies = Company::get();
-        $document_types = DocumentType::orderBy('name','desc')->get();
         $search = $request->search;
         $department = $request->department;
-        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
+
+        $document_types = DocumentType::orderBy('name','desc')->get();
         $document_folders = DocumentFolder::with('document')->get();
         $obsoletes = Obsolete::get();
+
+        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
+        if (auth()->user()->role != "Administrator")
+        {
+            $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
+        }
 
         // $documents_filter = Document::query();
      
