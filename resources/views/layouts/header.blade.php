@@ -357,13 +357,13 @@
                             </a>
                         </li>
 
-                        <!-- Acknowledgement -->
+                        {{-- <!-- Acknowledgement -->
                         <li class="nav-item {{ Route::current()->getName() == 'acknowledgement' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/acknowledgement')}}">
                                 <i class="ri-user-star-line"></i>
                                 <span data-key="t-acknowledgement">Acknowledgement</span>
                             </a>
-                        </li>
+                        </li> --}}
 
                         <!-- Permits & Licenses (Specific roles and accountable persons) -->
                         @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Document Control Officer') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative') || (auth()->user()->role == 'Department Head') || (count(auth()->user()->accountable_persons) != 0))
@@ -387,12 +387,12 @@
 
                         <!-- Approvers (Admin, BPM, or Management Representative) -->
                         @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative'))
-                            <li class="nav-item {{ Route::current()->getName() == 'remove-approvers' ? 'active' : '' }}">
+                            {{-- <li class="nav-item {{ Route::current()->getName() == 'remove-approvers' ? 'active' : '' }}">
                                 <a class="nav-link menu-link" href="{{url('/remove-approvers')}}">
                                     <i class="ri-user-unfollow-line"></i>
                                     <span data-key="t-approvers">Approvers</span>
                                 </a>
-                            </li>
+                            </li> --}}
 
                             <!-- Settings Submenu -->
                             <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">

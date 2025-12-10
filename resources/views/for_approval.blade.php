@@ -392,7 +392,7 @@
                     </td>
                     <td>{{$request->user->name}}</td>
                     <td>
-                        {{ $request->type }}
+                        {{ $request->document_type->name }}
                     </td>
                 </tr>
                 @endif

@@ -1,6 +1,7 @@
 <?php
 
 namespace App;
+
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -48,5 +49,9 @@ class ChangeRequest extends Model  implements Auditable
     public function document()
     {
         return $this->belongsTo(Document::class);
+    }
+    public function document_type()
+    {
+        return $this->belongsTo(DocumentType::class,'type','id');
     }
 }
