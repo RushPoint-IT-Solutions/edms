@@ -362,15 +362,15 @@
                     @else
                         <span class="status-badge obsolete">Obsolete</span>
                     @endif
-                    @if(auth()->user()->role == "Document Control Officer")
+                    {{-- @if(auth()->user()->role == "Document Control Officer")
                         <button class="btn-modern info" title='Edit' data-target="#edit_document" data-toggle="modal">
                             <i class="fa fa-edit"></i> Edit
                         </button>
-                    @endif
+                    @endif --}}
                 </div>
             </div>
 
-            @if($document->status != "Obsolete")
+            {{-- @if($document->status != "Obsolete")
             <div class="action-buttons">
                 @if((auth()->user()->role == "User") || (auth()->user()->role == "Documents and Records Controller") || (auth()->user()->role == "Document Control Officer") || (auth()->user()->role == "Department Head"))
                     @if($document->department_id == 8)
@@ -449,16 +449,19 @@
                         $dep = (auth()->user()->dco)->where('department_id',$document->department_id);
                     @endphp
                     @if(count($dep) == 1)
-                        {{-- <button class="btn-modern warning" data-target="#changeRequest" data-toggle="modal">
-                            <i class="fa fa-exchange"></i> Change Request
-                        </button> --}}
                         <button class="btn-modern danger" data-target="#obsoleteRequest" data-toggle="modal">
                             <i class="fa fa-ban"></i> Obsolete Request
                         </button>
                     @endif
                 @endif
             </div>
-            @endif
+            @endif --}}
+
+            <div class="action-buttons">
+                <button class="btn-modern success" data-bs-target="#copyRequest" data-bs-toggle="modal">
+                    <i class="fa fa-copy"></i> Copy Request
+                </button>
+            </div>
 
             <!-- Document Details Grid -->
             <div class="details-grid" style="margin-top: 25px;">
@@ -890,7 +893,7 @@
 </div>
 
 {{-- @include('obsolete_request_image') --}}
-{{-- @include('copy_request') --}}
+@include('copy_request.copy_request')
 {{-- @include('change_request') --}}
 {{-- @include('obsolete_request') --}}
 @endsection
@@ -900,11 +903,11 @@
 @section('js')
 <script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-<script type="text/javascript">
+{{-- <script type="text/javascript">
     $(window).on('load', function() {
         $('#myModal').modal('show');
     });
-</script>
+</script> --}}
 <script>
     $(document).ready(function(){
         $('.cat').chosen({width: "100%"});

@@ -497,7 +497,7 @@
                                             </button>
                                             <ul class="dropdown-menu" aria-labelledby="documentDropdown{{$document->id}}">
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ url('view-document/'.$document->id) }}" target="_blank">
+                                                    <a class="dropdown-item" href="{{ url('documents/view-document/'.$document->id) }}" target="_blank">
                                                         <i class="ri-eye-line me-2"></i>View Document
                                                     </a>
                                                 </li>

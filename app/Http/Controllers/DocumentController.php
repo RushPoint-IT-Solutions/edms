@@ -27,12 +27,12 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function api()
-    {
-        $request_documents = Document::with('attachments')->where('public','!=',null)->where('status',null)->get();
+    // public function api()
+    // {
+    //     $request_documents = Document::with('attachments')->where('public','!=',null)->where('status',null)->get();
 
-        return response()->json($request_documents,200);
-    }
+    //     return response()->json($request_documents,200);
+    // }
     public function index(Request $request)
     {
         //
@@ -206,14 +206,13 @@ class DocumentController extends Controller
      */
     public function show($id)
     {
-        //
         $document = Document::findOrfail($id);
-        // dd($document);
 
-        return view('view_document',
-        array(
-            'document' => $document,
-            ));
+        return view('documents.view_document',
+            array(
+                'document' => $document,
+            )
+        );
     }
 
     /**

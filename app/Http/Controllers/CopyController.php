@@ -18,9 +18,8 @@ class CopyController extends Controller
     //
     public function store(Request $request)
     {
+        dd($request->all());
         $document = Document::findOrFail($request->id);
-        // $document->process_owner = auth()->user()->id;
-        // $document->save();
 
         $copy_request = new CopyRequest;
         $copy_request->type_of_document = $request->type_of_document;
@@ -37,75 +36,6 @@ class CopyController extends Controller
         $copy_request->status = "Pending";
         $copy_request->level = 1;
         $copy_request->save();
-
-        if ($request->immediate_head != null) {
-            $copy_approver = new CopyApprover;
-            $copy_approver->copy_request_id = $copy_request->id;
-            $copy_approver->user_id = $request->immediate_head;
-            $copy_approver->status = "Pending";
-            $copy_approver->start_date = date('Y-m-d');
-            $copy_approver->level = 1;
-            $copy_approver->save();
-        }
-    
-        if ($request->immediate_head_document != null && $request->immediate_head != $request->immediate_head_document) {
-            $copy_approver = new CopyApprover;
-            $copy_approver->copy_request_id = $copy_request->id;
-            $copy_approver->user_id = $request->immediate_head_document;
-            $copy_approver->status = "Waiting";
-            $copy_approver->level = 2;
-            $copy_approver->save();
-        }
-        // $copy_request->level = 1;
-        // if($request->immediate_head == auth()->user()->id)
-        // {
-        //     $copy_request->level = 2; 
-        // }
-        
-        // $copy_request->save();
-        // if($request->immediate_head != auth()->user()->id)
-        // {
-        //     $copy_approver = new CopyApprover;
-        //     $copy_approver->copy_request_id = $copy_request->id;
-        //     $copy_approver->user_id = $request->immediate_head;
-        //     $copy_approver->status = "Pending";
-        //     $copy_approver->start_date = date('Y-m-d');
-        //     $copy_approver->level = 1;
-        //     $copy_approver->save();
-        // }
-        
-        if($request->immediate_head != auth()->user()->id)
-        {
-            $first_notify = User::where('id',$request->immediate_head)->first();
-        }
-        else
-        {
-            $first_notify = User::where('id',$request->immediate_head_document)->first();
-        }
-        $first_notify->notify(new ForApproval($copy_request,"CR-","Copy Request"));
-        $dco = User::whereIn('id', $request->dco)->get();
-        foreach($dco as $d)
-        {
-            $d->notify(new ForApproval($copy_request,"CR-","Copy Request"));
-        }
-
-        // $copy_approver = new CopyApprover;
-        // $copy_approver->copy_request_id = $copy_request->id;
-        // $copy_approver->user_id = $request->drc;
-        // $copy_approver->status = "Waiting";
-        // if($request->immediate_head == auth()->user()->id)
-        // {
-        // $copy_approver->status = "Pending";
-        // }
-        // $copy_approver->level = 2;
-        // $copy_approver->save();
-
-        // $copy_approver = new CopyApprover;
-        // $copy_approver->copy_request_id = $copy_request->id;
-        // $copy_approver->user_id = $request->drc_head;
-        // $copy_approver->status = "Waiting";
-        // $copy_approver->level = 3;
-        // $copy_approver->save();
         
         Alert::success('Successfully Requested')->persistent('Dismiss');
         return redirect('/request');

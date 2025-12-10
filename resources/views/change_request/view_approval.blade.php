@@ -124,75 +124,7 @@
                     @endforeach
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="card section-card">
-                <div class="card-header text-uppercase">
-                    <i class="ri-attachment-2 me-2"></i>Attachments
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Main Document</h6>
-                        <div class="card border file-preview-card">
-                            <a href='{{ url($change_request->file) }}' class="text-decoration-none" target="_blank">
-                                <div class="position-relative" style="height: 200px; overflow: hidden; background: #f8f9fa;">
-                                    <iframe src="https://docs.google.com/gview?url={{ urlencode(url($change_request->file)) }}&embedded=true" 
-                                        class="w-100 h-100 border-0"></iframe>
-                                </div>
-                                <div class="card-body p-3 bg-light">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="ri-file-pdf-line text-danger fs-4"></i>
-                                        @php
-                                        $file = $change_request->file;
-                                        $filename = explode('/',$file);
-                                        @endphp
-                                        <div class="flex-grow-1">
-                                            <div class="fw-semibold text-dark text-truncate">{{ $filename[2] }}</div>
-                                            <small class="text-muted">Click to view full document</small>
-                                        </div>
-                                        <i class="ri-external-link-line text-primary"></i>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    @if(count($change_request->supporting_documents) > 0)
-                    <div>
-                        <h6 class="text-muted mb-3">Supporting Documents</h6>
-                        <div class="row g-2">
-                            @foreach ($change_request->supporting_documents as $key=>$document)
-                            <div class="col-md-6">
-                                <div class="card border file-preview-card">
-                                    <a href='{{ url($document->file) }}' class="text-decoration-none" target="_blank">
-                                        <div class="position-relative" style="height: 150px; overflow: hidden; background: #f8f9fa;">
-                                            <iframe src="https://docs.google.com/gview?url={{ urlencode(url($document->file)) }}&embedded=true" 
-                                                class="w-100 h-100 border-0"></iframe>
-                                        </div>
-                                        <div class="card-body p-2 bg-light">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <i class="ri-file-pdf-line text-danger"></i>
-                                                @php
-                                                $file = $document->file;
-                                                $filename = explode('/',$file);
-                                                @endphp
-                                                <div class="fw-semibold text-dark text-truncate small flex-grow-1">{{ $filename[2] }}</div>
-                                                <i class="ri-external-link-line text-primary small"></i>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
             <div class="card section-card">
                 <div class="card-header text-uppercase d-flex align-items-center">
                     <i class="ri-chat-3-line me-2"></i>
@@ -261,6 +193,72 @@
                         </form>
                         @endif
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card section-card">
+                <div class="card-header text-uppercase">
+                    <i class="ri-attachment-2 me-2"></i>Attachments
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Main Document</h6>
+                        <div class="card border file-preview-card">
+                            <a href='{{ url($change_request->file) }}' class="text-decoration-none" target="_blank">
+                                <div class="position-relative" style="height: 200px; overflow: hidden; background: #f8f9fa;">
+                                    <iframe src="https://docs.google.com/gview?url={{ urlencode(url($change_request->file)) }}&embedded=true" 
+                                        class="w-100 h-100 border-0"></iframe>
+                                </div>
+                                <div class="card-body p-3 bg-light">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="ri-file-pdf-line text-danger fs-4"></i>
+                                        @php
+                                        $file = $change_request->file;
+                                        $filename = explode('/',$file);
+                                        @endphp
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold text-dark text-truncate">{{ $filename[2] }}</div>
+                                            <small class="text-muted">Click to view full document</small>
+                                        </div>
+                                        <i class="ri-external-link-line text-primary"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    @if(count($change_request->supporting_documents) > 0)
+                    <div>
+                        <h6 class="text-muted mb-3">Supporting Documents</h6>
+                        <div class="row g-2">
+                            @foreach ($change_request->supporting_documents as $key=>$document)
+                            <div class="col-md-6">
+                                <div class="card border file-preview-card">
+                                    <a href='{{ url($document->file) }}' class="text-decoration-none" target="_blank">
+                                        <div class="position-relative" style="height: 150px; overflow: hidden; background: #f8f9fa;">
+                                            <iframe src="https://docs.google.com/gview?url={{ urlencode(url($document->file)) }}&embedded=true" 
+                                                class="w-100 h-100 border-0"></iframe>
+                                        </div>
+                                        <div class="card-body p-2 bg-light">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="ri-file-pdf-line text-danger"></i>
+                                                @php
+                                                $file = $document->file;
+                                                $filename = explode('/',$file);
+                                                @endphp
+                                                <div class="fw-semibold text-dark text-truncate small flex-grow-1">{{ $filename[2] }}</div>
+                                                <i class="ri-external-link-line text-primary small"></i>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
