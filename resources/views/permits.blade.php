@@ -563,7 +563,7 @@
                     <td>
                         <small>
                             @foreach($permit->department->permit_accounts as $accountable)
-                                {{$accountable->user->name}} <hr>
+                                {{optional($accountable->user)->name}} <hr>
                             @endforeach
                         </small>
                     </td>
