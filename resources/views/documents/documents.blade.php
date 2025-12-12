@@ -485,7 +485,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($documents->sortByDesc('id')->take(5) as $document)
+                            @foreach ($documents->sortByDesc('id') as $document)
                                 @php
                                     $attachment = $document->attachments->where('type','pdf_copy')->first();
                                 @endphp
@@ -613,6 +613,7 @@
     </div>
 </div>
 
+@foreach ($documents->sortByDesc('id') as $document)
 <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -624,6 +625,16 @@
                 <div class="card border-0 bg-light p-4 mb-3">
                     <div id="qrCodeContainer" class="d-flex justify-content-center">
                     </div>
+                </div>
+                <div class="mb-2">
+                    <svg class="barcode"
+                        jsbarcode-format="Code39"
+                        jsbarcode-value="{{ $document->control_code }}"
+                        jsbarcode-textmargin="0"
+                        jsbarcode-fontoptions="bold"
+                        jsbarcode-displayvalue="false"
+                        >
+                    </svg>
                 </div>
                 <div class="alert alert-info mb-3" role="alert">
                     <i class="ri-information-line"></i> Scan this QR code to access document details
@@ -656,6 +667,7 @@
         </div>
     </div>
 </div>
+@endforeach
 
 @include('documents.upload_document')
 @include('documents.add_folder')
@@ -670,8 +682,11 @@
 <script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
 {{-- <script src="{{ asset('assets/js/pages/file-manager.init.js') }}"></script> --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="{{ asset('barcode/JsBarcode.all.min.js') }}"></script>
 
 <script>
+    JsBarcode(".barcode").init();
+
     document.addEventListener("DOMContentLoaded", () => {
         const qrModalElement = document.getElementById('qrCodeModal');
         const qrModal = new bootstrap.Modal(qrModalElement);
