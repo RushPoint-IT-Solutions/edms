@@ -386,13 +386,20 @@ function prepareSubmit(event) {
         });
     });
     
-    document.getElementById('signature-positions-input').value = JSON.stringify(signatureData);
+    const dataSignature = document.getElementById('signature-positions-input')
+    dataSignature.value = JSON.stringify(signatureData);
     
-    if (typeof show === 'function') {
-        show();
+    if (dataSignature.value == "[]") {
+        alert('Signature placement is required.')
+        return false;
     }
-    
-    return true;
+    else 
+    {
+        if (typeof show === 'function') {
+            show();
+        }
+        return true;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {

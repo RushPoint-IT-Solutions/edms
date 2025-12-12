@@ -254,7 +254,7 @@ class RequestController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
+        // dd($request->all(), count(json_decode($request->signature_positions)));
         $request->validate([
             'file' => 'mimes:pdf'
         ]);
