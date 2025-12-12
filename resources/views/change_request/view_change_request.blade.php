@@ -134,9 +134,38 @@
                     @endforeach
                 </div>
             </div>
+
+            <div class="card section-card">
+                <div class="card-header text-uppercase d-flex align-items-center">
+                    <i class="ri-chat-3-line me-2"></i>
+                    <span class="flex-grow-1">Comments</span>
+                </div>
+                <div class="card-body">
+                    <div data-simplebar style="max-height: 400px;" class="mb-3">
+                        @if(count($change_request->comments) > 0)
+                        @foreach ($change_request->comments as $comment)
+                        <div class="comment-item">
+                            <div class="d-flex align-items-start gap-2">
+                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
+                                    style="width: 32px; height: 32px;">
+                                <div class="flex-grow-1">
+                                    <div class="comment-author">{{ $comment->user->name }}</div>
+                                    <div class="comment-time">{{ date('d M Y - h:i A', strtotime($comment->created_at))
+                                        }}</div>
+                                    <div class="mt-2 text-muted">{!! $comment->comment !!}</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                        @else
+                        <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-8">
             <div class="card section-card">
                 <div class="card-header text-uppercase">
                     <i class="ri-attachment-2 me-2"></i>Attachments
@@ -206,37 +235,7 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4">
-            <div class="card section-card">
-                <div class="card-header text-uppercase d-flex align-items-center">
-                    <i class="ri-chat-3-line me-2"></i>
-                    <span class="flex-grow-1">Comments</span>
-                </div>
-                <div class="card-body">
-                    <div data-simplebar style="max-height: 400px;" class="mb-3">
-                        @if(count($change_request->comments) > 0)
-                        @foreach ($change_request->comments as $comment)
-                        <div class="comment-item">
-                            <div class="d-flex align-items-start gap-2">
-                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
-                                    style="width: 32px; height: 32px;">
-                                <div class="flex-grow-1">
-                                    <div class="comment-author">{{ $comment->user->name }}</div>
-                                    <div class="comment-time">{{ date('d M Y - h:i A', strtotime($comment->created_at))
-                                        }}</div>
-                                    <div class="mt-2 text-muted">{!! $comment->comment !!}</div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                        @else
-                        <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+        
     </div>
 </div>
 @endsection
