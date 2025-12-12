@@ -226,6 +226,27 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attached Files <span class="text-danger">*</span></h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Add PDF file to preview on the right</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Main Document (PDF)</label>
+                        <input name="file" type="file" class="form-control" id="pdf-file-input" accept=".pdf" @if(!$change_request) required @endif>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Supporting Documents</label>
+                        <p class="text-muted small mb-2">You can select multiple files (hold Ctrl/Cmd to select multiple)</p>
+                        <input type="file" name="supporting_documents[]" class="form-control" id="supporting-docs-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" multiple>
+                        <div id="selected-files-list" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
     
             <div class="card">
                 <div class="card-header">
@@ -258,27 +279,6 @@
                     <button type="button" id="add-approver" class="btn btn-outline-primary btn-sm mt-2">
                         <i class="ri-add-line"></i> Add Approver
                     </button>
-                </div>
-            </div>
-    
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Attached Files <span class="text-danger">*</span></h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3">Add PDF file to preview on the right</p>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Main Document (PDF)</label>
-                        <input name="file" type="file" class="form-control" id="pdf-file-input" accept=".pdf" @if(!$change_request) required @endif>
-                    </div>
-
-                    <div>
-                        <label class="form-label">Supporting Documents</label>
-                        <p class="text-muted small mb-2">You can select multiple files (hold Ctrl/Cmd to select multiple)</p>
-                        <input type="file" name="supporting_documents[]" class="form-control" id="supporting-docs-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" multiple>
-                        <div id="selected-files-list" class="mt-3"></div>
-                    </div>
                 </div>
             </div>
     
