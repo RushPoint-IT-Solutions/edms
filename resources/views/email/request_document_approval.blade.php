@@ -54,7 +54,7 @@
                                                 To proceed, please click the link below:
                                                 <br>
                                                 <br>
-                                                <a href="#" itemprop="url"
+                                                <a href="{{ url('/change-request/for_approval/'.$change_request->id) }}" itemprop="url"
                                                     style="font-family: 'Roboto', sans-serif; box-sizing: border-box; font-size: .8125rem;font-weight: 400; color: #FFF; text-decoration: none; text-align: center; cursor: pointer; display: inline-block; border-radius: .25rem; text-transform: capitalize; background-color: #800000; margin: 0; border-color: #800000; border-style: solid; border-width: 1px; padding: .5rem .9rem;"
                                                     onMouseOver="this.style.background='#800000'"
                                                     onMouseOut="this.style.background='#800000'">View Document &#8594;</a>
