@@ -299,7 +299,7 @@
 <div class="container-fluid py-4">
     <div class="row g-3">
         <!-- Main Content Area -->
-        <div class="col-12 col-xl-9">
+        <div class="col-12 col-xl-12">
             {{-- <div class="file-manager-sidebar minimal-border">
                 <div class="p-3 d-flex flex-column h-100">
                     <div class="mb-3">
@@ -543,7 +543,7 @@
         </div>
 
         <!-- Overview Sidebar -->
-        <div class="col-12 col-xl-3">
+        {{-- <div class="col-12 col-xl-3">
             <div class="overview-card">
                 <div class="overview-header">
                     <h5 class="overview-title">Overview</h5>
@@ -609,7 +609,7 @@
                     </button>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
 </div>
 
