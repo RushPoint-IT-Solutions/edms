@@ -13,12 +13,12 @@
                     <div class='row'>
                         <div class='col-md-12'>
                             <label>Name :</label>
-                            <input type="text" class="form-control-sm form-control bg-light" name="name" readonly />
+                            <input type="text" class="form-control-sm form-control bg-light" name="name" />
                             <small class="text-muted">Name cannot be changed</small>
                         </div>
                         <div class='col-md-12'>
                             <label>Email :</label>
-                            <input type="email" class="form-control-sm form-control bg-light" name="email" readonly/>
+                            <input type="email" class="form-control-sm form-control bg-light" name="email"/>
                             <small class="text-muted">Email cannot be changed</small>
                         </div>
                         {{-- <div class='col-md-12'>
