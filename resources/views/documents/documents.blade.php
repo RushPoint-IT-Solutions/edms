@@ -481,6 +481,7 @@
                                 <th>File Item</th>
                                 <th>File Size</th>
                                 <th>Recent Date</th>
+                                <th>Tags</th>
                                 <th>QR Code</th>
                             </tr>
                         </thead>
@@ -528,6 +529,11 @@
                                     </td>
                                     <td>
                                         {{ date('M d Y', strtotime($document->updated_at)) }}
+                                    </td>
+                                    <td>
+                                        @foreach ($document->document_tags as $tag)
+                                            <span class="badge bg-primary">{{ $tag->name }}</span>
+                                        @endforeach
                                     </td>
                                     <td>
                                         <button class="btn-view-qr view-qr-btn" data-doc-id="{{ $document->control_code }}" data-doc-title="{{ $document->title }}">

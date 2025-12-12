@@ -44,4 +44,8 @@ class Document extends Model implements Auditable
     {
         return $this->hasMany(MemorandumDocument::class);
     }
+    public function document_tags()
+    {
+        return $this->hasMany(DocumentTag::class);
+    }
 }
