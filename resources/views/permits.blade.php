@@ -491,8 +491,8 @@
                     <th>Action</th>
                     <th>Title</th>
                     <th>Description</th>
-                    <th>Company</th>
-                    <th>Department</th>
+                    {{-- <th>Company</th> --}}
+                    {{-- <th>Department</th> --}}
                     <th>Accountable Person</th>
                     <th>Date Uploaded</th>
                     <th>File</th>
@@ -558,8 +558,8 @@
                     </td>
                     <td>{{$permit->title}}</td>
                     <td>{{$permit->description}}</td>
-                    <td>{{$permit->company->name}}</td>
-                    <td>{{$permit->department->name}}</td>
+                    {{-- <td>{{$permit->company->name}}</td> --}}
+                    {{-- <td>{{$permit->department->name}}</td> --}}
                     <td>
                         <small>
                             @foreach($permit->department->permit_accounts as $accountable)
