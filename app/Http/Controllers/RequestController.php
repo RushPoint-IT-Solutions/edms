@@ -172,12 +172,18 @@ class RequestController extends Controller
     }
     public function changeRequests(Request $request)
     {
-        $requests = ChangeRequest::whereNull('is_draft')->get();
+        // dd($request->all());
+        $requests = ChangeRequest::whereNull('is_draft')
+                        ->when($request->status, function($q)use($request) {
+                            $q->where('status', $request->status);
+                        })
+                        ->get();
 
         return view('change_request.change_requests',
         
         array(
             'requests' =>  $requests,
+            'status' => $request->status
             // 'pre_assessment_count' => $pre_assessment_count,
             // 'companies' =>  $companies,
             // 'departments' =>  $departments,

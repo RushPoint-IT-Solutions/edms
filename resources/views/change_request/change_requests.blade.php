@@ -356,7 +356,7 @@
         </div>
     </div>
     
-    <div class="col-xl-3 col-md-6">
+    {{-- <div class="col-xl-3 col-md-6">
         <div class="dashboard-card delayed">
             <div class="icon-circle">
                 <i class="fa fa-exclamation-triangle"></i>
@@ -366,7 +366,7 @@
             </h2>
             <p>Delayed</p>
         </div>
-    </div>
+    </div> --}}
 </div>
 
 <!-- Requests Section -->
@@ -387,6 +387,15 @@
             @endif --}}
         </div>
     </div>
+
+    <form method="GET" action="" id="filterForm">
+        <select id="statusFilter" name="status" class="form-control w-25">
+            <option value="">All Status</option>
+            <option value="Pending" @if($status == "Pending") selected @endif>Pending</option>
+            <option value="Declined" @if($status == "Declined") selected @endif>Declined</option>
+            <option value="Approved" @if($status == "Approved") selected @endif>Approved</option>
+        </select>
+    </form>
 
     <div class="table-container">
         <table class="modern-table tables">
@@ -467,7 +476,8 @@
         $('.tables').DataTable({
             pageLength: 25,
             responsive: true,
-            dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
+            // dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
+            dom: '<"top"f>rt<"bottom"lp><"clear">', // keep search bar visible
             buttons: [
                 {extend: 'copy'},
                 {extend: 'csv'},
@@ -484,6 +494,20 @@
                 }
             ]
         });
+
+        $(".top").css({
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "10px"
+        });
+
+        $(".top").prepend($("#statusFilter"));   // put select beside search
+
+        $("#statusFilter").on('change', function() {
+            $("#filterForm").append($(this));
+            $("#filterForm").submit()
+        })
     });
 </script>
 @endsection
