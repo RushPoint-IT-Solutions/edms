@@ -24,11 +24,14 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('create/{id?}', 'DocumentController@create')->name('documents.create');
             Route::get('signature/{id}', 'DocumentController@signature')->name('documents.signature');
             Route::get('folder/{id}','DocumentController@folderView');
+            Route::get('view-document/{id}','DocumentController@show');
             
+            Route::post('signaturePosition','DocumentController@signaturePosition');
             Route::post('store', 'DocumentController@store')->name('documents.store');
             Route::post('store-folder','DocumentController@addFolder');
             Route::post('rename-folder/{id}','DocumentController@renameFolder');
             Route::post('delete-folder/{id}','DocumentController@deleteFolder');
+            
         });
 
          //Users
@@ -41,6 +44,24 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('activate-user', 'UserController@activate_user')->name('settings');
         });
 
+        //ChangeRequest
+        Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
+        Route::prefix('change-request')->group(function() {
+            Route::get('for_approval/{id}', 'RequestController@show');
+            Route::get('view-change-request/{id}','RequestController@viewChangeRequest');
+            
+            Route::post('store','RequestController@store');
+            Route::post('comments', 'RequestController@comments');
+            Route::post('change-request-action/{id}','RequestController@action');
+        });
+
+        // Copy Request
+        Route::prefix('copy_request')->group(function() {
+            Route::post('/store','CopyController@store');
+            Route::post('copy-request-action/{id}','CopyController@action');
+        });
+
+        // Home
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/search', 'HomeController@search')->name('search');
@@ -54,25 +75,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('view-document/edit-document/{id}','DocumentController@edit');
         Route::get('audits','DocumentController@audit')->name('audit');
         Route::post('upload-document','DocumentController@store')->name('documents');
-        Route::get('/view-document/{id}','DocumentController@show')->name('documents');
         Route::get('/view-pdf/{id}','DocumentController@showPDF')->name('documents');
-    
-    
-        //copyrequest
-        Route::post('copy-request','CopyController@store');
-        Route::post('copy-request-action/{id}','CopyController@action');
-    
-        //ChangeRequest
-        Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
-        Route::prefix('change-request')->group(function() {
-            Route::get('for_approval/{id}', 'RequestController@show');
-            
-            Route::post('store','RequestController@store');
-            Route::post('comments', 'RequestController@comments');
-            Route::post('change-request-action/{id}','RequestController@action');
-            // Route::post('new-change-request','RequestController@new_request');
-        });
-    
     
         Route::get('/permits', 'PermitController@index')->name('permits');
         Route::post('new-permit', 'PermitController@store')->name('permits');

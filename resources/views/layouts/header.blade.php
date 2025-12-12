@@ -83,13 +83,62 @@
             color: rgba(255, 255, 255, 0.8) !important;
         }
 
+        /* --- Pre-loader Container --- */
+        #preloaderMarsu {
+            background-color: white; 
+            width: 100%;
+            height: 100%;
+            /* Center the logo vertically and horizontally */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            opacity: .8;
+        }
+
+        /* --- Logo Placeholder Style --- */
+        .logo-placeholder {
+            width: 150px;
+            height: 150px;
+            /* background-color: #007bff;  */
+            opacity: 2;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            line-height: 150px;
+            border-radius: 10px;
+            animation: bounce 1s infinite alternate;
+        }
+
+        /* --- Keyframes for the Bouncing Animation --- */
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px); 
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
     </style>
     @yield('css')
     
 
 </head>
 <body>
-    <div id="loader" class="loader"></div>
+    {{-- <div id="loader" class="loader"></div> --}}
+    <div id="preloaderMarsu">
+        <div class="logo-placeholder">
+            <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
+        </div>
+    </div>
+
     <div id="layout-wrapper">
 
         <header id="page-topbar">
@@ -306,7 +355,7 @@
                         @endif
 
                         <!-- Search -->
-                        <li class="nav-item {{ Route::current()->getName() == 'search' ? 'active' : '' }}">
+                        <li class="nav-item {{ Route::current()->getName() == 'search' ? 'active' : '' }}" onclick="show()">
                             <a class="nav-link menu-link" href="{{url('/search')}}">
                                 <i class="ri-search-line"></i>
                                 <span data-key="t-search">Search</span>
@@ -357,13 +406,13 @@
                             </a>
                         </li>
 
-                        <!-- Acknowledgement -->
+                        {{-- <!-- Acknowledgement -->
                         <li class="nav-item {{ Route::current()->getName() == 'acknowledgement' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/acknowledgement')}}">
                                 <i class="ri-user-star-line"></i>
                                 <span data-key="t-acknowledgement">Acknowledgement</span>
                             </a>
-                        </li>
+                        </li> --}}
 
                         <!-- Permits & Licenses (Specific roles and accountable persons) -->
                         @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Document Control Officer') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative') || (auth()->user()->role == 'Department Head') || (count(auth()->user()->accountable_persons) != 0))
@@ -387,12 +436,12 @@
 
                         <!-- Approvers (Admin, BPM, or Management Representative) -->
                         @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative'))
-                            <li class="nav-item {{ Route::current()->getName() == 'remove-approvers' ? 'active' : '' }}">
+                            {{-- <li class="nav-item {{ Route::current()->getName() == 'remove-approvers' ? 'active' : '' }}">
                                 <a class="nav-link menu-link" href="{{url('/remove-approvers')}}">
                                     <i class="ri-user-unfollow-line"></i>
                                     <span data-key="t-approvers">Approvers</span>
                                 </a>
-                            </li>
+                            </li> --}}
 
                             <!-- Settings Submenu -->
                             <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
@@ -501,15 +550,6 @@
     </button>
     <!--end back-to-top-->
 
-    <!--preloader-->
-    <div id="preloader">
-        <div id="status">
-            <div class="spinner-border text-primary avatar-sm" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Theme Settings -->
     {{-- @include('layouts.change_password') --}}
     @include('sweetalert::alert')
@@ -533,7 +573,7 @@
 
     <script>
         function show() {
-            document.getElementById("loader").style.display = "block";
+            document.getElementById("preloaderMarsu").style.display = "flex";
         }
         
         function logout() {
@@ -544,7 +584,7 @@
     
     <script>
         window.addEventListener('load', function() {
-            document.getElementById('loader').style.display = 'none';
+            document.getElementById('preloaderMarsu').style.display = 'none';
         });
     </script>
     

@@ -326,7 +326,7 @@
                 <i class="fa fa-clock-o"></i>
             </div>
             <h2>
-                0
+                {{ count($requests->where('status','Pending')) }}
             </h2>
             <p>Pending</p>
         </div>
@@ -338,7 +338,7 @@
                 <i class="fa fa-times-circle"></i>
             </div>
             <h2>
-                0
+                {{ count($requests->where('status','Declined')) }}
             </h2>
             <p>Declined</p>
         </div>
@@ -350,7 +350,7 @@
                 <i class="fa fa-check-circle"></i>
             </div>
             <h2>
-                0
+                {{ count($requests->where('status','Approved')) }}
             </h2>
             <p>Approved</p>
         </div>
@@ -430,7 +430,7 @@
                                 @endif
                             </ul>
                         </div> --}}
-                        <a href="{{ url('change-request/for_approval/'.$request->id) }}" class="btn btn-sm btn-outline-info me-1">
+                        <a href="{{ url('change-request/view-change-request/'.$request->id) }}" class="btn btn-sm btn-outline-info me-1">
                             <i class="ri-eye-line"></i>
                         </a>
                     </td>

@@ -10,6 +10,7 @@ use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
 use App\DocumentFolder;
+use App\DocumentSignaturePosition;
 use App\DocumentTag;
 use App\User;
 use Illuminate\Http\Request;
@@ -26,23 +27,29 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function api()
-    {
-        $request_documents = Document::with('attachments')->where('public','!=',null)->where('status',null)->get();
+    // public function api()
+    // {
+    //     $request_documents = Document::with('attachments')->where('public','!=',null)->where('status',null)->get();
 
-        return response()->json($request_documents,200);
-    }
+    //     return response()->json($request_documents,200);
+    // }
     public function index(Request $request)
     {
         //
         // $departments = Department::get();
         // $companies = Company::get();
-        $document_types = DocumentType::orderBy('name','desc')->get();
         $search = $request->search;
         $department = $request->department;
-        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
+
+        $document_types = DocumentType::orderBy('name','desc')->get();
         $document_folders = DocumentFolder::with('document')->get();
         $obsoletes = Obsolete::get();
+
+        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
+        if (auth()->user()->role != "Administrator")
+        {
+            $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
+        }
 
         // $documents_filter = Document::query();
      
@@ -205,14 +212,13 @@ class DocumentController extends Controller
      */
     public function show($id)
     {
-        //
         $document = Document::findOrfail($id);
-        // dd($document);
 
-        return view('view_document',
-        array(
-            'document' => $document,
-            ));
+        return view('documents.view_document',
+            array(
+                'document' => $document,
+            )
+        );
     }
 
     /**
@@ -425,5 +431,15 @@ class DocumentController extends Controller
             Alert::success('Successfully Deleted')->persistent('Dismiss');
             return back();
         }
+    }
+    public function signaturePosition(Request $request)
+    {
+        // dd($request->all());
+        $document_signature_position = DocumentSignaturePosition::with('user')
+            ->where('user_id', $request->user_id)
+            ->where('change_request_id', $request->change_request_id)
+            ->get();
+        
+        return response()->json($document_signature_position);
     }
 }
