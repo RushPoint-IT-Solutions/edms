@@ -699,7 +699,7 @@ class RequestController extends Controller
         }
         elseif($request->action == "Returned")
         {
-            $changeRequest->status = "Pending";
+            $changeRequest->status = "Returned";
             $changeRequest->level = 1;
             $changeRequest->save(); 
 

@@ -65,7 +65,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="mb-4">
-        <a href="{{ url('for-approval') }}" class="btn btn-secondary">
+        <a href="{{ url('change-requests') }}" class="btn btn-secondary">
             <i class="ri-arrow-left-line me-1"></i> Back to List
         </a>
     </div>
@@ -161,6 +161,35 @@
                         <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
                         @endif
                     </div>
+
+                    @php
+                        $if_return = ($change_request->approvers)->whereIn('status', 'Returned');
+                    @endphp
+
+                    @if(count($if_return) > 0 && (auth()->user()->id == $change_request->user_id))
+                        <form method="POST" action="{{ url('change-request/comments') }}" class="mb-3" onsubmit="show()">
+                            @csrf
+                            <input type="hidden" name="change_request_id" value="{{ $change_request->id }}">
+                            
+                            <label class="form-label small fw-semibold">Add a Comment</label>
+                            <textarea name="comment" class="form-control {{ $errors->has('comment') ? 'is-invalid' : '' }}" 
+                                id="summernote" rows="3" placeholder="Write your comment..."></textarea>
+                            @if($errors->has('comment'))
+                                <p class="text-danger small mt-1">{{ $errors->first('comment') }}</p>
+                            @endif
+                            
+                            <button type="submit" class="btn btn-primary w-100 mt-3">
+                                <i class="ri-send-plane-fill me-1"></i> Post Comment
+                            </button>
+                        </form>
+                        <form action="{{ url('change-request/change-request-action/'.$change_request->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="action" value="Submit">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="ri-check-line me-1"></i> Submit Documents
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
@@ -238,4 +267,17 @@
         
     </div>
 </div>
+@endsection
+
+@section('js')
+<script src="{{ asset('assets/js/pages/form-editor.init.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#summernote').summernote({
+            height: 200,
+            placeholder: "Write a comment..."
+        });
+    });
+</script>
 @endsection
