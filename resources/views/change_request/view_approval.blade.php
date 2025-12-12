@@ -173,9 +173,12 @@
                         @endphp
 
                         @if(count($request) > 0)
-                        <a href="{{ url('documents/signature/'.$change_request->id) }}" target="_blank" class="btn btn-primary">
+                        {{-- <a href="{{ url('documents/signature/'.$change_request->id) }}" target="_blank" class="btn btn-primary">
                             <i class="ri-quill-pen-line me-1"></i> Sign Documents
-                        </a>
+                        </a> --}}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmPassword{{ $change_request->id }}">
+                            <i class="ri-quill-pen-line me-1"></i> Sign Documents
+                        </button>
 
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#return{{ $change_request->id }}">
                             <i class="ri-arrow-go-back-line me-1"></i> Return Documents
@@ -264,6 +267,8 @@
         </div>
     </div>
 </div>
+
+@include('change_request.confirm_password')
 @endsection
 
 @section('js')

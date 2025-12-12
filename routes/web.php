@@ -53,6 +53,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('store','RequestController@store');
             Route::post('comments', 'RequestController@comments');
             Route::post('change-request-action/{id}','RequestController@action');
+            Route::post('confirm-password','RequestController@confirmPassword');
         });
 
         // Copy Request

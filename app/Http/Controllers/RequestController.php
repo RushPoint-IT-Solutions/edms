@@ -31,6 +31,7 @@ use App\SupportingDocument;
 use Carbon\Carbon;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class RequestController extends Controller
@@ -834,6 +835,22 @@ class RequestController extends Controller
                 'change_request' => $changeRequest
             )
         );
+    }
+
+    public function confirmPassword(Request $request)
+    {
+        // dd($request->all());
+        $password = auth()->user()->password;
+
+        if (Hash::check($request->password, $password))
+        {
+            return redirect('documents/signature/'.$request->change_request_id);
+        }
+        else 
+        {
+            Alert::warning('The password you provided does not match our records.')->persistent('Dismiss');
+            return back();
+        }
     }
 }
 
