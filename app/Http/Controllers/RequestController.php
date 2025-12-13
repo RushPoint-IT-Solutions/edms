@@ -17,7 +17,9 @@ use App\RequestApprover;
 use App\ObsoleteAttachment;
 use App\Obsolete;
 use App\DocumentType;
+use App\Mail\ApprovedRequestEmail;
 use App\Mail\RequestDocumentApproval;
+use App\Mail\ReturnedRequestEmail;
 use App\User;
 use App\Notifications\ForApproval;
 use App\Notifications\NewPolicy;
@@ -178,6 +180,15 @@ class RequestController extends Controller
                             $q->where('status', $request->status);
                         })
                         ->get();
+        if (auth()->user()->role != "Administrator")
+        {
+            $requests = ChangeRequest::whereNull('is_draft')
+                            ->when($request->status, function($q)use($request) {
+                                $q->where('status', $request->status);
+                            })
+                            ->where('user_id', auth()->user()->id)
+                            ->get();
+            }
 
         return view('change_request.change_requests',
         
@@ -688,15 +699,17 @@ class RequestController extends Controller
                 }
                 $changeRequest->level = $changeRequest->level+1;
                 $changeRequest->save();
-
-                $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
-                $comments = new Comment;
-                $comments->change_request_id = $changeRequest->id;
-                $comments->comment = $comment;
-                $comments->user_id = auth()->user()->id;
-                $comments->save();
             }
+            
+            $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
+            $comments = new Comment;
+            $comments->change_request_id = $changeRequest->id;
+            $comments->comment = $comment;
+            $comments->user_id = auth()->user()->id;
+            $comments->save();
 
+            $user = User::where('id',$changeRequest->user_id)->first();
+            Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
             // Alert::success('Successfully Approved')->persistent('Dismiss');
             // return redirect('/for-approval');
             return response()->json([
@@ -716,6 +729,9 @@ class RequestController extends Controller
             $comments->comment = $comment;
             $comments->user_id = auth()->user()->id;
             $comments->save();
+
+            $user = User::where('id',$changeRequest->user_id)->first();
+            Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
 
             Alert::success('Successfully Returned')->persistent('Dismiss');
             return redirect('/for-approval');

@@ -159,5 +159,6 @@ Route::get('mailable', function () {
     $change_request = App\ChangeRequest::find(1);
     $user = App\User::find(1);
  
-    return new App\Mail\RequestDocumentApproval($change_request,$user);
+    // return new App\Mail\RequestDocumentApproval($change_request,$user);
+    return new App\Mail\ApprovedRequestEmail($change_request,$user);
 });
