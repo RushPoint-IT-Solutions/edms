@@ -501,12 +501,12 @@
                         @endif
 
                         <!-- Memorandum (All users) -->
-                        {{-- <li class="nav-item @if(Request::is('memorandum')) active @endif">
-                            <a class="nav-link menu-link" href="{{url('memorandum')}}">
-                                <i class="ri-sticky-note-line"></i>
-                                <span data-key="t-memorandum">Memorandum</span>
+                        <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
+                            <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
+                                <i class="mdi mdi-stamper"></i>
+                                <span data-key="t-memorandum">Approver Stamp</span>
                             </a>
-                        </li> --}}
+                        </li>
                     </ul>
                 </div>
                 <!-- Sidebar -->
