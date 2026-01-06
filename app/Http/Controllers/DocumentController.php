@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\ApproverStamp;
 use App\ChangeRequest;
 use App\Document;
 use App\Obsolete;
@@ -140,10 +141,12 @@ class DocumentController extends Controller
     public function signature($id) {
         
         $change_request = ChangeRequest::findOrFail($id);
+        $approver_stamp = ApproverStamp::where('user_id', auth()->id())->first();
 
         return view('documents.signature-assignment',
             array(
-                'change_request' => $change_request
+                'change_request' => $change_request,
+                'approver_stamp' => $approver_stamp,
             )
         );
     }

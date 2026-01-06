@@ -35,6 +35,7 @@
                 <h6 class="card-title m-0">View stamp</h6>
             </div>
             <div class="card-body">
+                @if($approver)
                 <a href='#' class="text-decoration-none" onclick="return false;">
                     <img src="{{url($approver->file)}}" class="card-img-top" alt="Cover of the book 'Sp ark'" style="height: 100%; object-fit: fit;">
                     <div class="card-body p-2 text-start">
@@ -48,6 +49,7 @@
                         </div>
                     </div>
                 </a>
+                @endif
             </div>
         </div>
     </div>

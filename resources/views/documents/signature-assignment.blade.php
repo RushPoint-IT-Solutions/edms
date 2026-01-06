@@ -203,6 +203,16 @@
 @php
     $file = explode("_", $change_request->file);
     $file_name = $file[1];
+
+    $approver_display = "";
+    if ($approver_stamp) 
+    {
+        $approver_display = $approver_stamp->file;
+    }
+    else 
+    {
+        $approver_display = "assets/images/approved.png";
+    }
 @endphp
 
 @section('js')
@@ -219,7 +229,8 @@
   let signaturePosition = []
   
   const pdfUrl = '{{ url($change_request->file) }}';
-  const approveStampUrl = "{{asset('assets/images/approved.png')}}";
+  // const approveStampUrl = "{{asset('assets/images/approved.png')}}";
+  const approveStampUrl = "{{asset($approver_display)}}";
 
   const pdfContainer = document.getElementById("pdf-container");
   const sigCanvas = document.getElementById("sigPad");
