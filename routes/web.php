@@ -31,7 +31,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('store-folder','DocumentController@addFolder');
             Route::post('rename-folder/{id}','DocumentController@renameFolder');
             Route::post('delete-folder/{id}','DocumentController@deleteFolder');
-            
+            Route::post('edit_date_approved/{id}', 'DocumentController@editDateApproved');
         });
 
          //Users

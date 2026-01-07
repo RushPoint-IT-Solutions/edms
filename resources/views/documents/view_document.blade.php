@@ -507,10 +507,16 @@
                     <span class="detail-label">Effective Updated</span>
                     <span class="detail-value">{{date('M, d Y',strtotime($document->updated_at))}}</span>
                 </div>
-                {{-- <div class="detail-item">
-                    <span class="detail-label">Effective Date</span>
-                    <span class="detail-value">{{date('M, d Y',strtotime($document->effective_date))}}</span>
-                </div> --}}
+                <div class="detail-item">
+                    <span class="detail-label">Approved Date</span>
+                    <span class="detail-value">{{date('M, d Y',strtotime($document->date_approved))}}
+                        <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                    </span>
+
+                    @include('documents.edit_approved_date')
+                </div>
                 {{-- <div class="detail-item">
                     <span class="detail-label">Process Owner</span>
                     <span class="detail-value">
@@ -682,17 +688,17 @@
         <div class="tabs-card mb-5">
             <ul class="modern-tabs">
                 <li class="active">
-                    <a href="#tab-1" data-toggle="tab">Revisions</a>
+                    <a href="#tab-1" data-bs-toggle="tab">Revisions</a>
                 </li>
                 <li>
-                    <a href="#tab-2" data-toggle="tab">Change Requests</a>
+                    <a href="#tab-2" data-bs-toggle="tab">Change Requests</a>
                 </li>
                 <li>
-                    <a href="#tab-3" data-toggle="tab">Copy Requests</a>
+                    <a href="#tab-3" data-bs-toggle="tab">Copy Requests</a>
                 </li>
-                <li>
+                {{-- <li>
                     <a href="#tab-4" data-toggle="tab">Memo</a>
-                </li>
+                </li> --}}
             </ul>
 
             <div class="tab-content">
@@ -812,7 +818,7 @@
                     </div>
                 </div>
 
-                <div class="tab-pane" id="tab-4">
+                {{-- <div class="tab-pane" id="tab-4">
                     <div class="tab-content-modern">
                         <div class="table-responsive">
                             <table class="modern-table tables">
@@ -847,7 +853,7 @@
                             </table>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
         @endif

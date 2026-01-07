@@ -10,6 +10,7 @@ use App\Department;
 use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
+use App\DateApprovedLog;
 use App\DocumentFolder;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
@@ -444,5 +445,20 @@ class DocumentController extends Controller
             ->get();
         
         return response()->json($document_signature_position);
+    }
+    public function editDateApproved(Request $request,$id)
+    {
+        // dd($request->all());
+        $document = Document::findOrFail($id);
+        $document->date_approved = $request->date_approved;
+        $document->save();
+
+        $logs = new DateApprovedLog;
+        $logs->user_id = auth()->id();
+        $logs->date_approved = $request->date_approved;
+        $logs->save();
+
+        Alert::success('Successfully Saved')->persistent('Dismiss');
+        return back();
     }
 }

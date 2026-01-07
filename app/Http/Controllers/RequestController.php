@@ -646,6 +646,7 @@ class RequestController extends Controller
                 $new_document->effective_date = date('Y-m-d');
                 $new_document->user_id = $changeRequest->user_id;
                 $new_document->version = 0;
+                $new_document->date_approved = date('Y-m-d');
                 $new_document->control_code = "DOC-".date('Y', strtotime($changeRequest->created_at)).'-'.str_pad($changeRequest->id,3,'0',STR_PAD_LEFT);
                 $new_document->save();
 
