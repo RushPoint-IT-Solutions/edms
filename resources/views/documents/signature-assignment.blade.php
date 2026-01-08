@@ -722,7 +722,7 @@
             //     height: 80 / scale
             // });
 
-            const signedPdf = await pdfLibDoc.save();
+            const signedPdf = await pdfLibDoc.save({useObjectStreams:false, compress:false});
             // const blob = new Blob([signedPdf], { type: "application/pdf" });
             // const url = URL.createObjectURL(blob);
             
@@ -748,6 +748,9 @@
                 },
                 processData: false,
                 contentType: false,
+                beforeSend: function(){
+                    show()
+                },
                 success: function(response) {
                     if (response.status == "success") {
                         Swal.fire({

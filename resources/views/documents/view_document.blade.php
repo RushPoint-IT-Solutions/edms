@@ -719,7 +719,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($document->revisions as $revision)
+                                    {{-- @foreach($document->revisions as $revision)
                                         <tr>
                                             <td>{{$revision->control_code}}</td>
                                             <td>{{$revision->company->name}}</td>
@@ -734,7 +734,7 @@
                                                 @endforeach
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @endforeach --}}
                                 </tbody>
                             </table>
                         </div>

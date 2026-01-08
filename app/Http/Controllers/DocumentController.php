@@ -15,12 +15,16 @@ use App\DocumentFolder;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
 use App\User;
+use chillerlan\QRCode\Output\QRGdImagePNG;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
 use \setasign\Fpdi\PdfParser\StreamReader;
 use \setasign\Fpdi\PdfParser\CrossReference;
 use Illuminate\Support\Facades\Redirect;
 
 use RealRashid\SweetAlert\Facades\Alert;
+use Symfony\Component\Filesystem\Filesystem;
 
 class DocumentController extends Controller
 {
@@ -272,55 +276,119 @@ class DocumentController extends Controller
     {
         //
     }
-    public function showPDF($id)
-    {
-        ini_set('memory_limit', '-1');
-        $attachment = DocumentAttachment::with('document')->findOrFail($id);
-            $pdf = new \setasign\Fpdi\Fpdi();
-            $newFile = str_replace(' ', '%20', $attachment->attachment);
+    // public function showPDF($id)
+    // {
+    //     ini_set('memory_limit', '-1');
+    //     $attachment = DocumentAttachment::with('document')->findOrFail($id);
+    //         $pdf = new \setasign\Fpdi\Fpdi();
+    //         $newFile = str_replace(' ', '%20', $attachment->attachment);
           
-                $fileContentData = file_get_contents(url($newFile));
-                try {
+    //             $fileContentData = file_get_contents(url($newFile));
+    //             try {
                     
-                    $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
-                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                            // $pdf->AddPage();
-                            $pdf->setSourceFile(StreamReader::createByString($fileContentData));
-                            $tplIdx = $pdf->importPage($pageNo);
-                            $size = $pdf->getTemplateSize($tplIdx);
-                            if($size[0] > $size[1])
-                            {
-                                $pdf->AddPage('L', array($size[1],$size[0]));
-                            }
-                            else
-                            {
-                                $pdf->AddPage('P', array($size[1],$size[0]));
-                            }
+    //                 $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
+    //                 for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+    //                         // $pdf->AddPage();
+    //                         $pdf->setSourceFile(StreamReader::createByString($fileContentData));
+    //                         $tplIdx = $pdf->importPage($pageNo);
+    //                         $size = $pdf->getTemplateSize($tplIdx);
+    //                         if($size[0] > $size[1])
+    //                         {
+    //                             $pdf->AddPage('L', array($size[1],$size[0]));
+    //                         }
+    //                         else
+    //                         {
+    //                             $pdf->AddPage('P', array($size[1],$size[0]));
+    //                         }
                            
-                            // dd($size);
-                            $pdf->useTemplate($tplIdx);
-                            $pdf->SetFont('Arial');
-                            $pdf->SetTextColor(1, 0, 0);
-                            $pdf->SetXY(160, 5);
-                            $pdf->SetFontSize(8);
-                            if($pageNo == 1)
-                            {
-                                $pdf->Write(1, "Effective Date: ".date("m/d/Y",strtotime($attachment->document->updated_at))); 
-                            }
+    //                         // dd($size);
+    //                         $pdf->useTemplate($tplIdx);
+    //                         $pdf->SetFont('Arial');
+    //                         $pdf->SetTextColor(1, 0, 0);
+    //                         $pdf->SetXY(160, 5);
+    //                         $pdf->SetFontSize(8);
+    //                         if($pageNo == 1)
+    //                         {
+    //                             $pdf->Write(1, "Effective Date: ".date("m/d/Y",strtotime($attachment->document->updated_at))); 
+    //                         }
                            
-                            $pdf->Image('images/uncontrolled.png', 15, 100, 200, '', '', '', '', false, 300);
-                    }
-                    $pdf->Output();
-                }
-                catch ( \Exception $e )
-                {
-                    return Redirect::to(url($newFile));
-                }
+    //                         $pdf->Image('images/uncontrolled.png', 15, 100, 200, '', '', '', '', false, 300);
+    //                 }
+    //                 $pdf->Output();
+    //             }
+    //             catch ( \Exception $e )
+    //             {
+    //                 return Redirect::to(url($newFile));
+    //             }
               
            
         
       
+    // }
+
+    public function showPDF($id)
+    {
+        // $data = 'otpauth://totp/test?secret=B3JX4VCVJDVNXNZ5&issuer=chillerlan.net';
+
+        // echo '<img src="'.(new QRCode)->render($data).'" alt="QR Code" height="100" />';
+        $attachment = DocumentAttachment::with('document')->findOrFail($id);
+        $pdf = new \setasign\Fpdi\Fpdi();
+        $newFile = str_replace(' ', '%20', $attachment->attachment);
+        $fileContentData = file_get_contents(url($newFile));
+
+        $data = 'hello';
+        try 
+        {
+            $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                // $pdf->AddPage();
+                $pdf->setSourceFile(StreamReader::createByString($fileContentData));
+                $tplIdx = $pdf->importPage($pageNo);
+                $size = $pdf->getTemplateSize($tplIdx);
+                if($size[0] > $size[1])
+                {
+                    $pdf->AddPage('L', array($size[1],$size[0]));
+                }
+                else
+                {
+                    $pdf->AddPage('P', array($size[1],$size[0]));
+                }
+                
+                // dd($size);
+                $pdf->useTemplate($tplIdx);
+                $pdf->SetFont('Arial');
+                $pdf->SetTextColor(1, 0, 0);
+                $pdf->SetXY(160, 5);
+                $pdf->SetFontSize(8);
+    
+                if ($pageNo == $pageCount)
+                {
+                    // Generate QR code
+                    $options = new QROptions([
+                        'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+                    ]);
+    
+                    $qrCode = new QRCode($options);
+                    $qrImageString = $qrCode->render($data);
+    
+                    // Bottom-right position
+                    $qrSize = 15;
+                    $margin = 10;
+    
+                    $x = $size['width']  - $qrSize - $margin;
+                    $y = $size['height'] - $qrSize - $margin;
+    
+                    $pdf->Image($qrImageString, $x, $y, $qrSize, $qrSize, 'PNG');
+                }
+            }
+            $pdf->Output();
+        }
+        catch ( \Exception $e )
+        {
+            return Redirect::to(url($newFile));
+        }
     }
+
     public function changePublic(Request $request)
     {
         // dd($request->all());
