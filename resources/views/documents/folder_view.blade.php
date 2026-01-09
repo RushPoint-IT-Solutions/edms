@@ -1,6 +1,7 @@
 @extends('layouts.header')
 
 @section('css')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     .file-dropdown-menu {
         position: absolute;
@@ -93,6 +94,55 @@
     .file-dropdown-item.danger:hover {
         background-color: #fee;
     }
+
+    .folder-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s;
+        cursor: pointer;
+        height: 100%;
+    }
+
+    .folder-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .folder-icon {
+        font-size: 48px;
+        color: #f59e0b;
+        margin-bottom: 10px;
+    }
+
+    .folder-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0 0 8px 0;
+    }
+
+    .folder-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .control-label {
+        font-size: 14px;
+        color: #495057;
+        margin: 0;
+    }
+
+    .control-input {
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 80px;
+    }
 </style>
 @endsection
 
@@ -147,15 +197,64 @@
     <div class="col-lg-12">
         <ol class="breadcrumb p-3 py-2 bg-light">
             <li class="breadcrumb-item active" aria-current="page">Document</li>
-            <li class="breadcrumb-item active" aria-current="page">{{ $folder->name }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ $folder_data->name }}</li>
         </ol>
         <div class="card shadow-sm">
-            <div class="card-header">
-                <a href="{{ url('documents') }}" class="btn btn-sm btn-danger">Back</a>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <a href="{{ url('documents') }}" class="btn btn-danger">
+                    <i class="ri-arrow-left-line"></i>
+                    Back
+                </a>
+
+                <div>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                        <i class="ri-add-line"></i>
+                        Add folder
+                    </button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDocumentInFolder">
+                        <i class="ri-add-line"></i>
+                        Add documents
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3">
-                    @foreach ($folder->document as $document)
+                    @foreach ($folder_data->parentFolder as $parentFolder)
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                            <div class="folder-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <input class="form-check-input" type="checkbox">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">
+                                            <i class="ri-more-2-fill"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="{{ url('documents/folder/'.$parentFolder->id) }}">Open</a></li>
+                                            <li><a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#renameFolderModal{{ $parentFolder->id }}">Rename</a></li>
+                                            <li>
+                                                <form action="{{ url('documents/delete-folder/'.$parentFolder->id) }}" method="POST">
+                                                    @csrf
+                                                    <button class="dropdown-item text-danger" type="submit">Delete</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <div class="folder-icon">
+                                        <i class="ri-folder-2-fill"></i>
+                                    </div>
+                                    <h6 class="folder-name">{{ $parentFolder->name }}</h6>
+                                    <div class="folder-info">
+                                        <span><b>{{ count($parentFolder->document) }}</b> Files</span>
+                                        <span><b>0</b>GB</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                    @foreach ($folder_data->document as $document)
                     <div class="col">
                         <div class="card border file-card position-relative">
                             <div class="position-absolute top-0 end-0 m-2 more-btn">
@@ -205,10 +304,21 @@
         </div>
     </div>
 </div>
+
+@include('documents.add_folder')
+@include('documents.add_documents_in_folder')
 @endsection
 
 @section('js')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            dropdownParent: $('#addDocumentInFolder'),
+            theme: "classic"
+        })
+    })
+
     document.addEventListener("DOMContentLoaded", () => {
         const moreButtons = document.querySelectorAll('.file-more-btn');
     

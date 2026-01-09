@@ -33,22 +33,13 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    // public function api()
-    // {
-    //     $request_documents = Document::with('attachments')->where('public','!=',null)->where('status',null)->get();
-
-    //     return response()->json($request_documents,200);
-    // }
     public function index(Request $request)
     {
-        //
-        // $departments = Department::get();
-        // $companies = Company::get();
         $search = $request->search;
         $department = $request->department;
 
         $document_types = DocumentType::orderBy('name','desc')->get();
-        $document_folders = DocumentFolder::with('document')->get();
+        $document_folders = DocumentFolder::with('document','parentFolder')->where('parent_id',null)->get();
         $obsoletes = Obsolete::get();
 
         $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
@@ -462,8 +453,13 @@ class DocumentController extends Controller
     }
     public function addFolder(Request $request)
     {
+        // dd($request->all());
         $folder = new DocumentFolder;
         $folder->name = $request->name;
+        if($request->has('folder_id'))
+        {
+            $folder->parent_id = $request->folder_id;
+        }
         $folder->save();
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
@@ -471,11 +467,13 @@ class DocumentController extends Controller
     }
     public function folderView(Request $request,$id)
     {
-        $folder = DocumentFolder::with('document')->findOrFail($id);
+        $folder_data = DocumentFolder::with('document','parentFolder')->findOrFail($id);
+        $documents = Document::get();
 
         return view('documents.folder_view',
             array(
-                'folder' => $folder
+                'folder_data' => $folder_data,
+                'documents' => $documents
             )
         );
     }
@@ -525,6 +523,18 @@ class DocumentController extends Controller
         $logs->user_id = auth()->id();
         $logs->date_approved = $request->date_approved;
         $logs->save();
+
+        Alert::success('Successfully Saved')->persistent('Dismiss');
+        return back();
+    }
+    public function uploadDocumentFolder(Request $request)
+    {
+        $documents = Document::whereIn('id',$request->documents)->get();
+        foreach($documents as $document)
+        {
+            $document->folder_id = $request->folder_id;
+            $document->save();
+        }
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();

@@ -32,6 +32,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('rename-folder/{id}','DocumentController@renameFolder');
             Route::post('delete-folder/{id}','DocumentController@deleteFolder');
             Route::post('edit_date_approved/{id}', 'DocumentController@editDateApproved');
+            Route::post('upload-document-folder','DocumentController@uploadDocumentFolder');
         });
 
          //Users

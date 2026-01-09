@@ -449,7 +449,7 @@
             <!-- Files Section -->
             <div class="files-section">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="section-title">Recent Files</h2>
+                    <h2 class="section-title">Documents</h2>
                     <button class="btn-create" data-bs-toggle="modal" data-bs-target="#uploadDocument">
                         <i class="ri-add-line"></i> Create File
                     </button>
@@ -486,7 +486,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($documents->sortByDesc('id')->take(5) as $document)
+                            @foreach ($documents->where('folder_id',null)->sortByDesc('id') as $document)
                                 @php
                                     $attachment = $document->attachments->where('type','pdf_copy')->first();
                                 @endphp

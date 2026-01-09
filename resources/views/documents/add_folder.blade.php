@@ -8,13 +8,17 @@
             <div class="modal-body">
                 <form autocomplete="off" method="POST" action="{{ url('documents/store-folder') }}" class="needs-validation createfolder-form" id="createfolder-form" onsubmit="show()">
                     @csrf
+                    {{-- @dd($folder) --}}
+                    @if(isset($folder_data))
+                    <input type="hidden" name="folder_id" value="{{ $folder_data->id }}">
+                    @endif
 
                     <div class="mb-4">
                         <label for="foldername-input" class="form-label">Folder Name</label>
                         <input type="text" name="name" class="form-control" id="foldername-input" required placeholder="Enter folder name">
                     </div>
                     <div class="hstack gap-2 justify-content-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Close</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal"> Close</button>
                         <button type="submit" class="btn btn-primary" id="addNewFolder">Add Folder</button>
                     </div>
                 </form>
