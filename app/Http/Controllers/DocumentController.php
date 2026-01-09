@@ -336,7 +336,7 @@ class DocumentController extends Controller
         $newFile = str_replace(' ', '%20', $attachment->attachment);
         $fileContentData = file_get_contents(url($newFile));
 
-        $data = 'hello';
+        $data = url('documents/view-document/'.$attachment->document_id);
         try 
         {
             $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
@@ -376,7 +376,7 @@ class DocumentController extends Controller
                     $margin = 10;
     
                     $x = $size['width']  - $qrSize - $margin;
-                    $y = $size['height'] - $qrSize - $margin;
+                    $y = $margin;
     
                     $pdf->Image($qrImageString, $x, $y, $qrSize, $qrSize, 'PNG');
                 }
