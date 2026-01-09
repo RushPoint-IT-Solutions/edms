@@ -508,7 +508,7 @@
                                     <td>{{ $document->title }}</td>
                                     <td>
                                         @if ($attachment)
-                                        <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                        <a href="{{ url('/view-pdf/'.$attachment->id) }}" target="_blank">
                                             <i class="fa fa-file-pdf-o"></i>
                                         </a>
                                         @endif
