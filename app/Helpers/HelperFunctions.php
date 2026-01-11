@@ -12,3 +12,12 @@ function getDraftRequest()
 
     return $change_requests;
 }
+function getPendingApproval()
+{
+    $pendingApproval = RequestApprover::with('change_request')   
+                                        ->where('user_id', auth()->id())
+                                        ->where('status','Pending')
+                                        ->get();
+
+    return $pendingApproval;
+}

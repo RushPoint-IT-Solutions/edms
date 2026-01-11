@@ -232,20 +232,24 @@
                             </div>
                         </div>
 
+                        @php
+                            $pendingApproval = getPendingApproval();
+                        @endphp
                         <div class="dropdown topbar-head-dropdown ms-1 header-item" id="messagesDropdown">
                             <button type="button" class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" id="page-header-messages-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
                                 <i class='bx bx-message-square-dots fs-22'></i>
-                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-success">5<span class="visually-hidden">unread messages</span></span>
+                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-success">{{ count($pendingApproval) }}<span class="visually-hidden">unread messages</span></span>
                             </button>
+
                             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-messages-dropdown">
                                 <div class="dropdown-head bg-pattern rounded-top" style="background-color: #800000;">
                                     <div class="p-3">
                                         <div class="row align-items-center">
                                             <div class="col">
-                                                <h6 class="m-0 fs-16 fw-semibold text-white"> Messages </h6>
+                                                <h6 class="m-0 fs-16 fw-semibold text-white"> Pending Approval </h6>
                                             </div>
                                             <div class="col-auto dropdown-tabs">
-                                                <span class="badge bg-light text-body fs-13"> 5 New</span>
+                                                <span class="badge bg-light text-body fs-13">{{ count($pendingApproval) }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -254,39 +258,27 @@
                                 <div class="tab-content position-relative" id="messageItemsTabContent">
                                     <div class="tab-pane fade show active py-2 ps-2" id="all-messages-tab" role="tabpanel">
                                         <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                            @foreach ($pendingApproval as $request)
+                                            @php
+                                                $req = $request->change_request;
+                                            @endphp
                                             <div class="text-reset notification-item d-block dropdown-item">
                                                 <div class="d-flex">
                                                     <img src="{{asset('assets/images/marsu-logo.png')}}" class="me-3 rounded-circle avatar-xs flex-shrink-0" alt="user-pic">
                                                     <div class="flex-grow-1">
-                                                        <a href="#!" class="stretched-link">
-                                                            <h6 class="mt-0 mb-1 fs-13 fw-semibold">John Doe</h6>
+                                                        <a href="{{ url('change-request/for_approval/'.$req->id) }}" class="stretched-link">
+                                                            <h6 class="mt-0 mb-1 fs-13 fw-semibold">DOC-{{ str_pad($req->id,3,'0',STR_PAD_LEFT) }}</h6>
                                                         </a>
                                                         <div class="fs-13 text-muted">
-                                                            <p class="mb-1">Your document has been reviewed...</p>
+                                                            <p class="mb-1">{{ $req->title }}</p>
                                                         </div>
                                                         <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                            <span><i class="mdi mdi-clock-outline"></i> 30 min ago</span>
+                                                            <span><i class="mdi mdi-clock-outline"></i> {{ $request->created_at->diffForHumans() }}</span>
                                                         </p>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div class="text-reset notification-item d-block dropdown-item">
-                                                <div class="d-flex">
-                                                    <img src="{{asset('assets/images/marsu-logo.png')}}" class="me-3 rounded-circle avatar-xs flex-shrink-0" alt="user-pic">
-                                                    <div class="flex-grow-1">
-                                                        <a href="#!" class="stretched-link">
-                                                            <h6 class="mt-0 mb-1 fs-13 fw-semibold">Jane Smith</h6>
-                                                        </a>
-                                                        <div class="fs-13 text-muted">
-                                                            <p class="mb-1">Please check the new requirements...</p>
-                                                        </div>
-                                                        <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                            <span><i class="mdi mdi-clock-outline"></i> 1 hour ago</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>
