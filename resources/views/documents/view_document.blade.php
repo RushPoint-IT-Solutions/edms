@@ -509,11 +509,19 @@
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Approved Date</span>
+                    @if($document->date_approved)
                     <span class="detail-value">{{date('M, d Y',strtotime($document->date_approved))}}
                         <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
                             <i class="fa fa-edit"></i>
                         </a>
                     </span>
+                    @else
+                    <span class="detail-value">{{date('M, d Y',strtotime($document->updated_at))}}
+                        <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                    </span>
+                    @endif
 
                     @include('documents.edit_approved_date')
                 </div>
