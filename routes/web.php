@@ -69,6 +69,17 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/store', 'ApproverStampController@store');
         });
 
+        // Roles & Permissions
+        Route::get('roles','RoleController@index');
+        Route::prefix('roles')->group(function() {
+            Route::post('/store','RoleController@store');
+            Route::post('/update/{id}','RoleController@update');
+        });
+        Route::prefix('permission')->group(function() {
+            Route::post('/store','PermissionController@store');
+            Route::post('/update/{id}','PermissionController@update');
+        });
+
         // Home
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');

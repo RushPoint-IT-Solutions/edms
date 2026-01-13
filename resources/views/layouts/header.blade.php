@@ -458,6 +458,9 @@
                                         <li class="nav-item">
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
+                                        </li>
                                     </ul>
                                 </div>
                             </li>

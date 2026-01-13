@@ -19,7 +19,8 @@
         "realrashid/sweet-alert": "^7.0",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.4",
-        "silviolleite/laravelpwa": "^2.0"
+        "silviolleite/laravelpwa": "^2.0",
+        "spatie/laravel-permission": "^2.38"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
