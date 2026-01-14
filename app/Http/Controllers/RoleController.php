@@ -67,7 +67,7 @@ class RoleController extends Controller
      */
     public function show($id)
     {
-        //
+        
     }
 
     /**
@@ -104,5 +104,15 @@ class RoleController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function addPermission(Request $request,$id)
+    {
+        $role = Role::findById($id);
+        $role = Role::findByName($role->name);
+        $role->syncPermissions($request->permission);
+
+        Alert::success('Successfully Saved')->persistent('Dismiss');
+        return back();
     }
 }

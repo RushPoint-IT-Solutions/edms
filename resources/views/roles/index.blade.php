@@ -191,11 +191,15 @@
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#edit{{ $role->id }}">
                                             <i class="ri-edit-box-line"></i>
                                         </button>
+                                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#view{{ $role->id }}">
+                                            <i class="ri-eye-line"></i>
+                                        </button>
                                     </td>
                                     <td>{{ $role->name }}</td>
                                 </tr>
 
                                 @include('roles.edit')
+                                @include('roles.view')
                             @endforeach
                         </tbody>
                     </table>

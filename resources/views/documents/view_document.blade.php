@@ -665,7 +665,7 @@
                         </div>
                         @else
                         <div class="attachment-item">
-                            <a href='{{url('view-pdf/'.$attachment->id)}}' target="_blank">
+                            <a href='{{url('/documents/view-pdf/'.$attachment->id)}}' target="_blank">
                                 <i class="fa fa-file-pdf-o"></i>
                                 <span>PDF Copy</span>
                             </a>
