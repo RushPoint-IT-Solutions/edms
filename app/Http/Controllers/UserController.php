@@ -8,6 +8,7 @@ use App\Department;
 use App\UserDepartment;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -15,7 +16,7 @@ class UserController extends Controller
     {
         $companies = Company::get();
         $departments = Department::get();
-        $roles = $this->roles();
+        $roles = Role::get();
         
         $totalUsers = User::count();
         $activeUsers = User::where('status', '')->orWhereNull('status')->count();
@@ -158,6 +159,9 @@ class UserController extends Controller
         $new_account->role = $request->role;
         $new_account->password = bcrypt($request->password);
         $new_account->save();
+
+        $new_account->syncRoles($request->account);
+
         Alert::success('Successfully Store')->persistent('Dismiss');
         return back();
     }
@@ -202,9 +206,9 @@ class UserController extends Controller
         $account->email = $request->email;
         // $account->company_id = $request->company;
         // $account->department_id = $request->department;
-        $account->role = $request->role;
         $account->save();
-
+        
+        $account->syncRoles($request->role);
         // $share_department = UserDepartment::where('user_id',$id)->delete();
         // if($request->share_department)
         // {

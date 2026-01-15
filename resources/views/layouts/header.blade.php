@@ -337,30 +337,32 @@
                         <li class="menu-title"><span data-key="t-menu">Menu</span></li>
                         
                         <!-- Dashboard (Hidden for Users) -->
-                        @if((auth()->user()->role != "User"))
-                            <li class="nav-item {{ Route::current()->getName() == 'home' ? 'active' : '' }}">
-                                <a class="nav-link menu-link" href="{{url('/home')}}">
-                                    <i class="ri-dashboard-2-line"></i> 
-                                    <span data-key="t-dashboards">Dashboard</span>
-                                </a>
-                            </li>
-                        @endif
+                        <li class="nav-item {{ Route::current()->getName() == 'home' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/home')}}">
+                                <i class="ri-dashboard-2-line"></i> 
+                                <span data-key="t-dashboards">Dashboard</span>
+                            </a>
+                        </li>
 
                         <!-- Search -->
+                        @can('search')
                         <li class="nav-item {{ Route::current()->getName() == 'search' ? 'active' : '' }}" onclick="show()">
                             <a class="nav-link menu-link" href="{{url('/search')}}">
                                 <i class="ri-search-line"></i>
                                 <span data-key="t-search">Search</span>
                             </a>
                         </li>
+                        @endcan
 
                         <!-- Copy Requests -->
+                        @can('copy request')
                         <li class="nav-item {{ Route::current()->getName() == 'requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/request')}}">
                                 <i class="ri-file-copy-line"></i>
                                 <span data-key="t-copy-requests">Copy Requests</span>
                             </a>
                         </li>
+                        @endcan
 
                         <!-- Pre-Assessment (Admin, DCO, or User ID 286 only) -->
                         {{-- @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Document Control Officer") || (auth()->user()->id == "286"))
@@ -373,30 +375,35 @@
                         @endif --}}
 
                         <!-- Change Requests -->
+                        @can('change request')
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
                                 <span data-key="t-change-requests">Change Requests</span>
                             </a>
                         </li>
+                        @endcan
 
                         <!-- For Approval (For approvers only) -->
-                        @if((count(auth()->user()->copy_approvers) != 0) || (count(auth()->user()->department_approvers) != 0) || (count(auth()->user()->change_approvers) != 0) || auth()->user()->role == 'Administrator')
-                            <li class="nav-item {{ Route::current()->getName() == 'for-approval' ? 'active' : '' }}">
-                                <a class="nav-link menu-link" href="{{url('/for-approval')}}">
-                                    <i class="ri-checkbox-line"></i>
-                                    <span data-key="t-for-approval">For Approval</span>
-                                </a>
-                            </li>
-                        @endif
+                        @can('for approval')
+                        <li class="nav-item {{ Route::current()->getName() == 'for-approval' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/for-approval')}}">
+                                <i class="ri-checkbox-line"></i>
+                                <span data-key="t-for-approval">For Approval</span>
+                            </a>
+                        </li>
+                        @endcan
+                        {{-- @endif --}}
 
                         <!-- Documents -->
+                        @can('documents')
                         <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/documents')}}">
                                 <i class="ri-folder-2-line"></i>
                                 <span data-key="t-documents">Documents</span>
                             </a>
                         </li>
+                        @endcan
 
                         {{-- <!-- Acknowledgement -->
                         <li class="nav-item {{ Route::current()->getName() == 'acknowledgement' ? 'active' : '' }}">
@@ -407,101 +414,108 @@
                         </li> --}}
 
                         <!-- Permits & Licenses (Specific roles and accountable persons) -->
-                        @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Document Control Officer') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative') || (auth()->user()->role == 'Department Head') || (count(auth()->user()->accountable_persons) != 0))
-                            <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
-                                <a class="nav-link menu-link" href="{{url('/permits')}}">
-                                    <i class="ri-file-shield-line"></i>
-                                    <span data-key="t-permits">Permits & Licenses</span>
-                                </a>
-                            </li>
-                        @endif
+                        @can('permits and license')
+                        <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/permits')}}">
+                                <i class="ri-file-shield-line"></i>
+                                <span data-key="t-permits">Permits & Licenses</span>
+                            </a>
+                        </li>
+                        @endcan
 
                         <!-- Documents IA (Audit role only) -->
-                        @if(auth()->user()->audit_role != null)
+                        {{-- @if(auth()->user()->audit_role != null)
                             <li class="nav-item {{ Route::current()->getName() == 'audit' ? 'active' : '' }}">
                                 <a class="nav-link menu-link" href="{{url('/audits')}}">
                                     <i class="ri-file-list-3-line"></i>
                                     <span data-key="t-audit">Documents IA</span>
                                 </a>
                             </li>
-                        @endif
+                        @endif --}}
 
-                        <!-- Approvers (Admin, BPM, or Management Representative) -->
-                        @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative'))
-                            {{-- <li class="nav-item {{ Route::current()->getName() == 'remove-approvers' ? 'active' : '' }}">
-                                <a class="nav-link menu-link" href="{{url('/remove-approvers')}}">
-                                    <i class="ri-user-unfollow-line"></i>
-                                    <span data-key="t-approvers">Approvers</span>
-                                </a>
-                            </li> --}}
+                        {{-- <li class="nav-item {{ Route::current()->getName() == 'remove-approvers' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/remove-approvers')}}">
+                                <i class="ri-user-unfollow-line"></i>
+                                <span data-key="t-approvers">Approvers</span>
+                            </a>
+                        </li> --}}
 
-                            <!-- Settings Submenu -->
-                            <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
-                                <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
-                                href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
-                                aria-expanded="{{ Route::current()->getName() == 'settings' ? 'true' : 'false' }}" 
-                                aria-controls="sidebarSettings">
-                                    <i class="ri-settings-3-line"></i> 
-                                    <span data-key="t-settings">Settings</span>
-                                </a>
-                                <div class="menu-dropdown collapse {{ Route::current()->getName() == 'settings' ? 'show' : '' }}" id="sidebarSettings">
-                                    <ul class="nav nav-sm flex-column">
-                                        <li class="nav-item">
-                                            <a href="{{ url('companies') }}" class="nav-link {{ Request::is('companies') || Request::is('new-company') || Request::is('*company*') ? 'active' : '' }}" data-key="t-companies">Companies</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
-                                        </li>
+                        <!-- Settings Submenu -->
+                        @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission'))
+                        <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
+                            <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
+                            href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
+                            aria-expanded="{{ Route::current()->getName() == 'settings' ? 'true' : 'false' }}" 
+                            aria-controls="sidebarSettings">
+                                <i class="ri-settings-3-line"></i> 
+                                <span data-key="t-settings">Settings</span>
+                            </a>
+                            <div class="menu-dropdown collapse {{ Route::current()->getName() == 'settings' ? 'show' : '' }}" id="sidebarSettings">
+                                <ul class="nav nav-sm flex-column">
+                                    {{-- <li class="nav-item">
+                                        <a href="{{ url('companies') }}" class="nav-link {{ Request::is('companies') || Request::is('new-company') || Request::is('*company*') ? 'active' : '' }}" data-key="t-companies">Companies</a>
+                                    </li> --}}
+                                    {{-- <li class="nav-item">
+                                        <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
+                                    </li> --}}
+                                    @can('users')
                                         <li class="nav-item">
                                             <a href="{{ url('users') }}" class="nav-link {{ Request::is('users') || Request::is('new-user') || Request::is('*user*') && !Request::is('remove-approvers') ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
+                                    @endcan
+                                    @can('rmo')
                                         <li class="nav-item">
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
+                                    @endcan
+                                    @can('roles and permission')
                                         <li class="nav-item">
                                             <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
                                         </li>
-                                    </ul>
-                                </div>
-                            </li>
-
-                            <!-- Reports Submenu -->
-                            <li class="nav-item {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'active' : '' }}">
-                                <a class="nav-link menu-link {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? '' : 'collapsed' }}" 
-                                href="#sidebarReports" data-bs-toggle="collapse" role="button" 
-                                aria-expanded="{{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'true' : 'false' }}" 
-                                aria-controls="sidebarReports">
-                                    <i class="ri-file-chart-line"></i> 
-                                    <span data-key="t-reports">Reports</span>
-                                </a>
-                                <div class="menu-dropdown collapse {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'show' : '' }}" id="sidebarReports">
-                                    <ul class="nav nav-sm flex-column">
-                                        @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Management Representative'))
-                                            <li class="nav-item">
-                                                <a href="{{url('/logs')}}" class="nav-link {{ Route::current()->getName() == 'logs' ? 'active' : '' }}" data-key="t-logs">Logs</a>
-                                            </li>
-                                        @endif
-                                        <li class="nav-item">
-                                            <a href="{{url('/dicr-reports')}}" class="nav-link {{ Route::current()->getName() == 'dicr-reports' ? 'active' : '' }}" data-key="t-change-reports">Change Requests</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a href="{{url('/copy-reports')}}" class="nav-link {{ Route::current()->getName() == 'copy-reports' ? 'active' : '' }}" data-key="t-copy-reports">Copy Requests</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a href="{{url('/dco-reports')}}" class="nav-link {{ Route::current()->getName() == 'dco-reports' ? 'active' : '' }}" data-key="t-dco-reports">DCO</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
+                                    @endcan
+                                </ul>
+                            </div>
+                        </li>
                         @endif
 
+                        <!-- Reports Submenu -->
+                        {{-- <li class="nav-item {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'active' : '' }}">
+                            <a class="nav-link menu-link {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? '' : 'collapsed' }}" 
+                            href="#sidebarReports" data-bs-toggle="collapse" role="button" 
+                            aria-expanded="{{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'true' : 'false' }}" 
+                            aria-controls="sidebarReports">
+                                <i class="ri-file-chart-line"></i> 
+                                <span data-key="t-reports">Reports</span>
+                            </a>
+                            <div class="menu-dropdown collapse {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'show' : '' }}" id="sidebarReports">
+                                <ul class="nav nav-sm flex-column">
+                                    @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Management Representative'))
+                                        <li class="nav-item">
+                                            <a href="{{url('/logs')}}" class="nav-link {{ Route::current()->getName() == 'logs' ? 'active' : '' }}" data-key="t-logs">Logs</a>
+                                        </li>
+                                    @endif
+                                    <li class="nav-item">
+                                        <a href="{{url('/dicr-reports')}}" class="nav-link {{ Route::current()->getName() == 'dicr-reports' ? 'active' : '' }}" data-key="t-change-reports">Change Requests</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{url('/copy-reports')}}" class="nav-link {{ Route::current()->getName() == 'copy-reports' ? 'active' : '' }}" data-key="t-copy-reports">Copy Requests</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{url('/dco-reports')}}" class="nav-link {{ Route::current()->getName() == 'dco-reports' ? 'active' : '' }}" data-key="t-dco-reports">DCO</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li> --}}
+
                         <!-- Memorandum (All users) -->
+                        @can('approver stamp')
                         <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
                             <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
                                 <i class="mdi mdi-stamper"></i>
                                 <span data-key="t-memorandum">Approver Stamp</span>
                             </a>
                         </li>
+                        @endcan
                     </ul>
                 </div>
                 <!-- Sidebar -->

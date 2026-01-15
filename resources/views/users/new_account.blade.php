@@ -46,7 +46,7 @@
                             <select name='role' class='form-control-sm form-control cat'>
                                 <option value="">Select role...</option>
                                 @foreach($roles as $role)
-                                    <option value='{{$role}}' @if(old('role') == $role) selected @endif>{{$role}}</option>
+                                    <option value='{{$role->name}}' @if(old('role') == $role->name) selected @endif>{{$role->name}}</option>
                                 @endforeach
                             </select>
                             @if($errors->has('role'))
