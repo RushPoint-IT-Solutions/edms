@@ -402,6 +402,7 @@
 
 @include('users.new_account')
 @include('users.edit_user')
+@include('users.changepassword')
 @endsection
 
 @section('js')
@@ -467,6 +468,10 @@ $(document).ready(function(){
                 $("[name='name']").val(data.name)
                 $("[name='email']").val(data.email)
                 $("[name='role']").val(data.role).trigger("chosen:updated")
+            })
+            $(row).find('.change-pass').on('click', function() {
+                $('#change_pass').modal('show')
+                $("[name='user_id']").val(data.user_id)
             })
         }
     });

@@ -42,7 +42,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::prefix('users')->group(function() {
             Route::post('new-account', 'UserController@create')->name('settings');
             Route::post('/edit-user', 'UserController@edit_user')->name('settings');
-            Route::post('/change-password/{id}', 'UserController@changepassword')->name('settings');
+            Route::post('/change-password', 'UserController@changepassword')->name('settings');
             Route::post('deactivate-user', 'UserController@deactivate_user')->name('settings');
             Route::post('activate-user', 'UserController@activate_user')->name('settings');
         });

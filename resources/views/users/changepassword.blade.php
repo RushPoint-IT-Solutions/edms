@@ -1,23 +1,28 @@
-<div class="modal fade" id="change_pass{{$user->id}}" tabindex="-1" role="dialog" aria-labelledby="changePassModalLabel{{$user->id}}" aria-hidden="true">
+<div class="modal fade" id="change_pass" tabindex="-1" role="dialog" aria-labelledby="changePassModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="changePassModalLabel{{$user->id}}">Change Password</h5>
+                <h5 class="modal-title" id="changePassModalLabel">Change Password</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <form method='post' action='change-password/{{$user->id}}' onsubmit='show();' enctype="multipart/form-data">
+            <form method='post' action='{{ url('/users/change-password') }}' onsubmit='show();' enctype="multipart/form-data">
                 <div class="modal-body">
                     {{ csrf_field() }}
+
+                    <input type="hidden" name="user_id">
                     <div class='row'>
                         <div class='col-md-12'>
                             <label>New Password :</label>
-                            <input type="password" class="form-control-sm form-control" name="password" placeholder="Enter new password" required/>
+                            <input type="password" class="form-control-sm form-control @if($errors->has('password')) is-invalid @endif" name="password" placeholder="Enter new password" required/>
                         </div>
                         <div class='col-md-12'>
                             <label>Confirm Password :</label>
-                            <input type="password" class="form-control-sm form-control" name="password_confirmation" placeholder="Re-enter new password" required/>
+                            <input type="password" class="form-control-sm form-control @if($errors->has('password')) is-invalid @endif" name="password_confirmation" placeholder="Re-enter new password" required/>
                         </div>
+                        @if($errors->has('password'))
+                        <span class="text-danger">{{ $errors->first('password') }}</span>
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer">

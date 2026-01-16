@@ -22,7 +22,7 @@ class UserController extends Controller
         $activeUsers = User::where('status', '')->orWhereNull('status')->count();
         $inactiveUsers = User::where('status', '1')->count();
         
-        return view('users', array(
+        return view('users.users', array(
             'companies' => $companies,
             'departments' => $departments,
             'roles' => $roles,
@@ -165,15 +165,17 @@ class UserController extends Controller
         Alert::success('Successfully Store')->persistent('Dismiss');
         return back();
     }
-    public function changepassword(Request $request, $id)
+    public function changepassword(Request $request)
     {
+        // dd($request->all());
         $this->validate($request, [
-            'password' => 'required|confirmed',
+            'password' => 'required|confirmed|min:5',
         ]);
 
-        $user = User::where('id', $id)->first();
+        $user = User::findOrFail($request->user_id);
         $user->password = bcrypt($request->password);
         $user->save();
+        
         Alert::success('Successfully Change Password')->persistent('Dismiss');
         return back();
     }
