@@ -71,8 +71,8 @@
         <div class="card shadow-sm">
             <div class="card-body p-4">
                 <div class="mb-4">
-                    <h5 class="fw-semibold text-dark mb-2">Quality Management System Manual</h5>
-                    <span class="badge bg-primary">Doc-2024-001</span>
+                    <h5 class="fw-semibold text-dark mb-2">{{ $document->title }}</h5>
+                    <span class="badge bg-primary">{{ $document->control_code }}</span>
                 </div>
 
                 <hr>
@@ -97,12 +97,16 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">CREATED BY</div>
-                                <div class="fw-medium">John Doe</div>
+                                <div class="fw-medium">
+                                    @foreach($document->change_requests as $changeRequest)
+                                    {{ $changeRequest->user->name }}
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-12 col-md-6">
+                    {{-- <div class="col-12 col-md-6">
                         <div class="d-flex align-items-start gap-3">
                             <div class="text-primary" style="font-size: 1.5rem;">
                                 <i class="ri-building-line"></i>
@@ -112,7 +116,7 @@
                                 <div class="fw-medium">Quality Assurance</div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <div class="col-12 col-md-6">
                         <div class="d-flex align-items-start gap-3">
@@ -121,7 +125,11 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">CATEGORY</div>
-                                <div class="fw-medium">Quality Management</div>
+                                <div class="fw-medium">
+                                    @foreach($document->change_requests as $changeRequest)
+                                    {{ $changeRequest->category }}
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -133,7 +141,7 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">CREATED DATE</div>
-                                <div class="fw-medium">November 08, 2024</div>
+                                <div class="fw-medium">{{ date('F d, Y', strtotime($document->created_at)) }}</div>
                             </div>
                         </div>
                     </div>
@@ -145,7 +153,13 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">LAST UPDATED</div>
-                                <div class="fw-medium">Nov 10, 2024</div>
+                                <div class="fw-medium">
+                                    @if($document->date_approved)
+                                    {{ date('F d, Y', strtotime($document->date_approved)) }}
+                                    @else 
+                                    {{ date('F d, Y', strtotime($document->updated_at)) }}
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -157,12 +171,16 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">DESCRIPTION</div>
-                                <div class="fw-medium">Comprehensive quality management system manual containing all standard operating procedures, policies, and quality control measures.</div>
+                                <div class="fw-medium">
+                                    @foreach($document->change_requests as $changeRequest)
+                                    {{ $changeRequest->description }}
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-12">
+                    {{-- <div class="col-12">
                         <div class="d-flex align-items-start gap-3">
                             <div class="text-primary" style="font-size: 1.5rem;">
                                 <i class="ri-attachment-line"></i>
@@ -175,7 +193,7 @@
                                 </a>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
 
                 
@@ -187,37 +205,48 @@
                         <h6 class="fw-semibold text-dark mb-0">Approval Details</h6>
                     </div>
 
-                    <div class="approver-card">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <div class="fw-semibold text-dark" style="font-size: 0.9rem;">Jane Smith</div>
-                                    <span class="badge bg-success" style="font-size: 0.7rem;">Approved</span>
+                    @foreach ($document->change_requests as $changeRequest)
+                        @foreach($changeRequest->approvers as $approver)
+                        <div class="approver-card">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <div class="fw-semibold text-dark" style="font-size: 0.9rem;">{{ $approver->user->name }}</div>
+                                        <span class="badge bg-success" style="font-size: 0.7rem;">Approved</span>
+                                    </div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ $approver->user->role }} • {{ date('M d, Y', strtotime($approver->updated_at)) }} at {{ date('h:i A', strtotime($approver->updated_at)) }}</div>
                                 </div>
-                                <div class="text-muted" style="font-size: 0.75rem;">Quality Manager • Nov 09, 2024 at 02:30 PM</div>
+                                <button class="btn btn-link text-decoration-none p-0" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#approver1" 
+                                        aria-expanded="false" 
+                                        aria-controls="approver1"
+                                        onclick="this.querySelector('i').classList.toggle('ri-arrow-down-s-line'); this.querySelector('i').classList.toggle('ri-arrow-up-s-line');">
+                                    <i class="ri-arrow-down-s-line text-muted" style="font-size: 1.25rem;"></i>
+                                </button>
                             </div>
-                            <button class="btn btn-link text-decoration-none p-0" 
-                                    type="button" 
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#approver1" 
-                                    aria-expanded="false" 
-                                    aria-controls="approver1"
-                                    onclick="this.querySelector('i').classList.toggle('ri-arrow-down-s-line'); this.querySelector('i').classList.toggle('ri-arrow-up-s-line');">
-                                <i class="ri-arrow-down-s-line text-muted" style="font-size: 1.25rem;"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="collapse mt-2" id="approver1">
-                            <div class="border-top pt-2 mt-2">
-                                <div class="text-muted small fw-semibold mb-1">
-                                    <i class="ri-chat-check-line me-1"></i>REMARKS
+                            
+                            <div class="collapse mt-2" id="approver1">
+                                <div class="border-top pt-2 mt-2">
+                                    <div class="text-muted small fw-semibold mb-1">
+                                        <i class="ri-chat-check-line me-1"></i>REMARKS
+                                    </div>
+                                    <div class="text-muted" style="font-size: 0.8rem;">
+                                        @if($approver->remarks)
+                                        {!! nl2br(e($approver->remarks)) !!}
+                                        @else
+                                        No remarks
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="text-muted" style="font-size: 0.8rem;">Document reviewed and approved. All quality standards met and procedures are compliant with ISO 9001:2015 requirements.</div>
                             </div>
                         </div>
-                    </div>
+                        @endforeach
+                    @endforeach
 
-                    <div class="approver-card">
+
+                    {{-- <div class="approver-card">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center gap-2 mb-1">
@@ -245,12 +274,12 @@
                                 <div class="text-muted" style="font-size: 0.8rem;">Procedures align with operational requirements. Document is comprehensive and ready for implementation.</div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
 
                 <hr class="my-4">
                 <div class="text-center text-muted small">
-                    <i class="ri-information-line"></i> This is an official document from the Library Management System<br>
+                    <i class="ri-information-line"></i> This is an official document from the Document Management System<br>
                     <small>Scanned on: <span id="currentDateTime"></span></small>
                 </div>
             </div>

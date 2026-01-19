@@ -319,15 +319,15 @@ class DocumentController extends Controller
 
     public function showPDF($id)
     {
-        // $data = 'otpauth://totp/test?secret=B3JX4VCVJDVNXNZ5&issuer=chillerlan.net';
-
-        // echo '<img src="'.(new QRCode)->render($data).'" alt="QR Code" height="100" />';
         $attachment = DocumentAttachment::with('document')->findOrFail($id);
+        $changeRequest = ChangeRequest::where('document_id', $attachment->document_id)->orderBy('id','desc')->first();
+
         $pdf = new \setasign\Fpdi\Fpdi();
         $newFile = str_replace(' ', '%20', $attachment->attachment);
         $fileContentData = file_get_contents(url($newFile));
 
-        $data = url('documents/view-document/'.$attachment->document_id);
+        $data = url('document/'.$changeRequest->document_id);
+
         try 
         {
             $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
@@ -541,5 +541,15 @@ class DocumentController extends Controller
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
+    }
+    public function publicDocument(Request $request,$id)
+    {
+        $document = Document::with('change_requests.user', 'change_requests.approvers.user')->findOrFail($id);
+
+        return view('public.document', 
+            array(
+                'document' => $document
+            )
+        );
     }
 }
