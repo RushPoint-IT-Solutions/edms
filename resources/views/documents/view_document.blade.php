@@ -370,93 +370,6 @@
                 </div>
             </div>
 
-            {{-- @if($document->status != "Obsolete")
-            <div class="action-buttons">
-                @if((auth()->user()->role == "User") || (auth()->user()->role == "Documents and Records Controller") || (auth()->user()->role == "Document Control Officer") || (auth()->user()->role == "Department Head"))
-                    @if($document->department_id == 8)
-                        <button class="btn-modern warning" data-target="#changeRequest" data-toggle="modal">
-                            <i class="fa fa-exchange"></i> Change Request
-                        </button>
-                        <button class="btn-modern danger" data-target="#obsoleteRequest" data-toggle="modal">
-                            <i class="fa fa-ban"></i> Obsolete Request
-                        </button>
-                    @endif 
-                    @if(auth()->user()->role == "Documents and Records Controller")
-                        @if(auth()->user()->department_id != $document->department_id)
-                            @if(auth()->user()->audit_role == null)
-                                <button class="btn-modern success" data-target="#copyRequest" data-toggle="modal">
-                                    <i class="fa fa-copy"></i> Copy Request
-                                </button>
-                            @endif
-                        @endif
-                    @elseif(auth()->user()->role == "Document Control Officer") 
-                        @php
-                            $dep = (auth()->user()->dco)->where('department_id',$document->department_id);
-                        @endphp
-                        @if(count($dep) == 0)
-                            @if(auth()->user()->audit_role == null)
-                                <button class="btn-modern success" data-target="#copyRequest" data-toggle="modal">
-                                    <i class="fa fa-copy"></i> Copy Request
-                                </button>
-                            @endif
-                        @endif
-                    @elseif(auth()->user()->role == "Department Head")
-                        @php
-                            $depd = 0;
-                        @endphp
-                        @foreach(auth()->user()->department_head as $dep)
-                            @if($dep->id == $document->department_id)
-                                @php
-                                    $depd = 1;
-                                @endphp
-                            @endif
-                        @endforeach
-                        @if($depd == 0)
-                            @if(auth()->user()->audit_role == null)
-                                <button class="btn-modern success" data-target="#copyRequest" data-toggle="modal">
-                                    <i class="fa fa-copy"></i> Copy Request
-                                </button>
-                            @endif
-                        @endif
-                    @else
-                        @if(auth()->user()->audit_role == null)
-                            <button class="btn-modern success" data-target="#copyRequest" data-toggle="modal">
-                                <i class="fa fa-copy"></i> Copy Request
-                            </button>
-                            @if($document->department_id == auth()->user()->department_id)
-                                <button class="btn-modern warning" data-target="#changeRequest" data-toggle="modal">
-                                    <i class="fa fa-exchange"></i> Change Request
-                                </button>
-                                <button class="btn-modern danger" data-target="#obsoleteRequest" data-toggle="modal">
-                                    <i class="fa fa-ban"></i> Obsolete Request
-                                </button>
-                            @endif
-                        @endif
-                    @endif
-                @endif
-                @if(auth()->user()->role == "Documents and Records Controller")
-                    @if(auth()->user()->department_id == $document->department_id)
-                        <button class="btn-modern warning" data-target="#changeRequest" data-toggle="modal">
-                            <i class="fa fa-exchange"></i> Change Request
-                        </button>
-                        <button class="btn-modern danger" data-target="#obsoleteRequest" data-toggle="modal">
-                            <i class="fa fa-ban"></i> Obsolete Request
-                        </button>
-                    @endif
-                @endif
-                @if(auth()->user()->role == "Document Control Officer")
-                    @php
-                        $dep = (auth()->user()->dco)->where('department_id',$document->department_id);
-                    @endphp
-                    @if(count($dep) == 1)
-                        <button class="btn-modern danger" data-target="#obsoleteRequest" data-toggle="modal">
-                            <i class="fa fa-ban"></i> Obsolete Request
-                        </button>
-                    @endif
-                @endif
-            </div>
-            @endif --}}
-
             <div class="action-buttons">
                 <button class="btn-modern success" data-bs-target="#copyRequest" data-bs-toggle="modal">
                     <i class="fa fa-copy"></i> Copy Request
@@ -525,99 +438,9 @@
 
                     @include('documents.edit_approved_date')
                 </div>
-                {{-- <div class="detail-item">
-                    <span class="detail-label">Process Owner</span>
-                    <span class="detail-value">
-                        @if(count($document->department->drc) != 0)
-                            @foreach($document->department->drc as $drc)
-                                <span class="owner-badge">{{$drc->name}}</span>
-                            @endforeach
-                        @else
-                            <span class="danger-badge">No Process Owner</span>
-                        @endif
-                    </span>
-                </div> --}}
-                {{-- <div class="detail-item">
-                    <span class="detail-label">Process Owner</span>
-                    <span class="detail-value">
-                        @if($document->process_owner != null)
-                            <span class="owner-badge">{{$document->processOwner->name}}</span>
-                        @else
-                            <span class="owner-badge">{{$document->department->dep_head->name}}</span>
-                        @endif
-                    </span>
-                </div> --}}
-                {{-- <div class="detail-item">
-                    <span class="detail-label">Access</span>
-                    <span class="detail-value project-people">
-                        <a href=""><img alt="image" class="img-circle" src="{{asset('login_css/img/a3.jpg')}}"></a>
-                        <a href=""><img alt="image" class="img-circle" src="{{asset('login_css/img/a1.jpg')}}"></a>
-                        <a href=""><img alt="image" class="img-circle" src="{{asset('login_css/img/a2.jpg')}}"></a>
-                        <a href=""><img alt="image" class="img-circle" src="{{asset('login_css/img/a4.jpg')}}"></a>
-                        <a href=""><img alt="image" class="img-circle" src="{{asset('login_css/img/a5.jpg')}}"></a>
-                    </span>
-                </div> --}}
             </div>
         </div>
 
-        @php
-            $allow = 0;
-        @endphp
-        {{-- @foreach($document->department->drc as $drc)
-            @if($drc->id == auth()->user()->id)
-                @php
-                    $allow = 1;
-                @endphp
-            @endif
-        @endforeach --}}
-        {{-- @foreach(auth()->user()->department_head as $dep)
-            @if($dep->id == $document->department_id)
-                @php
-                    $allow = 1;
-                @endphp
-            @endif
-        @endforeach --}}
-        {{-- @foreach($document->department->dco as $dco)
-            @if($dco->user_id == auth()->user()->id)
-                @php
-                    $allow = 1;
-                @endphp
-            @endif
-        @endforeach --}}
-        {{-- @foreach($document->department->departments as $depa)
-            @if($depa->user_id == auth()->user()->id)
-                @php
-                    $allow = 1;
-                @endphp
-            @endif
-        @endforeach --}}
-        
-        @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Business Process Manager") || (auth()->user()->role == "Management Representative"))
-            @php
-                $allow = 1;
-            @endphp
-        @endif
-        @foreach(auth()->user()->department_head as $head)
-            @if($head->user_id == $document->department_id)
-                @php
-                    $allow = 1;
-                @endphp
-            @endif
-        @endforeach
-        @if((auth()->user()->audit_role != null))
-            @php
-                $allow = 1;
-            @endphp
-        @endif
-        @php
-        if(auth()->user()->department_id == $document->department_id)
-        {
-            $allow =1;
-        }
-        @endphp
-
-        @if($allow == 1)
-        {{-- @if($document->status == null) --}}
         <div class="attachments-card">
             <div class="attachments-header">
                 <i class="fa fa-paperclip"></i> Attachments
@@ -625,30 +448,26 @@
             
             @foreach($document->attachments as $attachment)
                 @if($attachment->attachment != null)
-                    @if(($attachment->type == "soft_copy") && ($document->department_id == 8))
+                    @if(($attachment->type == "soft_copy"))
                     <div class="attachment-item">
                         <a href='{{url($attachment->attachment)}}' target="_blank">
                             <i class="fa fa-file-word-o"></i>
                             <span>Editable Copy</span>
                         </a>
-                        @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative') || (auth()->user()->role == "Document Control Officer"))
                         <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
                             <i class="fa fa-edit"></i>
                         </a>
-                        @endif
                     </div>
                     @endif
-                    @if(($attachment->type == "soft_copy") && (auth()->user()->audit_role == null))
+                    @if(($attachment->type == "soft_copy"))
                     <div class="attachment-item">
                         <a href='{{url($attachment->attachment)}}' target="_blank">
                             <i class="fa fa-file-word-o"></i>
                             <span>Editable Copy</span>
                         </a>
-                        @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative') || (auth()->user()->role == "Document Control Officer"))
                         <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
                             <i class="fa fa-edit"></i>
                         </a>
-                        @endif
                     </div>
                     @elseif($attachment->type == "pdf_copy")
                         @if(($document->category == "FORM") || ($document->category == "TEMPLATE"))
@@ -657,11 +476,9 @@
                                 <i class="fa fa-file-pdf-o"></i>
                                 <span>PDF Copy</span>
                             </a>
-                            @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative') || (auth()->user()->role == "Document Control Officer"))
                             <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
                                 <i class="fa fa-edit"></i>
                             </a>
-                            @endif
                         </div>
                         @else
                         <div class="attachment-item">
@@ -669,30 +486,24 @@
                                 <i class="fa fa-file-pdf-o"></i>
                                 <span>PDF Copy</span>
                             </a>
-                            @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Business Process Manager') || (auth()->user()->role == 'Management Representative') || (auth()->user()->role == "Document Control Officer"))
                             <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
                                 <i class="fa fa-edit"></i>
                             </a>
-                            @endif
                         </div>
                         @endif
                     @else
-                        @if((auth()->user()->audit_role == null))
                         <div class="attachment-item">
                             <a href='{{url($attachment->attachment)}}' target="_blank">
                                 <i class="fa fa-file-pdf-o"></i>
                                 <span>Fillable Copy</span>
                             </a>
                         </div>
-                        @endif
                     @endif
                 @endif
                 @include('change_file')
             @endforeach
         </div>
-        {{-- @endif --}}
-
-        @if((auth()->user()->audit_role == null))
+    
         <div class="tabs-card mb-5">
             <ul class="modern-tabs">
                 <li class="active">
@@ -864,8 +675,6 @@
                 </div> --}}
             </div>
         </div>
-        @endif
-        @endif
     </div>
 </div>
 

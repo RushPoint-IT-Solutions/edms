@@ -297,99 +297,224 @@
 
 @section('content')
 <div class="container-fluid py-4">
+    <div class="chat-wrapper d-lg-flex gap-1 mx-n4 mt-n4 p-1">
+        <div class="file-manager-sidebar minimal-border">
+            <div class="p-3 d-flex flex-column h-100">
+                <div class="mb-3">
+                    <h5 class="mb-0 fw-semibold">Documents</h5>
+                </div>
+                <div class="search-box">
+                    <input type="text" class="form-control bg-light border-light"
+                        placeholder="Search here...">
+                    <i class="ri-search-2-line search-icon"></i>
+                </div>
+                <div class="mt-3 mx-n4 px-4 file-menu-sidebar-scroll" data-simplebar>
+                    <ul class="list-unstyled file-manager-menu">
+                        @foreach($document_folders->where('parent_id', null) as $folder)
+                            @if(count($folder->childrenFolder) > 0)
+                                <li>
+                                    <a data-bs-toggle="collapse" href="#folder{{ $folder->id }}" role="button" aria-expanded="true" aria-controls="folder{{ $folder->id }}">
+                                        <i class="ri-folder-2-line align-bottom me-2"></i> 
+                                        <span class="file-list-link">{{ $folder->name }}</span>
+                                    </a>
+                                    <div class="collapse" id="folder{{ $folder->id }}">
+                                        <ul class="sub-menu list-unstyled">
+                                            @foreach ($folder->childrenFolder as $childrenFolder)
+                                                @include('documents.document_subfolder', ['folder' => $childrenFolder])
+                                            @endforeach
+
+                                            @foreach ($folder->document as $document)
+                                                <li>
+                                                    <a href="{{ url('/documents/view-document/'.$document->id) }}" target="_blank">
+                                                        <i class="ri-file-list-2-line align-bottom me-2"></i> 
+                                                        <span class="file-list-link">{{ $document->control_code." - ".$document->title }}</span>
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </li>
+                            @endif
+                        @endforeach
+                        @foreach ($documents->where('folder_id', null) as $document)
+                            <li>
+                                <a href="{{ url('/documents/view-document/'.$document->id) }}" target="_blank">
+                                    <i class="ri-file-list-2-line align-bottom me-2"></i> 
+                                    <span class="file-list-link">{{ $document->control_code." - ".$document->title }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="file-manager-content minimal-border w-100 p-3 py-0">
+            <div class="mx-n3 pt-4 px-4 file-manager-content-scroll" data-simplebar>
+                <div class="folders-section">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                        <h2 class="section-title">Folders</h2>
+                        <div class="d-flex gap-2 align-items-center">
+                            {{-- <select class="filter-select form-select" data-choices data-choices-search-false name="choices-single-default" id="file-type">
+                                <option value="">File Type</option>
+                                <option value="All" selected>All</option>
+                                <option value="Video">Video</option>
+                                <option value="Images">Images</option>
+                                <option value="Music">Music</option>
+                                <option value="Documents">Documents</option>
+                            </select> --}}
+                            <button class="btn-create" data-bs-toggle="modal" data-bs-target="#createFolderModal" style="width:280px;">
+                                <i class="ri-add-line"></i> Create Folders
+                            </button>
+                        </div>
+                    </div>
+    
+                    <div class="row g-3" id="folderlist-data">
+                        @foreach ($document_folders as $folder)
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                            <div class="folder-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <input class="form-check-input" type="checkbox">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">
+                                            <i class="ri-more-2-fill"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="{{ url('documents/folder/'.$folder->id) }}">Open</a></li>
+                                            <li><a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#renameFolderModal{{ $folder->id }}">Rename</a></li>
+                                            <li>
+                                                <form action="{{ url('documents/delete-folder/'.$folder->id) }}" method="POST">
+                                                    @csrf
+                                                    <button class="dropdown-item text-danger" type="submit">Delete</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+    
+                                <div class="text-center">
+                                    <div class="folder-icon">
+                                        <i class="ri-folder-2-fill"></i>
+                                    </div>
+                                    <h6 class="folder-name">{{ $folder->name }}</h6>
+                                    <div class="folder-info">
+                                        <span><b>{{ count($folder->document) }}</b> Files</span>
+                                        <span><b>0</b>GB</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="files-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="section-title">Documents</h2>
+                        <button class="btn-create" data-bs-toggle="modal" data-bs-target="#uploadDocument">
+                            <i class="ri-add-line"></i> Create File
+                        </button>
+                    </div>
+    
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="control-label">Show</span>
+                            <select class="control-input form-select form-select-sm" id="entriesPerPage" style="width: auto;">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span class="control-label">entries</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="control-label">Search:</span>
+                            <input type="text" class="control-input form-control form-control-sm" id="tableSearch" placeholder="" style="width: auto; min-width: 200px;">
+                        </div>
+                    </div>
+    
+                    <div class="table-responsive">
+                        <table class="data-table tables table">
+                            <thead>
+                                <tr>
+                                    <th>Actions</th>
+                                    <th>Name</th>
+                                    <th>File Item</th>
+                                    <th>File Size</th>
+                                    <th>Recent Date</th>
+                                    <th>Tags</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($documents->where('folder_id',null)->sortByDesc('id') as $document)
+                                    @php
+                                        $attachment = $document->attachments->where('type','pdf_copy')->first();
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" id="documentDropdown{{$document->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ri-more-2-fill"></i>
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="documentDropdown{{$document->id}}">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ url('documents/view-document/'.$document->id) }}" target="_blank">
+                                                            <i class="ri-eye-line me-2"></i>View Document
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        <td>{{ $document->title }}</td>
+                                        <td>
+                                            @if ($attachment)
+                                            <a href="{{ url('/documents/view-pdf/'.$attachment->id) }}" target="_blank">
+                                                <i class="fa fa-file-pdf-o"></i>
+                                            </a>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @php
+                                                $size=0;
+                                                if($attachment)
+                                                {
+                                                    $path = public_path().$attachment->attachment;
+                                                    if (file_exists($path))
+                                                    {
+                                                        $size = filesize($path)/1024;
+                                                    }
+                                                }
+                                            @endphp
+                                            {{ round($size,2). "KB"}}
+                                        </td>
+                                        <td>
+                                            {{ date('M d Y', strtotime($document->updated_at)) }}
+                                        </td>
+                                        <td>
+                                            @foreach ($document->document_tags as $tag)
+                                                <span class="badge bg-primary">{{ $tag->name }}</span>
+                                            @endforeach
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3">
         <!-- Main Content Area -->
         <div class="col-12 col-xl-12">
-            {{-- <div class="file-manager-sidebar minimal-border">
-                <div class="p-3 d-flex flex-column h-100">
-                    <div class="mb-3">
-                        <h5 class="mb-0 fw-semibold">Documents</h5>
-                    </div>
-                    <div class="search-box">
-                        <input type="text" class="form-control bg-light border-light"
-                            placeholder="Search here...">
-                        <i class="ri-search-2-line search-icon"></i>
-                    </div>
-                    <div class="mt-3 mx-n4 px-4 file-menu-sidebar-scroll" data-simplebar>
-                        <ul class="list-unstyled file-manager-menu">
-                            <li>
-                                <a data-bs-toggle="collapse" href="#collapseExample" role="button"
-                                    aria-expanded="true" aria-controls="collapseExample">
-                                    <i class="ri-folder-2-line align-bottom me-2"></i> <span
-                                        class="file-list-link">My
-                                        Drive</span>
-                                </a>
-                                <div class="collapse show" id="collapseExample">
-                                    <ul class="sub-menu list-unstyled">
-                                        <li>
-                                            <a href="#!">Assets</a>
-                                        </li>
-                                        <li>
-                                            <a href="#!">Marketing</a>
-                                        </li>
-                                        <li>
-                                            <a href="#!">Personal</a>
-                                        </li>
-                                        <li>
-                                            <a href="#!">Projects</a>
-                                        </li>
-                                        <li>
-                                            <a href="#!">Templates</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
-                            <li>
-                                <a href="#!"><i class="ri-file-list-2-line align-bottom me-2"></i> <span
-                                        class="file-list-link">Documents</span></a>
-                            </li>
-                            <li>
-                                <a href="#!"><i class="ri-image-2-line align-bottom me-2"></i> <span
-                                        class="file-list-link">Media</span></a>
-                            <li>
-                                <a href="#!"><i class="ri-history-line align-bottom me-2"></i> <span
-                                        class="file-list-link">Recent</span></a>
-                            </li>
-                            <li>
-                                <a href="#!"><i class="ri-star-line align-bottom me-2"></i> <span
-                                        class="file-list-link">Important</span></a>
-                            </li>
-                            </li>
-                            <li>
-                                <a href="#!"><i class="ri-delete-bin-line align-bottom me-2"></i> <span
-                                        class="file-list-link">Deleted</span></a>
-                            </li>
-                        </ul>
-                    </div>
-
-
-                    <div class="mt-auto">
-                        <h6 class="fs-11 text-muted text-uppercase mb-3">Storage Status</h6>
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <i class="ri-database-2-line fs-17"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-3 overflow-hidden">
-                                <div class="progress mb-2 progress-sm">
-                                    <div class="progress-bar bg-success" role="progressbar"
-                                        style="width: 25%" aria-valuenow="25" aria-valuemin="0"
-                                        aria-valuemax="100"></div>
-                                </div>
-                                <span class="text-muted fs-12 d-block text-truncate"><b>47.52</b>GB used of
-                                    <b>119</b>GB</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
+            
             
             <!-- Page Header -->
-            <div class="page-header">
+            {{-- <div class="page-header">
                 <h1 class="page-title">Documents</h1>
-            </div>
+            </div> --}}
 
             <!-- Folders Section -->
-            <div class="folders-section">
+            {{-- <div class="folders-section">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                     <h2 class="section-title">Folders</h2>
                     <div class="d-flex gap-2 align-items-center">
@@ -444,10 +569,10 @@
                     </div>
                     @endforeach
                 </div>
-            </div>
+            </div> --}}
 
             <!-- Files Section -->
-            <div class="files-section">
+            {{-- <div class="files-section">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="section-title">Documents</h2>
                     <button class="btn-create" data-bs-toggle="modal" data-bs-target="#uploadDocument">
@@ -545,135 +670,10 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-
-        <!-- Overview Sidebar -->
-        {{-- <div class="col-12 col-xl-3">
-            <div class="overview-card">
-                <div class="overview-header">
-                    <h5 class="overview-title">Overview</h5>
-                </div>
-
-                <div class="mb-4">
-                    <div id="simple_dount_chart"
-                        data-colors='["--vz-info", "--vz-danger", "--vz-primary", "--vz-success"]'
-                        class="apex-charts" dir="ltr"></div>
-                </div>
-
-                <div>
-                    <div class="storage-item">
-                        <div class="storage-icon documents">
-                            <i class="ri-file-text-line"></i>
-                        </div>
-                        <div class="storage-details">
-                            <h5 class="storage-name">Documents</h5>
-                            <p class="storage-count">2348 files</p>
-                        </div>
-                        <div class="storage-size">27.01 GB</div>
-                    </div>
-
-                    <div class="storage-item">
-                        <div class="storage-icon media">
-                            <i class="ri-gallery-line"></i>
-                        </div>
-                        <div class="storage-details">
-                            <h5 class="storage-name">Media</h5>
-                            <p class="storage-count">12480 files</p>
-                        </div>
-                        <div class="storage-size">20.87 GB</div>
-                    </div>
-
-                    <div class="storage-item">
-                        <div class="storage-icon projects">
-                            <i class="ri-folder-2-line"></i>
-                        </div>
-                        <div class="storage-details">
-                            <h5 class="storage-name">Projects</h5>
-                            <p class="storage-count">349 files</p>
-                        </div>
-                        <div class="storage-size">4.10 GB</div>
-                    </div>
-
-                    <div class="storage-item">
-                        <div class="storage-icon others">
-                            <i class="ri-error-warning-line"></i>
-                        </div>
-                        <div class="storage-details">
-                            <h5 class="storage-name">Others</h5>
-                            <p class="storage-count">9873 files</p>
-                        </div>
-                        <div class="storage-size">33.54 GB</div>
-                    </div>
-                </div>
-
-                <div class="upgrade-alert">
-                    <h5><i class="ri-cloud-line"></i> Upgrade to Pro</h5>
-                    <p>Get more space for your documents...</p>
-                    <button class="btn-upgrade">
-                        <i class="ri-upload-cloud-line"></i> Upgrade Now
-                    </button>
-                </div>
-            </div>
-        </div> --}}
-    </div>
-</div>
-
-@foreach ($documents->sortByDesc('id') as $document)
-<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="qrCodeModalLabel">Document QR Code</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <div class="card border-0 bg-light p-4 mb-3">
-                    <div id="qrCodeContainer" class="d-flex justify-content-center">
-                    </div>
-                </div>
-                <div class="mb-2">
-                    <svg class="barcode"
-                        jsbarcode-format="Code39"
-                        jsbarcode-value="{{ $document->control_code }}"
-                        jsbarcode-textmargin="0"
-                        jsbarcode-fontoptions="bold"
-                        jsbarcode-displayvalue="false"
-                        >
-                    </svg>
-                </div>
-                <div class="alert alert-info mb-3" role="alert">
-                    <i class="ri-information-line"></i> Scan this QR code to access document details
-                </div>
-                <div class="mb-2">
-                    <strong>Document ID:</strong> <span id="qrDocId" class="text-primary">Doc-2024-001</span>
-                </div>
-                <div class="mb-2">
-                    <strong>Document Title:</strong> <span id="qrDocTitle">Quality Management System Manual</span>
-                </div>
-                <div>
-                    <strong>URL:</strong>
-                    <div class="input-group input-group-sm mt-1">
-                        <input type="text" class="form-control" id="qrDocUrl" readonly>
-                        <button class="btn btn-outline-secondary" type="button" id="copyUrlBtn">
-                            <i class="ri-file-copy-line"></i> Copy
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="printQrBtn">
-                    <i class="ri-printer-line"></i> Print QR
-                </button>
-                <button type="button" class="btn btn-success" id="downloadQrBtn">
-                    <i class="ri-download-line"></i> Download QR
-                </button>
-            </div>
+            </div> --}}
         </div>
     </div>
 </div>
-@endforeach
 
 @include('documents.upload_document')
 @include('documents.add_folder')
@@ -686,107 +686,7 @@
 <script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
 <script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
-{{-- <script src="{{ asset('assets/js/pages/file-manager.init.js') }}"></script> --}}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="{{ asset('barcode/JsBarcode.all.min.js') }}"></script>
-
-<script>
-    JsBarcode(".barcode").init();
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const qrModalElement = document.getElementById('qrCodeModal');
-        const qrModal = new bootstrap.Modal(qrModalElement);
-        
-        const viewQrButtons = document.querySelectorAll('.view-qr-btn');
-        
-        viewQrButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                console.log('asdasd');
-                
-                
-                const docId = this.getAttribute('data-doc-id');
-                const docTitle = this.getAttribute('data-doc-title');
-                
-                const docUrl = window.location.origin + '/document/' + docId;
-                
-                document.getElementById('qrDocId').textContent = docId;
-                document.getElementById('qrDocTitle').textContent = docTitle;
-                document.getElementById('qrDocUrl').value = docUrl;
-                
-                const qrContainer = document.getElementById('qrCodeContainer');
-                qrContainer.innerHTML = '';
-                
-                new QRCode(qrContainer, {
-                    text: docUrl,
-                    width: 256,
-                    height: 256,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-                
-                qrModal.show();
-            });
-        });
-
-        document.getElementById('copyUrlBtn').addEventListener('click', function() {
-            const urlInput = document.getElementById('qrDocUrl');
-            urlInput.select();
-            document.execCommand('copy');
-            
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="ri-check-line"></i> Copied!';
-            setTimeout(() => {
-                this.innerHTML = originalText;
-            }, 2000);
-        });
-    
-        document.getElementById('printQrBtn').addEventListener('click', function() {
-            const docId = document.getElementById('qrDocId').textContent;
-            const docTitle = document.getElementById('qrDocTitle').textContent;
-            const docUrl = document.getElementById('qrDocUrl').value;
-            
-            document.getElementById('qrPrintDocId').textContent = docId;
-            document.getElementById('qrPrintDocTitle').textContent = docTitle;
-            document.getElementById('qrPrintDocUrl').textContent = docUrl;
-            document.getElementById('qrPrintDate').textContent = new Date().toLocaleString();
-            
-            const printQrContainer = document.getElementById('qrPrintCode');
-            printQrContainer.innerHTML = '';
-            new QRCode(printQrContainer, {
-                text: docUrl,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            setTimeout(() => {
-                const printContents = document.getElementById('qrPrintTemplate').innerHTML;
-                const originalContents = document.body.innerHTML;
-                document.body.innerHTML = printContents;
-                window.print();
-                document.body.innerHTML = originalContents;
-                location.reload();
-            }, 500);
-        });
-        
-        document.getElementById('downloadQrBtn').addEventListener('click', function() {
-            const qrCanvas = document.querySelector('#qrCodeContainer canvas');
-            if (qrCanvas) {
-                const docId = document.getElementById('qrDocId').textContent;
-                const url = qrCanvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = `QR_${docId}.png`;
-                link.href = url;
-                link.click();
-            }
-        });
-    })
-</script>
+<script src="{{ asset('assets/js/pages/file-manager.init.js') }}"></script>
 
 <script>
     function public_info(value, id) {

@@ -10,7 +10,7 @@ class DocumentFolder extends Model
     {
         return $this->hasMany(Document::class,'folder_id','id');
     }
-    public function parentFolder()
+    public function childrenFolder()
     {
         return $this->hasMany(DocumentFolder::class,'parent_id','id');
     }

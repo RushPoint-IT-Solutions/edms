@@ -39,7 +39,7 @@ class DocumentController extends Controller
         $department = $request->department;
 
         $document_types = DocumentType::orderBy('name','desc')->get();
-        $document_folders = DocumentFolder::with('document','parentFolder')->where('parent_id',null)->get();
+        $document_folders = DocumentFolder::with('document','childrenFolder')->where('parent_id',null)->get();
         $obsoletes = Obsolete::get();
 
         $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
@@ -467,12 +467,15 @@ class DocumentController extends Controller
     }
     public function folderView(Request $request,$id)
     {
-        $folder_data = DocumentFolder::with('document','parentFolder')->findOrFail($id);
+        $folder_data = DocumentFolder::with('document','childrenFolder')->findOrFail($id);
         $documents = Document::get();
+
+        $document_folders = DocumentFolder::get();
 
         return view('documents.folder_view',
             array(
                 'folder_data' => $folder_data,
+                'document_folders' => $document_folders,
                 'documents' => $documents
             )
         );
