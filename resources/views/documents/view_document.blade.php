@@ -318,6 +318,42 @@
         color: #084298;
     }
 
+    .modern-tabs.nav-tabs {
+        display: flex;
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        overflow-x: auto;
+    }
+
+    .modern-tabs.nav-tabs li {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .modern-tabs.nav-tabs li a {
+        display: block;
+        padding: 15px 20px;
+        text-decoration: none;
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 14px;
+        text-align: center;
+        transition: all 0.3s;
+        border: none;
+        border-bottom: 3px solid transparent;
+    }
+
+    .modern-tabs.nav-tabs li.active a,
+    .modern-tabs.nav-tabs li a.active,
+    .modern-tabs.nav-tabs li a:hover {
+        color: #0d6efd;
+        background: white;
+        border-bottom-color: #0d6efd;
+    }
+
     @media (max-width: 768px) {
         .document-title-row {
             flex-direction: column;
@@ -380,7 +416,7 @@
             <div class="details-grid" style="margin-top: 25px;">
                 <div class="detail-item">
                     <span class="detail-label">Uploaded By</span>
-                    <span class="detail-value">{{$document->user->name}}</span>
+                    <span class="detail-value">{{$document->user->name ?? 'N/A'}}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Control Code</span>
@@ -505,24 +541,26 @@
         </div>
     
         <div class="tabs-card mb-5">
-            <ul class="modern-tabs">
-                <li class="active">
-                    <a href="#tab-1" data-bs-toggle="tab">Revisions</a>
+            <ul class="modern-tabs nav nav-tabs" role="tablist">
+                <li>
+                    <a class="active" data-toggle="tab" href="#tab-1" role="tab">
+                        Revisions
+                    </a>
                 </li>
                 <li>
-                    <a href="#tab-2" data-bs-toggle="tab">Change Requests</a>
+                    <a data-toggle="tab" href="#tab-2" role="tab">
+                        Change Requests
+                    </a>
                 </li>
                 <li>
-                    <a href="#tab-3" data-bs-toggle="tab">Copy Requests</a>
+                    <a data-toggle="tab" href="#tab-3" role="tab">
+                        Copy Requests
+                    </a>
                 </li>
-                {{-- <li>
-                    <a href="#tab-4" data-toggle="tab">Memo</a>
-                </li> --}}
             </ul>
 
             <div class="tab-content">
-                <!-- Revisions Tab -->
-                <div class="tab-pane active" id="tab-1">
+                <div class="tab-pane active" id="tab-1" role="tabpanel">
                     <div class="tab-content-modern">
                         <div class="table-responsive">
                             <table class="modern-table tables">
@@ -560,7 +598,7 @@
                     </div>
                 </div>
 
-                <div class="tab-pane" id="tab-2">
+                <div class="tab-pane" id="tab-2" role="tabpanel">
                     <div class="tab-content-modern">
                         <div class="table-responsive">
                             <table class="modern-table tables">
@@ -582,7 +620,7 @@
                                             <td>DICR-{{str_pad($change_req->id, 5, '0', STR_PAD_LEFT)}}</td>
                                             <td>{{$change_req->request_type}}</td>
                                             <td>{{date('M d Y',strtotime($change_req->created_at))}}</td>
-                                            <td>{{$change_req->user->name}}</td>
+                                            <td>{{$change_req->user->name ?? 'N/A'}}</td>
                                             {{-- <td>{{$change_req->department->name}}</td> --}}
                                             <td>{{date('M d, Y',strtotime($change_req->effective_date))}}</td>
                                             <td>{{$change_req->type_of_document}}</td>
@@ -606,7 +644,7 @@
                     </div>
                 </div>
 
-                <div class="tab-pane" id="tab-3">
+                <div class="tab-pane" id="tab-3" role="tabpanel">
                     <div class="tab-content-modern">
                         <div class="table-responsive">
                             <table class="modern-table tables">
@@ -627,7 +665,7 @@
                                         <td>{{$copy_request->type_of_document}}</td>
                                         <td>{{date('M d Y',strtotime($copy_request->created_at))}}</td>
                                         <td>{{date('M d Y',strtotime($copy_request->date_needed))}}</td>
-                                        <td>{{$copy_request->user->name}}</td>
+                                        <td>{{$copy_request->user->name ?? 'N/A'}}</td>
                                         <td>{{$copy_request->status}}</td>
                                     </tr>
                                     @endforeach
@@ -726,6 +764,8 @@
 @section('js')
 <script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
 {{-- <script type="text/javascript">
     $(window).on('load', function() {
         $('#myModal').modal('show');
@@ -741,8 +781,9 @@
             bInfo : false,
             dom: '<"html5buttons"B>lTfgitp',
             buttons: [
-                {extend: 'pdf', title: 'Histories'},
-                {extend: 'print',
+                // {extend: 'pdf', title: 'Histories'},
+                // {extend: 'print',
+                {
                  customize: function (win){
                         $(win.document.body).addClass('white-bg');
                         $(win.document.body).css('font-size', '10px');
