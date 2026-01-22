@@ -241,8 +241,15 @@
 
                     <div>
                         <label class="form-label">Supporting Documents</label>
-                        <p class="text-muted small mb-2">You can select multiple files (hold Ctrl/Cmd to select multiple)</p>
-                        <input type="file" name="supporting_documents[]" class="form-control" id="supporting-docs-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" multiple>
+                        <p class="text-muted small mb-2">You can add multiple files one at a time or select multiple at once</p>
+                        
+                        <div class="d-flex gap-2 mb-3">
+                            <input type="file" name="supporting_documents[]" class="form-control" id="supporting-docs-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" multiple style="flex: 1;">
+                            <button type="button" class="btn btn-primary" id="add-more-docs-btn">
+                                <i class="ri-add-line"></i> Add More
+                            </button>
+                        </div>
+                        
                         <div id="selected-files-list" class="mt-3"></div>
                     </div>
                 </div>
@@ -340,68 +347,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
 <script>
-let pdfDoc = null;
-let scale = 1.0;
-let placingLevel = null;
-let approverBoxes = {};
-
-function prepareSubmit(event) {
-    // event.preventDefault()
-
-    const signatureData = [];
-    const pdfContainer = document.getElementById('pdf-container');
-    
-    Object.keys(approverBoxes).forEach(level => {
-        approverBoxes[level].forEach(box => {
-            const approverRow = document.querySelector(`[data-level="${level}"]`).closest('.approver-row');
-            const userId = approverRow.querySelector('.approver-select').value;
-            
-            const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
-            let pageNumber = 1;
-            let cumulativeHeight = 0;
-            
-            const boxTop = parseFloat(box.style.top);
-            
-            for (let i = 0; i < canvases.length; i++) {
-                const canvasHeight = canvases[i].height;
-                const canvasMargin = 10;
-                
-                if (boxTop < cumulativeHeight + canvasHeight) {
-                    pageNumber = i + 1;
-                    break;
-                }
-                cumulativeHeight += canvasHeight + canvasMargin;
-            }
-            
-            signatureData.push({
-                user_id: userId,
-                page_number: pageNumber,
-                x_position: parseFloat(box.style.left) / scale,
-                y_position: parseFloat(box.style.top) / scale,
-                width: 180 / scale,
-                height: 80 / scale
-            });
-        });
-    });
-    
-    const dataSignature = document.getElementById('signature-positions-input')
-    dataSignature.value = JSON.stringify(signatureData);
-    
-    if (dataSignature.value == "[]") {
-        alert('Signature placement is required.')
-        return false;
-    }
-    else 
-    {
-        if (typeof show === 'function') {
-            show();
-        }
-        return true;
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function () {
     const pdfInput = document.getElementById('pdf-file-input');
     const supportingDocsInput = document.getElementById('supporting-docs-input');
@@ -409,6 +357,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const supportingDocsGrid = document.getElementById('supporting-docs-list');
     const supportingDocsEmpty = document.getElementById('supporting-docs-empty');
     const pdfContainer = document.getElementById('pdf-container');
+    const selectedFilesList = document.getElementById('selected-files-list');
+    const addMoreBtn = document.getElementById('add-more-docs-btn');
     
     let supportingFiles = [];
 
@@ -559,52 +509,308 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const selectedFilesList = document.getElementById('selected-files-list');
-    
     function updateFilesList() {
         if (supportingFiles.length > 0) {
             selectedFilesList.innerHTML = `
                 <div class="alert alert-info">
-                    <strong>${supportingFiles.length} file(s) selected:</strong>
-                    <ul class="mb-0 mt-2" style="max-height: 150px; overflow-y: auto;">
-                        ${supportingFiles.map(f => `<li>${f.name} (${(f.size / 1024).toFixed(2)} KB)</li>`).join('')}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>${supportingFiles.length} file(s) selected:</strong>
+                    </div>
+                    <ul class="list-unstyled mb-0" style="max-height: 300px; overflow-y: auto;">
+                        ${supportingFiles.map((f, index) => `
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span>
+                                    <i class="ri-file-line me-2"></i>
+                                    ${f.name} <small class="text-muted">(${(f.size / 1024).toFixed(2)} KB)</small>
+                                </span>
+                                <button type="button" class="btn btn-sm btn-danger remove-file-btn" data-index="${index}">
+                                    <i class="ri-close-line"></i> Remove
+                                </button>
+                            </li>
+                        `).join('')}
                     </ul>
                 </div>
             `;
+            
+            document.querySelectorAll('.remove-file-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    removeFile(index);
+                });
+            });
         } else {
             selectedFilesList.innerHTML = '';
         }
+        
+        updateSupportingDocsPreview();
     }
     
-    supportingDocsInput.addEventListener('change', function(e) {
-        supportingFiles = Array.from(e.target.files);
+    function removeFile(index) {
+        supportingFiles.splice(index, 1);
         updateFilesList();
-        
+        updateFileInput();
+    }
+    
+    function updateFileInput() {
+        const dt = new DataTransfer();
+        supportingFiles.forEach(file => {
+            dt.items.add(file);
+        });
+        supportingDocsInput.files = dt.files;
+    }
+    
+    function updateSupportingDocsPreview() {
         if (supportingFiles.length > 0) {
-            supportingDocsEmpty.style.display = 'none';
+            if (supportingDocsEmpty) supportingDocsEmpty.style.display = 'none';
             supportingDocsGrid.style.display = 'block';
             
             supportingDocsGrid.innerHTML = '';
             
             supportingFiles.forEach((file, index) => {
+                const viewer = document.createElement('div');
+                viewer.className = 'supporting-doc-viewer mb-3';
+                viewer.style.minHeight = '600px';
+                
                 if (file.type === 'application/pdf') {
                     const fileURL = URL.createObjectURL(file);
-                    const viewer = document.createElement('div');
-                    viewer.className = 'supporting-doc-viewer mb-3';
-                    viewer.style.height = '600px';
                     viewer.innerHTML = `
-                        <div class="mb-2 px-3 py-2 bg-light rounded">
+                        <div class="mb-2 px-3 py-2 bg-light rounded d-flex justify-content-between align-items-center">
                             <small class="text-muted"><i class="ri-file-pdf-line me-1"></i>${file.name}</small>
                         </div>
-                        <iframe src="${fileURL}" type="application/pdf"></iframe>
+                        <div style="height: 600px;">
+                            <iframe src="${fileURL}" type="application/pdf" style="width: 100%; height: 100%; border: none; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></iframe>
+                        </div>
                     `;
                     supportingDocsGrid.appendChild(viewer);
                 }
+                else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                        file.type === 'application/msword' ||
+                        file.name.endsWith('.docx') || 
+                        file.name.endsWith('.doc')) {
+                    
+                    viewer.innerHTML = `
+                        <div class="mb-2 px-3 py-2 bg-light rounded d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><i class="ri-file-word-line me-1"></i>${file.name}</small>
+                            <span class="badge bg-info">Word Document</span>
+                        </div>
+                        <div id="word-preview-${index}" class="bg-white" style="height: 600px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-3 text-muted">Loading document preview...</p>
+                            </div>
+                        </div>
+                    `;
+                    supportingDocsGrid.appendChild(viewer);
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const arrayBuffer = e.target.result;
+                        
+                        const options = {
+                            arrayBuffer: arrayBuffer,
+                            styleMap: [
+                                "p[style-name='Title'] => h1.doc-title:fresh",
+                                "p[style-name='Heading 1'] => h1.doc-heading-1:fresh",
+                                "p[style-name='Heading 2'] => h2.doc-heading-2:fresh",
+                                "p[style-name='Heading 3'] => h3.doc-heading-3:fresh",
+                                "p[style-name='Heading 4'] => h4.doc-heading-4:fresh",
+                                "p[style-name='Normal'] => p.doc-normal:fresh",
+                                "r[style-name='Strong'] => strong",
+                                "r[style-name='Emphasis'] => em"
+                            ].join("\n"),
+                            ignoreEmptyParagraphs: false,
+                            convertImage: mammoth.images.imgElement(function(image) {
+                                return image.read("base64").then(function(imageBuffer) {
+                                    return {
+                                        src: "data:" + image.contentType + ";base64," + imageBuffer
+                                    };
+                                });
+                            })
+                        };
+                        
+                        mammoth.convertToHtml(options)
+                            .then(function(result) {
+                                const previewDiv = document.getElementById(`word-preview-${index}`);
+                                if (previewDiv) {
+                                    previewDiv.innerHTML = `
+                                        <style>
+                                            #word-preview-${index} .doc-page {
+                                                width: 21cm;
+                                                min-height: 29.7cm;
+                                                padding: 2.54cm 2.54cm 2.54cm 2.54cm; /* 1 inch margins all around */
+                                                margin: 1cm auto;
+                                                background: white;
+                                                box-shadow: 0 0 0.5cm rgba(0,0,0,0.15);
+                                                font-family: 'Calibri', 'Times New Roman', serif;
+                                                font-size: 11pt;
+                                                line-height: 1.5;
+                                                color: #000;
+                                            }
+                                            
+                                            #word-preview-${index} .doc-page * {
+                                                max-width: 100%;
+                                            }
+                                            
+                                            #word-preview-${index} .doc-title {
+                                                font-size: 26pt;
+                                                font-weight: bold;
+                                                margin: 0 0 12pt 0;
+                                                color: #000;
+                                                text-align: center;
+                                            }
+                                            
+                                            #word-preview-${index} .doc-heading-1,
+                                            #word-preview-${index} h1 {
+                                                font-size: 16pt;
+                                                font-weight: bold;
+                                                margin: 12pt 0 6pt 0;
+                                                color: #2E74B5;
+                                                border-bottom: 1px solid #2E74B5;
+                                                padding-bottom: 4pt;
+                                            }
+                                            
+                                            #word-preview-${index} .doc-heading-2,
+                                            #word-preview-${index} h2 {
+                                                font-size: 14pt;
+                                                font-weight: bold;
+                                                margin: 10pt 0 6pt 0;
+                                                color: #2E74B5;
+                                            }
+                                            
+                                            #word-preview-${index} .doc-heading-3,
+                                            #word-preview-${index} h3 {
+                                                font-size: 12pt;
+                                                font-weight: bold;
+                                                margin: 10pt 0 6pt 0;
+                                                color: #1F497D;
+                                            }
+                                            
+                                            #word-preview-${index} .doc-heading-4,
+                                            #word-preview-${index} h4 {
+                                                font-size: 11pt;
+                                                font-weight: bold;
+                                                font-style: italic;
+                                                margin: 10pt 0 6pt 0;
+                                                color: #1F497D;
+                                            }
+                                            
+                                            #word-preview-${index} .doc-normal,
+                                            #word-preview-${index} p {
+                                                margin: 0 0 8pt 0;
+                                                text-align: justify;
+                                                text-indent: 0;
+                                            }
+                                            
+                                            #word-preview-${index} ul,
+                                            #word-preview-${index} ol {
+                                                margin: 0 0 8pt 0;
+                                                padding-left: 1.27cm; /* 0.5 inch */
+                                            }
+                                            
+                                            #word-preview-${index} li {
+                                                margin-bottom: 4pt;
+                                            }
+                                            
+                                            #word-preview-${index} table {
+                                                border-collapse: collapse;
+                                                margin: 8pt 0;
+                                                width: 100%;
+                                                border: 1px solid #000;
+                                            }
+                                            
+                                            #word-preview-${index} td,
+                                            #word-preview-${index} th {
+                                                border: 1px solid #000;
+                                                padding: 4pt 6pt;
+                                                vertical-align: top;
+                                            }
+                                            
+                                            #word-preview-${index} th {
+                                                background-color: #4472C4;
+                                                color: white;
+                                                font-weight: bold;
+                                            }
+                                            
+                                            #word-preview-${index} img {
+                                                max-width: 100%;
+                                                height: auto;
+                                                display: block;
+                                                margin: 8pt auto;
+                                            }
+                                            
+                                            #word-preview-${index} strong,
+                                            #word-preview-${index} b {
+                                                font-weight: bold;
+                                            }
+                                            
+                                            #word-preview-${index} em,
+                                            #word-preview-${index} i {
+                                                font-style: italic;
+                                            }
+                                            
+                                            #word-preview-${index} u {
+                                                text-decoration: underline;
+                                            }
+                                            
+                                            #word-preview-${index} hr {
+                                                page-break-after: always;
+                                                border: none;
+                                                margin: 0;
+                                                padding: 0;
+                                            }
+                                        </style>
+                                        <div class="doc-page">
+                                            ${result.value}
+                                        </div>
+                                    `;
+                                }
+                                
+                                if (result.messages.length > 0) {
+                                    console.log('Word conversion notes:', result.messages);
+                                }
+                            })
+                            .catch(function(err) {
+                                const previewDiv = document.getElementById(`word-preview-${index}`);
+                                if (previewDiv) {
+                                    previewDiv.innerHTML = `
+                                        <div class="alert alert-warning m-3">
+                                            <i class="ri-alert-line me-2"></i>
+                                            <strong>Preview not available</strong>
+                                            <p class="mb-0 mt-2">Unable to preview this Word document. The file will still be uploaded successfully.</p>
+                                            <small class="text-muted d-block mt-2">Error: ${err.message}</small>
+                                        </div>
+                                    `;
+                                }
+                                console.error('Error converting Word document:', err);
+                            });
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
             });
         } else {
-            supportingDocsEmpty.style.display = 'flex';
+            if (supportingDocsEmpty) supportingDocsEmpty.style.display = 'flex';
             supportingDocsGrid.style.display = 'none';
         }
+    }
+    
+    supportingDocsInput.addEventListener('change', function(e) {
+        const newFiles = Array.from(e.target.files);
+        
+        newFiles.forEach(newFile => {
+            const isDuplicate = supportingFiles.some(f => f.name === newFile.name && f.size === newFile.size);
+            if (!isDuplicate) {
+                supportingFiles.push(newFile);
+            }
+        });
+        
+        updateFilesList();
+        updateFileInput();
+    });
+    
+    addMoreBtn.addEventListener('click', function() {
+        supportingDocsInput.click();
     });
 
     @if($change_request)
