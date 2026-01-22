@@ -547,15 +547,23 @@ class DocumentController extends Controller
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
     }
-    public function publicDocument(Request $request,$id)
-    {
-        $document = Document::with('change_requests.user', 'change_requests.approvers.user
-        ')->findOrFail($id);
+    
+    // public function publicDocument(Request $request,$id)
+    // {
+    //     $document = Document::with('change_requests.user', 'change_requests.approvers.user
+    //     ')->findOrFail($id);
 
-        return view('public.document', 
-            array(
-                'document' => $document
-            )
-        );
+    //     return view('public.document', 
+    //         array(
+    //             'document' => $document
+    //         )
+    //     );
+    // }
+
+    public function viewChangeRequest($id)
+    {
+        $change_request = ChangeRequest::with('user', 'approvers.user', 'supporting_documents')->findOrFail($id);
+        
+        return view('public.change-request', compact('change_request'));
     }
 }

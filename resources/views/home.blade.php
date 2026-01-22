@@ -271,6 +271,21 @@
         margin-right: 5px;
     }
 }
+
+@media print {
+    body {
+        margin: 0;
+        padding: 20px;
+    }
+    
+    #qrPrintTemplate {
+        display: block !important;
+    }
+    
+    @page {
+        margin: 1cm;
+    }
+}
 </style>
 @endsection
 
@@ -347,6 +362,21 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-semibold text-dark mb-0">Pending Documents</h5>
                     <div class="d-flex gap-2">
+                        <form action="{{ route('home') }}" method="GET" class="d-flex gap-2">
+                            <div class="position-relative">
+                                <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" name="pending_search" value="{{ request('pending_search') }}" 
+                                    placeholder="Search pending..." class="form-control form-control-sm ps-5" style="min-width: 200px;">
+                            </div>
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                <i class="ri-search-line"></i>
+                            </button>
+                            @if(request('pending_search'))
+                            <a href="{{ route('home') }}" class="btn btn-outline-danger btn-sm">
+                                <i class="ri-close-line"></i>
+                            </a>
+                            @endif
+                        </form>
                         <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
                             <i class="ri-file-add-line"></i> New Document
                         </a>
@@ -354,7 +384,7 @@
                 </div>
 
                 <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3">
-                    @foreach ($change_requests as $change_request)
+                    @foreach ($pending_cards as $change_request)
                     <div class="col">
                         <div class="card border file-card position-relative">
                             <div class="position-absolute top-0 end-0 m-2 more-btn">
@@ -393,7 +423,6 @@
                         </div>
                     </div>
                     @endforeach
-                    {{-- Loop through actual files --}}
                     {{-- @foreach($files as $file)
                     <div class="col">
                         <div class="card border file-card position-relative">
@@ -413,6 +442,53 @@
                     </div>
                     @endforeach --}}
                 </div>
+
+                @if($change_requests->hasPages())
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <div class="text-muted" style="font-size: 0.875rem;">
+                        Showing <strong>{{ $change_requests->firstItem() }}</strong> to <strong>{{ $change_requests->lastItem() }}</strong> of <strong>{{ $change_requests->total() }}</strong> documents
+                    </div>
+                    <nav aria-label="Pending documents pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            @if ($change_requests->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="ri-arrow-left-s-line"></i> Previous</span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $change_requests->previousPageUrl() }}" rel="prev">
+                                        <i class="ri-arrow-left-s-line"></i> Previous
+                                    </a>
+                                </li>
+                            @endif
+
+                            @foreach ($change_requests->getUrlRange(1, $change_requests->lastPage()) as $page => $url)
+                                @if ($page == $change_requests->currentPage())
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link">{{ $page }}</span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                    </li>
+                                @endif
+                            @endforeach
+
+                            @if ($change_requests->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $change_requests->nextPageUrl() }}" rel="next">
+                                        Next <i class="ri-arrow-right-s-line"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next <i class="ri-arrow-right-s-line"></i></span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -531,7 +607,11 @@
                         <td>
                             <a href="{{ url($change_request->file) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
                                 <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
-                                <span style="font-size: 0.875rem;" class="text-dark">{{ $change_request->title }}.pdf</span>
+                                @php
+                                    $file = $change_request->file;
+                                    $filename = explode('/',$file);
+                                @endphp 
+                                <span style="font-size: 0.875rem;" class="text-dark">{{ $filename[count($filename)-1] }}</span>
                             </a>
                         </td>
                         <td>
@@ -539,10 +619,21 @@
                             <small class="text-muted">{{ date('M d Y', strtotime($change_request->created_at)) }}</small>
                         </td>
                         <td>
-                            <span class="badge bg-success" style="font-size: 0.75rem;">Active</span>
+                            @if($change_request->status == 'Approved')
+                                <span class="badge bg-success" style="font-size: 0.75rem;">Approved</span>
+                            @elseif($change_request->status == 'Pending')
+                                <span class="badge bg-warning" style="font-size: 0.75rem;">Pending</span>
+                            @elseif($change_request->status == 'Declined')
+                                <span class="badge bg-danger" style="font-size: 0.75rem;">Declined</span>
+                            @else
+                                <span class="badge bg-secondary" style="font-size: 0.75rem;">Draft</span>
+                            @endif
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary view-qr-btn" data-doc-id="{{ $code }}" data-doc-title="{{ $change_request->title }}">
+                            <button class="btn btn-sm btn-outline-primary view-qr-btn" 
+                                    data-doc-id="{{ $code }}" 
+                                    data-doc-title="{{ $change_request->title }}"
+                                    data-change-request-id="{{ $change_request->id }}">
                                 <i class="ri-qr-code-line"></i> View QR
                             </button>
                         </td>
@@ -553,18 +644,20 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li>
+                                        <a href="{{ url($change_request->file) }}" class="dropdown-item" target="_blank">
+                                            <i class="ri-eye-line me-2"></i>View Document
+                                        </a>
+                                    </li>
+                                    @if($change_request->status == 'Pending')
+                                    <li>
+                                        <a href="{{ route('documents.signature', $change_request->id) }}" class="dropdown-item">
+                                            <i class="ri-checkbox-circle-line me-2"></i>Approve
+                                        </a>
+                                    </li>
+                                    @endif
+                                    <li>
                                         <button class="dropdown-item print-doc-btn">
                                             <i class="ri-printer-line me-2"></i>Print
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item">
-                                            <i class="ri-pencil-line me-2"></i>Edit
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item">
-                                            <i class="ri-delete-bin-line me-2"></i>Delete
                                         </button>
                                     </li>
                                 </ul>
@@ -595,10 +688,7 @@
     </div>
 </div>
 
-@foreach ($change_requests as $change_request)
-@php
-    $code = "DOC-".date('Y', strtotime($change_request->created_at)).'-'.str_pad($change_request->id,3,'0',STR_PAD_LEFT);
-@endphp
+@if($change_requests->count() > 0)
 <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -612,24 +702,28 @@
                     </div>
                 </div>
                 <div class="mb-2">
-                    <svg class="barcode"
+                    <svg class="barcode-display"
                         jsbarcode-format="Code39"
-                        jsbarcode-value="{{ $code }}"
                         jsbarcode-textmargin="0"
                         jsbarcode-fontoptions="bold"
-                        jsbarcode-displayvalue="false"
-                        >
+                        jsbarcode-displayvalue="true">
                     </svg>
                 </div>
                 <div class="alert alert-info mb-3" role="alert">
                     <i class="ri-information-line"></i> Scan this QR code to access document details
                 </div>
                 <div class="mb-2">
-                    <strong>Document ID:</strong> <span id="qrDocId" class="text-primary">Doc-2024-001</span>
+                    <strong>Document ID:</strong> <span id="qrDocId" class="text-primary"></span>
                 </div>
                 <div class="mb-2">
-                    <strong>Document Title:</strong> <span id="qrDocTitle">Quality Management System Manual</span>
+                    <strong>Document Title:</strong> <span id="qrDocTitle"></span>
                 </div>
+                {{-- <div class="mb-2">
+                    <strong>Category:</strong> <span id="qrDocCategory"></span>
+                </div>
+                <div class="mb-2">
+                    <strong>Status:</strong> <span id="qrDocStatus"></span>
+                </div> --}}
                 <div>
                     <strong>URL:</strong> 
                     <div class="input-group input-group-sm mt-1">
@@ -652,20 +746,35 @@
         </div>
     </div>
 </div>
-@endforeach
+@endif
 
 <div id="qrPrintTemplate" style="display: none;">
-    <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif;">
-        <h2 style="margin-bottom: 20px;">Document QR Code</h2>
-        <div id="qrPrintCode" style="margin: 30px auto;"></div>
-        <div style="margin-top: 30px;">
-            <p style="font-size: 18px; margin: 10px 0;"><strong>Document ID:</strong> <span id="qrPrintDocId"></span></p>
-            <p style="font-size: 18px; margin: 10px 0;"><strong>Title:</strong> <span id="qrPrintDocTitle"></span></p>
-            <p style="font-size: 14px; margin: 20px 0; color: #666;"><strong>URL:</strong> <span id="qrPrintDocUrl"></span></p>
+    <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+        <h2 style="margin-bottom: 30px; color: #333;">Document QR Code</h2>
+        
+        <div style="display: flex; justify-content: center; margin: 30px auto;">
+            <div id="qrPrintCode" style="display: inline-block;"></div>
         </div>
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="font-size: 12px; color: #999;">Scan this QR code to access document details</p>
-            <p style="font-size: 12px; color: #999;">Generated on: <span id="qrPrintDate"></span></p>
+        
+        <div style="display: flex; justify-content: center; margin: 30px auto;">
+            <svg class="barcode-print"
+                jsbarcode-format="CODE39"
+                jsbarcode-textmargin="0"
+                jsbarcode-fontoptions="bold"
+                jsbarcode-displayvalue="true"
+                style="max-width: 100%;">
+            </svg>
+        </div>
+        
+        <div style="margin-top: 40px; text-align: center;">
+            <p style="font-size: 18px; margin: 15px 0;"><strong>Document ID:</strong> <span id="qrPrintDocId"></span></p>
+            <p style="font-size: 18px; margin: 15px 0;"><strong>Title:</strong> <span id="qrPrintDocTitle"></span></p>
+            {{-- <p style="font-size: 14px; margin: 20px 0; color: #666; word-break: break-all;"><strong>URL:</strong> <span id="qrPrintDocUrl"></span></p> --}}
+        </div>
+        
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #ddd;">
+            <p style="font-size: 12px; color: #999; margin: 10px 0;">Scan this QR code or barcode to access document details</p>
+            <p style="font-size: 12px; color: #999; margin: 10px 0;">Generated on: <span id="qrPrintDate"></span></p>
         </div>
     </div>
 </div>
@@ -819,8 +928,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const docId = this.getAttribute('data-doc-id');
             const docTitle = this.getAttribute('data-doc-title');
+            const changeRequestId = this.getAttribute('data-change-request-id');
             
-            const docUrl = window.location.origin + '/document/' + docId;
+            const docUrl = window.location.origin + '/change-request/' + changeRequestId;
             
             document.getElementById('qrDocId').textContent = docId;
             document.getElementById('qrDocTitle').textContent = docTitle;
@@ -836,6 +946,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 colorDark: "#000000",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            JsBarcode(".barcode-display", docId, {
+                format: "CODE39",
+                textMargin: 0,
+                fontOptions: "bold",
+                displayValue: true
             });
             
             qrModal.show();
@@ -861,7 +978,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('qrPrintDocId').textContent = docId;
         document.getElementById('qrPrintDocTitle').textContent = docTitle;
-        document.getElementById('qrPrintDocUrl').textContent = docUrl;
+        // document.getElementById('qrPrintDocUrl').textContent = docUrl;
         document.getElementById('qrPrintDate').textContent = new Date().toLocaleString();
         
         const printQrContainer = document.getElementById('qrPrintCode');
@@ -875,11 +992,27 @@ document.addEventListener('DOMContentLoaded', function() {
             correctLevel: QRCode.CorrectLevel.H
         });
         
+        JsBarcode(".barcode-print", docId, {
+            format: "CODE39",
+            width: 2,
+            height: 80,
+            textMargin: 0,
+            fontOptions: "bold",
+            displayValue: true,
+            fontSize: 14
+        });
+        
         setTimeout(() => {
             const printContents = document.getElementById('qrPrintTemplate').innerHTML;
             const originalContents = document.body.innerHTML;
+            
             document.body.innerHTML = printContents;
+            document.body.style.display = 'flex';
+            document.body.style.justifyContent = 'center';
+            document.body.style.alignItems = 'center';
+            
             window.print();
+            
             document.body.innerHTML = originalContents;
             location.reload();
         }, 500);
