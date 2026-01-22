@@ -20,10 +20,12 @@ Route::group(['middleware' => 'auth'], function () {
         
         // Documents
         Route::get('/documents', 'DocumentController@index')->name('documents');
+        Route::get('/documents2', 'DocumentController@index2')->name('documents2');
         Route::prefix('documents')->group(function() {
             Route::get('create/{id?}', 'DocumentController@create')->name('documents.create');
             Route::get('signature/{id}', 'DocumentController@signature')->name('documents.signature');
             Route::get('folder/{id}','DocumentController@folderView');
+            Route::get('folder2/{id}','DocumentController@folderView2');
             Route::get('view-document/{id}','DocumentController@show');
             Route::get('/view-pdf/{id}','DocumentController@showPDF')->name('documents');
 

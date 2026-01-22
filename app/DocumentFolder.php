@@ -10,8 +10,14 @@ class DocumentFolder extends Model
     {
         return $this->hasMany(Document::class,'folder_id','id');
     }
+    
     public function childrenFolder()
     {
         return $this->hasMany(DocumentFolder::class,'parent_id','id');
+    }
+    
+    public function parent()
+    {
+        return $this->belongsTo(DocumentFolder::class, 'parent_id', 'id');
     }
 }
