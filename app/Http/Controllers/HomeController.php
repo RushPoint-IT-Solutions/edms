@@ -28,14 +28,31 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index()
+    public function index(Request $request)
     {
         $change_requests = ChangeRequest::get();
         $documents = Document::where('public',1)->get();
         if (auth()->user()->role != "Administrator")
         {
-            $change_requests = ChangeRequest::where('user_id', auth()->user()->id)->get();
+            $pending_query = ChangeRequest::where('user_id', auth()->user()->id);
+            $table_query = ChangeRequest::where('user_id', auth()->user()->id);
         }
+        else
+        {
+            $pending_query = ChangeRequest::query();
+            $table_query = ChangeRequest::query();
+        }
+        
+        if ($request->has('pending_search') && $request->pending_search) {
+            $search = $request->pending_search;
+            $pending_query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                ->orWhere('file', 'like', '%' . $search . '%');
+            });
+        }
+        
+        $pending_cards = $pending_query->orderBy('created_at', 'desc')->paginate(10);
+        $change_requests = $table_query->orderBy('created_at', 'desc')->paginate(10);
         // $copy_requests = CopyRequest::get();
 
         // $yearChangeRequests = ChangeRequest::whereYear('created_at',date('Y'))->get();
@@ -95,6 +112,7 @@ class HomeController extends Controller
             // 'departments' =>  $departments,
             'change_requests' =>  $change_requests,
             'documents' =>  $documents,
+            'pending_cards' => $pending_cards,
             // 'categories' =>  $categories,
             // 'copy_requests' =>  $copy_requests,
             // 'months' =>  $months,
