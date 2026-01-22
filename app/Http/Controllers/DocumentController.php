@@ -116,6 +116,33 @@ class DocumentController extends Controller
         );
     }
 
+    public function index2(Request $request)
+    {
+        $search = $request->search;
+        $department = $request->department;
+
+        $document_types = DocumentType::orderBy('name','desc')->get();
+        $document_folders = DocumentFolder::with('document','childrenFolder')->where('parent_id',null)->get();
+        $obsoletes = Obsolete::get();
+
+        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
+        if (auth()->user()->role != "Administrator")
+        {
+            $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
+        }
+
+        return view('documents.documents2',
+        array(
+            'documents' => $documents,
+            'obsoletes' => $obsoletes,
+            'document_types' => $document_types,
+            'search' => $search,
+            'dep' => $department,
+            'document_folders' => $document_folders
+            )
+        );
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -485,6 +512,153 @@ class DocumentController extends Controller
             )
         );
     }
+
+    public function folderView2(Request $request, $id)
+    {
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10);
+        
+        $document_types = DocumentType::orderBy('name','desc')->get();
+        $all_document_folders = DocumentFolder::get();
+
+        if ($id === 'others') {
+            $documentsQuery = Document::with('change_requests','attachments')
+                ->whereNull('folder_id');
+            
+            if (auth()->user()->role != "Administrator") {
+                $documentsQuery->where('user_id', auth()->user()->id);
+            }
+
+            if ($search) {
+                $documentsQuery->where(function($query) use ($search) {
+                    $query->where('title', 'like', '%'.$search.'%')
+                        ->orWhere('control_code', 'like', '%'.$search.'%');
+                });
+            }
+
+            $documents = $documentsQuery->orderBy('control_code', 'desc')->get();
+
+            $items = $documents->map(function($doc) {
+                return (object)[
+                    'id' => $doc->id,
+                    'name' => $doc->control_code . ' - ' . $doc->title,
+                    'title' => $doc->title,
+                    'control_code' => $doc->control_code,
+                    'type' => 'document',
+                    'updated_at' => $doc->updated_at,
+                ];
+            });
+
+            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $itemCollection = collect($items);
+            $currentPageItems = $itemCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+            $paginatedItems = new \Illuminate\Pagination\LengthAwarePaginator(
+                $currentPageItems,
+                $itemCollection->count(),
+                $perPage,
+                $currentPage,
+                ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
+            );
+
+            $document_folders_list = DocumentFolder::where('parent_id', null)->get();
+
+            return view('documents.folder_view2',
+                array(
+                    'folder_data' => (object)[
+                        'id' => 'others',
+                        'name' => 'Others',
+                        'childrenFolder' => collect([]),
+                        'document' => $documents,
+                        'updated_at' => now()
+                    ],
+                    'document_folders' => $all_document_folders,
+                    'documents' => Document::all(),
+                    'folders' => $paginatedItems,
+                    'totalFolders' => 0,
+                    'totalDocuments' => $documents->count(),
+                    'totalItems' => $documents->count(),
+                    'is_others_folder' => true,
+                    'document_types' => $document_types
+                )
+            );
+        }
+
+        $folder_data = DocumentFolder::with([
+            'document',
+            'childrenFolder',
+            'parent',
+            'parent.parent',
+            'parent.parent.parent',
+            'parent.parent.parent.parent'
+        ])->findOrFail($id);
+        
+        $foldersQuery = DocumentFolder::where('parent_id', $id);
+        $documentsQuery = Document::where('folder_id', $id);
+
+        if ($search) {
+            $foldersQuery->where('name', 'like', '%'.$search.'%');
+            $documentsQuery->where(function($query) use ($search) {
+                $query->where('title', 'like', '%'.$search.'%')
+                    ->orWhere('control_code', 'like', '%'.$search.'%');
+            });
+        }
+
+        $childFolders = $foldersQuery->orderBy('name', 'asc')->get();
+        $childDocuments = $documentsQuery->orderBy('control_code', 'desc')->get();
+
+        $items = collect();
+        
+        foreach ($childFolders as $folder) {
+            $items->push((object)[
+                'id' => $folder->id,
+                'name' => $folder->name,
+                'type' => 'folder',
+                'updated_at' => $folder->updated_at,
+            ]);
+        }
+        
+        foreach ($childDocuments as $doc) {
+            $items->push((object)[
+                'id' => $doc->id,
+                'name' => $doc->control_code . ' - ' . $doc->title,
+                'title' => $doc->title,
+                'control_code' => $doc->control_code,
+                'type' => 'document',
+                'updated_at' => $doc->updated_at,
+            ]);
+        }
+
+        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+        $currentPageItems = $items->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        $paginatedItems = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentPageItems,
+            $items->count(),
+            $perPage,
+            $currentPage,
+            ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        $documents = Document::all();
+        
+        $totalFolders = $childFolders->count();
+        $totalDocuments = $childDocuments->count();
+        $totalItems = $totalFolders + $totalDocuments;
+
+        return view('documents.folder_view2',
+            array(
+                'folder_data' => $folder_data,
+                'document_folders' => $all_document_folders,
+                'documents' => $documents,
+                'folders' => $paginatedItems,
+                'totalFolders' => $totalFolders,
+                'totalDocuments' => $totalDocuments,
+                'totalItems' => $totalItems,
+                'is_others_folder' => false,
+                'document_types' => $document_types
+            )
+        );
+    }
+
     public function renameFolder(Request $request,$id)
     {
         $folder = DocumentFolder::findOrFail($id);
