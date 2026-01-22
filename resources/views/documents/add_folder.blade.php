@@ -6,7 +6,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" id="addFolderBtn-close" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form autocomplete="off" method="POST" action="{{ url('documents/store-folder') }}" class="needs-validation createfolder-form" id="createfolder-form" onsubmit="show()">
+                <form autocomplete="off" method="POST" action="{{ url('documents/store-folder') }}" id="createfolder-form" onsubmit="show()">
                     @csrf
                     {{-- @dd($folder) --}}
                     @if(isset($folder_data))

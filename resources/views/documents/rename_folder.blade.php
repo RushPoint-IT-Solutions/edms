@@ -14,8 +14,8 @@
                         <input type="text" name="name" class="form-control" id="foldername-input" value="{{ $folder->name }}" required placeholder="Enter folder name">
                     </div>
                     <div class="hstack gap-2 justify-content-end">
-                        <button type="button" class="btn btn-ghost-success material-shadow-none" data-bs-dismiss="modal"><i class="ri-close-line align-bottom"></i> Close</button>
-                        <button type="submit" class="btn btn-primary" id="addNewFolder">Add Folder</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal"><i class="ri-close-line align-bottom"></i> Close</button>
+                        <button type="submit" class="btn btn-primary" id="addNewFolder">Rename Folder</button>
                     </div>
                 </form>
             </div>

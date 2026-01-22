@@ -6,12 +6,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" id="addFolderBtn-close" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form autocomplete="off" method="POST" action="{{ url('documents/upload-document-folder') }}" class="needs-validation createfolder-form" id="createfolder-form" onsubmit="show()">
+                <form autocomplete="off" method="POST" action="{{ url('documents/upload-document-folder') }}" id="createfolder-form" onsubmit="show()">
                     @csrf
-                    {{-- @dd($folder) --}}
-                    @if(isset($folder_data))
-                    <input type="hidden" name="folder_id" value="{{ $folder_data->id }}">
-                    @endif
+                    
+                    <input type="hidden" name="folder_id" id="moveDocumentFolder">
                     
                     <div class="mb-4">
                         <label for="foldername-input" class="form-label">Select documents</label>
