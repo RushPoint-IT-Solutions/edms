@@ -32,14 +32,18 @@ class HomeController extends Controller
     {
         $change_requests = ChangeRequest::get();
         $documents = Document::where('public',1)->get();
+        
         if (auth()->user()->role != "Administrator")
         {
-            $pending_query = ChangeRequest::where('user_id', auth()->user()->id);
+            $pending_query = ChangeRequest::where('user_id', auth()->user()->id)
+                                        ->where('status', 'For Approval')
+                                        ->where('request_status', 'Pending');
             $table_query = ChangeRequest::where('user_id', auth()->user()->id);
         }
         else
         {
-            $pending_query = ChangeRequest::query();
+            $pending_query = ChangeRequest::where('status', 'For Approval')
+                                        ->where('request_status', 'Pending');
             $table_query = ChangeRequest::query();
         }
         
@@ -51,8 +55,8 @@ class HomeController extends Controller
             });
         }
         
-        $pending_cards = $pending_query->orderBy('created_at', 'desc')->paginate(10);
-        $change_requests = $table_query->orderBy('created_at', 'desc')->paginate(10);
+        $pending_cards = $pending_query->orderBy('created_at', 'desc')->paginate(10, ['*'], 'pending_page');
+        $change_requests = $table_query->orderBy('created_at', 'desc')->paginate(10, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
         // $yearChangeRequests = ChangeRequest::whereYear('created_at',date('Y'))->get();
