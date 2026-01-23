@@ -206,6 +206,7 @@ class UserController extends Controller
         $account = User::where('id', $request->id)->first();
         $account->name = $request->name;
         $account->email = $request->email;
+        $account->role = $request->role;
         // $account->company_id = $request->company;
         // $account->department_id = $request->department;
         $account->save();
