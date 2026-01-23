@@ -345,14 +345,14 @@
                         </li>
 
                         <!-- Search -->
-                        @can('search')
+                        {{-- @can('search') --}}
                         <li class="nav-item {{ Route::current()->getName() == 'search' ? 'active' : '' }}" onclick="show()">
                             <a class="nav-link menu-link" href="{{url('/search')}}">
                                 <i class="ri-search-line"></i>
                                 <span data-key="t-search">Search</span>
                             </a>
                         </li>
-                        @endcan
+                        {{-- @endcan --}}
 
                         <!-- Copy Requests -->
                         {{-- @can('copy request')
@@ -375,35 +375,35 @@
                         @endif --}}
 
                         <!-- Change Requests -->
-                        @can('change request')
+                        {{-- @can('change request') --}}
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
                                 <span data-key="t-change-requests">Change Requests</span>
                             </a>
                         </li>
-                        @endcan
+                        {{-- @endcan --}}
 
                         <!-- For Approval (For approvers only) -->
-                        @can('for approval')
+                        {{-- @can('for approval') --}}
                         <li class="nav-item {{ Route::current()->getName() == 'for-approval' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/for-approval')}}">
                                 <i class="ri-checkbox-line"></i>
                                 <span data-key="t-for-approval">For Approval</span>
                             </a>
                         </li>
-                        @endcan
+                        {{-- @endcan --}}
                         {{-- @endif --}}
 
                         <!-- Documents -->
-                        @can('documents')
+                        {{-- @can('documents') --}}
                         <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/documents')}}">
                                 <i class="ri-folder-2-line"></i>
                                 <span data-key="t-documents">Documents</span>
                             </a>
                         </li>
-                        @endcan
+                        {{-- @endcan --}}
                         
                         <li class="nav-item {{ Route::current()->getName() == 'documents2' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/documents2')}}">
@@ -421,14 +421,14 @@
                         </li> --}}
 
                         <!-- Permits & Licenses (Specific roles and accountable persons) -->
-                        @can('permits and license')
+                        {{-- @can('permits and license') --}}
                         <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/permits')}}">
                                 <i class="ri-file-shield-line"></i>
                                 <span data-key="t-permits">Permits & Licenses</span>
                             </a>
                         </li>
-                        @endcan
+                        {{-- @endcan --}}
 
                         <!-- Documents IA (Audit role only) -->
                         {{-- @if(auth()->user()->audit_role != null)
@@ -448,7 +448,7 @@
                         </li> --}}
 
                         <!-- Settings Submenu -->
-                        @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission'))
+                        {{-- @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                             href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
@@ -465,25 +465,25 @@
                                     {{-- <li class="nav-item">
                                         <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                     </li> --}}
-                                    @can('users')
+                                    {{-- @can('users') --}}
                                         <li class="nav-item">
                                             <a href="{{ url('users') }}" class="nav-link {{ Request::is('users') || Request::is('new-user') || Request::is('*user*') && !Request::is('remove-approvers') ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
-                                    @endcan
-                                    @can('rmo')
+                                    {{-- @endcan --}}
+                                    {{-- @can('rmo') --}}
                                         <li class="nav-item">
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
-                                    @endcan
-                                    @can('roles and permission')
+                                    {{-- @endcan --}}
+                                    {{-- @can('roles and permission') --}}
                                         <li class="nav-item">
                                             <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
                                         </li>
-                                    @endcan
+                                    {{-- @endcan --}}
                                 </ul>
                             </div>
                         </li>
-                        @endif
+                        {{-- @endif --}}
 
                         <!-- Reports Submenu -->
                         {{-- <li class="nav-item {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'active' : '' }}">
