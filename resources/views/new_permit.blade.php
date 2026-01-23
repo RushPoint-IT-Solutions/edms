@@ -17,7 +17,7 @@
                             <label>Description :</label>
                             <textarea type="text" class="form-control-sm form-control" name="description" required>{{ old('description') }}</textarea>
                         </div>
-                        <div class='col-md-12'>
+                        {{-- <div class='col-md-12'>
                             <label>Company :</label>
                             <select name='company' class='form-control-sm form-control cat' required>
                                 <option value=""></option>
@@ -25,8 +25,8 @@
                                     <option value='{{$company->id}}' @if(old('company') == $company->id) selected @endif>{{$company->code}} - {{$company->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class='col-md-12'>
+                        </div> --}}
+                        {{-- <div class='col-md-12'>
                             <label>Department :</label>
                             <select name='department' class='form-control-sm form-control cat' required>
                                 <option value=""></option>
@@ -34,7 +34,7 @@
                                     <option value='{{$department->id}}' @if(old('department') == $department->id) selected @endif>{{$department->code}} - {{$department->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
+                        </div> --}}
                         <div class='col-md-12'>
                             <label>Type :</label>
                             <select name='type' class='form-control-sm form-control cat' required>
