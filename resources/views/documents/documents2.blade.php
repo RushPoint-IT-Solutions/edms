@@ -371,7 +371,7 @@
                             @if($hasOthers)
                                 <tr class="folder-row" 
                                     data-folder-name="others"
-                                    onclick="window.location='{{ url('documents/folder/others') }}'">
+                                    onclick="window.location='{{ url('documents/folder2/others') }}'">
                                     <td class="checkbox-cell" onclick="event.stopPropagation()">
                                         <input type="checkbox" class="form-check-input">
                                     </td>
