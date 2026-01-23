@@ -158,7 +158,7 @@
                         New
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton1" style="">
-                        <a class="dropdown-item" href="#">New file</a>
+                        <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#uploadDocument">New file</a>
                         <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#createFolderModal">New folder</a>
                     </div>
                 </div>
@@ -301,6 +301,7 @@
     </div>
 </div>
 
+@include('documents.upload_document')
 @include('documents.add_folder')
 @include('documents.add_documents_in_folder')
 @foreach ($document_folders as $folder)
