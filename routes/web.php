@@ -165,7 +165,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 });
 
-// Route::get('document/{id}', 'DocumentController@publicDocument');
+Route::get('document/{id}', 'DocumentController@publicDocument');
 Route::get('/change-request/{id}', 'DocumentController@viewChangeRequest')->name('change-request.view');
 // Route::get('/document/{documentId}', function($documentId) {
 //     return view('public.document');
