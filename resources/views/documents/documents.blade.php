@@ -231,12 +231,10 @@
             // ]
         });
 
-        // Custom search functionality
         $('#tableSearch').on('keyup', function() {
             $('.tables').DataTable().search(this.value).draw();
         });
 
-        // Custom entries per page
         $('#entriesPerPage').on('change', function() {
             $('.tables').DataTable().page.len(this.value).draw();
         });
@@ -245,6 +243,54 @@
             dropdownParent: $('#addDocumentInFolder'),
             theme: "classic"
         })
+
+        $('.search-box input[type="text"]').on('keyup', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            
+            $('.file-manager-menu li').each(function() {
+                const $li = $(this);
+                const text = $li.find('.file-list-link').first().text().toLowerCase();
+                
+                const $collapse = $li.find('.collapse');
+                
+                if (text.includes(searchTerm)) {
+                    $li.show();
+                    
+                    if ($collapse.length > 0 && searchTerm !== '') {
+                        $collapse.addClass('show');
+                    }
+                } else {
+                    let hasMatchingChild = false;
+                    
+                    if ($collapse.length > 0) {
+                        $collapse.find('.file-list-link').each(function() {
+                            if ($(this).text().toLowerCase().includes(searchTerm)) {
+                                hasMatchingChild = true;
+                                return false;
+                            }
+                        });
+                    }
+                    
+                    if (hasMatchingChild) {
+                        $li.show();
+                        if (searchTerm !== '') {
+                            $collapse.addClass('show');
+                        }
+                    } else {
+                        $li.hide();
+                    }
+                }
+            });
+            
+            if (searchTerm === '') {
+                $('.file-manager-menu li').show();
+                $('.file-manager-menu .collapse').removeClass('show');
+            }
+        });
+        
+        $('.search-box .search-icon').on('click', function() {
+            $(this).siblings('input[type="text"]').focus();
+        });
 
         var menu = new BootstrapMenu('.demoTableRow', {
             fetchElementData: function ($rowElem) {
@@ -258,7 +304,6 @@
                     name: 'Rename folder',
                     iconClass: 'fa-pencil',
                     onClick: function (folder) {
-                        // renameFolder(folder.id);
                         $("#renameFolderModal"+folder.id).modal("show")
                     }
                 },
