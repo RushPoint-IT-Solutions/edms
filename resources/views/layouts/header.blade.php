@@ -355,14 +355,14 @@
                         @endcan
 
                         <!-- Copy Requests -->
-                        @can('copy request')
+                        {{-- @can('copy request')
                         <li class="nav-item {{ Route::current()->getName() == 'requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/request')}}">
                                 <i class="ri-file-copy-line"></i>
                                 <span data-key="t-copy-requests">Copy Requests</span>
                             </a>
                         </li>
-                        @endcan
+                        @endcan --}}
 
                         <!-- Pre-Assessment (Admin, DCO, or User ID 286 only) -->
                         {{-- @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Document Control Officer") || (auth()->user()->id == "286"))

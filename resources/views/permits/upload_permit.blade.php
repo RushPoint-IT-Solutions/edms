@@ -1,23 +1,21 @@
-<div class="modal fade" id="changeType{{$permit->id}}" tabindex="-1" aria-labelledby="changeTypeLabel{{$permit->id}}" aria-hidden="true">
+<div class="modal fade" id="upload{{$permit->id}}" tabindex="-1" aria-labelledby="uploadLabel{{$permit->id}}" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="changeTypeModalLabel{{$permit->id}}">Change Type</h5>
+                <h5 class="modal-title" id="uploadModalLabel{{$permit->id}}">Upload Permit/License</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method='post' action='change-type/{{$permit->id}}' onsubmit='show();' enctype="multipart/form-data">
+            <form method='post' action='{{ url('permits/upload/'.$permit->id) }}' onsubmit='show();' enctype="multipart/form-data">
                 <div class="modal-body">
                     {{ csrf_field() }}
                     <div class='row'>
                         <div class='col-md-12'>
-                            <label>Title :</label>
-                            <input name='title' value='{{$permit->title}}' class='form-control form-control-sm' required>
+                            <label>File :</label>
+                            <input type="file" class="form-control-sm form-control" name="file" required/>
                         </div>
-                    </div>
-                    <div class='row'>
                         <div class='col-md-12'>
-                            <label>Type :</label>
-                            <input name='type' value='{{$permit->type}}' class='form-control form-control-sm' required>
+                            <label>Expiration Date :</label>
+                            <input type="date" class="form-control-sm form-control" min='{{date('Y-m-d')}}' name="expiration_date"/>
                         </div>
                     </div>
                 </div>
