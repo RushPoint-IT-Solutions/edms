@@ -177,8 +177,8 @@ class PermitController extends Controller
         $this->validate($request, [
             'title' => 'required',
             'description' => 'required',
-            'company' => 'required',
-            'department' => 'required',
+            // 'company' => 'required',
+            // 'department' => 'required',
             'type' => 'required',
             'file' => 'required',
         ]);
