@@ -132,10 +132,12 @@
                                         </span>
                         </span>
 
+                        @can('edit date approved')
                         <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
                             <i class="fa fa-edit"></i>
                         </a>
                         @include('documents.edit_approved_date')
+                        @endcan
                     </div>
                     @endforeach
                 </div>
