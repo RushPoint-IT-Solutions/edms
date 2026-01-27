@@ -475,10 +475,10 @@ class DocumentController extends Controller
         $fileContentData = file_get_contents(url($newFile));
 
         if($changeRequest) {
-            $data = url('document/'.$changeRequest->document_id);
+            $data = url('change-request/'.$changeRequest->document_id);
         }
         else {
-            $data = url('/documents/view-document/'.$attachment->document_id);
+            $data = url('document/'.$attachment->document_id);
         }
     
         try 
@@ -935,17 +935,16 @@ class DocumentController extends Controller
         return back();
     }
     
-    // public function publicDocument(Request $request,$id)
-    // {
-    //     $document = Document::with('change_requests.user', 'change_requests.approvers.user
-    //     ')->findOrFail($id);
+    public function publicDocument(Request $request,$id)
+    {
+        $document = Document::with('user', 'document_tags', 'attachments')->findOrFail($id);
 
-    //     return view('public.document', 
-    //         array(
-    //             'document' => $document
-    //         )
-    //     );
-    // }
+        return view('public.document', 
+            array(
+                'document' => $document
+            )
+        );
+    }
 
     public function viewChangeRequest($id)
     {

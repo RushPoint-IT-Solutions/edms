@@ -97,11 +97,7 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">CREATED BY</div>
-                                <div class="fw-medium">
-                                    @foreach($document->change_requests as $changeRequest)
-                                    {{ $changeRequest->user->name }}
-                                    @endforeach
-                                </div>
+                                <div class="fw-medium">{{ $document->user->name }}</div>
                             </div>
                         </div>
                     </div>
@@ -125,11 +121,7 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">CATEGORY</div>
-                                <div class="fw-medium">
-                                    @foreach($document->change_requests as $changeRequest)
-                                    {{ $changeRequest->category }}
-                                    @endforeach
-                                </div>
+                                <div class="fw-medium">{{$document->category}}</div>
                             </div>
                         </div>
                     </div>
@@ -164,40 +156,58 @@
                         </div>
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-12 col-md-6">
                         <div class="d-flex align-items-start gap-3">
                             <div class="text-primary" style="font-size: 1.5rem;">
-                                <i class="ri-file-list-line"></i>
+                                <i class="ri-spy-line"></i>
                             </div>
                             <div>
-                                <div class="text-muted small mb-1">DESCRIPTION</div>
+                                <div class="text-muted small mb-1">PRIVACY</div>
+                                <div class="fw-medium">{{$document->public == null ? "Private" : "Public"}}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-5">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="text-primary" style="font-size: 1.5rem;">
+                                <i class="ri-bookmark-line"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small mb-1">TAGS</div>
                                 <div class="fw-medium">
-                                    @foreach($document->change_requests as $changeRequest)
-                                    {{ $changeRequest->description }}
+                                    @foreach ($document->document_tags as $tags)
+                                        {{ $tags->name }} <br>
                                     @endforeach
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- <div class="col-12">
+                    <div class="col-12">
                         <div class="d-flex align-items-start gap-3">
                             <div class="text-primary" style="font-size: 1.5rem;">
                                 <i class="ri-attachment-line"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div class="text-muted small mb-2">ATTACHMENT</div>
-                                <a href="#" class="text-decoration-none d-flex align-items-center gap-2 p-3 border rounded hover-effect" onclick="alert('Hindi pa available to sah'); return false;">
-                                    <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
-                                    <span class="text-dark fw-medium" style="font-size: 0.875rem;">DMS_Manual.pdf</span>
-                                </a>
+                                {{-- @dd($document->attachments) --}}
+                                @foreach ($document->attachments as $attachment)
+                                    <a href="{{ url($attachment->attachment) }}" class="text-decoration-none d-flex align-items-center gap-2 p-3 border rounded hover-effect" target="_blank">
+                                        <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
+                                        @php
+                                            $attachment = explode("/", $attachment->attachment);
+                                        @endphp
+                                        <span class="text-dark fw-medium" style="font-size: 0.875rem;">{{$attachment[2]}}</span>
+                                    </a>
+                                @endforeach
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
                 </div>
 
                 
-                <hr class="my-4">
+                {{-- <hr class="my-4">
 
                 <div class="mb-3">
                     <div class="d-flex align-items-center gap-2 mb-3">
@@ -246,7 +256,7 @@
                     @endforeach
 
 
-                    {{-- <div class="approver-card">
+                    <div class="approver-card">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center gap-2 mb-1">
@@ -274,8 +284,8 @@
                                 <div class="text-muted" style="font-size: 0.8rem;">Procedures align with operational requirements. Document is comprehensive and ready for implementation.</div>
                             </div>
                         </div>
-                    </div> --}}
-                </div>
+                    </div>
+                </div> --}}
 
                 <hr class="my-4">
                 <div class="text-center text-muted small">

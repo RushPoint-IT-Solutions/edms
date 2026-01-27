@@ -85,6 +85,17 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/update/{id}','PermissionController@update');
         });
 
+        // Permits
+        Route::get('/permits', 'PermitController@index')->name('permits');
+        Route::prefix('permits')->group(function() {
+            Route::post('/store', 'PermitController@store')->name('permits');
+            Route::post('/upload/{id}', 'PermitController@upload')->name('permits');
+            Route::post('change-type/{id}','PermitController@change_type')->name('permits');
+        });
+        // Route::post('/change-department/{id}', 'PermitController@update')->name('permits');
+        // Route::post('inactive-permits/{id}', 'PermitController@inactivePermits');
+        // Route::post('activate-permits/{id}', 'PermitController@activatePermits');
+
         // Home
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
@@ -99,14 +110,6 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('view-document/edit-document/{id}','DocumentController@edit');
         Route::get('audits','DocumentController@audit')->name('audit');
         Route::post('upload-document','DocumentController@store')->name('documents');
-    
-        Route::get('/permits', 'PermitController@index')->name('permits');
-        Route::post('new-permit', 'PermitController@store')->name('permits');
-        Route::post('/upload-permit/{id}', 'PermitController@upload')->name('permits');
-        Route::post('/change-department/{id}', 'PermitController@update')->name('permits');
-        Route::post('change-type/{id}','PermitController@change_type')->name('permits');
-        Route::post('inactive-permits/{id}', 'PermitController@inactivePermits');
-        Route::post('activate-permits/{id}', 'PermitController@activatePermits');
     
         // Route::get('/companies', 'CompanyController@index')->name('settings');
         // Route::post('/new-company', 'CompanyController@store')->name('settings');
@@ -167,7 +170,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 });
 
-// Route::get('document/{id}', 'DocumentController@publicDocument');
+Route::get('document/{id}', 'DocumentController@publicDocument');
 Route::get('/change-request/{id}', 'DocumentController@viewChangeRequest')->name('change-request.view');
 // Route::get('/document/{documentId}', function($documentId) {
 //     return view('public.document');

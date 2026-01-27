@@ -1,21 +1,34 @@
-<div class="modal fade" id="upload{{$permit->id}}" tabindex="-1" aria-labelledby="uploadLabel{{$permit->id}}" aria-hidden="true">
+<div class="modal fade" id="changeType{{$permit->id}}" tabindex="-1" aria-labelledby="changeTypeLabel{{$permit->id}}" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="uploadModalLabel{{$permit->id}}">Upload Permit/License</h5>
+                <h5 class="modal-title" id="changeTypeModalLabel{{$permit->id}}">Change Type</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method='post' action='upload-permit/{{$permit->id}}' onsubmit='show();' enctype="multipart/form-data">
+            <form method='post' action='{{ url('permits/change-type/'.$permit->id) }}' onsubmit='show();' enctype="multipart/form-data">
                 <div class="modal-body">
                     {{ csrf_field() }}
                     <div class='row'>
                         <div class='col-md-12'>
-                            <label>File :</label>
-                            <input type="file" class="form-control-sm form-control" name="file" required/>
+                            <label class="form-label">Title :</label>
+                            <input name='title' value='{{$permit->title}}' class='form-control form-control-sm @if($errors->has('title')) is-invalid @endif' required>
+                            @if($errors->has('title'))
+                            <span class="invalid-feedback">{{$errors->first('title')}}</span>
+                            @endif
                         </div>
+                    </div>
+                    <div class='row'>
                         <div class='col-md-12'>
-                            <label>Expiration Date :</label>
-                            <input type="date" class="form-control-sm form-control" min='{{date('Y-m-d')}}' name="expiration_date"/>
+                            <label class="form-label">Type :</label>
+                            <select name='type' class='form-control-sm form-control cat @if($errors->has('type')) is-invalid @endif'>
+                                <option value=""></option>
+                                <option value="License" @if(old('type', $permit->type) == "License") selected @endif>License</option>
+                                <option value="Permit" @if(old('type', $permit->type) == "Permit") selected @endif>Permit</option>
+                                <option value="Certification" @if(old('type', $permit->type) == "Certification") selected @endif>Certification</option>
+                            </select>
+                            @if($errors->has('type'))
+                            <span class="invalid-feedback">{{$errors->first('type')}}</span>
+                            @endif
                         </div>
                     </div>
                 </div>
