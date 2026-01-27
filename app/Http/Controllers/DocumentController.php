@@ -33,13 +33,96 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    // public function index(Request $request)
+    // {
+    //     $search = $request->search;
+    //     $department = $request->department;
+
+    //     $document_types = DocumentType::orderBy('name','desc')->get();
+    //     $document_folders = DocumentFolder::with('document','childrenFolder')->where('parent_id',null)->get();
+    //     $obsoletes = Obsolete::get();
+
+    //     $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
+    //     if (auth()->user()->role != "Administrator")
+    //     {
+    //         $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
+    //     }
+
+    //     // $documents_filter = Document::query();
+     
+    //     // if($request->department != null)
+    //     // {
+    //     //     $documents_filter = $documents_filter->where('department_id',$request->department);
+            
+    //     // }
+    //     // if($request->search != null)
+    //     // {
+    //     //     $documents_filter = $documents_filter->where('control_code','like','%'.$request->search.'%')->orWhere('title','like','%'.$request->search.'%')->orWhere('old_control_code','like','%'.$request->search.'%');
+           
+    //     // }
+
+    //     // if(auth()->user()->role == "Document Control Officer")
+    //     // { 
+    //     //     $documents = Document::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
+    //     //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
+    //     //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
+    //     //     $departments = $departments->whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray());
+                   
+    //     // }
+    //     // if(auth()->user()->role == "Documents and Records Controller")
+    //     // { 
+   
+    //     //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
+    //     //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
+    //     //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
+    //     //     $departments = $departments->where('id',auth()->user()->department_id);
+                   
+    //     // }
+        
+    //     // if((auth()->user()->role == "Department Head"))
+    //     // {
+    //     //     $documents = Document::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
+    //     //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
+    //     //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
+    //     //     $departments = $departments->whereIn('id',(auth()->user()->department_head)->pluck('id')->toArray());
+           
+          
+    //     // }
+    //     // if((auth()->user()->role == "User"))
+    //     // {
+    //     //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
+    //     //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
+    //     //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
+    //     //     $departments = $departments->where('id',auth()->user()->department_id);
+       
+    //     // }
+
+    //     // $documents_na = $documents_filter->orderBy('control_code', 'asc')->get();
+    //         // ->paginate(10);
+        
+ 
+    //     return view('documents.documents',
+    //     array(
+    //         'documents' => $documents,
+    //         // 'documents_na' => $documents_na,
+    //         'obsoletes' => $obsoletes,
+    //         // 'departments' => $departments,
+    //         // 'companies' => $companies,
+    //         'document_types' => $document_types,
+    //         'search' => $search,
+    //         'dep' => $department,
+    //         'document_folders' => $document_folders
+    //         )
+    //     );
+    // }
+
     public function index(Request $request)
     {
         $search = $request->search;
         $department = $request->department;
 
         $document_types = DocumentType::orderBy('name','desc')->get();
-        $document_folders = DocumentFolder::with('document','childrenFolder')->where('parent_id',null)->get();
+        $document_folders = DocumentFolder::with('document','childrenFolder')->get();
         $obsoletes = Obsolete::get();
 
         $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
@@ -48,99 +131,137 @@ class DocumentController extends Controller
             $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
         }
 
-        // $documents_filter = Document::query();
-     
-        // if($request->department != null)
-        // {
-        //     $documents_filter = $documents_filter->where('department_id',$request->department);
-            
-        // }
-        // if($request->search != null)
-        // {
-        //     $documents_filter = $documents_filter->where('control_code','like','%'.$request->search.'%')->orWhere('title','like','%'.$request->search.'%')->orWhere('old_control_code','like','%'.$request->search.'%');
-           
-        // }
+        $document_folders = $document_folders->map(function($folder) {
+            if ($folder->document) {
+                $folder->document = $folder->document->map(function($doc) {
+                    $fileInfo = $this->getDocumentFileInfo($doc);
+                    $doc->fileType = $fileInfo['fileType'];
+                    $doc->previewClass = $fileInfo['previewClass'];
+                    $doc->iconClass = $fileInfo['iconClass'];
+                    $doc->badgeClass = $fileInfo['badgeClass'];
+                    return $doc;
+                });
+            }
+            return $folder;
+        });
 
-        // if(auth()->user()->role == "Document Control Officer")
-        // { 
-        //     $documents = Document::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-        //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-        //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-        //     $departments = $departments->whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray());
-                   
-        // }
-        // if(auth()->user()->role == "Documents and Records Controller")
-        // { 
-   
-        //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-        //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-        //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
-        //     $departments = $departments->where('id',auth()->user()->department_id);
-                   
-        // }
-        
-        // if((auth()->user()->role == "Department Head"))
-        // {
-        //     $documents = Document::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-        //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-        //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
-        //     $departments = $departments->whereIn('id',(auth()->user()->department_head)->pluck('id')->toArray());
-           
-          
-        // }
-        // if((auth()->user()->role == "User"))
-        // {
-        //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-        //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-        //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
-        //     $departments = $departments->where('id',auth()->user()->department_id);
-       
-        // }
+        $documents = $documents->map(function($doc) {
+            $fileInfo = $this->getDocumentFileInfo($doc);
+            $doc->fileType = $fileInfo['fileType'];
+            $doc->previewClass = $fileInfo['previewClass'];
+            $doc->iconClass = $fileInfo['iconClass'];
+            $doc->badgeClass = $fileInfo['badgeClass'];
+            return $doc;
+        });
 
-        // $documents_na = $documents_filter->orderBy('control_code', 'asc')->get();
-            // ->paginate(10);
-        
- 
+        $allFolders = $document_folders->where('parent_id', null);
+        $hasOthers = $documents->where('folder_id', null)->count() > 0;
+        $totalFolders = $allFolders->count() + ($hasOthers ? 1 : 0);
+
+        $folderTreeHtml = $this->renderFolderTreeView($document_folders, $documents, null, 0, null);
+
         return view('documents.documents',
-        array(
-            'documents' => $documents,
-            // 'documents_na' => $documents_na,
-            'obsoletes' => $obsoletes,
-            // 'departments' => $departments,
-            // 'companies' => $companies,
-            'document_types' => $document_types,
-            'search' => $search,
-            'dep' => $department,
-            'document_folders' => $document_folders
+            array(
+                'documents' => $documents,
+                'obsoletes' => $obsoletes,
+                'document_types' => $document_types,
+                'search' => $search,
+                'dep' => $department,
+                'document_folders' => $document_folders,
+                'totalFolders' => $totalFolders,
+                'allFolders' => $allFolders,
+                'hasOthers' => $hasOthers,
+                'folderTreeHtml' => $folderTreeHtml
             )
         );
     }
 
-    public function index2(Request $request)
-    {
-        $search = $request->search;
-        $department = $request->department;
-
-        $document_types = DocumentType::orderBy('name','desc')->get();
-        $document_folders = DocumentFolder::with('document','childrenFolder')->where('parent_id',null)->get();
-        $obsoletes = Obsolete::get();
-
-        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
-        if (auth()->user()->role != "Administrator")
-        {
-            $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
+    private function renderFolderTreeView($allFolders, $documents, $currentFolderId, $level = 0, $parentId = null) {
+        $html = '';
+        $filteredFolders = $allFolders->where('parent_id', $parentId);
+        
+        foreach ($filteredFolders as $folder) {
+            $childFolders = $allFolders->where('parent_id', $folder->id);
+            $folderDocuments = $documents->where('folder_id', $folder->id);
+            $hasChildren = count($folderDocuments) > 0 || count($childFolders) > 0;
+            
+            $rowClass = 'folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
+            if ($level > 0) {
+                $rowClass = 'child-row folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
+            }
+            
+            $fileType = 'folder';
+            
+            $html .= '<tr class="' . $rowClass . ' demoTableRow" ';
+            if ($level > 0) {
+                $html .= 'data-parent-id="' . $parentId . '" ';
+            }
+            $html .= 'data-folder-id="' . $folder->id . '" 
+                        data-type="' . $fileType . '"
+                        data-modified="' . $folder->updated_at . '"
+                        data-level="' . $level . '">';
+            
+            $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="form-check-input">
+                    </td>';
+            
+            $html .= '<td class="folder-name-cell" data-folder-url="' . url('documents/folder/'.$folder->id) . '" onclick="handleFolderClick(this, ' . ($hasChildren ? 'true' : 'false') . ')">';
+            $html .= '<div class="name-cell">';
+            if ($level > 0) {
+                $html .= '<span class="folder-indent" style="width: ' . ($level * 24) . 'px;"></span>';
+            }
+            
+            if ($hasChildren) {
+                $html .= '<span class="folder-toggle"><i class="ri-arrow-right-s-line"></i></span>';
+            } else {
+                $html .= '<span style="width: 20px; display: inline-block;"></span>';
+            }
+            
+            $html .= '<i class="ri-folder-2-fill item-icon"></i>';
+            $html .= '<span class="item-name">' . $folder->name . '</span>';
+            $html .= '</div></td>';
+            
+            $html .= '<td>Folder</td>';
+            $html .= '<td>—</td>';
+            $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
+            $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
+                        <button class="action-btn"><i class="ri-more-2-fill"></i></button>
+                    </td>';
+            $html .= '</tr>';
+            
+            if (count($childFolders) > 0) {
+                $html .= $this->renderFolderTreeView($allFolders, $documents, $currentFolderId, $level + 1, $folder->id);
+            }
+            
+            if (count($folderDocuments) > 0) {
+                foreach ($folderDocuments as $doc) {
+                    $fileInfo = $this->getDocumentFileInfo($doc);
+                    
+                    $html .= '<tr class="child-row document-row" data-parent-id="' . $folder->id . '" data-level="' . ($level + 1) . '"
+                                data-type="' . $fileInfo['fileType'] . '"
+                                data-modified="' . $doc->updated_at . '"
+                                onclick="window.open(\'' . url('/documents/view-document/'.$doc->id) . '\', \'_blank\')">';
+                    $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
+                                <input type="checkbox" class="form-check-input">
+                            </td>';
+                    $html .= '<td><div class="name-cell">';
+                    $html .= '<span class="folder-indent" style="width: ' . (($level + 1) * 24) . 'px;"></span>';
+                    $html .= '<span style="width: 20px; display: inline-block;"></span>';
+                    $html .= '<i class="' . $fileInfo['iconClass'] . ' item-icon" style="color: #6b7280;"></i>';
+                    $html .= '<span class="item-name">' . $doc->control_code . ' - ' . $doc->title . '</span>';
+                    $html .= '</div></td>';
+                    $html .= '<td>' . strtoupper($fileInfo['fileType']) . '</td>';
+                    $html .= '<td>—</td>';
+                    $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
+                    $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
+                                <button class="action-btn"><i class="ri-more-2-fill"></i></button>
+                            </td>';
+                    $html .= '</tr>';
+                }
+            }
         }
-
-        return view('documents.documents2',
-        array(
-            'documents' => $documents,
-            'obsoletes' => $obsoletes,
-            'document_types' => $document_types,
-            'search' => $search,
-            'dep' => $department,
-            'document_folders' => $document_folders
-            )
-        );
+        
+        return $html;
     }
 
     /**
@@ -497,29 +618,76 @@ class DocumentController extends Controller
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
     }
-    public function folderView(Request $request,$id)
+
+    // public function folderView(Request $request,$id)
+    // {
+    //     $folder_data = DocumentFolder::with('document','childrenFolder')->findOrFail($id);
+    //     $documents = Document::get();
+
+    //     $document_folders = DocumentFolder::get();
+
+    //     return view('documents.folder_view',
+    //         array(
+    //             'folder_data' => $folder_data,
+    //             'document_folders' => $document_folders,
+    //             'documents' => $documents
+    //         )
+    //     );
+    // }
+
+    private function getDocumentFileInfo($doc)
     {
-        $folder_data = DocumentFolder::with('document','childrenFolder')->findOrFail($id);
-        $documents = Document::get();
-
-        $document_folders = DocumentFolder::get();
-
-        return view('documents.folder_view',
-            array(
-                'folder_data' => $folder_data,
-                'document_folders' => $document_folders,
-                'documents' => $documents
-            )
-        );
+        $document = Document::with('attachments')->find($doc->id);
+        $fileType = 'document';
+        $previewClass = 'default-preview';
+        $iconClass = 'ri-file-list-line';
+        $badgeClass = '';
+        
+        if ($document && $document->attachments->count() > 0) {
+            $attachment = $document->attachments->first()->attachment;
+            $extension = pathinfo($attachment, PATHINFO_EXTENSION);
+            $fileType = strtolower($extension);
+            
+            switch($fileType) {
+                case 'pdf':
+                    $previewClass = 'pdf-preview';
+                    $iconClass = 'ri-file-pdf-line';
+                    $badgeClass = 'pdf-badge';
+                    break;
+                case 'docx':
+                case 'doc':
+                    $previewClass = 'docx-preview';
+                    $iconClass = 'ri-file-word-line';
+                    $badgeClass = 'docx-badge';
+                    break;
+                case 'xlsx':
+                case 'xls':
+                    $previewClass = 'xlsx-preview';
+                    $iconClass = 'ri-file-excel-line';
+                    $badgeClass = 'xlsx-badge';
+                    break;
+            }
+        }
+        
+        return [
+            'fileType' => $fileType,
+            'previewClass' => $previewClass,
+            'iconClass' => $iconClass,
+            'badgeClass' => $badgeClass
+        ];
     }
 
-    public function folderView2(Request $request, $id)
+    public function folderView(Request $request, $id)
     {
         $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
         
         $document_types = DocumentType::orderBy('name','desc')->get();
         $all_document_folders = DocumentFolder::get();
+
+        $is_others_folder = ($id === 'others');
+
+        $breadcrumbs = [];
 
         if ($id === 'others') {
             $documentsQuery = Document::with('change_requests','attachments')
@@ -538,7 +706,16 @@ class DocumentController extends Controller
 
             $documents = $documentsQuery->orderBy('control_code', 'desc')->get();
 
-            $items = $documents->map(function($doc) {
+            $documentsWithFileInfo = $documents->map(function($doc) {
+                $fileInfo = $this->getDocumentFileInfo($doc);
+                $doc->fileType = $fileInfo['fileType'];
+                $doc->previewClass = $fileInfo['previewClass'];
+                $doc->iconClass = $fileInfo['iconClass'];
+                $doc->badgeClass = $fileInfo['badgeClass'];
+                return $doc;
+            });
+
+            $items = $documentsWithFileInfo->map(function($doc) {
                 return (object)[
                     'id' => $doc->id,
                     'name' => $doc->control_code . ' - ' . $doc->title,
@@ -546,6 +723,10 @@ class DocumentController extends Controller
                     'control_code' => $doc->control_code,
                     'type' => 'document',
                     'updated_at' => $doc->updated_at,
+                    'fileType' => $doc->fileType,
+                    'previewClass' => $doc->previewClass,
+                    'iconClass' => $doc->iconClass,
+                    'badgeClass' => $doc->badgeClass,
                 ];
             });
 
@@ -560,15 +741,13 @@ class DocumentController extends Controller
                 ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
             );
 
-            $document_folders_list = DocumentFolder::where('parent_id', null)->get();
-
-            return view('documents.folder_view2',
+            return view('documents.folder_view',
                 array(
                     'folder_data' => (object)[
                         'id' => 'others',
                         'name' => 'Others',
                         'childrenFolder' => collect([]),
-                        'document' => $documents,
+                        'document' => $documentsWithFileInfo,
                         'updated_at' => now()
                     ],
                     'document_folders' => $all_document_folders,
@@ -578,7 +757,9 @@ class DocumentController extends Controller
                     'totalDocuments' => $documents->count(),
                     'totalItems' => $documents->count(),
                     'is_others_folder' => true,
-                    'document_types' => $document_types
+                    'document_types' => $document_types,
+                    'folderTreeHtml' => '',
+                    'breadcrumbs' => []
                 )
             );
         }
@@ -591,6 +772,12 @@ class DocumentController extends Controller
             'parent.parent.parent',
             'parent.parent.parent.parent'
         ])->findOrFail($id);
+        
+        $current = $folder_data;
+        while($current) {
+            array_unshift($breadcrumbs, $current);
+            $current = $current->parent ?? null;
+        }
         
         $foldersQuery = DocumentFolder::where('parent_id', $id);
         $documentsQuery = Document::where('folder_id', $id);
@@ -606,6 +793,24 @@ class DocumentController extends Controller
         $childFolders = $foldersQuery->orderBy('name', 'asc')->get();
         $childDocuments = $documentsQuery->orderBy('control_code', 'desc')->get();
 
+        $documentsWithFileInfo = $childDocuments->map(function($doc) {
+            $fileInfo = $this->getDocumentFileInfo($doc);
+            $doc->fileType = $fileInfo['fileType'];
+            $doc->previewClass = $fileInfo['previewClass'];
+            $doc->iconClass = $fileInfo['iconClass'];
+            $doc->badgeClass = $fileInfo['badgeClass'];
+            return $doc;
+        });
+
+        $folder_data->document = $folder_data->document->map(function($doc) {
+            $fileInfo = $this->getDocumentFileInfo($doc);
+            $doc->fileType = $fileInfo['fileType'];
+            $doc->previewClass = $fileInfo['previewClass'];
+            $doc->iconClass = $fileInfo['iconClass'];
+            $doc->badgeClass = $fileInfo['badgeClass'];
+            return $doc;
+        });
+
         $items = collect();
         
         foreach ($childFolders as $folder) {
@@ -617,7 +822,7 @@ class DocumentController extends Controller
             ]);
         }
         
-        foreach ($childDocuments as $doc) {
+        foreach ($documentsWithFileInfo as $doc) {
             $items->push((object)[
                 'id' => $doc->id,
                 'name' => $doc->control_code . ' - ' . $doc->title,
@@ -625,6 +830,10 @@ class DocumentController extends Controller
                 'control_code' => $doc->control_code,
                 'type' => 'document',
                 'updated_at' => $doc->updated_at,
+                'fileType' => $doc->fileType,
+                'previewClass' => $doc->previewClass,
+                'iconClass' => $doc->iconClass,
+                'badgeClass' => $doc->badgeClass,
             ]);
         }
 
@@ -644,7 +853,9 @@ class DocumentController extends Controller
         $totalDocuments = $childDocuments->count();
         $totalItems = $totalFolders + $totalDocuments;
 
-        return view('documents.folder_view2',
+        $folderTreeHtml = $this->renderFolderTreeView($all_document_folders, $documents, $folder_data->id, 0, $folder_data->id);
+
+        return view('documents.folder_view',
             array(
                 'folder_data' => $folder_data,
                 'document_folders' => $all_document_folders,
@@ -654,7 +865,9 @@ class DocumentController extends Controller
                 'totalDocuments' => $totalDocuments,
                 'totalItems' => $totalItems,
                 'is_others_folder' => false,
-                'document_types' => $document_types
+                'document_types' => $document_types,
+                'folderTreeHtml' => $folderTreeHtml,
+                'breadcrumbs' => $breadcrumbs
             )
         );
     }
