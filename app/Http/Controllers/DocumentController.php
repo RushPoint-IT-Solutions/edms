@@ -326,7 +326,6 @@ class DocumentController extends Controller
 
         foreach($request->file('attachment') as $key => $file)
         {
-            
             $name = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path() . '/document_attachments/', $name);
             $file_name = '/document_attachments/' . $name;

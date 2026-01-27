@@ -471,7 +471,7 @@
             <div class="attachments-header">
                 <i class="fa fa-paperclip"></i> Attachments
             </div>
-            
+
             @foreach($document->attachments as $attachment)
                 @if($attachment->attachment != null)
                     @if(($attachment->type == "soft_copy"))
@@ -480,43 +480,20 @@
                             <i class="fa fa-file-word-o"></i>
                             <span>Editable Copy</span>
                         </a>
-                        <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
+                        {{-- <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
                             <i class="fa fa-edit"></i>
-                        </a>
-                    </div>
-                    @endif
-                    @if(($attachment->type == "soft_copy"))
-                    <div class="attachment-item">
-                        <a href='{{url($attachment->attachment)}}' target="_blank">
-                            <i class="fa fa-file-word-o"></i>
-                            <span>Editable Copy</span>
-                        </a>
-                        <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
-                            <i class="fa fa-edit"></i>
-                        </a>
+                        </a> --}}
                     </div>
                     @elseif($attachment->type == "pdf_copy")
-                        @if(($document->category == "FORM") || ($document->category == "TEMPLATE"))
-                        <div class="attachment-item">
-                            <a href='{{url('/documents/view-pdf/'.$attachment->id)}}' target="_blank">
-                                <i class="fa fa-file-pdf-o"></i>
-                                <span>PDF Copy</span>
-                            </a>
-                            <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
-                                <i class="fa fa-edit"></i>
-                            </a>
-                        </div>
-                        @else
-                        <div class="attachment-item">
-                            <a href='{{url('/documents/view-pdf/'.$attachment->id)}}' target="_blank">
-                                <i class="fa fa-file-pdf-o"></i>
-                                <span>PDF Copy</span>
-                            </a>
-                            <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
-                                <i class="fa fa-edit"></i>
-                            </a>
-                        </div>
-                        @endif
+                    <div class="attachment-item">
+                        <a href='{{url('/documents/view-pdf/'.$attachment->id)}}' target="_blank">
+                            <i class="fa fa-file-pdf-o"></i>
+                            <span>PDF Copy</span>
+                        </a>
+                        {{-- <a href='#' class='text-danger' data-target="#edit{{$attachment->id}}" data-toggle="modal">
+                            <i class="fa fa-edit"></i>
+                        </a> --}}
+                    </div>
                     @else
                         <div class="attachment-item">
                             <a href='{{url($attachment->attachment)}}' target="_blank">
@@ -526,7 +503,7 @@
                         </div>
                     @endif
                 @endif
-                @include('change_file')
+                {{-- @include('change_file') --}}
             @endforeach
         </div>
     
@@ -707,7 +684,7 @@
 </div>
 
 <!-- Edit Document Modal -->
-<div class="modal" id="edit_document" tabindex="-1" role="dialog">
+{{-- <div class="modal" id="edit_document" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -741,7 +718,7 @@
             </form>
         </div>
     </div>
-</div>
+</div> --}}
 
 {{-- @include('obsolete_request_image') --}}
 @include('copy_request.copy_request')
