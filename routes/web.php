@@ -113,11 +113,11 @@ Route::group(['middleware' => 'auth'], function () {
         // Route::post('deactivate-company', 'CompanyController@deactivate')->name('settings');
         // Route::post('activate-company', 'CompanyController@activate')->name('settings');
     
-        // Route::get('/departments', 'DepartmentController@index')->name('settings');
-        // Route::post('/new-department', 'DepartmentController@store')->name('settings');
-        // Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');
-        // Route::post('activate-department', 'DepartmentController@activate')->name('settings');
-        // Route::post('edit-department/{id}','DepartmentController@update')->name('settings');
+        Route::get('/departments', 'DepartmentController@index')->name('settings');
+        Route::post('/new-department', 'DepartmentController@store')->name('settings');
+        Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');
+        Route::post('activate-department', 'DepartmentController@activate')->name('settings');
+        Route::post('edit-department/{id}','DepartmentController@update')->name('settings');
     
         // Route::get('remove-approvers','RequestController@removeApprover')->name('remove-approvers');
         // Route::post('update-approvers/{id}','RequestController@removeApp')->name('remove-approvers');
