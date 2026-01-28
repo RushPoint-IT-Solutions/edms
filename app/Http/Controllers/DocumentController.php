@@ -911,12 +911,12 @@ class DocumentController extends Controller
     {
         // dd($request->all());
         $document = RequestApprover::findOrFail($id);
-        $document->date_approved = $request->date_approved;
+        $document->date_approved = $request->date_approved." ".date('H:i:s');
         $document->save();
 
         $logs = new DateApprovedLog;
         $logs->user_id = auth()->id();
-        $logs->date_approved = $request->date_approved;
+        $logs->date_approved = $request->date_approved." ".date('H:i:s');
         $logs->save();
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
