@@ -421,7 +421,6 @@
                             </div>
 
                             <a href='#' class="text-decoration-none" onclick="return false;">
-                                {{-- <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Sp ark'" style="height: 100%; object-fit: fit;"> --}}
                                 <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($change_request->file)) }}&embedded=true" 
                                         loading="lazy" 
                                         class="card-img-top document-preview-iframe" 
@@ -441,25 +440,54 @@
                         </div>
                     </div>
                     @endforeach
-                    {{-- @foreach($files as $file)
-                    <div class="col">
-                        <div class="card border file-card position-relative">
-                            <div class="position-absolute top-0 end-0 m-2 more-btn">
-                                <button class="btn btn-sm btn-light p-1" style="width: 24px; height: 24px; line-height: 1;">
-                                    <i class="ri-more-2-fill"></i>
-                                </button>
-                            </div>
-                            <img src="{{ $file->preview_url }}" class="card-img-top" alt="{{ $file->name }}" style="height: 120px; object-fit: cover;">
-                            <div class="card-body p-2 text-start">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="ri-file-{{ $file->type }}-line text-{{ $file->type == 'pdf' ? 'danger' : 'primary' }}" style="font-size: 1rem;"></i>
-                                    <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">{{ $file->name }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach --}}
                 </div>
+
+                @if($pending_cards->hasPages())
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <div class="text-muted" style="font-size: 0.875rem;">
+                        Showing <strong>{{ $pending_cards->firstItem() }}</strong> to <strong>{{ $pending_cards->lastItem() }}</strong> of <strong>{{ $pending_cards->total() }}</strong> pending documents
+                    </div>
+                    <nav aria-label="Pending documents pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            @if ($pending_cards->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="ri-arrow-left-s-line"></i> Previous</span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->previousPageUrl() }}" rel="prev">
+                                        <i class="ri-arrow-left-s-line"></i> Previous
+                                    </a>
+                                </li>
+                            @endif
+
+                            @foreach ($pending_cards->getUrlRange(1, $pending_cards->lastPage()) as $page => $url)
+                                @if ($page == $pending_cards->currentPage())
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link">{{ $page }}</span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->url($page) }}">{{ $page }}</a>
+                                    </li>
+                                @endif
+                            @endforeach
+
+                            @if ($pending_cards->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->nextPageUrl() }}" rel="next">
+                                        Next <i class="ri-arrow-right-s-line"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next <i class="ri-arrow-right-s-line"></i></span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+                @endif
 
                 @if($change_requests->hasPages())
                 <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
@@ -512,7 +540,7 @@
     </div>
 
     <div class="col-12 col-lg-3">
-        <div class="card shadow-sm" style="height: 300px; overflow-y:scroll;">
+        <div class="card shadow-sm" style="height: 390px; overflow-y:scroll;">
             <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
                 
