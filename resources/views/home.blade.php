@@ -248,6 +248,15 @@
     background: #f8f9fa;
 }
 
+.document-preview-iframe {
+    height: 180px;
+    width: 100%;
+    border: none;
+    pointer-events: none;
+    background: #f8f9fa;
+    object-fit: cover;
+}
+
 @media (max-width: 768px) {
     .file-dropdown-menu {
         left: auto;
@@ -269,6 +278,10 @@
         right: 100%;
         margin-left: 0;
         margin-right: 5px;
+    }
+    
+    .document-preview-iframe {
+        height: 150px;
     }
 }
 
@@ -408,7 +421,11 @@
 
                             <a href='#' class="text-decoration-none" onclick="return false;">
                                 {{-- <img src="{{asset('assets/images/book1.jpg')}}" class="card-img-top" alt="Cover of the book 'Sp ark'" style="height: 100%; object-fit: fit;"> --}}
-                                <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($change_request->file)) }}&embedded=true" loading="lazy" class="card-img-top" style="height: 100%; pointer-events: none;" scrolling="no" frameborder="0"></iframe>
+                                <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($change_request->file)) }}&embedded=true" 
+                                        loading="lazy" 
+                                        class="card-img-top document-preview-iframe" 
+                                        scrolling="no" 
+                                        frameborder="0"></iframe>
                                 <div class="card-body p-2 text-start">
                                     <div class="docu d-flex align-items-center gap-2">
                                         <i class="ri-file-pdf-line text-danger" style="font-size: 1rem;"></i>
