@@ -8,6 +8,7 @@
     position: relative;
     z-index: 1;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
 .file-card.dropdown-open {
@@ -249,8 +250,8 @@
 }
 
 .document-preview-iframe {
-    height: 180px;
-    width: 100%;
+    height: 200px;
+    width: 423px;
     border: none;
     pointer-events: none;
     background: #f8f9fa;
@@ -369,7 +370,7 @@
 </div> --}}
 
 <div class="row g-4">
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-lg-9">
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -396,7 +397,7 @@
                     </div>
                 </div>
 
-                <div class="row row-cols-3 row-cols-sm-6 row-cols-md-4 row-cols-xl-5 g-3">
+                <div class="row row-cols-1 row-cols-sm-2 g-4">
                     @foreach ($pending_cards as $change_request)
                     <div class="col">
                         <div class="card border file-card position-relative">
@@ -510,7 +511,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
         <div class="card shadow-sm" style="height: 300px; overflow-y:scroll;">
             <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
