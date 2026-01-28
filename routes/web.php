@@ -93,6 +93,16 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/upload/{id}', 'PermitController@upload')->name('permits');
             Route::post('change-type/{id}','PermitController@change_type')->name('permits');
         });
+
+        // Departments
+        Route::get('/departments', 'DepartmentController@index')->name('settings');
+        Route::prefix('departments')->group(function() {
+            Route::post('/store', 'DepartmentController@store')->name('settings');
+            Route::post('/update/{id}','DepartmentController@update')->name('settings');
+            Route::post('/deactivate', 'DepartmentController@deactivate')->name('settings');
+            Route::post('/activate', 'DepartmentController@activate')->name('settings');
+        });
+
         // Route::post('/change-department/{id}', 'PermitController@update')->name('permits');
         // Route::post('inactive-permits/{id}', 'PermitController@inactivePermits');
         // Route::post('activate-permits/{id}', 'PermitController@activatePermits');
@@ -115,12 +125,6 @@ Route::group(['middleware' => 'auth'], function () {
         // Route::post('/new-company', 'CompanyController@store')->name('settings');
         // Route::post('deactivate-company', 'CompanyController@deactivate')->name('settings');
         // Route::post('activate-company', 'CompanyController@activate')->name('settings');
-    
-        Route::get('/departments', 'DepartmentController@index')->name('settings');
-        Route::post('/new-department', 'DepartmentController@store')->name('settings');
-        Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');
-        Route::post('activate-department', 'DepartmentController@activate')->name('settings');
-        Route::post('edit-department/{id}','DepartmentController@update')->name('settings');
     
         // Route::get('remove-approvers','RequestController@removeApprover')->name('remove-approvers');
         // Route::post('update-approvers/{id}','RequestController@removeApp')->name('remove-approvers');
