@@ -110,7 +110,7 @@ class UserController extends Controller
                 'name' => ($user->name ?? 'N/A'),
                 'email' => $user->email,
                 // 'company' => $user->company->name ?? 'N/A',
-                // 'department' => $user->department->name ?? 'N/A',
+                'department' => $user->department->name ?? '–',
                 // 'share_department' => '<div class="dept-list">' . $shareDepartments . '</div>',
                 'role' => $user->role,
                 'status' => $statusBadge,
