@@ -32,7 +32,7 @@
                                 @endforeach
                             </select>
                         </div> --}}
-                        {{-- <div class='col-md-12'>
+                        <div class='col-md-12'>
                             <label>Department :</label>
                             <select name='department' class='form-control-sm form-control cat' required>
                                 <option value="">Select department...</option>
@@ -40,7 +40,7 @@
                                     <option value='{{$dep->id}}' @if(old('department') == $dep->id) selected @endif>{{$dep->code}} - {{$dep->name}}</option>
                                 @endforeach
                             </select>
-                        </div> --}}
+                        </div>
                         <div class='col-md-12'>
                             <label>Role :</label>
                             <select name='role' class='form-control-sm form-control cat'>

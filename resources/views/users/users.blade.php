@@ -383,9 +383,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
-                    {{-- <th>Company</th>
-                    <th>Department</th> --}}
-                    {{-- <th>Share Department</th> --}}
+                    <th>Department</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -426,7 +424,7 @@ $(document).ready(function(){
             { data: 'name', name: 'name' },
             { data: 'email', name: 'email' },
             // { data: 'company', name: 'company', orderable: false },
-            // { data: 'department', name: 'department', orderable: false },
+            { data: 'department', name: 'department', orderable: false },
             // { data: 'share_department', name: 'share_department', orderable: false },
             { data: 'role', name: 'role' },
             { data: 'status', name: 'status' },
