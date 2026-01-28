@@ -76,21 +76,6 @@
     }
 }
 
-.file-card iframe {
-    pointer-events: none;
-    position: relative;
-}
-
-.file-card iframe::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: transparent;
-}
-
 .file-dropdown-item {
     padding: 12px 16px;
     display: flex;
