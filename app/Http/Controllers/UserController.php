@@ -146,7 +146,7 @@ class UserController extends Controller
         $this->validate($request, [
             'name' => 'required|min:3|max:50',
             'email' => 'email|unique:users',
-            'password' => 'required|confirmed|min:6',
+            // 'password' => 'required|confirmed|min:6',
             'role' => 'required'
         ]);
 
@@ -157,7 +157,7 @@ class UserController extends Controller
         $new_account->company_id = $request->company;
         $new_account->department_id = $request->department;
         $new_account->role = $request->role;
-        $new_account->password = bcrypt($request->password);
+        $new_account->password = bcrypt('Marsu2025!');
         $new_account->save();
 
         $new_account->syncRoles($request->account);
@@ -168,9 +168,9 @@ class UserController extends Controller
     public function changepassword(Request $request)
     {
         // dd($request->all());
-        $this->validate($request, [
-            'password' => 'required|confirmed|min:5',
-        ]);
+        // $this->validate($request, [
+        //     'password' => 'required|confirmed|min:5',
+        // ]);
 
         $user = User::findOrFail($request->user_id);
         $user->password = bcrypt($request->password);
