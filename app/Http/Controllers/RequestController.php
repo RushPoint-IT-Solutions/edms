@@ -10,6 +10,7 @@ use App\ChangeRequest;
 use App\Comment;
 use App\DocumentAttachment;
 use App\CopyApprover;
+use App\DateApprovedLog;
 use App\DepartmentDco;
 use App\DocumentSignaturePosition;
 use App\Notifications\NewPreAssessment;
@@ -852,10 +853,12 @@ class RequestController extends Controller
     public function viewChangeRequest($id)
     {
         $changeRequest = ChangeRequest::with('user','comments','approvers','supporting_documents')->findOrFail($id);
+        $dateLogs = DateApprovedLog::with('user')->orderBy('id','desc')->first();
 
         return view('change_request.view_change_request',
             array(
-                'change_request' => $changeRequest
+                'change_request' => $changeRequest,
+                'dateLogs' => $dateLogs
             )
         );
     }

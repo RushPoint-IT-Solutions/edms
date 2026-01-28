@@ -118,18 +118,26 @@
                 <div class="card-body">
                     @foreach ($change_request->approvers as $approver)
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                        <span>{{ $approver->user->name }}</span>
-                        @if($approver->status == "Pending")
-                        <span class="badge bg-warning status-badge">
-                            @elseif($approver->status == "Approved")
-                            <span class="badge bg-success status-badge">
-                                @elseif($approver->status == "Returned")
-                                <span class="badge bg-danger status-badge">
-                                    @elseif($approver->status == "Waiting")
-                                    <span class="badge bg-info status-badge">
-                                        @endif
-                                        {{ $approver->status }}
-                                    </span>
+                        <span>{{ $approver->user->name }} -
+                            @if($approver->status == "Pending")
+                            <span class="badge bg-warning status-badge">
+                                @elseif($approver->status == "Approved")
+                                <span class="badge bg-success status-badge">
+                                    @elseif($approver->status == "Returned")
+                                    <span class="badge bg-danger status-badge">
+                                        @elseif($approver->status == "Waiting")
+                                        <span class="badge bg-info status-badge">
+                                            @endif
+                                            {{ $approver->status }}
+                                        </span>
+                        </span>
+
+                        @can('edit date approved')
+                        <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                        @include('documents.edit_approved_date')
+                        @endcan
                     </div>
                     @endforeach
                 </div>

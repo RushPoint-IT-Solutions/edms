@@ -14,6 +14,7 @@ use App\DateApprovedLog;
 use App\DocumentFolder;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
+use App\RequestApprover;
 use App\User;
 use chillerlan\QRCode\Output\QRGdImagePNG;
 use chillerlan\QRCode\QRCode;
@@ -325,7 +326,6 @@ class DocumentController extends Controller
 
         foreach($request->file('attachment') as $key => $file)
         {
-            
             $name = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path() . '/document_attachments/', $name);
             $file_name = '/document_attachments/' . $name;
@@ -910,7 +910,7 @@ class DocumentController extends Controller
     public function editDateApproved(Request $request,$id)
     {
         // dd($request->all());
-        $document = Document::findOrFail($id);
+        $document = RequestApprover::findOrFail($id);
         $document->date_approved = $request->date_approved;
         $document->save();
 
