@@ -5,52 +5,67 @@
                 <h5 class="modal-title" id="newPermitModalLabel">New Permit/License</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post" action="new-permit" onsubmit="show();" enctype="multipart/form-data">
+            <form method="post" action="{{ url('permits/store') }}" onsubmit="show();" enctype="multipart/form-data">
                 <div class="modal-body">
-                    <div class='row'>
+                    <div class='row gy-3'>
                         {{ csrf_field() }}
                         <div class='col-md-12'>
-                            <label>Title :</label>
-                            <input type="text" class="form-control-sm form-control" value="{{ old('title') }}" name="title" required/>
+                            <label class="form-label">Title :</label>
+                            <input type="text" class="form-control-sm form-control @if($errors->has('title')) is-invalid @endif" value="{{ old('title') }}" name="title"/>
+                            @if($errors->has('title'))
+                            <span class="invalid-feedback">{{$errors->first('title')}}</span>
+                            @endif
                         </div>
                         <div class='col-md-12'>
                             <label>Description :</label>
-                            <textarea type="text" class="form-control-sm form-control" name="description" required>{{ old('description') }}</textarea>
+                            <textarea type="text" class="form-control-sm form-control @if($errors->has('description')) is-invalid @endif" name="description">{{ old('description') }}</textarea>
+                            @if($errors->has('description'))
+                            <span class="invalid-feedback">{{$errors->first('description')}}</span>
+                            @endif
                         </div>
-                        <div class='col-md-12'>
+                        {{-- <div class='col-md-12'>
                             <label>Company :</label>
-                            <select name='company' class='form-control-sm form-control cat' required>
+                            <select name='company' class='form-control-sm form-control cat'>
                                 <option value=""></option>
                                 @foreach($companies as $company)
                                     <option value='{{$company->id}}' @if(old('company') == $company->id) selected @endif>{{$company->code}} - {{$company->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class='col-md-12'>
+                        </div> --}}
+                        {{-- <div class='col-md-12'>
                             <label>Department :</label>
-                            <select name='department' class='form-control-sm form-control cat' required>
+                            <select name='department' class='form-control-sm form-control cat'>
                                 <option value=""></option>
                                 @foreach($departments as $department)
                                     <option value='{{$department->id}}' @if(old('department') == $department->id) selected @endif>{{$department->code}} - {{$department->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
+                        </div> --}}
                         <div class='col-md-12'>
                             <label>Type :</label>
-                            <select name='type' class='form-control-sm form-control cat' required>
+                            <select name='type' class='form-control-sm form-control cat @if($errors->has('type')) is-invalid @endif'>
                                 <option value=""></option>
-                                <option value="License">License</option>
-                                <option value="Permit">Permit</option>
-                                <option value="Certification">Certification</option>
+                                <option value="License" @if(old('type') == "License") selected @endif>License</option>
+                                <option value="Permit" @if(old('type') == "Permit") selected @endif>Permit</option>
+                                <option value="Certification" @if(old('type') == "Certification") selected @endif>Certification</option>
                             </select>
+                            @if($errors->has('type'))
+                            <span class="invalid-feedback">{{$errors->first('type')}}</span>
+                            @endif
                         </div>
                         <div class='col-md-12'>
                             <label>File :</label>
-                            <input type="file" class="form-control-sm form-control" name="file" required/>
+                            <input type="file" class="form-control-sm form-control @if($errors->has('file')) is-invalid @endif" name="file"/>
+                            @if($errors->has('file'))
+                            <span class="invalid-feedback">{{$errors->first('file')}}</span>
+                            @endif
                         </div>
                         <div class='col-md-12'>
                             <label>Expiration Date :</label>
-                            <input type="date" class="form-control-sm form-control" min='{{date('Y-m-d')}}' name="expiration_date" />
+                            <input type="date" class="form-control-sm form-control @if($errors->has('expiration_date')) is-invalid @endif" min='{{date('Y-m-d')}}' name="expiration_date" />
+                            @if($errors->has('expiration_date'))
+                            <span class="invalid-feedback">{{$errors->first('expiration_date')}}</span>
+                            @endif
                         </div>
                     </div>
                 </div>

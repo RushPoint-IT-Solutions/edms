@@ -368,7 +368,9 @@
                         height: Number(element.height)
                     });
 
-                    const printedName = element.user.name; // expect element.name in DB
+                    const date = new Date()
+                    const dateToday = date.toLocaleDateString('en-US')
+                    const printedName = element.user.name+" - "+dateToday; // expect element.name in DB
 
                     const fontSize = 10;
                     const nameY = correctedY - 2;
@@ -459,8 +461,6 @@
                 signature.forEach(async (element) => {
                     // const canvases = document.querySelectorAll(".pdf-page");
                     // let pageOffsetTop = 0;
-                    console.log(element.user.name);
-                    
                     let pageIndex = Number(element.page_number) - 1;
                     const page = pdfLibDoc.getPage(pageIndex);
                     const { width, height } = page.getSize();
@@ -477,7 +477,9 @@
                         height: Number(element.height)
                     });
 
-                    const printedName = element.user.name; // expect element.name in DB
+                    const date = new Date()
+                    const dateToday = date.toLocaleDateString('en-US')
+                    const printedName = element.user.name+ " - " + dateToday; // expect element.name in DB
 
                     const fontSize = 10;
                     const nameY = correctedY - 2;
@@ -572,7 +574,9 @@
                         height: Number(element.height)
                     });
 
-                    const printedName = element.user.name; // expect element.name in DB
+                    const date = new Date()
+                    const dateToday = date.toLocaleDateString('en-US')
+                    const printedName = element.user.name+" - "+dateToday; // expect element.name in DB
 
                     const fontSize = 10;
                     const nameY = correctedY - 2;
@@ -677,7 +681,10 @@
                     height: Number(signaturePositionArray.height)
                 });
 
-                const printedName = element.user.name; // expect element.name in DB
+                const date = new Date()
+                const dateToday = date.toLocaleDateString('en-US')
+
+                const printedName = element.user.name+" - "+dateToday; // expect element.name in DB
                 const fontSize = 10;
                 const nameY = correctedY - 2;
 

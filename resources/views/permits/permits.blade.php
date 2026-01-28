@@ -385,9 +385,6 @@
 @endsection
 
 @section('content')
-@include('error')
-
- 
 <div class="row mb-4">
     <div class="col-12">
         <h4 class="mb-0">Permits & Licenses</h4>
@@ -449,7 +446,7 @@
             <p>Overdue</p>
         </div>
     </div>
-    <div class="col-lg-2 col-md-4 col-sm-6">
+    {{-- <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card archived">
             <div class="icon-circle">
                 <i class="ri-archive-line"></i>
@@ -459,7 +456,7 @@
             </h2>
             <p>Archived</p>
         </div>
-    </div>
+    </div> --}}
     <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card inactive">
             <div class="icon-circle">
@@ -493,12 +490,13 @@
                     <th>Description</th>
                     {{-- <th>Company</th> --}}
                     {{-- <th>Department</th> --}}
-                    <th>Accountable Person</th>
+                    {{-- <th>Accountable Person</th> --}}
                     <th>Date Uploaded</th>
                     <th>File</th>
                     <th>Type</th>
                     <th>Expiration Date</th>
                     <th>Status</th>
+                    <th>Created by</th>
                 </tr>
             </thead>
             <tbody>
@@ -515,44 +513,39 @@
                                         <i class="ri-upload-line me-2"></i>Upload
                                     </a>
                                 </li>
-
-                                @if((auth()->user()->role != "User") && (auth()->user()->role != "Department Head") && (auth()->user()->role != "Documents and Records Controller"))
+                                {{-- <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change{{$permit->id}}">
+                                        <i class="ri-user-line me-2"></i>Transfer Department
+                                    </a>
+                                </li> --}}
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType{{$permit->id}}">
+                                        <i class="ri-edit-line me-2"></i>Change Types
+                                    </a>
+                                </li>
+                                {{-- @if($permit->status == null)
+                                    <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change{{$permit->id}}">
-                                            <i class="ri-user-line me-2"></i>Transfer Department
-                                        </a>
+                                        <form method="POST" action="{{ url('inactive-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
+                                            @csrf
+                                            <button type="button" class="dropdown-item text-danger inactiveBtn">
+                                                <i class="ri-delete-bin-line me-2"></i>Inactive Permits
+                                            </button>
+                                        </form>
                                     </li>
+                                @endif --}}
 
+                                {{-- @if($permit->status == "Inactive")
+                                    <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType{{$permit->id}}">
-                                            <i class="ri-edit-line me-2"></i>Change Types
-                                        </a>
+                                        <form method="POST" action="{{ url('activate-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
+                                            @csrf
+                                            <button type="button" class="dropdown-item text-success activatePermitsBtn">
+                                                <i class="ri-check-line me-2"></i>Activate Permits
+                                            </button>
+                                        </form>
                                     </li>
-
-                                    @if($permit->status == null)
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form method="POST" action="{{ url('inactive-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
-                                                @csrf
-                                                <button type="button" class="dropdown-item text-danger inactiveBtn">
-                                                    <i class="ri-delete-bin-line me-2"></i>Inactive Permits
-                                                </button>
-                                            </form>
-                                        </li>
-                                    @endif
-
-                                    @if($permit->status == "Inactive")
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form method="POST" action="{{ url('activate-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
-                                                @csrf
-                                                <button type="button" class="dropdown-item text-success activatePermitsBtn">
-                                                    <i class="ri-check-line me-2"></i>Activate Permits
-                                                </button>
-                                            </form>
-                                        </li>
-                                    @endif
-                                @endif
+                                @endif --}}
                             </ul>
                         </div>
                     </td>
@@ -560,13 +553,13 @@
                     <td>{{$permit->description}}</td>
                     {{-- <td>{{$permit->company->name}}</td> --}}
                     {{-- <td>{{$permit->department->name}}</td> --}}
-                    <td>
+                    {{-- <td>
                         <small>
                             @foreach($permit->department->permit_accounts as $accountable)
                                 {{optional($accountable->user)->name}} <hr>
                             @endforeach
                         </small>
-                    </td>
+                    </td> --}}
                     <td>{{date('M d, Y',strtotime($permit->created_at))}}</td>
                     <td>
                         <a href='{{url($permit->file)}}' target='_blank'>
@@ -592,17 +585,18 @@
                             @endif
                         @endif
                     </td>
+                    <td>{{$permit->user->name}}</td>
                 </tr>
-                @include('upload_permit')
-                @include('transfer_department')
-                @include('edit_type')
+                @include('permits.upload_permit')
+                {{-- @include('transfer_department') --}}
+                @include('permits.edit_type')
                 @endforeach
             </tbody>
         </table>
     </div>
 </div>
 
-@include('new_permit')
+@include('permits.new_permit')
 @endsection
 
 @section('js')
