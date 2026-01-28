@@ -327,6 +327,12 @@
 @section('content')
 @include('error')
 
+@php
+    $totalDepartments = $departments->count();
+    $activeDepartments = $departments->where('status', null)->count();
+    $inactiveDepartments = $totalDepartments - $activeDepartments;
+@endphp
+
  
 <div class="row mb-4 dashboard-header">
     <div class="col-12">
@@ -341,7 +347,7 @@
             <div class="icon-circle">
                 <i class="ri-community-line"></i>
             </div>
-            <h2>{{count($departments)}}</h2>
+            <h2>{{ $totalDepartments }}</h2>
             <p>Total Departments</p>
         </div>
     </div>
@@ -351,7 +357,7 @@
             <div class="icon-circle">
                 <i class="ri-checkbox-circle-line"></i>
             </div>
-            <h2>{{count($departments->where('status',null))}}</h2>
+            <h2>{{ $activeDepartments }}</h2>
             <p>Active</p>
         </div>
     </div>
@@ -361,7 +367,7 @@
             <div class="icon-circle">
                 <i class="ri-close-circle-line"></i>
             </div>
-            <h2>{{count($departments->where('status','!=',null))}}</h2>
+            <h2>{{ $inactiveDepartments }}</h2>
             <p>Deactivated</p>
         </div>
     </div>
@@ -375,9 +381,6 @@
         </button>
     </div>
 
-     
-
-    
     <div class="table-container">
         <table class="modern-table tables">
             <thead>
@@ -394,26 +397,34 @@
             <tbody>
                 @foreach($departments as $department)
                 <tr>
-                    <td><strong>{{$department->code}}</strong></td>
-                    <td>{{$department->name}}</td>
+                    <td><strong>{{ $department->code }}</strong></td>
+                    <td>{{ $department->name ?? 'N/A' }}</td>
                     <td>
-                        @if($department->dep_head != null)
-                            <span class="badge-info">{{$department->dep_head->name}}</span>
+                        @if($department->dep_head)
+                            <span class="badge-info">{{ $department->dep_head->name }}</span>
                         @else
                             <span class="text-muted">No Head</span>
                         @endif
                     </td>
                     <td>
-                        @foreach($department->permit_accounts as $accountable)
-                            <span class="badge-info">{{$accountable->user->name}}</span>
-                        @endforeach
+                        @if($department->permit_accounts->count() > 0)
+                            @foreach($department->permit_accounts as $accountable)
+                                <span class="badge-info">{{ $accountable->user->name ?? 'N/A' }}</span>
+                            @endforeach
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
                     </td>
                     <td>
-                        <small>
-                            @foreach($department->approvers as $approver)
-                                {{$approver->level}}. {{$approver->user->name}}<br>
-                            @endforeach
-                        </small>
+                        @if($department->approvers->count() > 0)
+                            <small>
+                                @foreach($department->approvers as $approver)
+                                    {{ $approver->level }}. {{ $approver->user->name ?? 'N/A' }}<br>
+                                @endforeach
+                            </small>
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
                     </td>
                     <td>
                         @if($department->status)
@@ -422,26 +433,26 @@
                             <span class="badge-status active">Active</span>
                         @endif
                     </td>
-                    <td data-id='{{$department->id}}' id='actioncompanytd{{$department->id}}'>
+                    <td data-id='{{ $department->id }}' id='actioncompanytd{{ $department->id }}'>
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="departmentDropdown{{$department->id}}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="departmentDropdown{{ $department->id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="ri-more-2-fill"></i>
                             </button>
-                            <ul class="dropdown-menu" aria-labelledby="departmentDropdown{{$department->id}}">
+                            <ul class="dropdown-menu" aria-labelledby="departmentDropdown{{ $department->id }}">
                                 @if($department->status)
                                     <li>
-                                        <button class="dropdown-item activate-department" id='{{$department->id}}'>
+                                        <button class="dropdown-item activate-department" data-id='{{ $department->id }}'>
                                             <i class="ri-check-line me-2"></i>Activate
                                         </button>
                                     </li>
                                 @else
                                     <li>
-                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment{{$department->id}}">
+                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment{{ $department->id }}">
                                             <i class="ri-pencil-line me-2"></i>Edit
                                         </button>
                                     </li>
                                     <li>
-                                        <button class="dropdown-item deactivate-department" id='{{$department->id}}'>
+                                        <button class="dropdown-item deactivate-department" data-id='{{ $department->id }}'>
                                             <i class="ri-close-line me-2"></i>Deactivate
                                         </button>
                                     </li>
@@ -457,8 +468,8 @@
 </div>
 
 @include('new_department')
-@foreach($departments as $department)
-@include('edit_department')
+@foreach($departments->where('status', null) as $department)
+    @include('edit_department')
 @endforeach
 @endsection
 
@@ -469,8 +480,8 @@
 
 <script>
     $(document).ready(function(){
-        $('.deactivate-department').click(function () {
-            var id = this.id;
+        $(document).on('click', '.deactivate-department', function () {
+            var id = $(this).data('id');
             swal({
                 title: "Are you sure?",
                 text: "This department will be deactivated!",
@@ -483,22 +494,20 @@
                 $.ajax({
                     dataType: 'json',
                     type:'POST',
-                    url:  '{{url("deactivate-department")}}',
-                    data:{id:id},
+                    url:  '{{ url("deactivate-department") }}',
+                    data: {id: id},
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 }).done(function(data){
-                    console.log(data);
                     swal("Deactivated!", "Department is now deactivated.", "success");
                     location.reload();
                 }).fail(function(data){
-                    swal("Deactivated!", "Department is now deactivated.", "success");
-                    location.reload();
+                    swal("Error!", "Something went wrong.", "error");
                 });
             });
         });
 
-        $('.activate-department').click(function () {
-            var id = this.id;
+        $(document).on('click', '.activate-department', function () {
+            var id = $(this).data('id');
             swal({
                 title: "Are you sure?",
                 text: "This department will be activated!",
@@ -511,26 +520,25 @@
                 $.ajax({
                     dataType: 'json',
                     type:'POST',
-                    url:  '{{url("activate-department")}}',
-                    data:{id:id},
+                    url:  '{{ url("activate-department") }}',
+                    data: {id: id},
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 }).done(function(data){
-                    console.log(data);
                     swal("Activated!", "Department is now activated.", "success");
                     location.reload();
                 }).fail(function(data){
-                    swal("Activated!", "Department is now activated.", "success");
-                    location.reload();
+                    swal("Error!", "Something went wrong.", "error");
                 });
             });
         });
         
-        $('.cat').chosen({width: "100%"});
-        $('.locations').chosen({width: "100%"});
+        $('.cat, .locations').chosen({width: "100%"});
+        
         $('.tables').DataTable({
             pageLength: 25,
             responsive: true,
             stateSave: true,
+            deferRender: true,
             dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
             buttons: [
                 {extend: 'copy'},
