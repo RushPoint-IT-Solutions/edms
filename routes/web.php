@@ -34,7 +34,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('delete-folder/{id}','DocumentController@deleteFolder');
             Route::post('edit_date_approved/{id}', 'DocumentController@editDateApproved');
             Route::post('upload-document-folder','DocumentController@uploadDocumentFolder');
-            
+            Route::post('upload-document','DocumentController@store')->name('documents');
         });
 
          //Users
@@ -107,7 +107,6 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/upload-file/{id}', 'DocumentController@upload')->name('documents');
         Route::post('view-document/edit-document/{id}','DocumentController@edit');
         Route::get('audits','DocumentController@audit')->name('audit');
-        Route::post('upload-document','DocumentController@store')->name('documents');
     
         // Route::get('/companies', 'CompanyController@index')->name('settings');
         // Route::post('/new-company', 'CompanyController@store')->name('settings');
