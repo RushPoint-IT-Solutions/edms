@@ -441,7 +441,7 @@
                         </li> --}}
 
                         <!-- Settings Submenu -->
-                        @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission'))
+                        @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission') || auth()->user()->can('departments') || auth()->user()->can('teams'))
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                             href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
@@ -458,6 +458,12 @@
                                     {{-- <li class="nav-item">
                                         <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                     </li> --}}
+                                        <li class="nav-item">
+                                            <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams') || Request::is('new-team') || Request::is('*team*') ? 'active' : '' }}" data-key="t-teams">Teams</a>
+                                        </li>
                                     @can('users')
                                         <li class="nav-item">
                                             <a href="{{ url('users') }}" class="nav-link {{ Request::is('users') || Request::is('new-user') || Request::is('*user*') && !Request::is('remove-approvers') ? 'active' : '' }}" data-key="t-users">Users</a>
@@ -468,6 +474,9 @@
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
                                     @endcan
+                                        <li class="nav-item">
+                                            <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
+                                        </li>
                                     @can('roles and permission')
                                         <li class="nav-item">
                                             <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
