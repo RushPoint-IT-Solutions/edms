@@ -6,6 +6,9 @@
             </div>
             <form method="POST" action="{{ url('/documents/edit_date_approved/'.$approver->id) }}">
                 @csrf
+
+                <input type="hidden" name="document_id" value="{{ $change_request->document_id }}">
+
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-12">

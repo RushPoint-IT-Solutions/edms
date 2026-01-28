@@ -14,12 +14,14 @@ use App\DateApprovedLog;
 use App\DocumentFolder;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
+use App\Mail\ApprovedDateEmail;
 use App\RequestApprover;
 use App\User;
 use chillerlan\QRCode\Output\QRGdImagePNG;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use \setasign\Fpdi\PdfParser\StreamReader;
 use \setasign\Fpdi\PdfParser\CrossReference;
 use Illuminate\Support\Facades\Redirect;
@@ -910,14 +912,21 @@ class DocumentController extends Controller
     public function editDateApproved(Request $request,$id)
     {
         // dd($request->all());
-        $document = RequestApprover::findOrFail($id);
-        $document->date_approved = $request->date_approved." ".date('H:i:s');
-        $document->save();
+        $approver = RequestApprover::findOrFail($id);
+        $approver->date_approved = $request->date_approved." ".date('H:i:s');
+        $approver->save();
 
         $logs = new DateApprovedLog;
         $logs->user_id = auth()->id();
         $logs->date_approved = $request->date_approved." ".date('H:i:s');
         $logs->save();
+
+        $documents = Document::findOrFail($request->document_id);
+        $request = $documents->change_requests->sortByDesc('id')->first();
+        $approver = $request->approvers->first();
+        
+        $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
+        Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();

@@ -10,6 +10,9 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+use App\DateApprovedLog;
+
 Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 Route::get('auth/google', 'GoogleController@redirectToGoogle');
 Route::get('auth/google/callback','GoogleController@handleGoogleCallback');
@@ -177,10 +180,13 @@ Route::get('/pdf-viewer/{file}', function($file) {
     return view('pdf-viewer', ['pdfFile' => $file]);
 })->name('pdf.viewer');
 
-Route::get('mailable', function () {
-    $change_request = App\ChangeRequest::find(1);
-    $user = App\User::find(1);
+// Route::get('mailable', function () {
+//     $documents = App\Document::find(1);
+//     $request = $documents->change_requests->sortByDesc('id')->first();
+//     $approver = $request->approvers->first();
+//     // dd($approver);
+//     // $approver = App\RequestApprover::where()->find(1);
  
-    // return new App\Mail\RequestDocumentApproval($change_request,$user);
-    return new App\Mail\ApprovedRequestEmail($change_request,$user);
-});
+//     // return new App\Mail\RequestDocumentApproval($change_request,$user);
+//     return new App\Mail\ApprovedDateEmail($documents,$approver);
+// });
