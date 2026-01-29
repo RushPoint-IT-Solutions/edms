@@ -111,6 +111,7 @@ class UserController extends Controller
                 'email' => $user->email,
                 // 'company' => $user->company->name ?? 'N/A',
                 'department' => $user->department->name ?? '–',
+                'department_id' => $user->department_id,
                 // 'share_department' => '<div class="dept-list">' . $shareDepartments . '</div>',
                 'role' => $user->role,
                 'status' => $statusBadge,
@@ -208,7 +209,7 @@ class UserController extends Controller
         $account->email = $request->email;
         $account->role = $request->role;
         // $account->company_id = $request->company;
-        // $account->department_id = $request->department;
+        $account->department_id = $request->department;
         $account->save();
         
         $account->syncRoles($request->role);

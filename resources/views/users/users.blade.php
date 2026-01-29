@@ -465,6 +465,7 @@ $(document).ready(function(){
                 $("[name='id']").val(data.user_id)
                 $("[name='name']").val(data.name)
                 $("[name='email']").val(data.email)
+                $("[name='department']").val(data.department_id).trigger("chosen:updated")
                 $("[name='role']").val(data.role).trigger("chosen:updated")
             })
             $(row).find('.change-pass').on('click', function() {
