@@ -859,7 +859,7 @@ class RequestController extends Controller
     public function viewChangeRequest($id)
     {
         $changeRequest = ChangeRequest::with('user','comments','approvers','supporting_documents')->findOrFail($id);
-        $dateLogs = DateApprovedLog::with('user')->orderBy('id','desc')->first();
+        $dateLogs = DateApprovedLog::with('user')->where('change_request_id',$id)->orderBy('id','desc')->get();
 
         return view('change_request.view_change_request',
             array(

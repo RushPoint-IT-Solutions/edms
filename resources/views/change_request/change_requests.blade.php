@@ -389,6 +389,7 @@
     </div>
 
     <form method="GET" action="" id="filterForm">
+        <label>Status</label>
         <select id="statusFilter" name="status" class="form-control w-25">
             <option value="">All Status</option>
             <option value="Pending" @if($status == "Pending") selected @endif>Pending</option>

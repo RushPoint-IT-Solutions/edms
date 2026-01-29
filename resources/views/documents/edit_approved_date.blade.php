@@ -33,6 +33,9 @@
                         </div>
                     </div>
                     <hr>
+                    @php
+                        $dateLogs = $dateLogs->sortByDesc('id')->first();
+                    @endphp
                     @if($dateLogs)
                     <div class="row">
                         <div class="col-md-12">

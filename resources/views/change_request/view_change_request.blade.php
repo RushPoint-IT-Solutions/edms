@@ -133,10 +133,12 @@
                         </span>
 
                         @can('edit date approved')
-                        <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
-                            <i class="fa fa-calendar fs-3"></i>
-                        </a>
-                        @include('documents.edit_approved_date')
+                            @if($approver->status == "Approved")
+                                <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
+                                    <i class="fa fa-calendar fs-3"></i>
+                                </a>
+                                @include('documents.edit_approved_date')
+                            @endif
                         @endcan
                     </div>
                     @endforeach
@@ -167,6 +169,23 @@
                         @endforeach
                         @else
                         <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
+                        @endif
+
+                        @php
+                        $dateLogs = $dateLogs->sortByDesc('id')->first();
+                        @endphp
+                        @if($dateLogs)
+                        <div class="comment-item">
+                            <div class="d-flex align-items-start gap-2">
+                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
+                                    style="width: 32px; height: 32px;">
+                                <div class="flex-grow-1">
+                                    <div class="comment-author">{{"Edited by : ". $dateLogs->user->name }}</div>
+                                    <div class="comment-time">{{ date('d M Y - h:i A', strtotime($dateLogs->created_at))}}</div>
+                                    <div class="mt-2 text-muted">{{ "Ante Date : " .$dateLogs->date_approved }}</div>
+                                </div>
+                            </div>
+                        </div>
                         @endif
                     </div>
 
