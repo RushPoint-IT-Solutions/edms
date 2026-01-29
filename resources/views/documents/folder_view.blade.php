@@ -1,7 +1,7 @@
 @extends('layouts.header')
 
 @section('content')
-<div class="document-manager mb-5">
+<div class="document-manager mb-5" data-current-folder="{{ $folder_data->id ?? '' }}">
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
@@ -259,7 +259,7 @@
                             <i class="ri-folders-line"></i>
                         </div>
                         <h3 class="empty-title">No files in here</h3>
-                        <p class="empty-text">Upload some content</p>
+                        <p class="empty-text">You drag and drop file to upload some content</p>
                         @if(!isset($is_others_folder) || !$is_others_folder)
                         <button type="button" class="new-btn" data-bs-toggle="modal" data-bs-target="#uploadDocument">
                             <i class="ri-upload-line"></i>
@@ -284,6 +284,28 @@
 @section('css')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
+    .drop-zone {
+        position: relative;
+    }
+
+    .drop-zone.drag-over::after {
+        content: 'Drop files here to upload';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 120, 212, 0.9);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 600;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
     .document-manager {
         background: #fff;
         min-height: 100vh;
@@ -884,7 +906,8 @@
     let clickTimer = null;
     let selectedRow = null;
     let currentView = 'list';
-    
+    let dragCounter = 0;
+
     function handleFolderClick(element, hasChildren) {
         event.stopPropagation();
         
@@ -964,6 +987,196 @@
         localStorage.setItem('folderViewPreference', 'grid');
     }
 
+    function applyFilters() {
+        let visibleCount = 0;
+        let visibleFolders = 0;
+        let visibleDocuments = 0;
+
+        if (currentView === 'list') {
+            $('.document-row').each(function() {
+                const $row = $(this);
+                const rowType = $row.data('type');
+                const rowModified = new Date($row.data('modified'));
+                const now = new Date();
+                const level = $row.data('level') || 0;
+                
+                if (level > 0) {
+                    return;
+                }
+                
+                let typeMatch = filters.types.includes('all') || filters.types.includes(rowType);
+                
+                let modifiedMatch = true;
+                if (filters.modifiedDays !== 'all') {
+                    const daysDiff = Math.floor((now - rowModified) / (1000 * 60 * 60 * 24));
+                    modifiedMatch = daysDiff <= parseInt(filters.modifiedDays);
+                }
+                
+                if (typeMatch && modifiedMatch) {
+                    $row.show();
+                    visibleCount++;
+                    
+                    if (rowType === 'folder') {
+                        visibleFolders++;
+                    } else {
+                        visibleDocuments++;
+                    }
+                } else {
+                    $row.hide();
+                    const folderId = $row.data('folder-id');
+                    if (folderId) {
+                        hideChildren(folderId);
+                    }
+                }
+            });
+        } else {
+            $('.grid-item').each(function() {
+                const $item = $(this);
+                const itemType = $item.data('type');
+                const itemModified = new Date($item.data('modified'));
+                const now = new Date();
+                
+                let typeMatch = filters.types.includes('all') || filters.types.includes(itemType);
+                
+                let modifiedMatch = true;
+                if (filters.modifiedDays !== 'all') {
+                    const daysDiff = Math.floor((now - itemModified) / (1000 * 60 * 60 * 24));
+                    modifiedMatch = daysDiff <= parseInt(filters.modifiedDays);
+                }
+                
+                if (typeMatch && modifiedMatch) {
+                    $item.show();
+                    visibleCount++;
+                    
+                    if (itemType === 'folder') {
+                        visibleFolders++;
+                    } else {
+                        visibleDocuments++;
+                    }
+                } else {
+                    $item.hide();
+                }
+            });
+        }
+        
+        $('#visibleFolders').text(visibleFolders);
+        $('#visibleDocuments').text(visibleDocuments);
+        $('#totalEntries').text(visibleCount);
+        $('#showingTo').text(visibleCount);
+        if (visibleCount > 0) {
+            $('#showingFrom').text('1');
+        } else {
+            $('#showingFrom').text('0');
+        }
+        
+        updateActiveFilters();
+    }
+
+    function updateActiveFilters() {
+        const $container = $('#activeFiltersContainer');
+        const $filters = $('#activeFilters');
+        $filters.empty();
+        
+        let hasActiveFilters = false;
+        
+        if (!filters.types.includes('all')) {
+            filters.types.forEach(type => {
+                if (type !== 'all') {
+                    hasActiveFilters = true;
+                    const typeName = type.charAt(0).toUpperCase() + type.slice(1);
+                    $filters.append(`
+                        <div class="filter-tag">
+                            <span>Type: ${typeName}</span>
+                            <button onclick="removeTypeFilter('${type}')">&times;</button>
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        if (filters.modifiedDays !== 'all') {
+            hasActiveFilters = true;
+            const dayText = filters.modifiedDays == 1 ? 'Last 24 Hours' : `Last ${filters.modifiedDays} Days`;
+            $filters.append(`
+                <div class="filter-tag">
+                    <span>Modified: ${dayText}</span>
+                    <button onclick="removeModifiedFilter()">&times;</button>
+                </div>
+            `);
+        }
+        
+        if (hasActiveFilters) {
+            $container.show();
+        } else {
+            $container.hide();
+        }
+    }
+
+    window.removeTypeFilter = function(type) {
+        $(`#type-${type}`).prop('checked', false);
+        filters.types = filters.types.filter(t => t !== type);
+        $('#type-all').prop('checked', false);
+        filters.types = filters.types.filter(t => t !== 'all');
+        applyFilters();
+    };
+
+    window.removeModifiedFilter = function() {
+        filters.modifiedDays = 'all';
+        $('#modifiedFilterDropdown .filter-option').removeClass('active');
+        applyFilters();
+    };
+
+    function handleFileDrop(files) {
+        const isOthersFolder = {{ isset($is_others_folder) && $is_others_folder ? 'true' : 'false' }};
+        
+        if (isOthersFolder) {
+            alert('Cannot upload files to this folder');
+            return;
+        }
+        
+        const softCopyInput = $('input[name="attachment[soft_copy]"]')[0];
+        
+        if (!softCopyInput) {
+            alert('Upload form not found');
+            return;
+        }
+        
+        const supportedTypes = [
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        ];
+        
+        const validFiles = Array.from(files).filter(file => 
+            supportedTypes.includes(file.type)
+        );
+        
+        if (validFiles.length === 0) {
+            alert('Please drop supported file types (.doc, .docx, .xls, .xlsx, .ppt, .pptx)');
+            return;
+        }
+        
+        const file = validFiles[0];
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        softCopyInput.files = dataTransfer.files;
+        
+        const $input = $(softCopyInput);
+        $input.next('.file-selected-indicator').remove();
+        $input.after(`<small class="file-selected-indicator text-success d-block mt-1">✓ ${file.name}</small>`);
+        
+        $('#uploadDocument').modal('show');
+    }
+
+    function updateFileInputDisplay(input, fileName) {
+        const $input = $(input);
+        $input.next('.file-selected-indicator').remove();
+        $input.after(`<small class="file-selected-indicator text-success d-block mt-1">✓ ${fileName}</small>`);
+    }
+
     $(document).ready(function() {
         $('.select2').select2({
             dropdownParent: $('#addDocumentInFolder'),
@@ -996,6 +1209,13 @@
                 placeholder: "Select an option",
                 allowClear: true
             });
+
+            const softCopyInput = $('input[name="attachment[soft_copy]"]')[0];
+            
+            if (softCopyInput && softCopyInput.files.length > 0) {
+                const fileName = softCopyInput.files[0].name;
+                updateFileInputDisplay(softCopyInput, fileName);
+            }
         });
 
         $('#uploadDocumentForm').on('submit', function(e) {
@@ -1103,144 +1323,44 @@
             applyFilters();
         });
 
-        function applyFilters() {
-            let visibleCount = 0;
-            let visibleFolders = 0;
-            let visibleDocuments = 0;
+        $('a[data-bs-target="#uploadDocument"]').on('click', function() {
+            const currentFolderId = $('.document-manager').data('current-folder');
+            
+            if (currentFolderId) {
+                setTimeout(function() {
+                    $('select[name="folder"]').val(currentFolderId).trigger('change');
+                }, 100);
+            }
+        });
 
-            if (currentView === 'list') {
-                $('.document-row').each(function() {
-                    const $row = $(this);
-                    const rowType = $row.data('type');
-                    const rowModified = new Date($row.data('modified'));
-                    const now = new Date();
-                    const level = $row.data('level') || 0;
-                    
-                    if (level > 0) {
-                        return;
-                    }
-                    
-                    let typeMatch = filters.types.includes('all') || filters.types.includes(rowType);
-                    
-                    let modifiedMatch = true;
-                    if (filters.modifiedDays !== 'all') {
-                        const daysDiff = Math.floor((now - rowModified) / (1000 * 60 * 60 * 24));
-                        modifiedMatch = daysDiff <= parseInt(filters.modifiedDays);
-                    }
-                    
-                    if (typeMatch && modifiedMatch) {
-                        $row.show();
-                        visibleCount++;
-                        
-                        if (rowType === 'folder') {
-                            visibleFolders++;
-                        } else {
-                            visibleDocuments++;
-                        }
-                    } else {
-                        $row.hide();
-                        const folderId = $row.data('folder-id');
-                        if (folderId) {
-                            hideChildren(folderId);
-                        }
-                    }
-                });
-            } else {
-                $('.grid-item').each(function() {
-                    const $item = $(this);
-                    const itemType = $item.data('type');
-                    const itemModified = new Date($item.data('modified'));
-                    const now = new Date();
-                    
-                    let typeMatch = filters.types.includes('all') || filters.types.includes(itemType);
-                    
-                    let modifiedMatch = true;
-                    if (filters.modifiedDays !== 'all') {
-                        const daysDiff = Math.floor((now - itemModified) / (1000 * 60 * 60 * 24));
-                        modifiedMatch = daysDiff <= parseInt(filters.modifiedDays);
-                    }
-                    
-                    if (typeMatch && modifiedMatch) {
-                        $item.show();
-                        visibleCount++;
-                        
-                        if (itemType === 'folder') {
-                            visibleFolders++;
-                        } else {
-                            visibleDocuments++;
-                        }
-                    } else {
-                        $item.hide();
-                    }
-                });
+        $(document).on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        $(document).on('dragenter', function(e) {
+            dragCounter++;
+            if (dragCounter === 1) {
+                $('.document-manager').addClass('drag-over');
             }
-            
-            $('#visibleFolders').text(visibleFolders);
-            $('#visibleDocuments').text(visibleDocuments);
-            $('#totalEntries').text(visibleCount);
-            $('#showingTo').text(visibleCount);
-            if (visibleCount > 0) {
-                $('#showingFrom').text('1');
-            } else {
-                $('#showingFrom').text('0');
+        });
+        
+        $(document).on('dragleave', function(e) {
+            dragCounter--;
+            if (dragCounter === 0) {
+                $('.document-manager').removeClass('drag-over');
             }
+        });
+        
+        $(document).on('drop', function(e) {
+            dragCounter = 0;
+            $('.document-manager').removeClass('drag-over');
             
-            updateActiveFilters();
-        }
-
-        function updateActiveFilters() {
-            const $container = $('#activeFiltersContainer');
-            const $filters = $('#activeFilters');
-            $filters.empty();
-            
-            let hasActiveFilters = false;
-            
-            if (!filters.types.includes('all')) {
-                filters.types.forEach(type => {
-                    if (type !== 'all') {
-                        hasActiveFilters = true;
-                        const typeName = type.charAt(0).toUpperCase() + type.slice(1);
-                        $filters.append(`
-                            <div class="filter-tag">
-                                <span>Type: ${typeName}</span>
-                                <button onclick="removeTypeFilter('${type}')">&times;</button>
-                            </div>
-                        `);
-                    }
-                });
+            const files = e.originalEvent.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileDrop(files);
             }
-            
-            if (filters.modifiedDays !== 'all') {
-                hasActiveFilters = true;
-                const dayText = filters.modifiedDays == 1 ? 'Last 24 Hours' : `Last ${filters.modifiedDays} Days`;
-                $filters.append(`
-                    <div class="filter-tag">
-                        <span>Modified: ${dayText}</span>
-                        <button onclick="removeModifiedFilter()">&times;</button>
-                    </div>
-                `);
-            }
-            
-            if (hasActiveFilters) {
-                $container.show();
-            } else {
-                $container.hide();
-            }
-        }
-
-        window.removeTypeFilter = function(type) {
-            $(`#type-${type}`).prop('checked', false);
-            filters.types = filters.types.filter(t => t !== type);
-            $('#type-all').prop('checked', false);
-            filters.types = filters.types.filter(t => t !== 'all');
-            applyFilters();
-        };
-
-        window.removeModifiedFilter = function() {
-            filters.modifiedDays = 'all';
-            $('#modifiedFilterDropdown .filter-option').removeClass('active');
-            applyFilters();
-        };
+        });
 
         var menu = new BootstrapMenu('.demoTableRow', {
             fetchElementData: function ($rowElem) {

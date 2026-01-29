@@ -120,6 +120,17 @@
 </div>
 
 <style>
+    .file-selected-indicator {
+        font-weight: 600;
+        padding: 5px 10px;
+        background: #d4edda;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .form-control[type="file"] {
+        cursor: pointer;
+    }
     .btns {
         background-color:#495057;
         border: none;
