@@ -273,9 +273,9 @@ class RequestController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request) 
     {
-        $team = Department::find($request->privacy);
+        $team = Team::find($request->privacy);
         
         // dd($request->all(), count(json_decode($request->signature_positions)));
         $request->validate([
