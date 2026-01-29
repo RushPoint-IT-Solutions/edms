@@ -568,7 +568,6 @@
 
 .document-preview-iframe {
     height: 200px;
-    width: 423px;
     border: none;
     pointer-events: none;
     background: #f8f9fa;
@@ -601,6 +600,7 @@
     .document-preview-iframe {
         height: 150px;
     }
+    
 }
 
 @media print {
@@ -690,41 +690,53 @@
     <div class="col-12 col-lg-9">
         <div class="card shadow-sm">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-semibold text-dark mb-0">Pending Documents</h5>
-                    <div class="d-flex gap-2">
-                        <form action="{{ route('home') }}" method="GET" class="d-flex gap-2">
-                            <div class="position-relative">
-                                <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                                <input type="text" name="pending_search" value="{{ request('pending_search') }}" 
-                                    placeholder="Search pending..." class="form-control form-control-sm ps-5" style="min-width: 200px;">
-                            </div>
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                <i class="ri-search-line"></i>
-                            </button>
-                            @if(request('pending_search'))
-                            <a href="{{ route('home') }}" class="btn btn-outline-danger btn-sm">
-                                <i class="ri-close-line"></i>
-                            </a>
-                            @endif
-                        </form>
-                        
-                        <div class="btn-group" role="group" aria-label="View toggle">
-                            <button type="button" class="btn btn-outline-secondary btn-sm view-toggle active" data-view="grid">
-                                <i class="ri-grid-line"></i>
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm view-toggle" data-view="list">
-                                <i class="ri-list-check"></i>
-                            </button>
-                        </div>
-                        
-                        <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-semibold text-dark mb-0">Pending Documents</h5>
+                        <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1 d-none d-md-inline-flex">
                             <i class="ri-file-add-line"></i> New Document
                         </a>
                     </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-12 col-md-auto flex-md-grow-1">
+                            <form action="{{ route('home') }}" method="GET" class="d-flex gap-2">
+                                <div class="position-relative flex-grow-1">
+                                    <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                                    <input type="text" name="pending_search" value="{{ request('pending_search') }}" 
+                                        placeholder="Search pending..." class="form-control form-control-sm ps-5 w-100" style="height: 35px;">
+                                </div>
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                    <i class="ri-search-line"></i>
+                                </button>
+                                @if(request('pending_search'))
+                                <a href="{{ route('home') }}" class="btn btn-outline-danger btn-sm">
+                                    <i class="ri-close-line"></i>
+                                </a>
+                                @endif
+                            </form>
+                        </div>
+                        
+                        <div class="col-auto">
+                            <div class="btn-group" role="group" aria-label="View toggle">
+                                <button type="button" class="btn btn-outline-secondary btn-sm view-toggle active" data-view="grid">
+                                    <i class="ri-grid-line"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm view-toggle" data-view="list">
+                                    <i class="ri-list-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 d-md-none">
+                            <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-1 w-100">
+                                <i class="ri-file-add-line"></i> New Document
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="gridView" class="row row-cols-1 row-cols-sm-2 g-4">
+                <div id="gridView" class="row row-cols-1 row-cols-sm-4 g-2">
                     @foreach ($pending_cards as $change_request)
                     <div class="col">
                         <div class="card border file-card position-relative">
@@ -769,7 +781,7 @@
                     @endforeach
                 </div>
 
-                <div id="listView" class="d-none">
+                <div id="listView" class="d-none mb-2">
                     <div class="drive-list-container">
                         <div class="drive-list-header">
                             <div class="drive-list-row">
@@ -855,7 +867,7 @@
                 </div>
 
                 @if($pending_cards->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                     <div class="text-muted" style="font-size: 0.875rem;">
                         Showing <strong>{{ $pending_cards->firstItem() }}</strong> to <strong>{{ $pending_cards->lastItem() }}</strong> of <strong>{{ $pending_cards->total() }}</strong> pending documents
                     </div>
@@ -863,12 +875,12 @@
                         <ul class="pagination pagination-sm mb-0">
                             @if ($pending_cards->onFirstPage())
                                 <li class="page-item disabled">
-                                    <span class="page-link"><i class="ri-arrow-left-s-line"></i> Previous</span>
+                                    <span class="page-link">Previous</span>
                                 </li>
                             @else
                                 <li class="page-item">
                                     <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->previousPageUrl() }}" rel="prev">
-                                        <i class="ri-arrow-left-s-line"></i> Previous
+                                        Previous
                                     </a>
                                 </li>
                             @endif
@@ -888,12 +900,12 @@
                             @if ($pending_cards->hasMorePages())
                                 <li class="page-item">
                                     <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->nextPageUrl() }}" rel="next">
-                                        Next <i class="ri-arrow-right-s-line"></i>
+                                        Next
                                     </a>
                                 </li>
                             @else
                                 <li class="page-item disabled">
-                                    <span class="page-link">Next <i class="ri-arrow-right-s-line"></i></span>
+                                    <span class="page-link">Next</span>
                                 </li>
                             @endif
                         </ul>
@@ -905,7 +917,7 @@
     </div>
 
     <div class="col-12 col-lg-3">
-        <div class="card shadow-sm" style="height: 390px; overflow-y:scroll;">
+        <div class="card shadow-sm" style="height: 449px; overflow-y:scroll;">
             <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
                 
