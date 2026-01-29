@@ -23,10 +23,11 @@ class TeamsController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
+        // dd($request->all());
         try {
             $validator = Validator::make($request->all(), [
                 'team_name' => 'required|string|max:255|unique:teams,name,NULL,id,deleted_at,NULL',
+                'department' => 'required'
             ], [
                 'team_name.required' => 'Team name is required',
                 'team_name.unique' => 'A team with this name already exists',
@@ -42,6 +43,7 @@ class TeamsController extends Controller
 
             $team = Team::create([
                 'name' => $request->team_name,
+                'department_id' => $request->department,
                 'created_by' => Auth::id(),
                 'status' => null,
             ]);
@@ -67,6 +69,7 @@ class TeamsController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'team_name' => 'required|string|max:255|unique:teams,name,' . $id . ',id,deleted_at,NULL',
+                'department' => 'required'
             ], [
                 'team_name.required' => 'Team name is required',
                 'team_name.unique' => 'A team with this name already exists',
@@ -83,6 +86,7 @@ class TeamsController extends Controller
             $team = Team::findOrFail($id);
             $team->update([
                 'name' => $request->team_name,
+                'department_id' => $request->department
             ]);
 
             return response()->json([
