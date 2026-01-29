@@ -451,7 +451,15 @@
                     <td>{{ $request->revision }}</td>
                     <td>{{ $request->user->name }}</td>
                     <td>{{ date('Y-m-d', strtotime($request->created_at)) }}</td>
-                    <td>{{ $request->status }}</td>
+                    <td>
+                        @if($request->status == "Approved")
+                        <span class="badge bg-success">{{ $request->status }}</span>
+                        @elseif($request->status == "For Approval")
+                        <span class="badge bg-primary">{{ $request->status }}</span>
+                        @elseif($request->status == "Draft")
+                        <span class="badge bg-warning">{{ $request->status }}</span>
+                        @endif
+                    </td>
                     {{-- <td>{{ $request->request_status }}</td> --}}
                 </tr>
                 {{-- @include('view_change_request') --}}
