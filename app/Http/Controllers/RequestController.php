@@ -286,6 +286,7 @@ class RequestController extends Controller
         if ($request->has('id'))
         {
             $change_request = ChangeRequest::findOrFail($request->id);
+            $change_request->department_id = $request->department_id;
             $change_request->title = $request->title;
             $change_request->type = $request->type;
             $change_request->description = $request->description;
@@ -368,6 +369,7 @@ class RequestController extends Controller
             $change_request = new ChangeRequest;
             $change_request->title = $request->title;
             $change_request->type = $request->type;
+            $change_request->department_id = $request->department_id;
             $change_request->description = $request->description;
             $change_request->category = $request->category;
             $change_request->status = $request->status;
