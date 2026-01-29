@@ -55,7 +55,7 @@ class HomeController extends Controller
             });
         }
         
-        $pending_cards = $pending_query->orderBy('created_at', 'desc')->paginate(2, ['*'], 'pending_page');
+        $pending_cards = $pending_query->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
         $change_requests = $table_query->orderBy('created_at', 'desc')->paginate(10, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
