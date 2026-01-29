@@ -275,6 +275,8 @@ class RequestController extends Controller
      */
     public function store(Request $request)
     {
+        $team = Department::find($request->privacy);
+        
         // dd($request->all(), count(json_decode($request->signature_positions)));
         $request->validate([
             'file' => 'mimes:pdf'
@@ -288,7 +290,7 @@ class RequestController extends Controller
             $change_request->description = $request->description;
             $change_request->category = $request->category;
             $change_request->status = $request->status;
-            $change_request->privacy = $request->privacy;
+            $change_request->privacy = $team ? $team->name : null;
             $change_request->user_id = auth()->user()->id;
             $change_request->revision = 0;
             $change_request->request_status = "Pending";
@@ -368,7 +370,7 @@ class RequestController extends Controller
             $change_request->description = $request->description;
             $change_request->category = $request->category;
             $change_request->status = $request->status;
-            $change_request->privacy = $request->privacy;
+            $change_request->privacy = $team ? $team->name : null;
             $change_request->user_id = auth()->user()->id;
             $change_request->revision = 0;
             $change_request->request_status = "Pending";
