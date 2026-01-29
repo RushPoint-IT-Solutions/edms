@@ -12,9 +12,8 @@ class Team extends Model
     protected $fillable = [
         'name',
         'created_by',
+        'status',
     ];
-
-    protected $dates = ['deleted_at'];
 
     public function creator()
     {
