@@ -136,6 +136,9 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/teams', 'TeamsController@store')->name('teams.store');
         Route::put('/teams/{id}', 'TeamsController@update')->name('teams.update');
         Route::delete('/teams/{id}', 'TeamsController@destroy')->name('teams.destroy');
+
+        Route::post('/teams/deactivate', 'TeamsController@deactivate');
+        Route::post('/teams/activate', 'TeamsController@activate');
     
         // Route::get('remove-approvers','RequestController@removeApprover')->name('remove-approvers');
         // Route::post('update-approvers/{id}','RequestController@removeApp')->name('remove-approvers');

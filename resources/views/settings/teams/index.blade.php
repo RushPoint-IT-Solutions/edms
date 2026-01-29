@@ -43,6 +43,16 @@
         color: #2196F3;
     }
 
+    .dashboard-card.active .icon-circle {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .dashboard-card.inactive .icon-circle {
+        background: #f8d7da;
+        color: #842029;
+    }
+
     .dashboard-card h2 {
         font-size: 28px;
         font-weight: 700;
@@ -141,6 +151,23 @@
         display: block;
         line-height: 1.6;
         color: #495057;
+    }
+
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-status.active {
+        background: #e8f5e9;
+        color: #4caf50;
+    }
+
+    .badge-status.inactive {
+        background: #ffebee;
+        color: #f44336;
     }
 
     .dataTables_wrapper {
@@ -250,13 +277,33 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-3">
+    <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
             <div class="icon-circle">
                 <i class="ri-folder-line"></i>
             </div>
-            <h2 id="totalTeamsCount">{{ $totalTeams ?? 0 }}</h2>
+            <h2 id="totalTeamsCount">{{ $totalTeams }}</h2>
             <p>Total Teams</p>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+        <div class="dashboard-card active">
+            <div class="icon-circle">
+                <i class="ri-checkbox-circle-line"></i>
+            </div>
+            <h2>{{ $activeTeams }}</h2>
+            <p>Active</p>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6">
+        <div class="dashboard-card inactive">
+            <div class="icon-circle">
+                <i class="ri-close-circle-line"></i>
+            </div>
+            <h2>{{ $inactiveTeams }}</h2>
+            <p>Deactivated</p>
         </div>
     </div>
 </div>
@@ -275,6 +322,7 @@
                 <tr>
                     <th>Team Name</th>
                     <th>Created By</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -282,9 +330,7 @@
                 @foreach($teams as $team)
                 <tr id="team-row-{{ $team->id }}">
                     <td>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <strong class="team-name">{{ $team->name }}</strong>
-                        </div>
+                        <strong class="team-name">{{ $team->name }}</strong>
                     </td>
                     <td>
                         <div>
@@ -294,22 +340,36 @@
                         </div>
                     </td>
                     <td>
+                        @if($team->status)
+                            <span class="badge-status inactive">Inactive</span>
+                        @else
+                            <span class="badge-status active">Active</span>
+                        @endif
+                    </td>
+                    <td>
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary" type="button" id="teamDropdown{{ $team->id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="ri-more-2-fill"></i>
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="teamDropdown{{ $team->id }}">
-                                <li>
-                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam{{ $team->id }}">
-                                        <i class="ri-pencil-line me-2"></i>Edit
-                                    </button>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <button class="dropdown-item text-danger delete-team" data-id='{{ $team->id }}'>
-                                        <i class="ri-delete-bin-line me-2"></i>Delete
-                                    </button>
-                                </li>
+                                @if($team->status)
+                                    <li>
+                                        <button type="button" class="dropdown-item activate-team" data-id='{{ $team->id }}'>
+                                            <i class="ri-check-line me-2"></i>Activate
+                                        </button>
+                                    </li>
+                                @else
+                                    <li>
+                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam{{ $team->id }}">
+                                            <i class="ri-pencil-line me-2"></i>Edit
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item deactivate-team" data-id='{{ $team->id }}'>
+                                            <i class="ri-close-line me-2"></i>Deactivate
+                                        </button>
+                                    </li>
+                                @endif
                             </ul>
                         </div>
                     </td>
@@ -321,7 +381,9 @@
 </div>
 
 @include('settings.teams.new')
-@include('settings.teams.edit')
+@foreach($teams->where('status', null) as $team)
+    @include('settings.teams.edit')
+@endforeach
 @endsection
 
 @section('js')
@@ -354,6 +416,60 @@
             ]
         });
 
+        $(document).on('click', '.deactivate-team', function () {
+            var id = $(this).data('id');
+            swal({
+                title: "Are you sure?",
+                text: "This team will be deactivated!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, deactivate it!",
+                closeOnConfirm: false
+            }, function (){
+                $.ajax({
+                    type:'POST',
+                    url:  '{{ url("/teams/deactivate") }}',
+                    data: {id: id},
+                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                    success: function(data) {
+                        swal("Deactivated!", "Team is now deactivated.", "success");
+                        location.reload();
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        swal("Error!", "Something went wrong.", "error");
+                    }
+                })
+            });
+        });
+
+        $(document).on('click', '.activate-team', function () {
+            var id = $(this).data('id');
+            swal({
+                title: "Are you sure?",
+                text: "This team will be activated!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, activate it!",
+                closeOnConfirm: false
+            }, function (){
+                $.ajax({
+                    type:'POST',
+                    url:  '{{ url("/teams/activate") }}',
+                    data: {id: id},
+                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                    success: function(data){
+                        swal("Activated!", "Team is now activated.", "success");
+                        location.reload();
+                    },
+                    error: function() {
+                        swal("Error!", "Something went wrong.", "error");
+                    }
+                });
+            });
+        });
+
         $('#newTeamForm').on('submit', function(e) {
             e.preventDefault();
             
@@ -373,21 +489,22 @@
                 url: '{{ url("teams") }}',
                 data: {team_name: teamName},
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-            }).done(function(data){
-                swal("Success!", "Team created successfully!", "success");
-                $('#new_team').modal('hide');
-                location.reload();
-            }).fail(function(data){
-                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Team');
-                var message = 'Something went wrong.';
-                if(data.responseJSON && data.responseJSON.message) {
-                    message = data.responseJSON.message;
+                success: function(data) {
+                    swal("Success!", "Team created successfully!", "success");
+                    $('#new_team').modal('hide');
+                    location.reload();
+                },
+                error: function(data) {
+                    btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Team');
+                    var message = 'Something went wrong.';
+                    if(data.responseJSON && data.responseJSON.message) {
+                        message = data.responseJSON.message;
+                    }
+                    swal("Error!", message, "error");
                 }
-                swal("Error!", message, "error");
             });
         });
 
-        // UPDATE TEAM
         $('.edit-team-form').on('submit', function(e) {
             e.preventDefault();
             
@@ -400,7 +517,6 @@
                 return;
             }
             
-            // Disable button and show loading
             var btn = form.find('.update-team-btn');
             btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
             
@@ -413,46 +529,19 @@
                     team_name: teamName
                 },
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-            }).done(function(data){
-                swal("Success!", "Team updated successfully!", "success");
-                $('#editTeam' + teamId).modal('hide');
-                location.reload();
-            }).fail(function(data){
-                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Team');
-                var message = 'Something went wrong.';
-                if(data.responseJSON && data.responseJSON.message) {
-                    message = data.responseJSON.message;
-                }
-                swal("Error!", message, "error");
-            });
-        });
-
-        // DELETE TEAM
-        $(document).on('click', '.delete-team', function () {
-            var id = $(this).data('id');
-            
-            swal({
-                title: "Are you sure?",
-                text: "This team will be permanently deleted!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, delete it!",
-                closeOnConfirm: false,
-                showLoaderOnConfirm: true
-            }, function (){
-                $.ajax({
-                    dataType: 'json',
-                    type: 'POST',
-                    url: '{{ url("teams") }}/' + id,
-                    data: {_method: 'DELETE'},
-                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                }).done(function(data){
-                    swal("Deleted!", "Team deleted successfully!", "success");
+                success: function(data) {
+                    swal("Success!", "Team updated successfully!", "success");
+                    $('#editTeam' + teamId).modal('hide');
                     location.reload();
-                }).fail(function(data){
-                    swal("Error!", "Something went wrong.", "error");
-                });
+                },
+                error: function(data) {
+                    btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Team');
+                    var message = 'Something went wrong.';
+                    if(data.responseJSON && data.responseJSON.message) {
+                        message = data.responseJSON.message;
+                    }
+                    swal("Error!", message, "error");
+                }
             });
         });
 

@@ -13,8 +13,10 @@ class TeamsController extends Controller
     {
         $teams = Team::with('creator')->get();
         $totalTeams = $teams->count();
+        $activeTeams = $teams->where('status', null)->count();
+        $inactiveTeams = $totalTeams - $activeTeams;
         
-        return view('settings.teams.index', compact('teams', 'totalTeams'));
+        return view('settings.teams.index', compact('teams', 'totalTeams', 'activeTeams', 'inactiveTeams'));
     }
 
     public function store(Request $request)
@@ -38,6 +40,7 @@ class TeamsController extends Controller
             $team = Team::create([
                 'name' => $request->team_name,
                 'created_by' => Auth::id(),
+                'status' => null,
             ]);
 
             return response()->json([
@@ -91,6 +94,48 @@ class TeamsController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update team: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deactivate(Request $request)
+    {
+        try {
+            $team = Team::findOrFail($request->id);
+            $team->update(['status' => 1]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Team deactivated successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Team deactivation failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to deactivate team: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function activate(Request $request)
+    {
+        try {
+            $team = Team::findOrFail($request->id);
+            $team->update(['status' => null]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Team activated successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Team activation failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to activate team: ' . $e->getMessage()
             ], 500);
         }
     }
