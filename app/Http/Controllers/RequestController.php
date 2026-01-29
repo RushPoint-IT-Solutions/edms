@@ -18,6 +18,7 @@ use App\RequestApprover;
 use App\ObsoleteAttachment;
 use App\Obsolete;
 use App\DocumentType;
+use App\Team;
 use App\Mail\ApprovedRequestEmail;
 use App\Mail\RequestDocumentApproval;
 use App\Mail\ReturnedRequestEmail;
