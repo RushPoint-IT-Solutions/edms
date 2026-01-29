@@ -17,6 +17,7 @@ use App\DocumentTag;
 use App\Mail\ApprovedDateEmail;
 use App\RequestApprover;
 use App\User;
+use App\Team;
 use chillerlan\QRCode\Output\QRGdImagePNG;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -274,15 +275,18 @@ class DocumentController extends Controller
      */
    public function create($id = null)
     {
-        $approvers = User::all(); // populate approvers list
+        $approvers = User::all();
         $document_types = DocumentType::get();
+        $departments = Department::where('status', null)->orderBy('name', 'asc')->get();
+        $teams = Team::where('status', null)->orderBy('name', 'asc')->get();
 
         $change_request = null;
         if ($id)
         {
             $change_request = ChangeRequest::with('supporting_documents','approvers.user')->findOrFail($id);
         }
-        return view('documents.create', compact('approvers','document_types','change_request'));
+        
+        return view('documents.create', compact('approvers', 'document_types', 'departments', 'teams', 'change_request'));
     }
 
     public function signature($id) {

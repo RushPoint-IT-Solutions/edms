@@ -216,14 +216,38 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3" id="department-field" style="display: none;">
+                        <label for="department-select" class="form-label">Department <span class="text-danger">*</span></label>
+                        <select name="department_id" class="form-select" data-choices data-choices-search-false id="department-select">
+                            <option value="">-- Select Department --</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department->id }}" @if(old('department_id', $change_request->department_id ?? '') == $department->id) selected @endif>
+                                    {{ $department->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="team-field">
+                        <label for="team-select" class="form-label">Access <span class="text-danger">*</span></label>
+                        <select name="team_id" class="form-select" data-choices data-choices-search-false id="team-select">
+                            <option value="">-- Select Team --</option>
+                            @foreach($teams as $team)
+                                <option value="{{ $team->id }}" @if(old('team_id', $change_request->team_id ?? '') == $team->id) selected @endif>
+                                    {{ $team->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- <div class="mb-3">
                         <label for="choices-privacy-status-input" class="form-label">Access</label>
                         <select name="privacy" class="form-select" data-choices data-choices-search-false id="choices-privacy-status-input">
                             <option value="Private" selected @if(old('privacy', $change_request->privacy ?? '') == "Private") selected @endif>Private</option>
                             <option value="Team" @if(old('privacy', $change_request->privacy ?? '') == "Team") selected @endif>Team</option>
                             <option value="Public" @if(old('privacy', $change_request->privacy ?? '') == "Public") selected @endif>Public</option>
                         </select>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 
@@ -338,8 +362,14 @@
     </div>
 </form>
 
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@endsection
+@section('js')
+    <script src="{{asset('assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js')}}"></script>
+    <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
+    {{-- <script src="{{asset('assets/libs/dropzone/dropzone-min.js')}}"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 let pdfDoc = null;
@@ -731,17 +761,84 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-@endsection
-@section('js')
-    <script src="{{asset('assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js')}}"></script>
-    <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-    {{-- <script src="{{asset('assets/libs/dropzone/dropzone-min.js')}}"></script> --}}
+<script>
+$(document).ready(function() {
+    const categorySelectElement = document.querySelector('select[name="category"]');
+    const departmentField = document.getElementById('department-field');
+    const departmentSelect = document.getElementById('department-select');
+
+    function toggleDepartmentField() {
+        const categoryValue = categorySelectElement ? categorySelectElement.value : '';
+        console.log('Category value:', categoryValue);
+        
+        if (categoryValue === 'Departmental') {
+            departmentField.style.display = 'block';
+            departmentSelect.setAttribute('required', 'required');
+        } else {
+            departmentField.style.display = 'none';
+            departmentSelect.removeAttribute('required');
+            departmentSelect.value = '';
+        }
+    }
+
+    toggleDepartmentField();
+
+    if (categorySelectElement) {
+        categorySelectElement.addEventListener('change', function() {
+            console.log('Category changed to:', this.value);
+            toggleDepartmentField();
+        });
+    }
+
+    const categoryContainer = categorySelectElement ? categorySelectElement.closest('.mb-3') : null;
+    if (categoryContainer) {
+        categoryContainer.addEventListener('change', function(e) {
+            if (e.target.name === 'category') {
+                console.log('Category changed via bubble:', e.target.value); 
+                toggleDepartmentField();
+            }
+        });
+    }
+});
+</script>
 
     <script>
         $(document).ready(function() {
             $(".cat").chosen({
                 width: "100%"
             });
-        })
+
+            const categorySelectElement = document.querySelector('select[name="category"]');
+            const departmentField = document.getElementById('department-field');
+            const departmentSelect = document.getElementById('department-select');
+
+            function toggleDepartmentField() {
+                const categoryValue = categorySelectElement ? categorySelectElement.value : '';
+                console.log('Category value:', categoryValue);
+                
+                if (categoryValue === 'Departmental') {
+                    departmentField.style.display = 'block';
+                    departmentSelect.setAttribute('required', 'required');
+                } else {
+                    departmentField.style.display = 'none';
+                    departmentSelect.removeAttribute('required');
+                    departmentSelect.value = '';
+                }
+            }
+
+            setTimeout(toggleDepartmentField, 100);
+
+            if (categorySelectElement) {
+                categorySelectElement.addEventListener('change', function() {
+                    console.log('Category changed to:', this.value);
+                    toggleDepartmentField();
+                });
+            }
+
+            $('select[name="category"]').on('change', function() {
+                console.log('Category changed via jQuery:', this.value);
+                toggleDepartmentField();
+            });
+        });
     </script>
 @endsection
