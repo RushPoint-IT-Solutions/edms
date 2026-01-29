@@ -10,6 +10,9 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+use App\DateApprovedLog;
+
 Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 Route::get('auth/google', 'GoogleController@redirectToGoogle');
 Route::get('auth/google/callback','GoogleController@handleGoogleCallback');
@@ -34,7 +37,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('delete-folder/{id}','DocumentController@deleteFolder');
             Route::post('edit_date_approved/{id}', 'DocumentController@editDateApproved');
             Route::post('upload-document-folder','DocumentController@uploadDocumentFolder');
-            
+            Route::post('upload-document','DocumentController@store')->name('documents');
         });
 
          //Users
@@ -90,6 +93,16 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/upload/{id}', 'PermitController@upload')->name('permits');
             Route::post('change-type/{id}','PermitController@change_type')->name('permits');
         });
+
+        // Departments
+        Route::get('/departments', 'DepartmentController@index')->name('settings');
+        Route::prefix('departments')->group(function() {
+            Route::post('/store', 'DepartmentController@store')->name('settings');
+            Route::post('/update/{id}','DepartmentController@update')->name('settings');
+            Route::post('/deactivate', 'DepartmentController@deactivate')->name('settings');
+            Route::post('/activate', 'DepartmentController@activate')->name('settings');
+        });
+
         // Route::post('/change-department/{id}', 'PermitController@update')->name('permits');
         // Route::post('inactive-permits/{id}', 'PermitController@inactivePermits');
         // Route::post('activate-permits/{id}', 'PermitController@activatePermits');
@@ -107,13 +120,13 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/upload-file/{id}', 'DocumentController@upload')->name('documents');
         Route::post('view-document/edit-document/{id}','DocumentController@edit');
         Route::get('audits','DocumentController@audit')->name('audit');
-        Route::post('upload-document','DocumentController@store')->name('documents');
     
         // Route::get('/companies', 'CompanyController@index')->name('settings');
         // Route::post('/new-company', 'CompanyController@store')->name('settings');
         // Route::post('deactivate-company', 'CompanyController@deactivate')->name('settings');
         // Route::post('activate-company', 'CompanyController@activate')->name('settings');
     
+<<<<<<< HEAD
         Route::get('/departments', 'DepartmentController@index')->name('settings');
         Route::post('/new-department', 'DepartmentController@store')->name('settings');
         Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');
@@ -125,6 +138,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::put('/teams/{id}', 'TeamsController@update')->name('teams.update');
         Route::delete('/teams/{id}', 'TeamsController@destroy')->name('teams.destroy');
     
+=======
+>>>>>>> cb49ff1194020128cea0ebce9061c7be253a215b
         // Route::get('remove-approvers','RequestController@removeApprover')->name('remove-approvers');
         // Route::post('update-approvers/{id}','RequestController@removeApp')->name('remove-approvers');
     
@@ -183,10 +198,13 @@ Route::get('/pdf-viewer/{file}', function($file) {
     return view('pdf-viewer', ['pdfFile' => $file]);
 })->name('pdf.viewer');
 
-Route::get('mailable', function () {
-    $change_request = App\ChangeRequest::find(1);
-    $user = App\User::find(1);
+// Route::get('mailable', function () {
+//     $documents = App\Document::find(1);
+//     $request = $documents->change_requests->sortByDesc('id')->first();
+//     $approver = $request->approvers->first();
+//     // dd($approver);
+//     // $approver = App\RequestApprover::where()->find(1);
  
-    // return new App\Mail\RequestDocumentApproval($change_request,$user);
-    return new App\Mail\ApprovedRequestEmail($change_request,$user);
-});
+//     // return new App\Mail\RequestDocumentApproval($change_request,$user);
+//     return new App\Mail\ApprovedDateEmail($documents,$approver);
+// });

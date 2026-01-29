@@ -178,7 +178,6 @@
     display: block;
 }
 
-/* Share Menu Styles */
 .file-share-menu {
     position: absolute;
     top: 100%;
@@ -195,6 +194,324 @@
 
 .file-share-menu.show {
     display: block;
+}
+
+.drive-list-container {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.drive-list-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.drive-list-body {
+    background: white;
+}
+
+.drive-list-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+}
+
+.drive-list-header .drive-list-row {
+    align-items: center;
+    height: 40px;
+}
+
+.drive-list-item {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 16px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.drive-list-item:hover {
+    background-color: #f8f9fa;
+}
+
+.drive-list-item:last-child {
+    border-bottom: none;
+}
+
+.drive-col-name {
+    flex: 1;
+    min-width: 0;
+    padding-right: 24px;
+}
+
+.drive-col-owner {
+    width: 180px;
+    flex-shrink: 0;
+}
+
+.drive-col-modified {
+    width: 150px;
+    flex-shrink: 0;
+}
+
+.drive-col-size {
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.drive-col-actions {
+    width: 48px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.file-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.file-icon-wrapper i {
+    font-size: 24px;
+}
+
+.file-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.file-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #202124;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.file-subtitle {
+    font-size: 0.75rem;
+    color: #5f6368;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.drive-col-owner span,
+.drive-col-modified span,
+.drive-col-size span {
+    font-size: 0.8125rem;
+    color: #5f6368;
+}
+
+.drive-more-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+}
+
+.drive-list-item:hover .drive-more-btn {
+    opacity: 1;
+}
+
+.drive-more-btn:hover {
+    background-color: #e8eaed !important;
+}
+
+.drive-more-btn:active {
+    background-color: #dadce0 !important;
+}
+
+.drive-more-btn i {
+    font-size: 18px;
+    color: #5f6368;
+}
+
+#listView .file-dropdown-menu {
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    left: auto;
+    margin-right: 8px;
+}
+
+#listView .file-card.dropdown-open {
+    background-color: #e8f0fe;
+    z-index: 1050;
+}
+
+.view-toggle {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.view-toggle.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.view-toggle:hover:not(.active) {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.view-toggle i {
+    font-size: 1rem;
+}
+
+@media (max-width: 1200px) {
+    .drive-col-owner {
+        width: 140px;
+    }
+    
+    .drive-col-modified {
+        width: 120px;
+    }
+    
+    .drive-col-size {
+        width: 80px;
+    }
+}
+
+@media (max-width: 992px) {
+    .drive-col-owner {
+        display: none;
+    }
+    
+    .drive-col-size {
+        display: none;
+    }
+    
+    .drive-list-header .drive-col-owner,
+    .drive-list-header .drive-col-size {
+        display: none;
+    }
+    
+    .drive-col-modified {
+        width: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .drive-list-header {
+        display: none;
+    }
+    
+    .drive-list-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .drive-list-item {
+        padding: 12px 16px;
+    }
+    
+    .drive-col-name,
+    .drive-col-owner,
+    .drive-col-modified,
+    .drive-col-size {
+        width: 100%;
+        text-align: left;
+        padding-right: 0;
+    }
+    
+    .drive-col-actions {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: auto;
+    }
+    
+    .drive-more-btn {
+        opacity: 1;
+    }
+    
+    #listView .file-dropdown-menu {
+        right: 0;
+        top: 100%;
+        transform: none;
+        margin-top: 4px;
+        margin-right: 0;
+    }
+    
+    .file-info {
+        padding-right: 40px;
+    }
+}
+
+.drive-list-item .drive-list-row {
+    border-radius: 4px;
+}
+
+.drive-list-item.selected {
+    background-color: #e8f0fe;
+}
+
+.drive-list-item.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.drive-list-empty {
+    padding: 48px 24px;
+    text-align: center;
+    color: #5f6368;
+}
+
+.drive-list-empty i {
+    font-size: 48px;
+    color: #dadce0;
+    margin-bottom: 16px;
+}
+
+.drive-list-empty p {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+#gridView,
+#listView {
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+#listView .file-dropdown-menu.show {
+    display: block;
+    z-index: 1051;
 }
 
 .hover-effect {
@@ -391,13 +708,23 @@
                             </a>
                             @endif
                         </form>
+                        
+                        <div class="btn-group" role="group" aria-label="View toggle">
+                            <button type="button" class="btn btn-outline-secondary btn-sm view-toggle active" data-view="grid">
+                                <i class="ri-grid-line"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm view-toggle" data-view="list">
+                                <i class="ri-list-check"></i>
+                            </button>
+                        </div>
+                        
                         <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
                             <i class="ri-file-add-line"></i> New Document
                         </a>
                     </div>
                 </div>
 
-                <div class="row row-cols-1 row-cols-sm-2 g-4">
+                <div id="gridView" class="row row-cols-1 row-cols-sm-2 g-4">
                     @foreach ($pending_cards as $change_request)
                     <div class="col">
                         <div class="card border file-card position-relative">
@@ -410,11 +737,11 @@
                             <div class="file-dropdown-menu">
                                 <button class="file-dropdown-item" data-action="display">
                                     <i class="ri-file-text-line"></i>
-                                    <input type="hidden" id="file" value="{{ $change_request->file }}" />
+                                    <input type="hidden" class="file-path" value="{{ $change_request->file }}" />
                                     <span>View</span>
                                 </button>
                                 <div class="file-dropdown-divider"></div>
-                                <button class="file-dropdown-item" data-action="approve">
+                                <button class="file-dropdown-item" data-action="approve" data-id="{{ $change_request->id }}">
                                     <i class="ri-checkbox-circle-line"></i>
                                     <span>Approve</span>
                                 </button>
@@ -442,8 +769,93 @@
                     @endforeach
                 </div>
 
+                <div id="listView" class="d-none">
+                    <div class="drive-list-container">
+                        <div class="drive-list-header">
+                            <div class="drive-list-row">
+                                <div class="drive-col-name">
+                                    <span>Name</span>
+                                </div>
+                                <div class="drive-col-owner">
+                                    <span>Owner</span>
+                                </div>
+                                <div class="drive-col-modified">
+                                    <span>Last modified</span>
+                                </div>
+                                <div class="drive-col-size">
+                                    <span>File size</span>
+                                </div>
+                                <div class="drive-col-actions">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="drive-list-body">
+                            @foreach ($pending_cards as $change_request)
+                            @php
+                                $file = $change_request->file;
+                                $filename = explode('/',$file);
+                                $filesize = file_exists(public_path($file)) ? filesize(public_path($file)) : 0;
+                                $filesizeFormatted = $filesize > 0 ? number_format($filesize / 1024 / 1024, 2) . ' MB' : '--';
+                            @endphp
+                            <div class="drive-list-item file-card">
+                                <div class="drive-list-row">
+                                    <div class="drive-col-name">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="file-icon-wrapper">
+                                                <i class="ri-file-pdf-line text-danger"></i>
+                                            </div>
+                                            <div class="file-info">
+                                                <div class="file-name">{{ $filename[count($filename)-1] }}</div>
+                                                <div class="file-subtitle text-muted">{{ $change_request->title }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="drive-col-owner">
+                                        <span>{{ $change_request->user->name }}</span>
+                                    </div>
+                                    <div class="drive-col-modified">
+                                        <span>{{ date('M d, Y', strtotime($change_request->created_at)) }}</span>
+                                    </div>
+                                    <div class="drive-col-size">
+                                        <span>{{ $filesizeFormatted }}</span>
+                                    </div>
+                                    <div class="drive-col-actions">
+                                        <button class="btn btn-sm btn-light file-more-btn drive-more-btn">
+                                            <i class="ri-more-2-fill"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="file-dropdown-menu">
+                                    <button class="file-dropdown-item" data-action="display">
+                                        <i class="ri-eye-line"></i>
+                                        <input type="hidden" class="file-path" value="{{ $change_request->file }}" />
+                                        <span>Open</span>
+                                    </button>
+                                    <button class="file-dropdown-item" data-action="download">
+                                        <i class="ri-download-line"></i>
+                                        <span>Download</span>
+                                    </button>
+                                    <div class="file-dropdown-divider"></div>
+                                    <button class="file-dropdown-item" data-action="approve" data-id="{{ $change_request->id }}">
+                                        <i class="ri-checkbox-circle-line"></i>
+                                        <span>Approve</span>
+                                    </button>
+                                    <div class="file-dropdown-divider"></div>
+                                    <button class="file-dropdown-item" data-action="details">
+                                        <i class="ri-information-line"></i>
+                                        <span>Details</span>
+                                    </button>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
                 @if($pending_cards->hasPages())
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                     <div class="text-muted" style="font-size: 0.875rem;">
                         Showing <strong>{{ $pending_cards->firstItem() }}</strong> to <strong>{{ $pending_cards->lastItem() }}</strong> of <strong>{{ $pending_cards->total() }}</strong> pending documents
                     </div>
@@ -476,53 +888,6 @@
                             @if ($pending_cards->hasMorePages())
                                 <li class="page-item">
                                     <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->nextPageUrl() }}" rel="next">
-                                        Next <i class="ri-arrow-right-s-line"></i>
-                                    </a>
-                                </li>
-                            @else
-                                <li class="page-item disabled">
-                                    <span class="page-link">Next <i class="ri-arrow-right-s-line"></i></span>
-                                </li>
-                            @endif
-                        </ul>
-                    </nav>
-                </div>
-                @endif
-
-                @if($change_requests->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                    <div class="text-muted" style="font-size: 0.875rem;">
-                        Showing <strong>{{ $change_requests->firstItem() }}</strong> to <strong>{{ $change_requests->lastItem() }}</strong> of <strong>{{ $change_requests->total() }}</strong> documents
-                    </div>
-                    <nav aria-label="Pending documents pagination">
-                        <ul class="pagination pagination-sm mb-0">
-                            @if ($change_requests->onFirstPage())
-                                <li class="page-item disabled">
-                                    <span class="page-link"><i class="ri-arrow-left-s-line"></i> Previous</span>
-                                </li>
-                            @else
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ $change_requests->previousPageUrl() }}" rel="prev">
-                                        <i class="ri-arrow-left-s-line"></i> Previous
-                                    </a>
-                                </li>
-                            @endif
-
-                            @foreach ($change_requests->getUrlRange(1, $change_requests->lastPage()) as $page => $url)
-                                @if ($page == $change_requests->currentPage())
-                                    <li class="page-item active" aria-current="page">
-                                        <span class="page-link">{{ $page }}</span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                                    </li>
-                                @endif
-                            @endforeach
-
-                            @if ($change_requests->hasMorePages())
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ $change_requests->nextPageUrl() }}" rel="next">
                                         Next <i class="ri-arrow-right-s-line"></i>
                                     </a>
                                 </li>
@@ -884,6 +1249,181 @@
 @section('js')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="{{ asset('barcode/JsBarcode.all.min.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewToggles = document.querySelectorAll('.view-toggle');
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        
+        const savedView = localStorage.getItem('pendingDocsView') || 'grid';
+        setActiveView(savedView);
+        
+        viewToggles.forEach(button => {
+            button.addEventListener('click', function() {
+                const view = this.getAttribute('data-view');
+                setActiveView(view);
+                localStorage.setItem('pendingDocsView', view);
+            });
+        });
+        
+        function setActiveView(view) {
+            viewToggles.forEach(btn => {
+                if (btn.getAttribute('data-view') === view) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            if (view === 'grid') {
+                listView.classList.add('d-none');
+                setTimeout(() => {
+                    gridView.classList.remove('d-none');
+                }, 50);
+            } else {
+                gridView.classList.add('d-none');
+                setTimeout(() => {
+                    listView.classList.remove('d-none');
+                }, 50);
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const moreButtons = document.querySelectorAll('.file-more-btn');
+        
+        moreButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const fileCard = this.closest('.file-card');
+                const dropdown = fileCard.querySelector('.file-dropdown-menu');
+                
+                document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
+                    if (menu !== dropdown) {
+                        menu.classList.remove('show');
+                        const parentCard = menu.closest('.file-card');
+                        if (parentCard) {
+                            parentCard.classList.remove('dropdown-open');
+                        }
+                    }
+                });
+                
+                dropdown.classList.toggle('show');
+                
+                if (dropdown.classList.contains('show')) {
+                    fileCard.classList.add('dropdown-open');
+                } else {
+                    fileCard.classList.remove('dropdown-open');
+                }
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.file-dropdown-item')) {
+                const item = e.target.closest('.file-dropdown-item');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const action = item.getAttribute('data-action');
+                const filePath = item.querySelector(".file-path")?.value;
+                const fileCard = item.closest('.file-card');
+                
+                switch(action) {
+                    case 'display':
+                        if (filePath) {
+                            window.open("{{ url('') }}/" + filePath, '_blank');
+                        }
+                        break;
+                        
+                    case 'download':
+                        if (filePath) {
+                            const link = document.createElement('a');
+                            link.href = "{{ url('') }}/" + filePath;
+                            link.download = filePath.split('/').pop();
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                        break;
+                        
+                    case 'approve':
+                        const changeRequestId = item.getAttribute('data-id');
+                        if (changeRequestId) {
+                            window.location.href = "{{ route('documents.signature', '') }}/" + changeRequestId;
+                        }
+                        break;
+                        
+                    case 'details':
+                        console.log('Show details for:', filePath);
+                        alert('Details feature - to be implemented');
+                        break;
+                }
+                
+                const menu = item.closest('.file-dropdown-menu');
+                menu.classList.remove('show');
+                fileCard.classList.remove('dropdown-open');
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.file-more-btn') && 
+                !e.target.closest('.file-dropdown-menu')) {
+                document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
+                    menu.classList.remove('show');
+                    const parentCard = menu.closest('.file-card');
+                    if (parentCard) {
+                        parentCard.classList.remove('dropdown-open');
+                    }
+                });
+            }
+        });
+
+        document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
+            menu.addEventListener('click', e => {
+                if (!e.target.closest('.file-dropdown-item')) {
+                    e.stopPropagation();
+                }
+            });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const listItems = document.querySelectorAll('#listView .drive-list-item');
+        
+        listItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.file-more-btn') || 
+                    e.target.closest('.file-dropdown-menu')) {
+                    return;
+                }
+                
+                listItems.forEach(i => i.classList.remove('selected'));
+                
+                this.classList.add('selected');
+            });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const listItems = document.querySelectorAll('#listView .drive-list-item');
+        
+        listItems.forEach(item => {
+            item.addEventListener('dblclick', function(e) {
+                if (e.target.closest('.file-more-btn')) {
+                    return;
+                }
+                
+                const filePath = this.querySelector('.file-path')?.value;
+                if (filePath) {
+                    window.open("{{ url('') }}/" + filePath, '_blank');
+                }
+            });
+        });
+    });
+</script>
 
 <script>
 JsBarcode(".barcode").init();

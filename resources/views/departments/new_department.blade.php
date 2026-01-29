@@ -5,28 +5,28 @@
                 <h5 class="modal-title" id="exampleModalLabel">New Department</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method='post' action='new-department' onsubmit='show();' class="form-horizontal"  enctype="multipart/form-data" >
+            <form method='post' action='{{ url('/departments/store') }}' onsubmit='show();' class="form-horizontal" >
                 <div class="modal-body">
-                    <div class='row'>
+                    <div class='row g-3'>
                         {{ csrf_field() }}
                         <div class='col-md-12'>
-                            Department Code :
-                            <input type="text" class="form-control-sm form-control "  value="{{ old('code') }}"  name="code" required/>
+                            <label class="form-label">Department Code :</label>
+                            <input type="text" class="form-control"  value="{{ old('code') }}"  name="code" required/>
                         </div>
                         <div class='col-md-12'>
-                            Department Name :
-                            <input type="text" class="form-control-sm form-control "  value="{{ old('name') }}"  name="name" required/>
+                            <label class="form-label">Department Name :</label>
+                            <input type="text" class="form-control"  value="{{ old('name') }}"  name="name" required/>
                         </div>
                         <div class='col-md-12'>
-                            Department Head :
-                            <select name='user_id' class='form-control-sm form-control cat' >
+                            <label class="form-label">Department Head :</label>
+                            <select name='user_id' class='form-control cat' >
                                 <option value=""></option>
                                 @foreach($employees as $employee)
                                     <option value='{{$employee->id}}' @if(old('user_id') == $employee->id) selected @endif>{{$employee->name}}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class='col-md-12'>
+                        {{-- <div class='col-md-12'>
                             Permits Accountable<i>(optional)</i> :
                             <select name='permit_id[]' class='form-control-sm form-control cat' multiple>
                                 <option value=""></option>
@@ -34,9 +34,9 @@
                                     <option value='{{$employee->id}}' @if(old('permit_id') == $employee->id) selected @endif>{{$employee->name}}</option>
                                 @endforeach
                             </select>
-                        </div>
+                        </div> --}}
                     
-                        <div class='col-md-12 mb-2 '>
+                        {{-- <div class='col-md-12 mb-2 '>
                             <hr >
                             Approvers <button type="button" onclick='add_approver()' class="btn btn-primary btn-xs"><i class='fa fa-plus-square-o'></i></button> <button type="button" onclick='remove_approver()' class="btn btn-danger btn-xs"><i class='fa fa-minus-square-o'></i></button>
                             <span>&nbsp;</span>
@@ -55,7 +55,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -66,7 +66,7 @@
         </div>
     </div>
 </div>
-<script>
+{{-- <script>
   function add_approver()
   {
     var lastItemID = $('.approvers-data').children().last().attr('id');
@@ -142,4 +142,4 @@
     }
 
   }
-</script>
+</script> --}}

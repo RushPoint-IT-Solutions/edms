@@ -441,7 +441,7 @@
                         </li> --}}
 
                         <!-- Settings Submenu -->
-                        @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission') || auth()->user()->can('departments') || auth()->user()->can('teams'))
+                        @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission') || auth()->user()->can('departments') || auth()->user()->can('teams') || auth()->user()->can('department'))
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                             href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
@@ -455,6 +455,7 @@
                                     {{-- <li class="nav-item">
                                         <a href="{{ url('companies') }}" class="nav-link {{ Request::is('companies') || Request::is('new-company') || Request::is('*company*') ? 'active' : '' }}" data-key="t-companies">Companies</a>
                                     </li> --}}
+                                    @can('department')
                                     <li class="nav-item">
                                         <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                     </li>

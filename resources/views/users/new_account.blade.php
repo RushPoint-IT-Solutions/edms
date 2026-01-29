@@ -53,7 +53,7 @@
                                 <span class="text-danger">{{ $errors->first('role') }}</span>
                             @endif
                         </div>
-                        <div class='col-md-12'>
+                        {{-- <div class='col-md-12'>
                             <label>Password :</label>
                             <input type="password" class="form-control-sm form-control" name="password" placeholder="Enter password"/>
                         </div>
@@ -63,7 +63,7 @@
                         </div>
                         @if($errors->has('password'))
                             <span class="text-danger">{{ $errors->first('password') }}</span>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
                 <div class="modal-footer">
