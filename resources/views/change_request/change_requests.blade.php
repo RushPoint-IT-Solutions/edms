@@ -389,6 +389,7 @@
     </div>
 
     <form method="GET" action="" id="filterForm">
+        <label>Status</label>
         <select id="statusFilter" name="status" class="form-control w-25">
             <option value="">All Status</option>
             <option value="Pending" @if($status == "Pending") selected @endif>Pending</option>
@@ -451,7 +452,15 @@
                     <td>{{ $request->revision }}</td>
                     <td>{{ $request->user->name }}</td>
                     <td>{{ date('Y-m-d', strtotime($request->created_at)) }}</td>
-                    <td>{{ $request->status }}</td>
+                    <td>
+                        @if($request->status == "Approved")
+                        <span class="badge bg-success">{{ $request->status }}</span>
+                        @elseif($request->status == "For Approval")
+                        <span class="badge bg-primary">{{ $request->status }}</span>
+                        @elseif($request->status == "Draft")
+                        <span class="badge bg-warning">{{ $request->status }}</span>
+                        @endif
+                    </td>
                     {{-- <td>{{ $request->request_status }}</td> --}}
                 </tr>
                 {{-- @include('view_change_request') --}}

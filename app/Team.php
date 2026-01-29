@@ -13,6 +13,7 @@ class Team extends Model
         'name',
         'created_by',
         'status',
+        'department_id'
     ];
 
     public function creator()
@@ -23,5 +24,9 @@ class Team extends Model
     public function getCreatedDateAttribute()
     {
         return $this->created_at->format('M d, Y');
+    }
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 }

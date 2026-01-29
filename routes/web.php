@@ -38,6 +38,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('edit_date_approved/{id}', 'DocumentController@editDateApproved');
             Route::post('upload-document-folder','DocumentController@uploadDocumentFolder');
             Route::post('upload-document','DocumentController@store')->name('documents');
+            Route::post('refresh-team','DocumentController@refreshTeam');
         });
 
          //Users

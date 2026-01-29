@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Department;
 use App\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,15 +16,18 @@ class TeamsController extends Controller
         $totalTeams = $teams->count();
         $activeTeams = $teams->where('status', null)->count();
         $inactiveTeams = $totalTeams - $activeTeams;
+        $departments = Department::whereNull('status')->get();
         
-        return view('settings.teams.index', compact('teams', 'totalTeams', 'activeTeams', 'inactiveTeams'));
+        return view('settings.teams.index', compact('teams', 'totalTeams', 'activeTeams', 'inactiveTeams','departments'));
     }
 
     public function store(Request $request)
     {
+        // dd($request->all());
         try {
             $validator = Validator::make($request->all(), [
                 'team_name' => 'required|string|max:255|unique:teams,name,NULL,id,deleted_at,NULL',
+                'department' => 'required'
             ], [
                 'team_name.required' => 'Team name is required',
                 'team_name.unique' => 'A team with this name already exists',
@@ -39,6 +43,7 @@ class TeamsController extends Controller
 
             $team = Team::create([
                 'name' => $request->team_name,
+                'department_id' => $request->department,
                 'created_by' => Auth::id(),
                 'status' => null,
             ]);
@@ -64,6 +69,7 @@ class TeamsController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'team_name' => 'required|string|max:255|unique:teams,name,' . $id . ',id,deleted_at,NULL',
+                'department' => 'required'
             ], [
                 'team_name.required' => 'Team name is required',
                 'team_name.unique' => 'A team with this name already exists',
@@ -80,6 +86,7 @@ class TeamsController extends Controller
             $team = Team::findOrFail($id);
             $team->update([
                 'name' => $request->team_name,
+                'department_id' => $request->department
             ]);
 
             return response()->json([

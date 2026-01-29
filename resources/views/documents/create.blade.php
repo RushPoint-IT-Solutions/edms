@@ -219,7 +219,8 @@
                     <div class="mb-3" id="department-field" style="display: none;">
                         <label for="department-select" class="form-label">Department <span class="text-danger">*</span></label>
                         <select name="department_id" class="form-select" data-choices data-choices-search-false id="department-select">
-                            <option value="">-- Select Department --</option>
+                            {{-- <option value="">-- Select Department --</option> --}}
+                            <option value="">All departments</option>
                             @foreach($departments as $department)
                                 <option value="{{ $department->id }}" @if(old('department_id', $change_request->department_id ?? '') == $department->id) selected @endif>
                                     {{ $department->name }}
@@ -232,11 +233,11 @@
                         <label for="team-select" class="form-label">Access <span class="text-danger">*</span></label>
                         <select name="privacy" class="form-select" data-choices data-choices-search-false id="team-select">
                             <option value="">-- Select Access --</option>
-                            @foreach($teams as $team)
+                            {{-- @foreach($teams as $team)
                                 <option value="{{ $team->id }}" @if(old('privacy', $change_request->privacy ?? '') == $team->id) selected @endif>
                                     {{ $team->name }}
                                 </option>
-                            @endforeach
+                            @endforeach --}}
                         </select>
                     </div>
 
@@ -839,6 +840,22 @@ $(document).ready(function() {
                 console.log('Category changed via jQuery:', this.value);
                 toggleDepartmentField();
             });
+
+            $(document).on("change", "[name='department_id']", function() {
+                const value = $(this).val()
+                
+                $.ajax({
+                    type:"POST",
+                    url:"{{ url('documents/refresh-team') }}",
+                    data: {
+                        department: value,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success:function(response) {
+                        $("#team-select").html(response)
+                    }
+                })
+            })
         });
     </script>
 @endsection

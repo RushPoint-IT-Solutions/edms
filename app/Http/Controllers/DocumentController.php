@@ -311,7 +311,7 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
         //
-        // dd($request->all());
+        dd($request->all());
         $request->validate([
             'control_code' => 'unique:documents,control_code'
         ]);
@@ -923,14 +923,15 @@ class DocumentController extends Controller
         $logs = new DateApprovedLog;
         $logs->user_id = auth()->id();
         $logs->date_approved = $request->date_approved." ".date('H:i:s');
+        $logs->change_request_id = $approver->change_request_id;
         $logs->save();
 
-        $documents = Document::findOrFail($request->document_id);
-        $request = $documents->change_requests->sortByDesc('id')->first();
-        $approver = $request->approvers->first();
+        // $documents = Document::findOrFail($request->document_id);
+        // $request = $documents->change_requests->sortByDesc('id')->first();
+        // $approver = $request->approvers->first();
         
-        $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
-        Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
+        // $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
+        // Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
@@ -964,5 +965,17 @@ class DocumentController extends Controller
         $change_request = ChangeRequest::with('user', 'approvers.user', 'supporting_documents')->findOrFail($id);
         
         return view('public.change-request', compact('change_request'));
+    }
+
+    public function refreshTeam(Request $request)
+    {
+        // dd($request->all());
+        $teams = Team::where('department_id', $request->department)->get();
+        $options = "";
+        foreach($teams as $team) {
+            $options .= '<option value="'.$team->id.'">'.$team->name.'</option>';
+        }
+        
+        return $options;
     }
 }

@@ -323,6 +323,7 @@
                     <th>Team Name</th>
                     <th>Created By</th>
                     <th>Status</th>
+                    <th>Department</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -346,6 +347,7 @@
                             <span class="badge-status active">Active</span>
                         @endif
                     </td>
+                    <td>{{optional($team->department)->name}}</td>
                     <td>
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary" type="button" id="teamDropdown{{ $team->id }}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -474,6 +476,7 @@
             e.preventDefault();
             
             var teamName = $('#team_name').val().trim();
+            var department = $("#department").val().trim()
             
             if (!teamName) {
                 swal("Error!", "Please enter a team name", "error");
@@ -487,7 +490,7 @@
                 dataType: 'json',
                 type: 'POST',
                 url: '{{ url("teams") }}',
-                data: {team_name: teamName},
+                data: {team_name: teamName, department:department},
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 success: function(data) {
                     swal("Success!", "Team created successfully!", "success");
@@ -511,6 +514,7 @@
             var form = $(this);
             var teamId = form.data('id');
             var teamName = form.find('input[name="team_name"]').val().trim();
+            var department = form.find("select[name='department']").val().trim();
             
             if (!teamName) {
                 swal("Error!", "Please enter a team name", "error");
@@ -526,7 +530,8 @@
                 url: '{{ url("teams") }}/' + teamId,
                 data: {
                     _method: 'PUT',
-                    team_name: teamName
+                    team_name: teamName,
+                    department:department
                 },
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 success: function(data) {

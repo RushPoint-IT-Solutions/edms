@@ -13,6 +13,16 @@
                 @method('PUT')
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
+                        <select name="department" id="department" class="form-control cat">
+                            <option value=""></option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}" @if($department->id == $team->department_id) selected @endif>{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="invalid-feedback" id="department_name_error"></div>
+                    </div>
+                    <div class="mb-3">
                         <label for="edit_team_name{{ $team->id }}" class="form-label">Team Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control edit-team-name" id="edit_team_name{{ $team->id }}" name="team_name" value="{{ $team->name }}" required>
                         <div class="invalid-feedback edit-team-error"></div>
