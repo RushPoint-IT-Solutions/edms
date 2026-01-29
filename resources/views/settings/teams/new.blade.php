@@ -11,6 +11,16 @@
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
+                        <select name="department" id="department" class="form-control cat">
+                            <option value=""></option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="invalid-feedback" id="department_name_error"></div>
+                    </div>
+                    <div class="mb-3">
                         <label for="team_name" class="form-label">Team Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="team_name" name="team_name" placeholder="Enter team name" required>
                         <div class="invalid-feedback" id="team_name_error"></div>

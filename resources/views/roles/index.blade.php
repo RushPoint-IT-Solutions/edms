@@ -192,7 +192,7 @@
                                             <i class="ri-edit-box-line"></i>
                                         </button>
                                         <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#view{{ $role->id }}">
-                                            <i class="ri-eye-line"></i>
+                                            <i class="ri-key-2-line"></i>
                                         </button>
                                     </td>
                                     <td>{{ $role->name }}</td>

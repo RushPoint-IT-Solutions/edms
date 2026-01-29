@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Department;
 use App\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,12 +16,14 @@ class TeamsController extends Controller
         $totalTeams = $teams->count();
         $activeTeams = $teams->where('status', null)->count();
         $inactiveTeams = $totalTeams - $activeTeams;
+        $departments = Department::whereNull('status')->get();
         
-        return view('settings.teams.index', compact('teams', 'totalTeams', 'activeTeams', 'inactiveTeams'));
+        return view('settings.teams.index', compact('teams', 'totalTeams', 'activeTeams', 'inactiveTeams','departments'));
     }
 
     public function store(Request $request)
     {
+        dd($request->all());
         try {
             $validator = Validator::make($request->all(), [
                 'team_name' => 'required|string|max:255|unique:teams,name,NULL,id,deleted_at,NULL',
