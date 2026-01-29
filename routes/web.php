@@ -126,7 +126,6 @@ Route::group(['middleware' => 'auth'], function () {
         // Route::post('deactivate-company', 'CompanyController@deactivate')->name('settings');
         // Route::post('activate-company', 'CompanyController@activate')->name('settings');
     
-<<<<<<< HEAD
         Route::get('/departments', 'DepartmentController@index')->name('settings');
         Route::post('/new-department', 'DepartmentController@store')->name('settings');
         Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');
@@ -138,8 +137,6 @@ Route::group(['middleware' => 'auth'], function () {
         Route::put('/teams/{id}', 'TeamsController@update')->name('teams.update');
         Route::delete('/teams/{id}', 'TeamsController@destroy')->name('teams.destroy');
     
-=======
->>>>>>> cb49ff1194020128cea0ebce9061c7be253a215b
         // Route::get('remove-approvers','RequestController@removeApprover')->name('remove-approvers');
         // Route::post('update-approvers/{id}','RequestController@removeApp')->name('remove-approvers');
     
