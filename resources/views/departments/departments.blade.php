@@ -388,8 +388,8 @@
                     <th>Code</th>
                     <th>Name</th>
                     <th>Department Head</th>
-                    <th>Permit Accountable Person</th>
-                    <th>Approver</th>
+                    {{-- <th>Permit Accountable Person</th> --}}
+                    {{-- <th>Approver</th> --}}
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -406,7 +406,7 @@
                             <span class="text-muted">No Head</span>
                         @endif
                     </td>
-                    <td>
+                    {{-- <td>
                         @if($department->permit_accounts->count() > 0)
                             @foreach($department->permit_accounts as $accountable)
                                 <span class="badge-info">{{ $accountable->user->name ?? 'N/A' }}</span>
@@ -414,8 +414,8 @@
                         @else
                             <span class="text-muted">-</span>
                         @endif
-                    </td>
-                    <td>
+                    </td> --}}
+                    {{-- <td>
                         @if($department->approvers->count() > 0)
                             <small>
                                 @foreach($department->approvers as $approver)
@@ -425,7 +425,7 @@
                         @else
                             <span class="text-muted">-</span>
                         @endif
-                    </td>
+                    </td> --}}
                     <td>
                         @if($department->status)
                             <span class="badge-status inactive">Inactive</span>
@@ -441,7 +441,7 @@
                             <ul class="dropdown-menu" aria-labelledby="departmentDropdown{{ $department->id }}">
                                 @if($department->status)
                                     <li>
-                                        <button class="dropdown-item activate-department" data-id='{{ $department->id }}'>
+                                        <button type="button" class="dropdown-item activate-department" data-id='{{ $department->id }}'>
                                             <i class="ri-check-line me-2"></i>Activate
                                         </button>
                                     </li>
@@ -452,7 +452,7 @@
                                         </button>
                                     </li>
                                     <li>
-                                        <button class="dropdown-item deactivate-department" data-id='{{ $department->id }}'>
+                                        <button type="button" class="dropdown-item deactivate-department" data-id='{{ $department->id }}'>
                                             <i class="ri-close-line me-2"></i>Deactivate
                                         </button>
                                     </li>
@@ -467,9 +467,9 @@
     </div>
 </div>
 
-@include('new_department')
+@include('departments.new_department')
 @foreach($departments->where('status', null) as $department)
-    @include('edit_department')
+    @include('departments.edit_department')
 @endforeach
 @endsection
 
@@ -492,17 +492,18 @@
                 closeOnConfirm: false
             }, function (){
                 $.ajax({
-                    dataType: 'json',
                     type:'POST',
-                    url:  '{{ url("deactivate-department") }}',
+                    url:  '{{ url("/departments/deactivate") }}',
                     data: {id: id},
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                }).done(function(data){
-                    swal("Deactivated!", "Department is now deactivated.", "success");
-                    location.reload();
-                }).fail(function(data){
-                    swal("Error!", "Something went wrong.", "error");
-                });
+                    success: function(data) {
+                        swal("Deactivated!", "Department is now deactivated.", "success");
+                        location.reload();
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        swal("Error!", "Something went wrong.", "error");
+                    }
+                })
             });
         });
 
@@ -518,16 +519,17 @@
                 closeOnConfirm: false
             }, function (){
                 $.ajax({
-                    dataType: 'json',
                     type:'POST',
-                    url:  '{{ url("activate-department") }}',
+                    url:  '{{ url("/departments/activate") }}',
                     data: {id: id},
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                }).done(function(data){
-                    swal("Activated!", "Department is now activated.", "success");
-                    location.reload();
-                }).fail(function(data){
-                    swal("Error!", "Something went wrong.", "error");
+                    success: function(data){
+                        swal("Activated!", "Department is now activated.", "success");
+                        location.reload();
+                    },
+                    error: function() {
+                        swal("Error!", "Something went wrong.", "error");
+                    }
                 });
             });
         });

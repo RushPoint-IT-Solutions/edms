@@ -134,7 +134,7 @@
 
                         @can('edit date approved')
                         <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
-                            <i class="fa fa-edit"></i>
+                            <i class="fa fa-calendar fs-3"></i>
                         </a>
                         @include('documents.edit_approved_date')
                         @endcan

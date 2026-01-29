@@ -456,14 +456,14 @@
                     <span class="detail-label">Effective Updated</span>
                     <span class="detail-value">{{date('M, d Y',strtotime($document->updated_at))}}</span>
                 </div>
+                @if($document->date_approved)
                 <div class="detail-item">
                     <span class="detail-label">Approved Date</span>
-                    @if($document->date_approved)
                     <span class="detail-value">{{date('M, d Y',strtotime($document->date_approved))}}</span>
-                    @endif
-
+                    
                     {{-- @include('documents.edit_approved_date') --}}
                 </div>
+                @endif
             </div>
         </div>
 

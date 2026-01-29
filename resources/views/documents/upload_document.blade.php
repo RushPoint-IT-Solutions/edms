@@ -5,7 +5,7 @@
                 <h5 class="modal-title" id="uploadDocumentLabel">Upload Document</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method='post' action='upload-document' onsubmit='show();' enctype="multipart/form-data">
+            <form method='post' action='{{ url('/documents/upload-document') }}' onsubmit='show();' enctype="multipart/form-data">
                 <div class="modal-body">
                     {{ csrf_field() }}
                     <div class='row g-3'>

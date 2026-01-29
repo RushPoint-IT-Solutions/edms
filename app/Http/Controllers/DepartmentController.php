@@ -28,10 +28,12 @@ class DepartmentController extends Controller
             ->select('id', 'name', 'status')
             ->get();
             
-        return view('departments', array(
-            'departments' => $departments,
-            'employees' => $employees,
-        ));
+        return view('departments.departments', 
+            array(
+                'departments' => $departments,
+                'employees' => $employees,
+            )
+        );
     }
 
     /**
@@ -143,38 +145,39 @@ class DepartmentController extends Controller
         try {
             $department = Department::findOrfail($id);
             $department->name = $request->name;
+            $department->code = $request->code;
             $department->user_id = $request->user_id;
             $department->save();
 
-            DepartmentApprover::where('department_id', $id)->delete();
-            PermitAccountable::where('department_id', $id)->delete();
+            // DepartmentApprover::where('department_id', $id)->delete();
+            // PermitAccountable::where('department_id', $id)->delete();
 
-            if ($request->edit_approvers) {
-                $approversData = [];
-                foreach($request->edit_approvers as $key => $approver) {
-                    $approversData[] = [
-                        'department_id' => $department->id,
-                        'user_id' => $approver,
-                        'level' => $key + 1,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                }
-                DepartmentApprover::insert($approversData);
-            }
+            // if ($request->edit_approvers) {
+            //     $approversData = [];
+            //     foreach($request->edit_approvers as $key => $approver) {
+            //         $approversData[] = [
+            //             'department_id' => $department->id,
+            //             'user_id' => $approver,
+            //             'level' => $key + 1,
+            //             'created_at' => now(),
+            //             'updated_at' => now(),
+            //         ];
+            //     }
+            //     DepartmentApprover::insert($approversData);
+            // }
 
-            if($request->permit_id != null) {
-                $permitData = [];
-                foreach($request->permit_id as $permit_id) {
-                    $permitData[] = [
-                        'department_id' => $department->id,
-                        'user_id' => $permit_id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                }
-                PermitAccountable::insert($permitData);
-            }
+            // if($request->permit_id != null) {
+            //     $permitData = [];
+            //     foreach($request->permit_id as $permit_id) {
+            //         $permitData[] = [
+            //             'department_id' => $department->id,
+            //             'user_id' => $permit_id,
+            //             'created_at' => now(),
+            //             'updated_at' => now(),
+            //         ];
+            //     }
+            //     PermitAccountable::insert($permitData);
+            // }
 
             \DB::commit();
             Alert::success('Successfully Updated')->persistent('Dismiss');

@@ -5,21 +5,20 @@
                 <h5 class="modal-title" id="editDepartmentModalLabel{{$department->id}}">Edit Department</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method='post' action='edit-department/{{$department->id}}' onsubmit='show();' enctype="multipart/form-data">
+            <form method='post' action='{{ url('/departments/update/'.$department->id) }}' onsubmit='show();' enctype="multipart/form-data">
+                {{ csrf_field() }}
                 <div class="modal-body">
-                    {{ csrf_field() }}
-                    <div class='row'>
+                    <div class='row g-3'>
                         <div class='col-md-12'>
-                            <label>Department Code :</label>
-                            <input type="text" class="form-control-sm form-control bg-light" value="{{$department->code}}" readonly name="code" required/>
-                            <small class="text-muted">Department code cannot be changed</small>
+                            <label class="form-label">Department Code :</label>
+                            <input type="text" class="form-control-sm form-control" value="{{$department->code}}" name="code" required/>
                         </div>
                         <div class='col-md-12'>
-                            <label>Department Name :</label>
+                            <label class="form-label">Department Name :</label>
                             <input type="text" class="form-control-sm form-control" value="{{$department->name}}" name="name" required/>
                         </div>
                         <div class='col-md-12'>
-                            <label>Department Head :</label>
+                            <label class="form-label">Department Head :</label>
                             <select name='user_id' class='form-control-sm form-control cat'>
                                 <option value="">Select department head...</option>
                                 @foreach($employees as $employee)
@@ -27,7 +26,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class='col-md-12'>
+                        {{-- <div class='col-md-12'>
                             <label>Permits Accountable :</label>
                             <select name='permit_id[]' class='form-control-sm form-control cat' multiple>
                                 <option value="">Select employees...</option>
@@ -36,9 +35,8 @@
                                 @endforeach
                             </select>
                             <small class="text-muted mt-1">Hold Ctrl/Cmd to select multiple employees (optional)</small>
-                        </div>
-                        
-                        <div class='col-md-12'>
+                        </div> --}}
+                        {{-- <div class='col-md-12'>
                             <label>Approvers :</label>
                             <div class="d-flex align-items-center mb-2">
                                 <button type="button" onclick='add_edit_approver({{$department->id}})' class="btn btn-primary btn-sm me-2">
@@ -65,7 +63,7 @@
                                 </div>
                                 @endforeach
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
                 <div class="modal-footer">

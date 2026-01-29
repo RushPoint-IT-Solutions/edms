@@ -2,10 +2,13 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title">Edit approved date</h6>
+                <h6 class="modal-title">Date</h6>
             </div>
             <form method="POST" action="{{ url('/documents/edit_date_approved/'.$approver->id) }}">
                 @csrf
+
+                <input type="hidden" name="document_id" value="{{ $change_request->document_id }}">
+
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-12">
@@ -23,9 +26,9 @@
                         <div class="col-md-12">
                             <b>Approved Date: </b>
                             @if($approver->date_approved)
-                            {{ date('M d Y', strtotime($approver->date_approved)) }}
+                            {{ date('M d Y h:i A', strtotime($approver->date_approved)) }}
                             @else 
-                            {{ date('M d Y', strtotime($approver->updated_at)) }}
+                            {{ date('M d Y h:i A', strtotime($approver->updated_at)) }}
                             @endif
                         </div>
                     </div>
