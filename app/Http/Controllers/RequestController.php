@@ -182,7 +182,8 @@ class RequestController extends Controller
                             $q->where('status', $request->status);
                         })
                         ->get();
-        if (auth()->user()->role != "Administrator")
+                        
+        if (auth()->user()->role != "Administrator" && auth()->user()->role != "Approver")
         {
             $requests = ChangeRequest::whereNull('is_draft')
                             ->when($request->status, function($q)use($request) {
