@@ -485,21 +485,20 @@
         $('.tables').DataTable({
             pageLength: 25,
             responsive: true,
-            // dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
-            dom: '<"top"f>rt<"bottom"lp><"clear">', // keep search bar visible
+            dom: '<"top"f>rt<"bottom"lp><"clear">',
             buttons: [
                 {extend: 'copy'},
                 {extend: 'csv'},
                 {extend: 'excel', title: 'Change Requests'},
                 {extend: 'pdf', title: 'Change Requests'},
                 {extend: 'print',
-                 customize: function (win) {
+                customize: function (win) {
                     $(win.document.body).addClass('white-bg');
                     $(win.document.body).css('font-size', '10px');
                     $(win.document.body).find('table')
                         .addClass('compact')
                         .css('font-size', 'inherit');
-                 }
+                }
                 }
             ]
         });
@@ -511,12 +510,14 @@
             gap: "10px"
         });
 
-        $(".top").prepend($("#statusFilter"));   // put select beside search
+        $(".top").prepend($("#statusFilter"));
 
         $("#statusFilter").on('change', function() {
-            $("#filterForm").append($(this));
-            $("#filterForm").submit()
-        })
+            var statusValue = $(this).val();
+            $("#filterForm").find('input[name="status"]').remove();
+            $("#filterForm").append('<input type="hidden" name="status" value="' + statusValue + '">');
+            $("#filterForm").submit();
+        });
     });
 </script>
 @endsection

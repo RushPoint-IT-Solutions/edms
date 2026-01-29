@@ -311,7 +311,7 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
         //
-        dd($request->all());
+        // dd($request->all());
         $request->validate([
             'control_code' => 'unique:documents,control_code'
         ]);
