@@ -230,10 +230,10 @@
 
                     <div class="mb-3" id="team-field">
                         <label for="team-select" class="form-label">Access <span class="text-danger">*</span></label>
-                        <select name="team_id" class="form-select" data-choices data-choices-search-false id="team-select">
-                            <option value="">-- Select Team --</option>
+                        <select name="privacy" class="form-select" data-choices data-choices-search-false id="team-select">
+                            <option value="">-- Select Access --</option>
                             @foreach($teams as $team)
-                                <option value="{{ $team->id }}" @if(old('team_id', $change_request->team_id ?? '') == $team->id) selected @endif>
+                                <option value="{{ $team->id }}" @if(old('privacy', $change_request->privacy ?? '') == $team->id) selected @endif>
                                     {{ $team->name }}
                                 </option>
                             @endforeach
