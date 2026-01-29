@@ -458,6 +458,10 @@
                                     <li class="nav-item">
                                         <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                     </li>
+
+                                    <li class="nav-item">
+                                        <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams') || Request::is('new-team') || Request::is('*team*') ? 'active' : '' }}" data-key="t-teams">Teams</a>
+                                    </li>
                                         
                                     @can('users')
                                         <li class="nav-item">
