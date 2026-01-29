@@ -32,7 +32,7 @@
                         </div> --}}
                         <div class='col-md-12'>
                             <label>Department :</label>
-                            <select name='department' class='form-control-sm form-control cat' required>
+                            <select name='department' class='form-control-sm form-control cat'>
                                 <option value="">Select department...</option>
                                 @foreach($departments as $dep)
                                     <option value='{{$dep->id}}'>{{$dep->code}} - {{$dep->name}}</option>
