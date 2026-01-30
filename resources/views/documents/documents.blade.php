@@ -132,10 +132,14 @@
                                      data-type="folder"
                                      onclick="window.location='{{ url('documents/folder/'.$folder->id) }}'">
                                     <div class="grid-item-header">
-                                        <input type="checkbox" class="form-check-input grid-item-checkbox" onclick="event.stopPropagation()">
-                                        <button class="grid-item-menu" onclick="event.stopPropagation()">
+                                        {{-- <input type="checkbox" class="form-check-input grid-item-checkbox" onclick="event.stopPropagation()"> --}}
+                                        <button class="grid-item-menu" onclick="event.stopPropagation()" data-bs-toggle="dropdown">
                                             <i class="ri-more-2-fill"></i>
                                         </button>
+                                        <!-- Dropdown Options -->
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
+                                            <li><a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#renameFolderModal{{ $folder->id }}">Rename folder</a></li>
+                                        </ul>
                                     </div>
                                     <div class="grid-item-icon">
                                         <i class="ri-folder-2-fill"></i>
