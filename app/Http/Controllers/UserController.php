@@ -161,7 +161,7 @@ class UserController extends Controller
         $new_account->password = bcrypt('Marsu2025!');
         $new_account->save();
 
-        $new_account->syncRoles($request->account);
+        $new_account->syncRoles($request->role);
 
         Alert::success('Successfully Store')->persistent('Dismiss');
         return back();
