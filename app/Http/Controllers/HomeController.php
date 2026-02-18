@@ -30,7 +30,6 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $change_requests = ChangeRequest::get();
         $documents = Document::where('public',1)->get();
         
         if (auth()->user()->role != "Administrator")
@@ -54,9 +53,34 @@ class HomeController extends Controller
                 ->orWhere('file', 'like', '%' . $search . '%');
             });
         }
-        
+
+        if ($request->filled('doc_search')) {
+            $search = $request->doc_search;
+            $table_query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                ->orWhere('file', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($request->filled('doc_status') && $request->doc_status !== 'Default') {
+            $table_query->where('status', $request->doc_status);
+        }
+
+        $sortBy = $request->get('doc_sort', 'creation');
+        $perPage = in_array($request->get('doc_per_page'), ['25', '50', '100'])
+            ? (int) $request->get('doc_per_page')
+            : 10;
+
+        if ($sortBy == 'name') {
+            $table_query->orderBy('title', 'asc');
+        } elseif ($sortBy == 'date') {
+            $table_query->orderBy('updated_at', 'desc');
+        } else {
+            $table_query->orderBy('created_at', 'desc');
+        }
+
         $pending_cards = $pending_query->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
-        $change_requests = $table_query->orderBy('created_at', 'desc')->paginate(10, ['*'], 'table_page');
+        $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
         // $yearChangeRequests = ChangeRequest::whereYear('created_at',date('Y'))->get();

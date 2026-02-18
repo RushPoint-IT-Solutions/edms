@@ -972,38 +972,51 @@
             <h5 class="fw-semibold text-dark mb-0">Documents</h5>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-lg-auto flex-lg-grow-1">
-                <div class="position-relative">
-                    <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                    <input type="text" placeholder="Search Document" class="form-control form-control-sm ps-5" style="min-width: 250px;">
+        <form action="{{ route('home') }}" method="GET">
+            @if(request('pending_search'))
+                <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
+            @endif
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-lg-auto flex-lg-grow-1">
+                    <div class="position-relative">
+                        <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" name="doc_search" value="{{ request('doc_search') }}" placeholder="Search Document" class="form-control form-control-sm ps-5" style="min-width: 250px;">
+                    </div>
+                </div>
+                <div class="col-auto d-flex align-items-center gap-2">
+                    <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Sort by</label>
+                    <select name="doc_sort" class="form-select form-select-sm" style="min-width: 120px;" onchange="this.form.submit()">
+                        <option value="creation" {{ request('doc_sort', 'creation') == 'creation' ? 'selected' : '' }}>Creation</option>
+                        <option value="name" {{ request('doc_sort') == 'name' ? 'selected' : '' }}>Name</option>
+                        <option value="date" {{ request('doc_sort') == 'date' ? 'selected' : '' }}>Date</option>
+                    </select>
+                </div>
+                <div class="col-auto d-flex align-items-center gap-2">
+                    <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Status</label>
+                    <select name="doc_status" class="form-select form-select-sm" style="min-width: 120px;" onchange="this.form.submit()">
+                        <option value="Default" {{ request('doc_status', 'Default') == 'Default' ? 'selected' : '' }}>Default</option>
+                        <option value="Approved" {{ request('doc_status') == 'Approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="Pending" {{ request('doc_status') == 'Pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="Declined" {{ request('doc_status') == 'Declined' ? 'selected' : '' }}>Declined</option>
+                    </select>
+                </div>
+                <div class="col-auto d-flex align-items-center gap-2">
+                    <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Show entries</label>
+                    <select name="doc_per_page" class="form-select form-select-sm" style="min-width: 120px;" onchange="this.form.submit()">
+                        <option value="10" {{ request('doc_per_page', '10') == '10' ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('doc_per_page') == '25' ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('doc_per_page') == '50' ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('doc_per_page') == '100' ? 'selected' : '' }}>100</option>
+                    </select>
+                </div>
+                <div class="col-auto d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary"><i class="ri-search-line"></i> Search</button>
+                    @if(request()->hasAny(['doc_search','doc_sort','doc_status','doc_per_page']))
+                    <a href="{{ route('home') }}" class="btn btn-sm btn-outline-danger"><i class="ri-close-line"></i> Reset</a>
+                    @endif
                 </div>
             </div>
-            <div class="col-auto d-flex align-items-center gap-2">
-                <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Sort by</label>
-                <select class="form-select form-select-sm" style="min-width: 120px;">
-                    <option>creation</option>
-                    <option>name</option>
-                    <option>date</option>
-                </select>
-            </div>
-            <div class="col-auto d-flex align-items-center gap-2">
-                <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Status</label>
-                <select class="form-select form-select-sm" style="min-width: 120px;">
-                    <option>Default</option>
-                    <option>Active</option>
-                    <option>Archived</option>
-                </select>
-            </div>
-            <div class="col-auto d-flex align-items-center gap-2">
-                <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Show entries</label>
-                <select class="form-select form-select-sm" style="min-width: 120px;">
-                    <option>25</option>
-                    <option>50</option>
-                    <option>100</option>
-                </select>
-            </div>
-        </div>
+        </form>
 
         <div class="table-container">
             <table class="modern-table tables">
@@ -1018,9 +1031,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($change_requests as $change_request)
+                    @forelse ($change_requests as $change_request)
                     @php
                         $code = "DOC-".date('Y', strtotime($change_request->created_at)).'-'.str_pad($change_request->id,3,'0',STR_PAD_LEFT);
+                        $file = $change_request->file;
+                        $filename = explode('/',$file);
                     @endphp
                     <tr>
                         <td>
@@ -1030,10 +1045,6 @@
                         <td>
                             <a href="{{ url($change_request->file) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
                                 <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
-                                @php
-                                    $file = $change_request->file;
-                                    $filename = explode('/',$file);
-                                @endphp 
                                 <span style="font-size: 0.875rem;" class="text-dark">{{ $filename[count($filename)-1] }}</span>
                             </a>
                         </td>
@@ -1087,27 +1098,51 @@
                             </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No documents found.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
+        @if($change_requests->hasPages())
         <div class="d-flex justify-content-between align-items-center mt-3">
             <div class="text-muted" style="font-size: 0.875rem;">
-                Showing 1 to 1 of 1 entries
+                Showing <strong>{{ $change_requests->firstItem() }}</strong> to <strong>{{ $change_requests->lastItem() }}</strong> of <strong>{{ $change_requests->total() }}</strong> entries
             </div>
             <nav>
                 <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" tabindex="-1">Previous</a>
-                    </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
+                    @if($change_requests->onFirstPage())
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    @else
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $change_requests->appends(request()->except('table_page'))->previousPageUrl() }}">Previous</a>
+                        </li>
+                    @endif
+
+                    @foreach($change_requests->getUrlRange(1, $change_requests->lastPage()) as $page => $url)
+                        @if($page == $change_requests->currentPage())
+                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $change_requests->appends(request()->except('table_page'))->url($page) }}">{{ $page }}</a>
+                            </li>
+                        @endif
+                    @endforeach
+
+                    @if($change_requests->hasMorePages())
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $change_requests->appends(request()->except('table_page'))->nextPageUrl() }}">Next</a>
+                        </li>
+                    @else
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    @endif
                 </ul>
             </nav>
         </div>
+        @endif
     </div>
 </div>
 
