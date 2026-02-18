@@ -591,51 +591,89 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const selectedFilesList = document.getElementById('selected-files-list');
-    
-    function updateFilesList() {
-        if (supportingFiles.length > 0) {
-            selectedFilesList.innerHTML = `
-                <div class="alert alert-info">
-                    <strong>${supportingFiles.length} file(s) selected:</strong>
-                    <ul class="mb-0 mt-2" style="max-height: 150px; overflow-y: auto;">
-                        ${supportingFiles.map(f => `<li>${f.name} (${(f.size / 1024).toFixed(2)} KB)</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-        } else {
-            selectedFilesList.innerHTML = '';
-        }
+
+    function syncFilesToInput() {
+        const dataTransfer = new DataTransfer();
+        supportingFiles.forEach(f => dataTransfer.items.add(f));
+        supportingDocsInput.files = dataTransfer.files;
     }
-    
-    supportingDocsInput.addEventListener('change', function(e) {
-        supportingFiles = Array.from(e.target.files);
-        updateFilesList();
-        
-        if (supportingFiles.length > 0) {
-            supportingDocsEmpty.style.display = 'none';
-            supportingDocsGrid.style.display = 'block';
-            
-            supportingDocsGrid.innerHTML = '';
-            
-            supportingFiles.forEach((file, index) => {
-                if (file.type === 'application/pdf') {
-                    const fileURL = URL.createObjectURL(file);
-                    const viewer = document.createElement('div');
-                    viewer.className = 'supporting-doc-viewer mb-3';
-                    viewer.style.height = '600px';
-                    viewer.innerHTML = `
-                        <div class="mb-2 px-3 py-2 bg-light rounded">
-                            <small class="text-muted"><i class="ri-file-pdf-line me-1"></i>${file.name}</small>
-                        </div>
-                        <iframe src="${fileURL}" type="application/pdf"></iframe>
-                    `;
-                    supportingDocsGrid.appendChild(viewer);
-                }
-            });
-        } else {
+
+    function renderSupportingPreviews() {
+        supportingDocsGrid.innerHTML = '';
+
+        if (supportingFiles.length === 0) {
             supportingDocsEmpty.style.display = 'flex';
             supportingDocsGrid.style.display = 'none';
+            selectedFilesList.innerHTML = '';
+            return;
         }
+
+        supportingDocsEmpty.style.display = 'none';
+        supportingDocsGrid.style.display = 'block';
+
+        selectedFilesList.innerHTML = `
+            <div class="alert alert-info">
+                <strong>${supportingFiles.length} file(s) selected:</strong>
+                <ul class="mb-0 mt-2" id="removable-files-list" style="max-height: 200px; overflow-y: auto; list-style: none; padding-left: 0;">
+                    ${supportingFiles.map((f, i) => `
+                        <li class="d-flex align-items-center justify-content-between py-1 border-bottom" data-index="${i}">
+                            <span style="font-size:13px;">
+                                <i class="ri-file-line me-1"></i>${f.name} 
+                                <span class="text-muted">(${(f.size / 1024).toFixed(2)} KB)</span>
+                            </span>
+                            <button type="button" class="btn btn-danger btn-xs py-0 px-1 ms-2 remove-supporting-file" data-index="${i}" style="font-size:11px; line-height:1.5;">
+                                <i class="ri-close-line"></i> Remove
+                            </button>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+
+        supportingDocsGrid.innerHTML = '';
+        supportingFiles.forEach((file, index) => {
+            if (file.type === 'application/pdf') {
+                const fileURL = URL.createObjectURL(file);
+                const viewer = document.createElement('div');
+                viewer.className = 'supporting-doc-viewer mb-3';
+                viewer.style.height = '600px';
+                viewer.dataset.index = index;
+                viewer.innerHTML = `
+                    <div class="mb-2 px-3 py-2 bg-light rounded d-flex align-items-center justify-content-between">
+                        <small class="text-muted"><i class="ri-file-pdf-line me-1"></i>${file.name}</small>
+                        <button type="button" class="btn btn-danger btn-xs py-0 px-2 remove-supporting-file" data-index="${index}" style="font-size:11px;">
+                            <i class="ri-close-line"></i> Remove
+                        </button>
+                    </div>
+                    <iframe src="${fileURL}" type="application/pdf"></iframe>
+                `;
+                supportingDocsGrid.appendChild(viewer);
+            }
+        });
+
+        document.querySelectorAll('.remove-supporting-file').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const idx = parseInt(this.dataset.index);
+                supportingFiles.splice(idx, 1);
+                syncFilesToInput();
+                renderSupportingPreviews();
+            });
+        });
+    }
+
+    supportingDocsInput.addEventListener('change', function (e) {
+        const newFiles = Array.from(e.target.files);
+        newFiles.forEach(newFile => {
+            const isDuplicate = supportingFiles.some(
+                f => f.name === newFile.name && f.size === newFile.size
+            );
+            if (!isDuplicate) {
+                supportingFiles.push(newFile);
+            }
+        });
+
+        syncFilesToInput();
+        renderSupportingPreviews();
     });
 
     @if($change_request)
