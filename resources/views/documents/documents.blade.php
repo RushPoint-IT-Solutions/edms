@@ -153,17 +153,37 @@
                         <div class="grid-container" id="gridContainer">
                             @foreach($allFolders->where('parent_id', null) as $folder)
                                 <div class="grid-item" 
-                                     data-folder-id="{{ $folder->id }}"
-                                     data-folder-name="{{ strtolower($folder->name) }}"
-                                     data-type="folder"
-                                     data-id="{{ $folder->id }}"
-                                     onclick="handleGridItemClick(event, this, '{{ url('documents/folder/'.$folder->id) }}')">
+                                    data-folder-id="{{ $folder->id }}"
+                                    data-folder-name="{{ strtolower($folder->name) }}"
+                                    data-type="folder"
+                                    data-id="{{ $folder->id }}"
+                                    onclick="handleGridItemClick(event, this, '{{ url('documents/folder/'.$folder->id) }}')">
                                     <div class="grid-item-header">
-                                        <button class="grid-item-menu" onclick="event.stopPropagation()" data-bs-toggle="dropdown">
+                                        <input type="checkbox"
+                                            class="grid-item-checkbox item-checkbox form-check-input"
+                                            data-type="folder"
+                                            data-id="{{ $folder->id }}"
+                                            data-name="{{ $folder->name }}"
+                                            onclick="event.stopPropagation(); handleGridCheckbox(this)">
+                                        <button class="grid-item-menu" onclick="event.stopPropagation()" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="ri-more-2-fill"></i>
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
-                                            <li><a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#renameFolderModal{{ $folder->id }}">Rename folder</a></li>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="javascript:void(0)" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#renameFolderModal{{ $folder->id }}"
+                                                onclick="event.stopPropagation()">
+                                                    <i class="ri-pencil-line me-2"></i>Rename folder
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
+                                                data-id="{{ $folder->id }}" 
+                                                data-name="{{ $folder->name }}">
+                                                    <i class="ri-delete-bin-line me-2"></i>Delete folder
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                     <div class="grid-item-icon">
@@ -176,16 +196,20 @@
 
                             @if($hasOthers)
                                 <div class="grid-item" 
-                                     data-folder-name="others"
-                                     data-type="others"
-                                     data-id="others"
-                                     onclick="handleGridItemClick(event, this, '{{ url('documents/folder/others') }}')">
+                                    data-folder-name="others"
+                                    data-type="others"
+                                    data-id="others"
+                                    onclick="handleGridItemClick(event, this, '{{ url('documents/folder/others') }}')">
                                     <div class="grid-item-header">
-                                        <input type="checkbox" class="grid-item-checkbox item-checkbox form-check-input" 
-                                               data-type="others" 
-                                               data-id="others"
-                                               data-name="Others"
-                                               onclick="event.stopPropagation(); handleGridCheckbox(this)">
+                                        <input type="checkbox"
+                                            class="grid-item-checkbox item-checkbox form-check-input"
+                                            data-type="others"
+                                            data-id="others"
+                                            data-name="Others"
+                                            disabled
+                                            title="System folder — cannot be deleted"
+                                            style="opacity: 0.35; cursor: not-allowed;"
+                                            onclick="event.stopPropagation()">
                                         <button class="grid-item-menu" onclick="event.stopPropagation()">
                                             <i class="ri-more-2-fill"></i>
                                         </button>
@@ -301,6 +325,10 @@
         background: #006cc2;
     }
 
+    .dropdown-menu {
+        z-index: 1000;
+    }
+
     .bulk-actions-bar {
         display: none;
         align-items: center;
@@ -382,6 +410,8 @@
         opacity: 0;
         transition: opacity 0.15s;
         cursor: pointer;
+        width: 16px;
+        height: 16px;
     }
 
     .grid-item:hover .grid-item-checkbox,
@@ -711,7 +741,15 @@
         cursor: pointer;
         transition: all 0.2s;
         position: relative;
+        overflow: visible;
     }
+
+    .grid-item .dropdown-menu {
+        position: absolute !important;
+        z-index: 1000 !important;
+        min-width: 160px;
+    }
+
 
     .grid-item:hover {
         border-color: #0078d4;
@@ -729,7 +767,7 @@
     .grid-item-header {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: space-between;
         margin-bottom: 0.75rem;
     }
 
@@ -856,11 +894,10 @@
     function clearAllSelections() {
         selectedItems = {};
         $('.item-checkbox:not(:disabled)').prop('checked', false);
-        $('#selectAll').prop('checked', false);
-        $('#selectAll').prop('indeterminate', false);
+        $('#selectAll').prop('checked', false).prop('indeterminate', false);
         $('.folder-tree-row, .child-row').removeClass('selected-row row-selected');
-        $('.grid-item').removeClass('grid-selected');
-        syncBulkBar();
+        $('.grid-item').removeClass('selected-item grid-selected');
+        updateBulkToolbar();
     }
 
     function handleListCheckbox(checkbox) {
@@ -888,11 +925,13 @@
 
         if ($cb.is(':checked')) {
             selectItem(type, id, name);
-            $item.addClass('grid-selected');
+            $item.addClass('selected-item grid-selected');
         } else {
             deselectItem(type, id);
-            $item.removeClass('grid-selected');
+            $item.removeClass('selected-item grid-selected');
         }
+
+        updateBulkToolbar();
     }
 
     function handleGridItemClick(event, element, url) {
@@ -1047,24 +1086,25 @@
             if (row.hasClass('folder-tree-row')) {
                 const folderId = row.data('folder-id');
                 if (folderId && folderId !== 'others') {
-                    selected.push({ id: folderId, type: 'folder' });
+                    const exists = selected.some(i => String(i.id) === String(folderId) && i.type === 'folder');
+                    if (!exists) selected.push({ id: folderId, type: 'folder' });
                 }
-            } else if (row.hasClass('child-row') && !row.hasClass('folder-tree-row')) {
+            } else if (row.hasClass('child-row')) {
                 const docId = row.data('document-id');
                 if (docId) {
-                    selected.push({ id: docId, type: 'document' });
+                    const exists = selected.some(i => String(i.id) === String(docId) && i.type === 'document');
+                    if (!exists) selected.push({ id: docId, type: 'document' });
                 }
             }
         });
 
-        $('.grid-item.selected-item').each(function() {
-            const type = $(this).data('type') || 'folder';
-            const id = $(this).data('folder-id') || $(this).data('document-id');
-            if (id) {
-                const alreadyAdded = selected.some(i => String(i.id) === String(id) && i.type === type);
-                if (!alreadyAdded) {
-                    selected.push({ id, type });
-                }
+        $('#gridContainer .grid-item-checkbox:checked:not(:disabled)').each(function() {
+            const $cb = $(this);
+            const type = $cb.data('type') || 'folder';
+            const id   = $cb.data('id');
+            if (id && type !== 'others') {
+                const exists = selected.some(i => String(i.id) === String(id) && i.type === type);
+                if (!exists) selected.push({ id, type });
             }
         });
 
@@ -1155,7 +1195,9 @@
                 $(e.target).hasClass('grid-item-menu') ||
                 $(e.target).closest('.grid-item-menu').length ||
                 $(e.target).hasClass('grid-item-checkbox') ||
-                $(e.target).closest('.dropdown-menu').length
+                $(e.target).closest('.dropdown-menu').length ||
+                $(e.target).hasClass('delete-folder-btn') ||
+                $(e.target).closest('.delete-folder-btn').length
             ) {
                 return;
             }
@@ -1164,6 +1206,8 @@
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 $(this).toggleClass('selected-item');
+                const isSelected = $(this).hasClass('selected-item');
+                $(this).find('.grid-item-checkbox').prop('checked', isSelected);
                 updateBulkToolbar();
                 return false;
             }
@@ -1217,6 +1261,44 @@
                         }
                     });
                 }
+            });
+        });
+
+        $(document).on('click', '.delete-folder-btn', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const id   = $(this).data('id');
+            const name = $(this).data('name');
+
+            swal({
+                title: 'Are you sure?',
+                text: 'Delete folder "' + name + '"? This action cannot be undone.',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                closeOnConfirm: false,
+                closeOnCancel: true
+            }, function(confirmed) {
+                if (!confirmed) return;
+                $.ajax({
+                    url: '{{ url("documents/delete-folder") }}/' + id,
+                    type: 'POST',
+                    data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+                    success: function(response) {
+                        if (response.success) {
+                            swal('Deleted!', 'Folder successfully deleted.', 'success');
+                            setTimeout(function() { window.location.reload(); }, 1500);
+                        } else {
+                            swal('Cannot Delete!', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        swal('Error!', 'Something went wrong. Please try again.', 'error');
+                    }
+                });
             });
         });
 

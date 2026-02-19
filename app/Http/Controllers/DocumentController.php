@@ -208,7 +208,8 @@ class DocumentController extends Controller
                             class="item-checkbox form-check-input" 
                             data-type="folder" 
                             data-id="' . $folder->id . '" 
-                            data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                            data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '"
+                            onchange="handleFolderCheckbox(this)">
                       </td>';
             
             $html .= '<td class="folder-name-cell" data-folder-url="' . url('documents/folder/'.$folder->id) . '" onclick="handleFolderClick(this, ' . ($hasChildren ? 'true' : 'false') . ')">';
@@ -228,8 +229,16 @@ class DocumentController extends Controller
             $html .= '<td>—</td>';
             $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
             $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
-                        <button class="action-btn"><i class="ri-more-2-fill"></i></button>
-                    </td>';
+                <div class="dropdown">
+                    <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
+                            data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                            <i class="ri-delete-bin-line me-2"></i>Delete folder
+                        </a></li>
+                    </ul>
+                </div>
+            </td>';
             $html .= '</tr>';
             
             if (count($childFolders) > 0) {
@@ -240,7 +249,6 @@ class DocumentController extends Controller
                 foreach ($folderDocuments as $doc) {
                     $fileInfo = $this->getDocumentFileInfo($doc);
                     
-                    // *** data-document-id added here ***
                     $html .= '<tr class="child-row document-row"
                                 data-parent-id="' . $folder->id . '"
                                 data-document-id="' . $doc->id . '"
@@ -253,7 +261,8 @@ class DocumentController extends Controller
                                     class="item-checkbox form-check-input" 
                                     data-type="document" 
                                     data-id="' . $doc->id . '" 
-                                    data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                                    data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                                    onchange="handleFolderCheckbox(this)">
                               </td>';
                     $html .= '<td><div class="name-cell">';
                     $html .= '<span class="folder-indent" style="width: ' . (($level + 1) * 24) . 'px;"></span>';
@@ -265,8 +274,16 @@ class DocumentController extends Controller
                     $html .= '<td>—</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
-                                <button class="action-btn"><i class="ri-more-2-fill"></i></button>
-                            </td>';
+                        <div class="dropdown">
+                            <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
+                                    data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete folder
+                                </a></li>
+                            </ul>
+                        </div>
+                    </td>';
                     $html .= '</tr>';
                 }
             }
@@ -439,7 +456,7 @@ class DocumentController extends Controller
     {
         //
     }
-    
+
 
     /**
      * Remove the specified resource from storage.
@@ -598,7 +615,7 @@ class DocumentController extends Controller
         $doc_attachment->attachment = $file_name;
         $doc_attachment->save();
         
-    
+        
         Alert::success('Successfully Uploaded')->persistent('Dismiss');
         return back();
     }
@@ -917,26 +934,25 @@ class DocumentController extends Controller
         Alert::success('Successfully Rename')->persistent('Dismiss');
         return back();
     }
-    public function deleteFolder(Request $request,$id)
-    {
-        $folder = DocumentFolder::with('document')->findOrFail($id);
-        if (count($folder->document) > 0)
-        {
-            Alert::warning('Cannot delete folder because it contains files')->persistent('Dismiss');
-            return back();
-        }
-        else 
-        {
-            $folder->delete();
 
-            Alert::success('Successfully Deleted')->persistent('Dismiss');
-            return back();
+    public function deleteFolder(Request $request, $id)
+    {
+        $folder = DocumentFolder::with('document', 'childrenFolder')->findOrFail($id);
+
+        if (count($folder->document) > 0 || count($folder->childrenFolder) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete folder because it contains files or subfolders.'
+            ]);
         }
+
+        $folder->delete();
+
+        return response()->json(['success' => true, 'message' => 'Successfully Deleted']);
     }
 
     public function signaturePosition(Request $request)
     {
-        // dd($request->all());
         $document_signature_position = DocumentSignaturePosition::with('user')
             ->where('user_id', $request->user_id)
             ->where('change_request_id', $request->change_request_id)

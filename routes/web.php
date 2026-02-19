@@ -41,7 +41,6 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('refresh-team','DocumentController@refreshTeam');
 
             Route::post('bulk-delete', 'DocumentController@bulkDelete');
-
         });
 
         Route::post('test-bulk', function() {
