@@ -1199,7 +1199,7 @@
             }, function(confirmed) {
                 if (confirmed) {
                     $.ajax({
-                        url: '{{ url("test-bulk") }}',
+                        url: '{{ url("documents/bulk-delete") }}',
                         type: 'POST',
                         data: {
                             _token: '{{ csrf_token() }}',
