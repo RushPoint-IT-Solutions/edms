@@ -194,14 +194,12 @@ class DocumentController extends Controller
                 $rowClass = 'child-row folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
             }
             
-            $fileType = 'folder';
-            
             $html .= '<tr class="' . $rowClass . ' demoTableRow" ';
             if ($level > 0) {
                 $html .= 'data-parent-id="' . $parentId . '" ';
             }
             $html .= 'data-folder-id="' . $folder->id . '" 
-                        data-type="' . $fileType . '"
+                        data-type="folder"
                         data-modified="' . $folder->updated_at . '"
                         data-level="' . $level . '">';
             
@@ -218,17 +216,14 @@ class DocumentController extends Controller
             if ($level > 0) {
                 $html .= '<span class="folder-indent" style="width: ' . ($level * 24) . 'px;"></span>';
             }
-            
             if ($hasChildren) {
                 $html .= '<span class="folder-toggle"><i class="ri-arrow-right-s-line"></i></span>';
             } else {
                 $html .= '<span style="width: 20px; display: inline-block;"></span>';
             }
-            
             $html .= '<i class="ri-folder-2-fill item-icon"></i>';
             $html .= '<span class="item-name">' . $folder->name . '</span>';
             $html .= '</div></td>';
-            
             $html .= '<td>Folder</td>';
             $html .= '<td>—</td>';
             $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
@@ -245,7 +240,11 @@ class DocumentController extends Controller
                 foreach ($folderDocuments as $doc) {
                     $fileInfo = $this->getDocumentFileInfo($doc);
                     
-                    $html .= '<tr class="child-row document-row" data-parent-id="' . $folder->id . '" data-level="' . ($level + 1) . '"
+                    // *** data-document-id added here ***
+                    $html .= '<tr class="child-row document-row"
+                                data-parent-id="' . $folder->id . '"
+                                data-document-id="' . $doc->id . '"
+                                data-level="' . ($level + 1) . '"
                                 data-type="' . $fileInfo['fileType'] . '"
                                 data-modified="' . $doc->updated_at . '"
                                 onclick="window.open(\'' . url('/documents/view-document/'.$doc->id) . '\', \'_blank\')">';
@@ -274,6 +273,29 @@ class DocumentController extends Controller
         }
         
         return $html;
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $folderIds   = array_filter(explode(',', $request->folder_ids ?? ''));
+        $documentIds = array_filter(explode(',', $request->document_ids ?? ''));
+
+        foreach ($folderIds as $id) {
+            $folder = DocumentFolder::with('document')->find(trim($id));
+            if ($folder) {
+                Document::where('folder_id', $folder->id)->delete();
+                $folder->delete();
+            }
+        }
+
+        foreach ($documentIds as $id) {
+            $doc = Document::find(trim($id));
+            if ($doc) {
+                $doc->delete();
+            }
+        }
+
+        return response()->json(['success' => true, 'message' => 'Successfully Deleted']);
     }
 
     /**
@@ -910,28 +932,6 @@ class DocumentController extends Controller
             Alert::success('Successfully Deleted')->persistent('Dismiss');
             return back();
         }
-    }
-
-    public function bulkDelete(Request $request)
-    {
-        $folderIds   = array_filter(explode(',', $request->folder_ids));
-        $documentIds = array_filter(explode(',', $request->document_ids));
-
-        foreach ($folderIds as $id) {
-            $folder = DocumentFolder::with('document')->find($id);
-            if ($folder && $folder->document->count() === 0) {
-                $folder->delete();
-            }
-        }
-
-        foreach ($documentIds as $id) {
-            $document = Document::find($id);
-            if ($document) {
-                $document->delete();
-            }
-        }
-
-        return response()->json(['success' => true, 'message' => 'Successfully Deleted']);
     }
 
     public function signaturePosition(Request $request)

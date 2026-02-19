@@ -40,10 +40,14 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('upload-document','DocumentController@store')->name('documents');
             Route::post('refresh-team','DocumentController@refreshTeam');
 
+            Route::post('bulk-delete', 'DocumentController@bulkDelete');
+
         });
 
-        Route::post('bulk-delete', 'DocumentController@bulkDelete')->name('bulk-delete');
-
+        Route::post('test-bulk', function() {
+            return response()->json(['hit' => true]);
+        });
+        
          //Users
         Route::get('/users', 'UserController@index')->name('settings');
         Route::prefix('users')->group(function() {

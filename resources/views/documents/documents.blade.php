@@ -46,17 +46,30 @@
                     </div>
                 </div>
 
-                <div id="bulkActionsBar" class="bulk-actions-bar">
-                    <span id="selectedCountBadge" class="selected-badge">0 selected</span>
-                    <button type="button" class="delete-btn" id="bulkDeleteBtn">
-                        <i class="ri-delete-bin-line"></i>
-                        Delete
-                    </button>
-                    <button type="button" class="cancel-select-btn" id="cancelSelectionBtn">
-                        <i class="ri-close-line"></i>
-                        Cancel
-                    </button>
+                <div class="bulk-action-toolbar" id="bulkActionToolbar" style="display: none;">
+                    <div class="bulk-info">
+                        <i class="ri-checkbox-multiple-line"></i>
+                        <span id="selectedCount">0</span> item(s) selected
+                    </div>
+                    <div class="bulk-actions">
+                        <button class="bulk-delete-btn" id="bulkDeleteBtn">
+                            <i class="ri-delete-bin-line"></i>
+                            Delete Selected
+                        </button>
+                        <button class="bulk-cancel-btn" id="bulkCancelBtn">
+                            <i class="ri-close-line"></i>
+                            Cancel
+                        </button>
+                    </div>
                 </div>
+
+                <form id="bulkDeleteForm" method="POST" action="{{ url('documents/bulk-delete') }}" style="display:none;">
+
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="selected_ids" id="bulkDeleteIds">
+                    <input type="hidden" name="selected_types" id="bulkDeleteTypes">
+                </form>
 
                 @if($totalFolders > 0)
                     <div class="list-view" id="listView">
@@ -110,7 +123,7 @@
                                     </tr>
                                     
                                     @foreach($othersDocuments as $doc)
-                                        <tr class="child-row" data-parent-id="others" data-level="1"
+                                        <tr class="child-row" data-parent-id="others" data-level="1" data-document-id="{{ $doc->id }}"
                                             onclick="window.location='{{ url('documents/view-document/'.$doc->id) }}'">
                                             <td class="checkbox-cell" onclick="event.stopPropagation()">
                                                 <input type="checkbox" class="item-checkbox form-check-input" data-type="document" data-id="{{ $doc->id }}" data-name="{{ $doc->control_code }} - {{ $doc->title }}">
@@ -146,11 +159,6 @@
                                      data-id="{{ $folder->id }}"
                                      onclick="handleGridItemClick(event, this, '{{ url('documents/folder/'.$folder->id) }}')">
                                     <div class="grid-item-header">
-                                        <input type="checkbox" class="grid-item-checkbox item-checkbox form-check-input" 
-                                               data-type="folder" 
-                                               data-id="{{ $folder->id }}"
-                                               data-name="{{ $folder->name }}"
-                                               onclick="event.stopPropagation(); handleGridCheckbox(this)">
                                         <button class="grid-item-menu" onclick="event.stopPropagation()" data-bs-toggle="dropdown">
                                             <i class="ri-more-2-fill"></i>
                                         </button>
@@ -520,8 +528,90 @@
 
     .view-toggle-btn i { font-size: 1.125rem; }
 
-    .list-view { display: block; }
-    .grid-view  { display: none; }
+    .bulk-action-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 2rem;
+        background: #1e3a5f;
+        color: white;
+        border-bottom: 1px solid #164078;
+        animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .bulk-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .bulk-info i {
+        font-size: 1.125rem;
+    }
+
+    .bulk-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .bulk-delete-btn {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+    }
+
+    .bulk-delete-btn:hover {
+        background: #b91c1c;
+    }
+
+    .bulk-cancel-btn {
+        background: transparent;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.4);
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+    }
+
+    .bulk-cancel-btn:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.7);
+    }
+
+    .list-view {
+        display: block;
+    }
+
+    .grid-view {
+        display: none;
+    }
+
+    .folder-tree-row {
+        transition: background 0.15s;
+        cursor: pointer;
+    }
 
     .folder-tree-row { transition: background 0.15s; cursor: pointer; }
     .folder-tree-row.has-children { cursor: pointer; }
@@ -629,10 +719,17 @@
         transform: translateY(-2px);
     }
 
+    .grid-item.selected-item {
+        border-color: #0078d4;
+        background: #e6f4ff;
+        box-shadow: 0 0 0 2px #0078d4;
+        transform: translateY(-2px);
+    }
+
     .grid-item-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
         margin-bottom: 0.75rem;
     }
 
@@ -703,11 +800,19 @@
         color: #6b7280;
     }
 
-    .no-results i { font-size: 3rem; margin-bottom: 1rem; color: #9ca3af; }
+    .no-results i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #9ca3af;
+    }
 
-    .folder-tree-row.selected-row { background: #e6f4ff !important; }
-    .folder-tree-row { outline: none; }
-    .grid-item.selected-item { border-color: #0078d4; background: #e6f4ff; }
+    .folder-tree-row.selected-row {
+        background: #e6f4ff !important;
+    }
+
+    .folder-tree-row {
+        outline: none;
+    }
 </style>
 @endsection
 
@@ -930,6 +1035,61 @@
         localStorage.setItem('documentViewPreference', 'grid');
     }
 
+    function getSelectedItems() {
+        const selected = [];
+
+        $('#foldersTableBody tr').each(function() {
+            const checkbox = $(this).find('.form-check-input');
+            if (!checkbox.is(':checked')) return;
+
+            const row = $(this);
+
+            if (row.hasClass('folder-tree-row')) {
+                const folderId = row.data('folder-id');
+                if (folderId && folderId !== 'others') {
+                    selected.push({ id: folderId, type: 'folder' });
+                }
+            } else if (row.hasClass('child-row') && !row.hasClass('folder-tree-row')) {
+                const docId = row.data('document-id');
+                if (docId) {
+                    selected.push({ id: docId, type: 'document' });
+                }
+            }
+        });
+
+        $('.grid-item.selected-item').each(function() {
+            const type = $(this).data('type') || 'folder';
+            const id = $(this).data('folder-id') || $(this).data('document-id');
+            if (id) {
+                const alreadyAdded = selected.some(i => String(i.id) === String(id) && i.type === type);
+                if (!alreadyAdded) {
+                    selected.push({ id, type });
+                }
+            }
+        });
+
+        return selected;
+    }
+
+    function updateBulkToolbar() {
+        const selected = getSelectedItems();
+        const count = selected.length;
+
+        if (count > 0) {
+            $('#bulkActionToolbar').slideDown(150);
+            $('#selectedCount').text(count);
+        } else {
+            $('#bulkActionToolbar').slideUp(150);
+        }
+    }
+
+    function clearAllSelections() {
+        $('.form-check-input').prop('checked', false);
+        $('#selectAll').prop('checked', false);
+        $('.grid-item').removeClass('selected-item');
+        updateBulkToolbar();
+    }
+
     $(document).ready(function() {
         $('.cat').chosen({width: "100%"});
 
@@ -967,44 +1127,14 @@
             $('#selectAll').prop('checked', checked === total && total > 0);
         });
 
-        $('#bulkDeleteBtn').on('click', openDeleteModal);
-
-        $('#cancelSelectionBtn').on('click', clearAllSelections);
-
-        // *** CHANGED: was $('#bulkDeleteForm').on('submit'), now directly on button click ***
-        $('#confirmDeleteBtn').on('click', function() {
-            const folders = $('#deleteFolderIds').val();
-            const docs    = $('#deleteDocumentIds').val();
-            if (!folders && !docs) {
-                alert('Nothing selected to delete.');
-                return;
-            }
-
-            const $btn = $(this);
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Deleting...');
-
-            $.ajax({
-                url: '{{ url("documents/bulk-delete") }}',
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    folder_ids: folders,
-                    document_ids: docs
-                },
-                success: function() {
-                    $('#deleteConfirmModal').modal('hide');
-                    clearAllSelections();
-                    location.reload();
-                },
-                error: function(xhr) {
-                    $btn.prop('disabled', false).html('<i class="ri-delete-bin-line me-1"></i> Delete');
-                    alert('Delete failed: ' + (xhr.responseJSON?.message || 'Server error. Please try again.'));
-                }
-            });
+        $('#selectAll').on('change', function() {
+            const checked = $(this).prop('checked');
+            $('#foldersTableBody tr:visible .form-check-input').prop('checked', checked);
+            updateBulkToolbar();
         });
 
-        $('#deleteConfirmModal').on('hidden.bs.modal', function() {
-            $('#confirmDeleteBtn').prop('disabled', false).html('<i class="ri-delete-bin-line me-1"></i> Delete');
+        $(document).on('change', '#foldersTableBody .form-check-input', function() {
+            updateBulkToolbar();
         });
 
         $(document).on('keydown', function(e) {
@@ -1020,11 +1150,81 @@
             }
         });
 
-        const searchInput   = $('#folderSearch');
-        const clearBtn      = $('#clearSearch');
-        const noResults     = $('#noResults');
-        const folderCount   = $('#folderCount');
-        const tableBody     = $('#foldersTableBody');
+        $(document).on('click', '.grid-item', function(e) {
+            if (
+                $(e.target).hasClass('grid-item-menu') ||
+                $(e.target).closest('.grid-item-menu').length ||
+                $(e.target).hasClass('grid-item-checkbox') ||
+                $(e.target).closest('.dropdown-menu').length
+            ) {
+                return;
+            }
+
+            if ($('#bulkActionToolbar').is(':visible') || $('.grid-item.selected-item').length > 0) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                $(this).toggleClass('selected-item');
+                updateBulkToolbar();
+                return false;
+            }
+        });
+
+        $('#bulkCancelBtn').on('click', function() {
+            clearAllSelections();
+        });
+
+        $('#bulkDeleteBtn').on('click', function() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) return;
+
+            const folderIds   = selected.filter(i => i.type === 'folder').map(i => i.id);
+            const documentIds = selected.filter(i => i.type === 'document').map(i => i.id);
+
+            let message = 'You are about to delete ' + selected.length + ' item(s)';
+            if (folderIds.length > 0) {
+                message += ' including ' + folderIds.length + ' folder(s) and all their contents';
+            }
+            message += '. This cannot be undone.';
+
+            swal({
+                title: 'Are you sure?',
+                text: message,
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                closeOnConfirm: false,
+                closeOnCancel: true
+            }, function(confirmed) {
+                if (confirmed) {
+                    $.ajax({
+                        url: '{{ url("test-bulk") }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            folder_ids: folderIds.join(','),
+                            document_ids: documentIds.join(',')
+                        },
+                        success: function(response) {
+                            swal('Deleted!', 'Items successfully deleted.', 'success');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        },
+                        error: function(xhr) {
+                            swal('Error!', 'Something went wrong. Please try again.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        const searchInput = $('#folderSearch');
+        const clearBtn = $('#clearSearch');
+        const noResults = $('#noResults');
+        const folderCount = $('#folderCount');
+        const tableBody = $('#foldersTableBody');
         const gridContainer = $('#gridContainer');
 
         searchInput.on('input', function() {
