@@ -227,20 +227,34 @@
                                     onclick="window.location='{{ url('documents/folder/'.$folder->id) }}'">
                                     <div class="grid-item-header">
                                         <input type="checkbox"
-                                               class="form-check-input grid-item-checkbox item-checkbox"
-                                               data-type="folder"
-                                               data-id="{{ $folder->id }}"
-                                               data-name="{{ $folder->name }}"
-                                               onclick="event.stopPropagation(); handleGridCheckbox(this)">
-                                        <button class="grid-item-menu" onclick="event.stopPropagation()" data-bs-toggle="dropdown">
+                                            class="form-check-input grid-item-checkbox item-checkbox"
+                                            data-type="folder"
+                                            data-id="{{ $folder->id }}"
+                                            data-name="{{ $folder->name }}"
+                                            onclick="event.stopPropagation(); handleGridCheckbox(this)">
+                                        <button class="grid-item-menu" 
+                                                onclick="event.stopPropagation()" 
+                                                data-bs-toggle="dropdown"
+                                                data-bs-display="dynamic">  {{-- ADD THIS --}}
                                             <i class="ri-more-2-fill"></i>
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
-                                            <li><a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#renameFolderModal{{ $folder->id }}">Rename folder</a></li>
-                                            <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
-                                                data-id="{{ $folder->id }}" data-name="{{ $folder->name }}">
-                                                <i class="ri-delete-bin-line me-2"></i>Delete folder
-                                            </a></li>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="javascript:void(0)" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#renameFolderModal{{ $folder->id }}"
+                                                onclick="event.stopPropagation()">
+                                                    <i class="ri-pencil-line me-2"></i>Rename folder
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item text-danger delete-folder-btn" 
+                                                href="javascript:void(0)"
+                                                data-id="{{ $folder->id }}" 
+                                                data-name="{{ $folder->name }}">
+                                                    <i class="ri-delete-bin-line me-2"></i>Delete folder
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                     <div class="grid-item-icon">
@@ -591,6 +605,16 @@
         cursor: pointer;
         transition: all 0.2s;
         position: relative;
+        overflow: visible;
+    }
+
+    .dropdown-menu.show {
+        z-index: 99999 !important;
+    }
+
+    .grid-item .dropdown-menu {
+        position: absolute !important;
+        min-width: 160px;
     }
 
     .grid-item:hover {
@@ -649,12 +673,15 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-bottom: 0.75rem;
     }
 
     .grid-item-checkbox {
+        opacity: 0;
+        transition: opacity 0.15s;
         cursor: pointer;
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
     }
 
     .grid-item-menu {
