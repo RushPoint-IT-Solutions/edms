@@ -96,9 +96,10 @@
                                     @endphp
                                     <tr class="folder-tree-row {{ $hasOthersChildren ? 'has-children' : '' }}" 
                                         data-folder-name="others"
+                                        data-folder-id="others"
                                         data-level="0">
                                         <td class="checkbox-cell" onclick="event.stopPropagation()">
-                                            <input type="checkbox" class="form-check-input">
+                                            <input type="checkbox" class="item-checkbox form-check-input" data-type="others" data-id="others" data-name="Others" disabled title="System folder — cannot be deleted" style="opacity: 0.35; cursor: not-allowed;">
                                         </td>
                                         <td class="folder-name-cell" data-folder-url="{{ url('documents/folder/others') }}" onclick="handleFolderClick(this, {{ $hasOthersChildren ? 'true' : 'false' }})">
                                             <div class="name-cell">
@@ -125,7 +126,7 @@
                                         <tr class="child-row" data-parent-id="others" data-level="1" data-document-id="{{ $doc->id }}"
                                             onclick="window.location='{{ url('documents/view-document/'.$doc->id) }}'">
                                             <td class="checkbox-cell" onclick="event.stopPropagation()">
-                                                <input type="checkbox" class="form-check-input">
+                                                <input type="checkbox" class="item-checkbox form-check-input" data-type="document" data-id="{{ $doc->id }}" data-name="{{ $doc->control_code }} - {{ $doc->title }}">
                                             </td>
                                             <td>
                                                 <div class="name-cell">
@@ -155,7 +156,8 @@
                                      data-folder-id="{{ $folder->id }}"
                                      data-folder-name="{{ strtolower($folder->name) }}"
                                      data-type="folder"
-                                     onclick="window.location='{{ url('documents/folder/'.$folder->id) }}'">
+                                     data-id="{{ $folder->id }}"
+                                     onclick="handleGridItemClick(event, this, '{{ url('documents/folder/'.$folder->id) }}')">
                                     <div class="grid-item-header">
                                         <button class="grid-item-menu" onclick="event.stopPropagation()" data-bs-toggle="dropdown">
                                             <i class="ri-more-2-fill"></i>
@@ -175,10 +177,15 @@
                             @if($hasOthers)
                                 <div class="grid-item" 
                                      data-folder-name="others"
-                                     data-type="folder"
-                                     onclick="window.location='{{ url('documents/folder/others') }}'">
+                                     data-type="others"
+                                     data-id="others"
+                                     onclick="handleGridItemClick(event, this, '{{ url('documents/folder/others') }}')">
                                     <div class="grid-item-header">
-                                        <input type="checkbox" class="form-check-input grid-item-checkbox" onclick="event.stopPropagation()">
+                                        <input type="checkbox" class="grid-item-checkbox item-checkbox form-check-input" 
+                                               data-type="others" 
+                                               data-id="others"
+                                               data-name="Others"
+                                               onclick="event.stopPropagation(); handleGridCheckbox(this)">
                                         <button class="grid-item-menu" onclick="event.stopPropagation()">
                                             <i class="ri-more-2-fill"></i>
                                         </button>
@@ -219,6 +226,36 @@
     </div>
 </div>
 
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content delete-modal">
+            <div class="modal-header border-0 pb-0">
+                <div class="delete-modal-icon">
+                    <i class="ri-error-warning-line"></i>
+                </div>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <h5 class="delete-modal-title">Delete Items</h5>
+                <p class="delete-modal-desc" id="deleteModalDesc">
+                    Are you sure you want to delete the selected items? This action cannot be undone.
+                </p>
+                <div id="deleteWarning" class="delete-warning" style="display:none;">
+                    <i class="ri-alert-line"></i>
+                    <span id="deleteWarningText"></span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-2 pt-0">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <input type="hidden" id="deleteFolderIds">
+                <input type="hidden" id="deleteDocumentIds">
+                <button type="button" class="btn btn-danger px-4" id="confirmDeleteBtn">
+                    <i class="ri-delete-bin-line me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @include('documents.upload_document')
 @include('documents.add_folder')
 @include('documents.add_documents_in_folder')
@@ -243,6 +280,7 @@
         gap: 1.5rem;
         padding: 1.5rem 2rem;
         border-bottom: 1px solid #e5e7eb;
+        flex-wrap: wrap;
     }
 
     .new-btn {
@@ -261,6 +299,148 @@
 
     .new-btn:hover {
         background: #006cc2;
+    }
+
+    .bulk-actions-bar {
+        display: none;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 2rem;
+        background: #f0f7ff;
+        border-bottom: 1px solid #bae0ff;
+    }
+
+    .bulk-actions-bar.visible {
+        display: flex;
+    }
+
+    .selected-badge {
+        background: #e6f4ff;
+        color: #0078d4;
+        border: 1px solid #bae0ff;
+        border-radius: 20px;
+        padding: 0.2rem 0.7rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .delete-btn {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.4rem 0.9rem;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.825rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+    }
+
+    .delete-btn:hover {
+        background: #b91c1c;
+    }
+
+    .cancel-select-btn {
+        background: transparent;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+        padding: 0.4rem 0.9rem;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.825rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+    }
+
+    .cancel-select-btn:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+    .document-table tbody tr.row-selected {
+        background: #e6f4ff !important;
+    }
+
+    .document-table tbody tr.row-selected td {
+        border-bottom-color: #bae0ff;
+    }
+
+    .grid-item.grid-selected {
+        border-color: #0078d4;
+        background: #e6f4ff;
+        box-shadow: 0 0 0 2px rgba(0,120,212,0.25);
+    }
+
+    .grid-item-checkbox {
+        opacity: 0;
+        transition: opacity 0.15s;
+        cursor: pointer;
+    }
+
+    .grid-item:hover .grid-item-checkbox,
+    .grid-item.grid-selected .grid-item-checkbox {
+        opacity: 1;
+    }
+
+    .delete-modal {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+
+    .delete-modal-icon {
+        width: 56px;
+        height: 56px;
+        background: #fef2f2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 1rem auto 0;
+    }
+
+    .delete-modal-icon i {
+        font-size: 1.75rem;
+        color: #dc2626;
+    }
+
+    .delete-modal-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .delete-modal-desc {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .delete-warning {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 6px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.825rem;
+        color: #92400e;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        text-align: left;
+        margin-top: 0.5rem;
+    }
+
+    .delete-warning i {
+        flex-shrink: 0;
+        margin-top: 1px;
     }
 
     .search-wrapper {
@@ -338,9 +518,7 @@
         justify-content: center;
     }
 
-    .view-toggle-btn:hover {
-        color: #1f2937;
-    }
+    .view-toggle-btn:hover { color: #1f2937; }
 
     .view-toggle-btn.active {
         background: white;
@@ -348,9 +526,7 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    .view-toggle-btn i {
-        font-size: 1.125rem;
-    }
+    .view-toggle-btn i { font-size: 1.125rem; }
 
     .bulk-action-toolbar {
         display: flex;
@@ -437,17 +613,10 @@
         cursor: pointer;
     }
 
-    .folder-tree-row.has-children {
-        cursor: pointer;
-    }
-
-    .folder-tree-row.expanded > td {
-        background: #f9fafb;
-    }
-
-    .folder-indent {
-        display: inline-block;
-    }
+    .folder-tree-row { transition: background 0.15s; cursor: pointer; }
+    .folder-tree-row.has-children { cursor: pointer; }
+    .folder-tree-row.expanded > td { background: #f9fafb; }
+    .folder-indent { display: inline-block; }
 
     .folder-toggle {
         display: inline-flex;
@@ -461,35 +630,15 @@
         transition: transform 0.2s;
     }
 
-    .folder-toggle i {
-        font-size: 0.875rem;
-    }
+    .folder-toggle i { font-size: 0.875rem; }
+    .folder-toggle.expanded { transform: rotate(90deg); }
 
-    .folder-toggle.expanded {
-        transform: rotate(90deg);
-    }
+    .child-row { display: none; cursor: pointer; }
+    .child-row.show { display: table-row; }
+    .folder-name-cell { cursor: pointer; }
 
-    .child-row {
-        display: none;
-        cursor: pointer;
-    }
-
-    .child-row.show {
-        display: table-row;
-    }
-
-    .folder-name-cell {
-        cursor: pointer;
-    }
-
-    .document-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .document-table thead {
-        border-bottom: 1px solid #e5e7eb;
-    }
+    .document-table { width: 100%; border-collapse: collapse; }
+    .document-table thead { border-bottom: 1px solid #e5e7eb; }
 
     .document-table th {
         text-align: left;
@@ -505,9 +654,7 @@
         transition: background 0.15s;
     }
 
-    .document-table tbody tr:hover {
-        background: #f9fafb;
-    }
+    .document-table tbody tr:hover { background: #f9fafb; }
 
     .document-table td {
         padding: 0.875rem 1.5rem;
@@ -515,24 +662,12 @@
         color: #1f2937;
     }
 
-    .checkbox-cell {
-        width: 40px;
-    }
+    .checkbox-cell { width: 40px; }
+    .checkbox-cell input[type="checkbox"] { cursor: pointer; }
 
-    .checkbox-cell input[type="checkbox"] {
-        cursor: pointer;
-    }
+    .name-cell { display: flex; align-items: center; gap: 0.75rem; }
 
-    .name-cell {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .item-icon {
-        font-size: 1.25rem;
-        color: #0078d4;
-    }
+    .item-icon { font-size: 1.25rem; color: #0078d4; }
 
     .item-name {
         font-weight: 500;
@@ -545,10 +680,7 @@
         color: #0078d4;
     }
 
-    .actions-cell {
-        width: 50px;
-        text-align: center;
-    }
+    .actions-cell { width: 50px; text-align: center; }
 
     .action-btn {
         background: transparent;
@@ -561,14 +693,8 @@
         transition: all 0.2s;
     }
 
-    .document-table tbody tr:hover .action-btn {
-        opacity: 1;
-    }
-
-    .action-btn:hover {
-        background: #f3f4f6;
-        color: #111827;
-    }
+    .document-table tbody tr:hover .action-btn { opacity: 1; }
+    .action-btn:hover { background: #f3f4f6; color: #111827; }
 
     .grid-container {
         display: grid;
@@ -607,10 +733,6 @@
         margin-bottom: 0.75rem;
     }
 
-    .grid-item-checkbox {
-        cursor: pointer;
-    }
-
     .grid-item-menu {
         background: transparent;
         border: none;
@@ -622,14 +744,8 @@
         transition: all 0.2s;
     }
 
-    .grid-item:hover .grid-item-menu {
-        opacity: 1;
-    }
-
-    .grid-item-menu:hover {
-        background: #f3f4f6;
-        color: #111827;
-    }
+    .grid-item:hover .grid-item-menu { opacity: 1; }
+    .grid-item-menu:hover { background: #f3f4f6; color: #111827; }
 
     .grid-item-icon {
         display: flex;
@@ -638,14 +754,8 @@
         margin-bottom: 0.75rem;
     }
 
-    .grid-item-icon i {
-        font-size: 4rem;
-        color: #0078d4;
-    }
-
-    .grid-item-icon.document-icon i {
-        color: #6b7280;
-    }
+    .grid-item-icon i { font-size: 4rem; color: #0078d4; }
+    .grid-item-icon.document-icon i { color: #6b7280; }
 
     .grid-item-name {
         font-size: 0.875rem;
@@ -672,23 +782,9 @@
         text-align: center;
     }
 
-    .empty-icon {
-        font-size: 5rem;
-        color: #9ca3af;
-        margin-bottom: 1.5rem;
-    }
-
-    .empty-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-text {
-        color: #6b7280;
-        margin-bottom: 1.5rem;
-    }
+    .empty-icon { font-size: 5rem; color: #9ca3af; margin-bottom: 1.5rem; }
+    .empty-title { font-size: 1.5rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
+    .empty-text { color: #6b7280; margin-bottom: 1.5rem; }
 
     .folder-count {
         padding: 1rem 2rem;
@@ -728,24 +824,147 @@
 <script src="{{ asset('js/BootstrapMenu.min.js') }}"></script>
 
 <script>
-    function deleteFolder() {
-        event.preventDefault()
-        document.getElementById('deleteFolderForm').submit()
+    let selectedItems = {};
+    let clickTimer    = null;
+    let selectedRow   = null;
+    let currentView   = 'list';
+
+    function getSelectedCount() {
+        return Object.keys(selectedItems).length;
     }
 
-    let clickTimer = null;
-    let selectedRow = null;
-    let currentView = 'list';
-    
+    function syncBulkBar() {
+        const count = getSelectedCount();
+        if (count > 0) {
+            $('#bulkActionsBar').addClass('visible');
+            $('#selectedCountBadge').text(count + ' selected');
+        } else {
+            $('#bulkActionsBar').removeClass('visible');
+        }
+    }
+
+    function selectItem(type, id, name) {
+        selectedItems[type + '_' + id] = { type, id, name };
+        syncBulkBar();
+    }
+
+    function deselectItem(type, id) {
+        delete selectedItems[type + '_' + id];
+        syncBulkBar();
+    }
+
+    function clearAllSelections() {
+        selectedItems = {};
+        $('.item-checkbox:not(:disabled)').prop('checked', false);
+        $('#selectAll').prop('checked', false);
+        $('#selectAll').prop('indeterminate', false);
+        $('.folder-tree-row, .child-row').removeClass('selected-row row-selected');
+        $('.grid-item').removeClass('grid-selected');
+        syncBulkBar();
+    }
+
+    function handleListCheckbox(checkbox) {
+        const $cb  = $(checkbox);
+        const type = $cb.data('type');
+        const id   = $cb.data('id');
+        const name = $cb.data('name') || $cb.closest('tr').find('.item-name').text().trim();
+        const $row = $cb.closest('tr');
+
+        if ($cb.is(':checked')) {
+            selectItem(type, id, name);
+            $row.addClass('row-selected');
+        } else {
+            deselectItem(type, id);
+            $row.removeClass('row-selected');
+        }
+    }
+
+    function handleGridCheckbox(checkbox) {
+        const $cb   = $(checkbox);
+        const type  = $cb.data('type');
+        const id    = $cb.data('id');
+        const name  = $cb.data('name') || $cb.closest('.grid-item').find('.grid-item-name').text().trim();
+        const $item = $cb.closest('.grid-item');
+
+        if ($cb.is(':checked')) {
+            selectItem(type, id, name);
+            $item.addClass('grid-selected');
+        } else {
+            deselectItem(type, id);
+            $item.removeClass('grid-selected');
+        }
+    }
+
+    function handleGridItemClick(event, element, url) {
+        if ($(event.target).is('input[type="checkbox"]') ||
+            $(event.target).closest('.grid-item-menu').length ||
+            $(event.target).closest('.dropdown-menu').length) {
+            return;
+        }
+        window.location = url;
+    }
+
+    function openDeleteModal() {
+        const folderIds   = [];
+        const documentIds = [];
+        const names       = [];
+        let hasOthers     = false;
+
+        for (const key in selectedItems) {
+            const item = selectedItems[key];
+            names.push('"' + item.name + '"');
+
+            if (item.type === 'folder') {
+                folderIds.push(item.id);
+            } else if (item.type === 'document') {
+                documentIds.push(item.id);
+            } else if (item.type === 'others') {
+                hasOthers = true;
+            }
+        }
+
+        const count = getSelectedCount();
+        const desc  = count === 1
+            ? 'Are you sure you want to delete ' + names[0] + '? This action cannot be undone.'
+            : 'Are you sure you want to delete ' + count + ' selected items? This action cannot be undone.';
+
+        $('#deleteModalDesc').text(desc);
+        $('#deleteFolderIds').val(folderIds.join(','));
+        $('#deleteDocumentIds').val(documentIds.join(','));
+
+        const warnings = [];
+        if (folderIds.length > 0) {
+            warnings.push('Folders that contain files cannot be deleted. Empty them first.');
+        }
+        if (hasOthers) {
+            warnings.push('"Others" is a system folder and cannot be deleted.');
+        }
+
+        if (warnings.length > 0) {
+            $('#deleteWarning').show();
+            $('#deleteWarningText').text(warnings.join(' '));
+            if (folderIds.length === 0 && documentIds.length === 0 && hasOthers) {
+                $('#confirmDeleteBtn').prop('disabled', true);
+            } else {
+                $('#confirmDeleteBtn').prop('disabled', false);
+            }
+        } else {
+            $('#deleteWarning').hide();
+            $('#confirmDeleteBtn').prop('disabled', false);
+        }
+
+        $('#deleteConfirmModal').modal('show');
+    }
+
     function handleFolderClick(element, hasChildren) {
         event.stopPropagation();
-        
+
         const row = $(element).closest('tr');
-        
+
         $('.folder-tree-row').removeClass('selected-row');
         row.addClass('selected-row');
         selectedRow = row;
-        
+
         if (clickTimer === null) {
             clickTimer = setTimeout(function() {
                 if (hasChildren) {
@@ -761,11 +980,11 @@
     }
 
     function toggleFolder(element) {
-        const row = $(element).closest('tr');
-        const folderId = row.data('folder-id') || 'others';
-        const toggle = row.find('.folder-toggle');
+        const row        = $(element).closest('tr');
+        const folderId   = row.data('folder-id') || 'others';
+        const toggle     = row.find('.folder-toggle');
         const isExpanded = toggle.hasClass('expanded');
-        
+
         if (isExpanded) {
             toggle.removeClass('expanded');
             row.removeClass('expanded');
@@ -884,12 +1103,28 @@
             switchToGridView();
         }
 
-        $('#listViewBtn').on('click', function() {
-            switchToListView();
+        $('#listViewBtn').on('click', switchToListView);
+        $('#gridViewBtn').on('click', switchToGridView);
+
+        $('#selectAll').on('change', function() {
+            const checked = $(this).prop('checked');
+            if (currentView === 'list') {
+                $('.folder-tree-row:visible .item-checkbox:not(:disabled)').each(function() {
+                    $(this).prop('checked', checked);
+                    handleListCheckbox(this);
+                });
+            }
+            if (!checked) {
+                clearAllSelections();
+            }
         });
 
-        $('#gridViewBtn').on('click', function() {
-            switchToGridView();
+        $(document).on('change', '.folder-tree-row .item-checkbox:not(:disabled), .child-row .item-checkbox:not(:disabled)', function() {
+            handleListCheckbox(this);
+            const total   = $('.folder-tree-row:visible .item-checkbox:not(:disabled), .child-row:visible .item-checkbox:not(:disabled)').length;
+            const checked = $('.folder-tree-row:visible .item-checkbox:not(:disabled):checked, .child-row:visible .item-checkbox:not(:disabled):checked').length;
+            $('#selectAll').prop('indeterminate', checked > 0 && checked < total);
+            $('#selectAll').prop('checked', checked === total && total > 0);
         });
 
         $('#selectAll').on('change', function() {
@@ -903,6 +1138,9 @@
         });
 
         $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                clearAllSelections();
+            }
             if (e.key === 'Enter' && selectedRow && selectedRow.hasClass('folder-tree-row')) {
                 e.preventDefault();
                 const folderUrl = selectedRow.find('.folder-name-cell').data('folder-url');
@@ -991,20 +1229,16 @@
 
         searchInput.on('input', function() {
             const searchTerm = $(this).val().toLowerCase().trim();
-            
-            if (searchTerm.length > 0) {
-                clearBtn.show();
-            } else {
-                clearBtn.hide();
-            }
-            
+
+            clearBtn.toggle(searchTerm.length > 0);
+
             let visibleCount = 0;
-            
+
             if (currentView === 'list') {
                 $('.folder-tree-row').each(function() {
                     const folderName = $(this).data('folder-name');
-                    const level = $(this).data('level');
-                    
+                    const level      = $(this).data('level');
+
                     if (level === 0 && folderName && folderName.includes(searchTerm)) {
                         $(this).show();
                         visibleCount++;
@@ -1012,12 +1246,12 @@
                         $(this).hide();
                     }
                 });
-                
+
                 if (searchTerm.length > 0) {
                     $('.child-row').hide();
                     $('.folder-toggle').removeClass('expanded');
                 }
-                
+
                 if (visibleCount === 0 && searchTerm.length > 0) {
                     tableBody.hide();
                     folderCount.hide();
@@ -1028,9 +1262,8 @@
                     noResults.hide();
                 }
             } else {
-                $('.grid-item[data-type="folder"]').each(function() {
+                $('.grid-item[data-type="folder"], .grid-item[data-type="others"]').each(function() {
                     const folderName = $(this).data('folder-name');
-                    
                     if (folderName && folderName.includes(searchTerm)) {
                         $(this).show();
                         visibleCount++;
@@ -1038,7 +1271,7 @@
                         $(this).hide();
                     }
                 });
-                
+
                 if (visibleCount === 0 && searchTerm.length > 0) {
                     gridContainer.hide();
                     folderCount.hide();
@@ -1049,7 +1282,7 @@
                     noResults.hide();
                 }
             }
-            
+
             $('#visibleCount').text(visibleCount);
         });
 
@@ -1065,25 +1298,23 @@
         });
 
         var menu = new BootstrapMenu('.demoTableRow', {
-            fetchElementData: function ($rowElem) {
-                return {
-                    id: $rowElem.data('folder-id')
-                };
+            fetchElementData: function($rowElem) {
+                return { id: $rowElem.data('folder-id') };
             },
             actions: {
                 renameFolder: {
                     name: 'Rename folder',
                     iconClass: 'fa-pencil',
-                    onClick: function (folder) {
-                        $("#renameFolderModal"+folder.id).modal("show")
+                    onClick: function(folder) {
+                        $("#renameFolderModal" + folder.id).modal("show");
                     }
                 },
                 moveFileFolder: {
                     name: 'Move file',
                     iconClass: "ri-drag-move-2-line",
                     onClick: function(folder) {
-                        $("#addDocumentInFolder").modal("show")
-                        $("#moveDocumentFolder").val(folder.id)
+                        $("#addDocumentInFolder").modal("show");
+                        $("#moveDocumentFolder").val(folder.id);
                     }
                 }
             }
