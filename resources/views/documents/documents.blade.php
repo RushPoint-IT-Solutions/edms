@@ -301,6 +301,10 @@
         background: #006cc2;
     }
 
+    .dropdown-menu {
+        z-index: 1000;
+    }
+
     .bulk-actions-bar {
         display: none;
         align-items: center;

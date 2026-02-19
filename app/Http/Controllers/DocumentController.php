@@ -32,94 +32,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class DocumentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    // public function index(Request $request)
-    // {
-    //     $search = $request->search;
-    //     $department = $request->department;
-
-    //     $document_types = DocumentType::orderBy('name','desc')->get();
-    //     $document_folders = DocumentFolder::with('document','childrenFolder')->where('parent_id',null)->get();
-    //     $obsoletes = Obsolete::get();
-
-    //     $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
-    //     if (auth()->user()->role != "Administrator")
-    //     {
-    //         $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
-    //     }
-
-    //     // $documents_filter = Document::query();
-     
-    //     // if($request->department != null)
-    //     // {
-    //     //     $documents_filter = $documents_filter->where('department_id',$request->department);
-            
-    //     // }
-    //     // if($request->search != null)
-    //     // {
-    //     //     $documents_filter = $documents_filter->where('control_code','like','%'.$request->search.'%')->orWhere('title','like','%'.$request->search.'%')->orWhere('old_control_code','like','%'.$request->search.'%');
-           
-    //     // }
-
-    //     // if(auth()->user()->role == "Document Control Officer")
-    //     // { 
-    //     //     $documents = Document::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-    //     //     $departments = $departments->whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray());
-                   
-    //     // }
-    //     // if(auth()->user()->role == "Documents and Records Controller")
-    //     // { 
-   
-    //     //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
-    //     //     $departments = $departments->where('id',auth()->user()->department_id);
-                   
-    //     // }
-        
-    //     // if((auth()->user()->role == "Department Head"))
-    //     // {
-    //     //     $documents = Document::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
-    //     //     $departments = $departments->whereIn('id',(auth()->user()->department_head)->pluck('id')->toArray());
-           
-          
-    //     // }
-    //     // if((auth()->user()->role == "User"))
-    //     // {
-    //     //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
-    //     //     $departments = $departments->where('id',auth()->user()->department_id);
-       
-    //     // }
-
-    //     // $documents_na = $documents_filter->orderBy('control_code', 'asc')->get();
-    //         // ->paginate(10);
-        
- 
-    //     return view('documents.documents',
-    //     array(
-    //         'documents' => $documents,
-    //         // 'documents_na' => $documents_na,
-    //         'obsoletes' => $obsoletes,
-    //         // 'departments' => $departments,
-    //         // 'companies' => $companies,
-    //         'document_types' => $document_types,
-    //         'search' => $search,
-    //         'dep' => $department,
-    //         'document_folders' => $document_folders
-    //         )
-    //     );
-    // }
-
     public function index(Request $request)
     {
         $search = $request->search;
@@ -208,7 +120,8 @@ class DocumentController extends Controller
                             class="item-checkbox form-check-input" 
                             data-type="folder" 
                             data-id="' . $folder->id . '" 
-                            data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                            data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '"
+                            onchange="handleFolderCheckbox(this)">
                       </td>';
             
             $html .= '<td class="folder-name-cell" data-folder-url="' . url('documents/folder/'.$folder->id) . '" onclick="handleFolderClick(this, ' . ($hasChildren ? 'true' : 'false') . ')">';
@@ -228,8 +141,16 @@ class DocumentController extends Controller
             $html .= '<td>—</td>';
             $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
             $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
-                        <button class="action-btn"><i class="ri-more-2-fill"></i></button>
-                    </td>';
+                <div class="dropdown">
+                    <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
+                            data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                            <i class="ri-delete-bin-line me-2"></i>Delete folder
+                        </a></li>
+                    </ul>
+                </div>
+            </td>';
             $html .= '</tr>';
             
             if (count($childFolders) > 0) {
@@ -240,7 +161,6 @@ class DocumentController extends Controller
                 foreach ($folderDocuments as $doc) {
                     $fileInfo = $this->getDocumentFileInfo($doc);
                     
-                    // *** data-document-id added here ***
                     $html .= '<tr class="child-row document-row"
                                 data-parent-id="' . $folder->id . '"
                                 data-document-id="' . $doc->id . '"
@@ -253,7 +173,8 @@ class DocumentController extends Controller
                                     class="item-checkbox form-check-input" 
                                     data-type="document" 
                                     data-id="' . $doc->id . '" 
-                                    data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                                    data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                                    onchange="handleFolderCheckbox(this)">
                               </td>';
                     $html .= '<td><div class="name-cell">';
                     $html .= '<span class="folder-indent" style="width: ' . (($level + 1) * 24) . 'px;"></span>';
@@ -265,8 +186,16 @@ class DocumentController extends Controller
                     $html .= '<td>—</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
-                                <button class="action-btn"><i class="ri-more-2-fill"></i></button>
-                            </td>';
+                        <div class="dropdown">
+                            <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
+                                    data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete folder
+                                </a></li>
+                            </ul>
+                        </div>
+                    </td>';
                     $html .= '</tr>';
                 }
             }
@@ -298,11 +227,6 @@ class DocumentController extends Controller
         return response()->json(['success' => true, 'message' => 'Successfully Deleted']);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
    public function create($id = null)
     {
         $approvers = User::all();
@@ -332,16 +256,8 @@ class DocumentController extends Controller
         );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
-        // dd($request->all());
         $request->validate([
             'control_code' => 'unique:documents,control_code'
         ]);
@@ -349,8 +265,6 @@ class DocumentController extends Controller
         $document = new Document;
         $document->control_code = $request->control_code;
         $document->title = $request->title;
-        // $document->company_id = $request->company;
-        // $document->department_id = $request->department;
         $document->category = $request->document_type;
         $document->other_category = $request->other;
         $document->effective_date = $request->effective_date;
@@ -387,12 +301,6 @@ class DocumentController extends Controller
         
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
         $document = Document::findOrfail($id);
@@ -404,102 +312,28 @@ class DocumentController extends Controller
         );
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Request $request,$id)
     {
-        //
-
         $document = Document::findOrFail($id);
         $document->title = $request->title;
         $document->version = $request->revision;
         
-        // Temporarily disable timestamps
         $document->timestamps = false;
         $document->save();
 
         Alert::success('Successfully Updated')->persistent('Dismiss');
         return back();
-      
-        
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
         //
     }
-    
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         //
     }
-    // public function showPDF($id)
-    // {
-    //     ini_set('memory_limit', '-1');
-    //     $attachment = DocumentAttachment::with('document')->findOrFail($id);
-    //         $pdf = new \setasign\Fpdi\Fpdi();
-    //         $newFile = str_replace(' ', '%20', $attachment->attachment);
-          
-    //             $fileContentData = file_get_contents(url($newFile));
-    //             try {
-                    
-    //                 $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
-    //                 for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-    //                         // $pdf->AddPage();
-    //                         $pdf->setSourceFile(StreamReader::createByString($fileContentData));
-    //                         $tplIdx = $pdf->importPage($pageNo);
-    //                         $size = $pdf->getTemplateSize($tplIdx);
-    //                         if($size[0] > $size[1])
-    //                         {
-    //                             $pdf->AddPage('L', array($size[1],$size[0]));
-    //                         }
-    //                         else
-    //                         {
-    //                             $pdf->AddPage('P', array($size[1],$size[0]));
-    //                         }
-                           
-    //                         // dd($size);
-    //                         $pdf->useTemplate($tplIdx);
-    //                         $pdf->SetFont('Arial');
-    //                         $pdf->SetTextColor(1, 0, 0);
-    //                         $pdf->SetXY(160, 5);
-    //                         $pdf->SetFontSize(8);
-    //                         if($pageNo == 1)
-    //                         {
-    //                             $pdf->Write(1, "Effective Date: ".date("m/d/Y",strtotime($attachment->document->updated_at))); 
-    //                         }
-                           
-    //                         $pdf->Image('images/uncontrolled.png', 15, 100, 200, '', '', '', '', false, 300);
-    //                 }
-    //                 $pdf->Output();
-    //             }
-    //             catch ( \Exception $e )
-    //             {
-    //                 return Redirect::to(url($newFile));
-    //             }
-              
-           
-        
-      
-    // }
 
     public function showPDF($id)
     {
@@ -521,7 +355,6 @@ class DocumentController extends Controller
         {
             $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
             for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                // $pdf->AddPage();
                 $pdf->setSourceFile(StreamReader::createByString($fileContentData));
                 $tplIdx = $pdf->importPage($pageNo);
                 $size = $pdf->getTemplateSize($tplIdx);
@@ -534,7 +367,6 @@ class DocumentController extends Controller
                     $pdf->AddPage('P', array($size[1],$size[0]));
                 }
                 
-                // dd($size);
                 $pdf->useTemplate($tplIdx);
                 $pdf->SetFont('Arial');
                 $pdf->SetTextColor(1, 0, 0);
@@ -543,7 +375,6 @@ class DocumentController extends Controller
     
                 if ($pageNo == $pageCount)
                 {
-                    // Generate QR code
                     $options = new QROptions([
                         'outputType' => QRCode::OUTPUT_IMAGE_PNG,
                     ]);
@@ -551,7 +382,6 @@ class DocumentController extends Controller
                     $qrCode = new QRCode($options);
                     $qrImageString = $qrCode->render($data);
     
-                    // Bottom-right position
                     $qrSize = 15;
                     $margin = 10;
     
@@ -571,7 +401,6 @@ class DocumentController extends Controller
 
     public function changePublic(Request $request)
     {
-        // dd($request->all());
         $document = Document::findOrfail($request->id);
         if($request->value == "true")
         {
@@ -598,10 +427,10 @@ class DocumentController extends Controller
         $doc_attachment->attachment = $file_name;
         $doc_attachment->save();
         
-    
         Alert::success('Successfully Uploaded')->persistent('Dismiss');
         return back();
     }
+
     public function audit(Request $request)
     {
         $departments = Department::get();
@@ -640,9 +469,9 @@ class DocumentController extends Controller
                 )
             );
     }
+
     public function addFolder(Request $request)
     {
-        // dd($request->all());
         $folder = new DocumentFolder;
         $folder->name = $request->name;
         if($request->has('folder_id'))
@@ -654,22 +483,6 @@ class DocumentController extends Controller
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
     }
-
-    // public function folderView(Request $request,$id)
-    // {
-    //     $folder_data = DocumentFolder::with('document','childrenFolder')->findOrFail($id);
-    //     $documents = Document::get();
-
-    //     $document_folders = DocumentFolder::get();
-
-    //     return view('documents.folder_view',
-    //         array(
-    //             'folder_data' => $folder_data,
-    //             'document_folders' => $document_folders,
-    //             'documents' => $documents
-    //         )
-    //     );
-    // }
 
     private function getDocumentFileInfo($doc)
     {
@@ -917,26 +730,25 @@ class DocumentController extends Controller
         Alert::success('Successfully Rename')->persistent('Dismiss');
         return back();
     }
-    public function deleteFolder(Request $request,$id)
-    {
-        $folder = DocumentFolder::with('document')->findOrFail($id);
-        if (count($folder->document) > 0)
-        {
-            Alert::warning('Cannot delete folder because it contains files')->persistent('Dismiss');
-            return back();
-        }
-        else 
-        {
-            $folder->delete();
 
-            Alert::success('Successfully Deleted')->persistent('Dismiss');
-            return back();
+    public function deleteFolder(Request $request, $id)
+    {
+        $folder = DocumentFolder::with('document', 'childrenFolder')->findOrFail($id);
+
+        if (count($folder->document) > 0 || count($folder->childrenFolder) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete folder because it contains files or subfolders.'
+            ]);
         }
+
+        $folder->delete();
+
+        return response()->json(['success' => true, 'message' => 'Successfully Deleted']);
     }
 
     public function signaturePosition(Request $request)
     {
-        // dd($request->all());
         $document_signature_position = DocumentSignaturePosition::with('user')
             ->where('user_id', $request->user_id)
             ->where('change_request_id', $request->change_request_id)
@@ -944,9 +756,9 @@ class DocumentController extends Controller
         
         return response()->json($document_signature_position);
     }
+
     public function editDateApproved(Request $request,$id)
     {
-        // dd($request->all());
         $approver = RequestApprover::findOrFail($id);
         $approver->date_approved = $request->date_approved." ".date('H:i:s');
         $approver->save();
@@ -957,16 +769,10 @@ class DocumentController extends Controller
         $logs->change_request_id = $approver->change_request_id;
         $logs->save();
 
-        // $documents = Document::findOrFail($request->document_id);
-        // $request = $documents->change_requests->sortByDesc('id')->first();
-        // $approver = $request->approvers->first();
-        
-        // $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
-        // Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
-
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
     }
+
     public function uploadDocumentFolder(Request $request)
     {
         $documents = Document::whereIn('id',$request->documents)->get();
@@ -1000,7 +806,6 @@ class DocumentController extends Controller
 
     public function refreshTeam(Request $request)
     {
-        // dd($request->all());
         $teams = Team::where('department_id', $request->department)->get();
         $options = "";
         foreach($teams as $team) {
