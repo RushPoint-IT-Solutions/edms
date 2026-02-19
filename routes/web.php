@@ -39,7 +39,10 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('upload-document-folder','DocumentController@uploadDocumentFolder');
             Route::post('upload-document','DocumentController@store')->name('documents');
             Route::post('refresh-team','DocumentController@refreshTeam');
+
         });
+
+        Route::post('bulk-delete', 'DocumentController@bulkDelete')->name('bulk-delete');
 
          //Users
         Route::get('/users', 'UserController@index')->name('settings');

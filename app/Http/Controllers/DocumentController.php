@@ -206,8 +206,12 @@ class DocumentController extends Controller
                         data-level="' . $level . '">';
             
             $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
-                        <input type="checkbox" class="form-check-input">
-                    </td>';
+                        <input type="checkbox" 
+                            class="item-checkbox form-check-input" 
+                            data-type="folder" 
+                            data-id="' . $folder->id . '" 
+                            data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                      </td>';
             
             $html .= '<td class="folder-name-cell" data-folder-url="' . url('documents/folder/'.$folder->id) . '" onclick="handleFolderClick(this, ' . ($hasChildren ? 'true' : 'false') . ')">';
             $html .= '<div class="name-cell">';
@@ -246,8 +250,12 @@ class DocumentController extends Controller
                                 data-modified="' . $doc->updated_at . '"
                                 onclick="window.open(\'' . url('/documents/view-document/'.$doc->id) . '\', \'_blank\')">';
                     $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
-                                <input type="checkbox" class="form-check-input">
-                            </td>';
+                                <input type="checkbox" 
+                                    class="item-checkbox form-check-input" 
+                                    data-type="document" 
+                                    data-id="' . $doc->id . '" 
+                                    data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                              </td>';
                     $html .= '<td><div class="name-cell">';
                     $html .= '<span class="folder-indent" style="width: ' . (($level + 1) * 24) . 'px;"></span>';
                     $html .= '<span style="width: 20px; display: inline-block;"></span>';
@@ -903,6 +911,29 @@ class DocumentController extends Controller
             return back();
         }
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $folderIds   = array_filter(explode(',', $request->folder_ids));
+        $documentIds = array_filter(explode(',', $request->document_ids));
+
+        foreach ($folderIds as $id) {
+            $folder = DocumentFolder::with('document')->find($id);
+            if ($folder && $folder->document->count() === 0) {
+                $folder->delete();
+            }
+        }
+
+        foreach ($documentIds as $id) {
+            $document = Document::find($id);
+            if ($document) {
+                $document->delete();
+            }
+        }
+
+        return response()->json(['success' => true, 'message' => 'Successfully Deleted']);
+    }
+
     public function signaturePosition(Request $request)
     {
         // dd($request->all());
