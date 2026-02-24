@@ -110,6 +110,15 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/activate', 'DepartmentController@activate')->name('settings');
         });
 
+        // Office
+        Route::get("offices", "OfficeController@index");
+        Route::prefix("offices")->group(function() {
+            Route::post("/store", "OfficeController@store");
+            Route::post("/update/{id}", "OfficeController@update");
+            Route::post('/deactivate', 'OfficeController@deactivate');
+            Route::post('/activate', 'OfficeController@activate');
+        });
+
         // Route::post('/change-department/{id}', 'PermitController@update')->name('permits');
         // Route::post('inactive-permits/{id}', 'PermitController@inactivePermits');
         // Route::post('activate-permits/{id}', 'PermitController@activatePermits');
