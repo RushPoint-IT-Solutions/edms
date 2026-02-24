@@ -4,7 +4,7 @@
             <div class="modal-header">
                 <h6 class="modal-title">Date</h6>
             </div>
-            <form method="POST" action="{{ url('/documents/edit_date_approved/'.$approver->id) }}">
+            <form method="POST" action="{{ url('/documents/edit_date_approved/'.$approver->id) }}" onsubmit="show()">
                 @csrf
 
                 <input type="hidden" name="document_id" value="{{ $change_request->document_id }}">
