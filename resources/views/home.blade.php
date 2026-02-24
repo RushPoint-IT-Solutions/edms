@@ -692,7 +692,7 @@
             <div class="card-body">
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-semibold text-dark mb-0">Pending Documents</h5>
+                        <h5 class="fw-semibold text-dark mb-0">For Approval</h5>
                         <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1 d-none d-md-inline-flex">
                             <i class="ri-file-add-line"></i> New Document
                         </a>
