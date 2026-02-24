@@ -774,6 +774,16 @@
                                         @endphp 
                                         <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">{{ $filename[2] }}</div>
                                     </div>
+                                    @php
+                                        $dateCreated = new DateTime($change_request->updated_at);
+                                        $now = new DateTime();
+                                        $count = $now->diff($dateCreated);
+                                        $dayName = $count->d > 1 ? "days" : "day"
+                                    @endphp
+                                    <small class="text-dark text-truncated">
+                                        <i class="ri-time-line" style="font-size: 1rem;"></i>
+                                        <span>{{ $count->d }} {{$dayName}}</span>
+                                    </small>
                                 </div>
                             </a>
                         </div>
