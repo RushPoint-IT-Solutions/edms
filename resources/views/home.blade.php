@@ -933,7 +933,7 @@
                     @endforeach
                 </div> --}}
                 <ul class="list-group">
-                    @foreach ($documents as $document)
+                    @foreach ($documents->sortByDesc("id") as $document)
                     <li class="list-group-item">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
@@ -949,7 +949,8 @@
                                     </div>
                                     <div class="flex-shrink-0 ms-2">
                                         <h6 class="fs-14 mb-0">{{ $document->control_code }}</h6>
-                                        <small class="text-dark">{{ $document->title }}</small>
+                                        <small class="text-dark">Title: {{ $document->title }}</small> <br>
+                                        <small class="text-dark">Date Added: {{ date("M d, Y", strtotime($document->created_at)) }}</small>
                                     </div>
                                 </div>
                             </div>
