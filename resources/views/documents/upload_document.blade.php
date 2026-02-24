@@ -57,7 +57,7 @@
                             </select>
                         </div>
                         <div class='col-md-4'>
-                            <label class="form-label">Effective Date *</label>
+                            <label class="form-label">Released Date *</label>
                             <input type="date" class="form-control" name="effective_date" value="{{ old('effective_date') }}" required/>
                         </div>
                         <div class='col-md-4'>
