@@ -950,17 +950,35 @@
                                 <div class="d-flex">
                                     <div class="flex-shrink-0 avatar-xs">
                                         @foreach($document->attachments->where('type','pdf_copy') as $attachment)
-                                        <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                        <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
                                             <div class="avatar-title bg-danger-subtle text-danger rounded">
                                                 <i class="ri-file-text-line"></i>
                                             </div>
                                         </a>
+
+                                        <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
+                                            @csrf
+
+                                            <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
+                                        </form>
                                         @endforeach
                                     </div>
                                     <div class="flex-shrink-0 ms-2">
                                         <h6 class="fs-14 mb-0">{{ $document->control_code }}</h6>
                                         <small class="text-dark">Title: {{ $document->title }}</small> <br>
-                                        <small class="text-dark">Date Added: {{ date("M d, Y", strtotime($document->created_at)) }}</small>
+                                        <small class="text-dark">Date Added: {{ date("M d, Y", strtotime($document->created_at)) }}</small><br>
+                                        @if(count($document->visitor) > 0)
+                                        <small class="text=dark">Viewed by :</small>
+                                        @endif
+                                        <div class="avatar-group">
+                                            @foreach ($document->visitor as $visitor)
+                                                <a href="javascript: void(0);" class="avatar-group-item material-shadow" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-placement="top" title="{{ $visitor->user->name }}">
+                                                    <div class="avatar-xxs">
+                                                        <img src="{{ asset("images/no_image.png") }}" alt="" class="rounded-circle img-fluid">
+                                                    </div>
+                                                </a>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1309,6 +1327,10 @@
 <script src="{{ asset('barcode/JsBarcode.all.min.js') }}"></script>
 
 <script>
+    function userView(id) {
+        document.getElementById("userView"+id).submit()
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const viewToggles = document.querySelectorAll('.view-toggle');
         const gridView = document.getElementById('gridView');
