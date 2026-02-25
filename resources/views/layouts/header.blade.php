@@ -400,7 +400,7 @@
                         <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/documents')}}">
                                 <i class="ri-folder-2-line"></i>
-                                <span data-key="t-documents">Documents</span>
+                                <span data-key="t-documents">My Documents</span>
                             </a>
                         </li>
                         @endcan
