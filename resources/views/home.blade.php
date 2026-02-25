@@ -686,8 +686,8 @@
     </div>
 </div> --}}
 
-<div class="row g-4">
-    <div class="col-12 col-lg-9">
+<div class="row g-4 align-items-stretch">
+    <div class="col-12 col-lg-9 d-flex">
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="mb-4">
@@ -926,9 +926,9 @@
         </div>
     </div>
 
-    <div class="col-12 col-lg-3">
-        <div class="card shadow-sm" style="height: 471px; overflow-y:scroll;">
-            <div class="card-body">
+    <div class="col-12 col-lg-3 d-flex">
+        <div class="card shadow-sm w-100">
+            <div class="card-body overflow-auto">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
 
                <form action="{{ route('home') }}" method="GET" class="mb-3">
