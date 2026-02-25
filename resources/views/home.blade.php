@@ -927,7 +927,7 @@
     </div>
 
     <div class="col-12 col-lg-3">
-        <div class="card shadow-sm" style="height: 470px; overflow-y:scroll;">
+        <div class="card shadow-sm" style="height: 471px; overflow-y:scroll;">
             <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
 
