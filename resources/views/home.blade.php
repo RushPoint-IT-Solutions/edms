@@ -930,64 +930,68 @@
         <div class="card shadow-sm" style="height: 449px; overflow-y:scroll;">
             <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
-                
-                {{-- <div class="d-flex flex-column gap-3">
-                    @foreach ($documents as $document)
-                    <div class="d-flex align-items-center justify-content-between p-3 border rounded">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="ri-file-text-line" style="font-size: 1.5rem;"></i>
-                            <p class="fs-5 text">{{ $document->control_code }}</p>
-                            <small>{{ $document->title }}</small>
-                        </div>
+
+               <form action="{{ route('home') }}" method="GET" class="mb-3">
+                    @if(request('pending_search'))
+                        <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
+                    @endif
+                    @if(request('doc_search'))
+                        <input type="hidden" name="doc_search" value="{{ request('doc_search') }}">
+                    @endif
+                    
+                    <div class="d-flex gap-1">
+                        <input type="text"
+                            name="doc_office_search"
+                            value="{{ request('doc_office_search') }}"
+                            class="form-control form-control-sm"
+                            placeholder="Search form...">
+                        <select name="doc_office_dept" 
+                                class="form-select form-select-sm" 
+                                style="max-width: 130px;"
+                                onchange="this.form.submit()">
+                            <option value="">All Dept.</option>
+                            @foreach($departments ?? [] as $dept)
+                                <option value="{{ $dept->id }}" {{ request('doc_office_dept') == $dept->id ? 'selected' : '' }}>
+                                    {{ $dept->code }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-danger btn-sm px-2">
+                            <i class="ri-search-line"></i>
+                        </button>
+                        @if(request('doc_office_search') || request('doc_office_dept'))
+                            <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm px-2">
+                                <i class="ri-close-line"></i>
+                            </a>
+                        @endif
                     </div>
-                    @endforeach
-                </div> --}}
+                </form>
+
                 <ul class="list-group">
-                    @foreach ($documents->sortByDesc("id") as $document)
-                    <li class="list-group-item">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0 avatar-xs">
-                                        @foreach($document->attachments->where('type','pdf_copy') as $attachment)
-                                        <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
-                                            <div class="avatar-title bg-danger-subtle text-danger rounded">
-                                                <i class="ri-file-text-line"></i>
-                                            </div>
-                                        </a>
-
-                                        <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
-                                            @csrf
-
-                                            <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                        </form>
-                                        @endforeach
+                    @forelse ($documents as $document)
+                    <li class="list-group-item px-2 py-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="flex-shrink-0">
+                                @foreach($document->attachments->where('type','pdf_copy') as $attachment)
+                                <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                    <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="ri-file-text-line"></i>
                                     </div>
-                                    <div class="flex-shrink-0 ms-2">
-                                        <h6 class="fs-14 mb-0">{{ $document->control_code }}</h6>
-                                        <small class="text-dark">Title: {{ $document->title }}</small> <br>
-                                        <small class="text-dark">Date Added: {{ date("M d, Y", strtotime($document->created_at)) }}</small><br>
-                                        @if(count($document->visitor) > 0)
-                                        <small class="text=dark">Viewed by :</small>
-                                        @endif
-                                        <div class="avatar-group">
-                                            @foreach ($document->visitor as $visitor)
-                                                <a href="javascript: void(0);" class="avatar-group-item material-shadow" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-placement="top" title="{{ $visitor->user->name }}">
-                                                    <div class="avatar-xxs">
-                                                        <img src="{{ asset("images/no_image.png") }}" alt="" class="rounded-circle img-fluid">
-                                                    </div>
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
+                                </a>
+                                @endforeach
                             </div>
-                            {{-- <div class="flex-shrink-0">
-                                <span class="text-danger">-$25.50</span>
-                            </div> --}}
+                            <div class="flex-grow-1 overflow-hidden">
+                                <h6 class="fs-14 mb-0 text-truncate">{{ $document->control_code }}</h6>
+                                <small class="text-dark text-truncate d-block">{{ $document->title }}</small>
+                                @if($document->department)
+                                    <small class="text-muted">{{ $document->department->code }}</small>
+                                @endif
+                            </div>
                         </div>
                     </li>
-                    @endforeach
+                    @empty
+                        <li class="list-group-item text-center text-muted">No documents found.</li>
+                    @endforelse
                 </ul>
             </div>
         </div>

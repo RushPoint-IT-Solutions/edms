@@ -31,7 +31,25 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $documents = Document::where('public',1)->get();
+        $departments = Department::whereNull('status, Active')
+            ->orderBy('code')
+            ->get();
+
+        $documentQuery = Document::with('attachments', 'department')->where('public', 1);
+
+        if ($request->filled('doc_office_search')) {
+            $search = $request->doc_office_search;
+            $documentQuery->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                ->orWhere('control_code', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($request->filled('doc_office_dept')) {
+            $documentQuery->where('department_id', $request->doc_office_dept);
+        }
+
+        $documents = $documentQuery->get();
         
         if (auth()->user()->role != "Administrator")
         {
@@ -135,13 +153,14 @@ class HomeController extends Controller
         // $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
 
         // $categories = DocumentType::get();
+
         return view('home',
         array(
             // 'permits' =>  $permits,
-            // 'departments' =>  $departments,
             'change_requests' =>  $change_requests,
             'documents' =>  $documents,
             'pending_cards' => $pending_cards,
+            'departments' => $departments,
             // 'categories' =>  $categories,
             // 'copy_requests' =>  $copy_requests,
             // 'months' =>  $months,
