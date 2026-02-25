@@ -48,4 +48,8 @@ class Document extends Model implements Auditable
     {
         return $this->hasMany(DocumentTag::class);
     }
+    public function visitor()
+    {
+        return $this->hasMany(DocumentVisitor::class);
+    }
 }

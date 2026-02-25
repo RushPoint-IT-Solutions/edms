@@ -41,6 +41,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('refresh-team','DocumentController@refreshTeam');
 
             Route::post('bulk-delete', 'DocumentController@bulkDelete');
+            Route::post("user-view", "DocumentController@userView");
         });
 
         Route::post('test-bulk', function() {
@@ -108,6 +109,15 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/update/{id}','DepartmentController@update')->name('settings');
             Route::post('/deactivate', 'DepartmentController@deactivate')->name('settings');
             Route::post('/activate', 'DepartmentController@activate')->name('settings');
+        });
+
+        // Office
+        Route::get("offices", "OfficeController@index");
+        Route::prefix("offices")->group(function() {
+            Route::post("/store", "OfficeController@store");
+            Route::post("/update/{id}", "OfficeController@update");
+            Route::post('/deactivate', 'OfficeController@deactivate');
+            Route::post('/activate', 'OfficeController@activate');
         });
 
         // Route::post('/change-department/{id}', 'PermitController@update')->name('permits');

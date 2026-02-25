@@ -480,6 +480,11 @@
                                             <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
                                         </li>
                                     @endcan
+                                    @can("office")
+                                    <li class="nav-item">
+                                        <a href="{{ url('offices') }}" class="nav-link" data-key="t-dco">Offices</a>
+                                    </li>
+                                    @endcan
                                 </ul>
                             </div>
                         </li>

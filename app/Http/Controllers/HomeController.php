@@ -9,6 +9,7 @@ use App\ChangeRequest;
 use App\CopyRequest;
 use App\DocumentType;
 use App\Company;
+use App\Office;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -171,47 +172,45 @@ class HomeController extends Controller
     public function search(Request $request)
     {
         $documents = [];
-        $comp=$request->company;
-        $dept=$request->department;
-        $companies = Company::get();
-        $departments = Department::get();
+        $off=$request->off;
+        $dept = $request->department;
+        $search = $request->search;
+
+        $offices = Office::where("status","Active")->get();
+        $departments = Department::whereNull("status")->get();
         
         $request_documents = Document::where('public','!=',null)->where('status',null)->orderBy('control_code','asc')->get();
         $documents_filter = Document::query();
         if($request->department)
         {
-            $documents = $documents_filter->where('department_id',$request->department)->orderBy('old_control_code', 'DESC')->get();
+            $documents = $documents_filter->where('department_id',$request->department)->get();
         }
-        if($request->company)
+        if($request->office)
         {
-            $documents = $documents_filter->where('company_id',$request->company)->orderBy('old_control_code', 'DESC')->get();
+            // $documents = $documents_filter->where('off',$request->company)->orderBy('old_control_code', 'DESC')->get();
         }
         if($request->search)
         {
-            if($request->department)
-            {
-                $documents = $documents_filter->where('control_code','like','%' . $request->search. '%')->orWhere('old_control_code','like','%' . $request->search. '%')->orWhere('title','like','%' . $request->search. '%')->where('status',null)->where('department_id', $request->department)->get();
+            if($request->department) {
+                $documents = $documents_filter->where("control_code", "LIKE","%".$request->search."%")
+                                            ->orWhere("title", "LIKE","%".$request->search."%")
+                                            ->where("department_id", $request->department)
+                                            ->get();
             }
-            else 
-            {
-                $documents = $documents_filter->where('control_code','like','%' . $request->search. '%')->orWhere('old_control_code','like','%' . $request->search. '%')->orWhere('title','like','%' . $request->search. '%')->where('status',null)->get();
+            else {
+                $documents = $documents_filter->where("control_code", "LIKE","%".$request->search."%")->orWhere("title", "LIKE","%".$request->search."%")->get();
             }
         }
-       
-        $departments = Department::with('documents','obsoletes')->whereHas('documents')->orWhereHas('obsoletes')->get();
 
-        $getWHIDepartments = Department::where('code', 'LIKE', "%WHI%")->where('status', null)->where('id', $request->department)->first();
-        
         return view('search',
         array(
             'documents' => $documents,
             'search' => $request->search,
             'request_documents' => $request_documents,
-            'companies' => $companies,
+            'offices' => $offices,
             'departments' => $departments,
-            'comp' => $comp,
-            'dept' => $dept,
-            'whiDept' => $getWHIDepartments
+            // 'comp' => $comp,
+            'dept' => $dept
         ));
     }
 }

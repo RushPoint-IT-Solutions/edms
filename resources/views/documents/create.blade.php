@@ -190,7 +190,7 @@
     
                     <div class="mb-3">
                         <label class="form-label">Document Description <span class="text-danger">*</span></label>
-                        <textarea name="description" class="form-control" cols="30" rows="5" placeholder="Enter document description" required>{{ old('description', $change_request->description ?? '') }}</textarea>
+                        <textarea name="description" class="form-control" cols="30" rows="5" maxlength="1000" placeholder="Enter document description" required>{{ old('description', $change_request->description ?? '') }}</textarea>
                     </div>
     
                     <div class="row">

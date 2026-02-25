@@ -113,6 +113,27 @@
 
             <div class="card section-card">
                 <div class="card-header text-uppercase">
+                    <i class="ri-user-follow-line me-2"></i>History
+                </div>
+                <div class="card-body">
+                    @foreach($dateLogs as $logs)
+                    <div class="comment-item">
+                        <div class="d-flex align-items-start gap-2">
+                            <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
+                                style="width: 32px; height: 32px;">
+                            <div class="flex-grow-1">
+                                <div class="comment-author">{{"Edited by : ". $logs->user->name }}</div>
+                                <div class="comment-time">{{ date('d M Y - h:i A', strtotime($logs->created_at))}}</div>
+                                <div class="mt-2 text-muted">{{ "Ante Date : " .$logs->date_approved }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="card section-card">
+                <div class="card-header text-uppercase">
                     <i class="ri-user-follow-line me-2"></i>Approvers
                 </div>
                 <div class="card-body">
@@ -169,23 +190,6 @@
                         @endforeach
                         @else
                         <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
-                        @endif
-
-                        @php
-                        $dateLogs = $dateLogs->sortByDesc('id')->first();
-                        @endphp
-                        @if($dateLogs)
-                        <div class="comment-item">
-                            <div class="d-flex align-items-start gap-2">
-                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
-                                    style="width: 32px; height: 32px;">
-                                <div class="flex-grow-1">
-                                    <div class="comment-author">{{"Edited by : ". $dateLogs->user->name }}</div>
-                                    <div class="comment-time">{{ date('d M Y - h:i A', strtotime($dateLogs->created_at))}}</div>
-                                    <div class="mt-2 text-muted">{{ "Ante Date : " .$dateLogs->date_approved }}</div>
-                                </div>
-                            </div>
-                        </div>
                         @endif
                     </div>
 

@@ -395,12 +395,12 @@
             <form action="" method="get">
                 <div class="filter-row">
                     <div class="filter-col">
-                        <label>Company</label>
+                        <label>Office</label>
                         <select name='company' class="form-control cat">
-                            <option value="">All Companies</option>
-                            @foreach($companies as $company)
-                                <option value='{{$company->id}}' @if($comp == $company->id) selected @endif>
-                                    {{$company->name}} - {{$company->code}}
+                            <option value="">All Offices</option>
+                            @foreach($offices as $office)
+                                <option value='{{$office->id}}'>
+                                    {{$office->name}} - {{$office->code}}
                                 </option>
                             @endforeach
                         </select>
@@ -410,9 +410,9 @@
                         <label>Department</label>
                         <select name='department' class="form-control cat">
                             <option value="">All Departments</option>
-                            @foreach($departments as $dep)
-                                <option value='{{$dep->id}}' @if($dept == $dep->id) selected @endif>
-                                    {{$dep->code}} - {{$dep->name}}
+                            @foreach($departments as $department)
+                                <option value='{{$department->id}}' @if($department->id == $dept) selected @endif>
+                                    {{$department->code}} - {{$department->name}}
                                 </option>
                             @endforeach
                         </select>
@@ -420,8 +420,7 @@
 
                     <div class="filter-col">
                         <label>Search Text</label>
-                        <input type="text" placeholder="Document Title / Control Code / Old Code" 
-                               name="search" value="{{$search}}" class="form-control">
+                        <input type="text" placeholder="Document Title / Control Code / Old Code" name="search" value="{{ $search }}" class="form-control">
                     </div>
 
                     <div class="filter-col" style="flex: 0 0 auto;">
@@ -439,271 +438,25 @@
                 <h5>Search Results</h5>
             </div>
 
+            @php
+                $hasResults = false;
+            @endphp
             @if($documents)
-                @php
-                    $hasResults = false;
-                @endphp
+                @foreach ($documents as $document)
+                    @php
+                        $hasResults = true;
+                    @endphp
 
-                {{-- PROCEDURE --}}
-                @if($comp == 2 || $whiDept != null)
-                    @foreach($documents->where('category', 'PROCEDURE') as $document)
-                        @php $hasResults = true; @endphp
-                        <div class="result-item">
-                            <div class="result-title-row">
-                                <a href="{{url('view-document/'.$document->id)}}" target="_blank" class="result-link">
-                                    <span class="old-code">({{$document->old_control_code}})</span> 
-                                    {{$document->control_code}} Rev. {{$document->version}}
-                                </a>
-                                @if($document->public == null)
-                                    <span class="access-badge private">Private</span>
-                                @else
-                                    <span class="access-badge public">Public</span>
-                                @endif
-                            </div>
-                            <div class="result-details">
-                                <div class="detail-row">
-                                    <span class="detail-label">Title:</span>
-                                    <span>{{$document->title}}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Process Owner:</span>
-                                    <span>
-                                        @if($document->process_owner != null)
-                                            <span class="owner-badge">{{$document->processOwner->name}}</span>
-                                        @else 
-                                            <span class="owner-badge">{{$document->department->dep_head->name}}</span>
-                                        @endif
-                                    </span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Date Effective:</span>
-                                    <span>{{date('M d, Y',strtotime($document->updated_at))}}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Company:</span>
-                                    <span>{{$document->department->name}}</span>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                @endif
-
-                {{-- POLICY --}}
-                @foreach($documents->where('category', 'POLICY') as $document)
-                    @php $hasResults = true; @endphp
-                    <div class="result-item">
-                        <div class="result-title-row">
-                            <a href="{{url('view-document/'.$document->id)}}" target="_blank" class="result-link">
-                                <span class="old-code">({{$document->old_control_code}})</span> 
-                                {{$document->control_code}} Rev. {{$document->version}}
-                            </a>
-                            @if($document->public == null)
-                                <span class="access-badge private">Private</span>
-                            @else
-                                <span class="access-badge public">Public</span>
-                            @endif
-                        </div>
-                        <div class="result-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Title:</span>
-                                <span>{{$document->title}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Process Owner:</span>
-                                <span>
-                                    @if($document->process_owner != null)
-                                        <span class="owner-badge">{{$document->processOwner->name}}</span>
-                                    @else 
-                                        <span class="owner-badge">{{$document->department->dep_head->name}}</span>
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Date Effective:</span>
-                                <span>{{date('M d, Y',strtotime($document->updated_at))}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Company:</span>
-                                <span>{{$document->department->name}}</span>
-                            </div>
-                        </div>
+                    <div class="py-3">
+                        <h5 class="mb-1"><a href="{{ url("/documents/view-document/".$document->id) }}">{{$document->control_code}} {{"Rev. ".$document->version}}</a></h5>
+                        <p class="text-muted mb-1">Title: {{$document->title}}</p>
+                        <p class="text-muted mb-1">Category: {{$document->category}}</p>
+                        <p class="text-muted mb-1">Date Approved: {{date("M d Y", strtotime($document->created_at))}}</p>
                     </div>
-                @endforeach
 
-                {{-- FORM --}}
-                @foreach($documents->where('category', 'FORM') as $document)
-                    @php $hasResults = true; @endphp
-                    <div class="result-item">
-                        <div class="result-title-row">
-                            <a href="{{url('view-document/'.$document->id)}}" target="_blank" class="result-link">
-                                <span class="old-code">({{$document->old_control_code}})</span> 
-                                {{$document->control_code}} Rev. {{$document->version}}
-                            </a>
-                            @if($document->public == null)
-                                <span class="access-badge private">Private</span>
-                            @else
-                                <span class="access-badge public">Public</span>
-                            @endif
-                        </div>
-                        <div class="result-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Title:</span>
-                                <span>{{$document->title}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Process Owner:</span>
-                                <span>
-                                    @if($document->process_owner != null)
-                                        <span class="owner-badge">{{$document->processOwner->name}}</span>
-                                    @else 
-                                        <span class="owner-badge">{{$document->department->dep_head->name}}</span>
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Date Effective:</span>
-                                <span>{{date('M d, Y',strtotime($document->updated_at))}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Company:</span>
-                                <span>{{$document->department->name}}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="border border-dashed"></div>
                 @endforeach
-
-                {{-- TEMPLATE --}}
-                @foreach($documents->where('category', 'TEMPLATE') as $document)
-                    @php $hasResults = true; @endphp
-                    <div class="result-item">
-                        <div class="result-title-row">
-                            <a href="{{url('view-document/'.$document->id)}}" target="_blank" class="result-link">
-                                <span class="old-code">({{$document->old_control_code}})</span> 
-                                {{$document->control_code}} Rev. {{$document->version}}
-                            </a>
-                            @if($document->public == null)
-                                <span class="access-badge private">Private</span>
-                            @else
-                                <span class="access-badge public">Public</span>
-                            @endif
-                        </div>
-                        <div class="result-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Title:</span>
-                                <span>{{$document->title}}</span>
-                            </div>
-                                {{-- Process Owner : @if(count($document->department->drc) != 0) @foreach($document->department->drc as $drc) <small class="label label-info"> {{$drc->name}} </small> @endforeach @else <small class="label label-danger">No Process Owner</small>  @endif --}}
-                            <div class="detail-row">
-                                <span class="detail-label">Process Owner:</span>
-                                <span>
-                                    @if($document->process_owner != null)
-                                        <span class="owner-badge">{{$document->processOwner->name}}</span>
-                                    @else 
-                                        <span class="owner-badge">{{$document->department->dep_head->name}}</span>
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Date Effective:</span>
-                                <span>{{date('M d, Y',strtotime($document->updated_at))}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Company:</span>
-                                <span>{{$document->department->name}}</span>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-
-                {{-- ANNEX --}}
-                @foreach($documents->where('category', 'ANNEX') as $document)
-                    @php $hasResults = true; @endphp
-                    <div class="result-item">
-                        <div class="result-title-row">
-                            <a href="{{url('view-document/'.$document->id)}}" target="_blank" class="result-link">
-                                <span class="old-code">({{$document->old_control_code}})</span> 
-                                {{$document->control_code}} Rev. {{$document->version}}
-                            </a>
-                            @if($document->public == null)
-                                <span class="access-badge private">Private</span>
-                            @else
-                                <span class="access-badge public">Public</span>
-                            @endif
-                        </div>
-                        <div class="result-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Title:</span>
-                                <span>{{$document->title}}</span>
-                            </div>
-                                {{-- Process Owner : @if(count($document->department->drc) != 0) @foreach($document->department->drc as $drc) <small class="label label-info"> {{$drc->name}} </small> @endforeach @else <small class="label label-danger">No Process Owner</small>  @endif --}}
-                            <div class="detail-row">
-                                <span class="detail-label">Process Owner:</span>
-                                <span>
-                                    @if($document->process_owner != null)
-                                        <span class="owner-badge">{{$document->processOwner->name}}</span>
-                                    @else 
-                                        <span class="owner-badge">{{$document->department->dep_head->name}}</span>
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Date Effective:</span>
-                                <span>{{date('M d, Y',strtotime($document->updated_at))}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Company:</span>
-                                <span>{{$document->department->name}}</span>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-
-                {{-- ALL --}}
-                @php
-                    $category = array('POLICY', 'FORM', 'TEMPLATE', 'ANNEX');
-                @endphp
-                @foreach($documents->whereNotIn('category', $category) as $document)
-                    @php $hasResults = true; @endphp
-                    <div class="result-item">
-                        <div class="result-title-row">
-                            <a href="{{url('view-document/'.$document->id)}}" target="_blank" class="result-link">
-                                <span class="old-code">({{$document->old_control_code}})</span> 
-                                {{$document->control_code}} Rev. {{$document->version}}
-                            </a>
-                            @if($document->public == null)
-                                <span class="access-badge private">Private</span>
-                            @else
-                                <span class="access-badge public">Public</span>
-                            @endif
-                        </div>
-                        <div class="result-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Title:</span>
-                                <span>{{$document->title}}</span>
-                            </div>
-                                {{-- Process Owner : @if(count($document->department->drc) != 0) @foreach($document->department->drc as $drc) <small class="label label-info"> {{$drc->name}} </small> @endforeach @else <small class="label label-danger">No Process Owner</small>  @endif --}}
-                            <div class="detail-row">
-                                <span class="detail-label">Process Owner:</span>
-                                <span>
-                                    @if($document->process_owner != null)
-                                        <span class="owner-badge">{{$document->processOwner->name}}</span>
-                                    @else 
-                                        <span class="owner-badge">{{$document->department->dep_head->name}}</span>
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Date Effective:</span>
-                                <span>{{date('M d, Y',strtotime($document->updated_at))}}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Company:</span>
-                                <span>{{$document->department->name}}</span>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-
+                
                 @if(!$hasResults)
                     <div class="empty-state">
                         <i class="ri-search-line"></i>
@@ -736,7 +489,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- @foreach($request_documents as $req_doc)
+                        @foreach($request_documents as $req_doc)
                             <tr>
                                 @php
                                     $attchment = ($req_doc->attachments)->where('type','pdf_copy')->first();
@@ -750,10 +503,10 @@
                                     @endif
                                 </td>
                                 <td>
-                                    {{$req_doc->department->code}}
+                                    {{-- {{$req_doc->department->code}} --}}
                                 </td>
                             </tr>
-                        @endforeach --}}
+                        @endforeach
                     </tbody>
                 </table>
             </div>

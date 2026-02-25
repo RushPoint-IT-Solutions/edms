@@ -14,6 +14,7 @@ use App\DateApprovedLog;
 use App\DocumentFolder;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
+use App\DocumentVisitor;
 use App\Mail\ApprovedDateEmail;
 use App\RequestApprover;
 use App\User;
@@ -1024,5 +1025,18 @@ class DocumentController extends Controller
         }
         
         return $options;
+    }
+
+    public function userView(Request $request)
+    {
+        $visitors = DocumentVisitor::where("user_id", auth()->id())->where("document_id", $request->document_id)->first();
+        if(empty($visitors)){
+            $visitor = new DocumentVisitor;
+            $visitor->user_id = auth()->id();
+            $visitor->document_id = $request->document_id;
+            $visitor->save();
+        }
+        
+        return back();
     }
 }
