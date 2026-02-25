@@ -31,7 +31,7 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $departments = Department::whereNull('status, Active')
+        $departments = Department::where('status', 'active')
             ->orderBy('code')
             ->get();
 
