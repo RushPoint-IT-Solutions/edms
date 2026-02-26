@@ -35,6 +35,10 @@ class HomeController extends Controller
             ->orderBy('code')
             ->get();
 
+        $offices = Office::where('status', 'Active')
+            ->orderBy('name')
+            ->get();
+
         $documentQuery = Document::with('attachments', 'department')->where('public', 1);
 
         if ($request->filled('doc_office_search')) {
@@ -47,6 +51,16 @@ class HomeController extends Controller
 
         if ($request->filled('doc_office_dept')) {
             $documentQuery->where('department_id', $request->doc_office_dept);
+        }
+
+        if ($request->filled('doc_office_office')) {
+            $documentQuery->whereHas('department', function($q) use ($request) {
+                $q->where('office_id', $request->doc_office_office);
+            });
+        }
+
+        if ($request->filled('doc_office_date')) {
+            $documentQuery->whereDate('created_at', $request->doc_office_date);
         }
 
         $documents = $documentQuery->orderBy('created_at', 'desc')->get();
@@ -71,6 +85,20 @@ class HomeController extends Controller
                 $q->where('title', 'like', '%' . $search . '%')
                 ->orWhere('file', 'like', '%' . $search . '%');
             });
+        }
+
+        if ($request->filled('pending_dept')) {
+            $pending_query->where('department_id', $request->pending_dept);
+        }
+
+        if ($request->filled('pending_office')) {
+            $pending_query->whereHas('department', function($q) use ($request) {
+                $q->where('office_id', $request->pending_office);
+            });
+        }
+
+        if ($request->filled('pending_date')) {
+            $pending_query->whereDate('created_at', $request->pending_date);
         }
 
         if ($request->filled('doc_search')) {
@@ -98,7 +126,7 @@ class HomeController extends Controller
             $table_query->orderBy('created_at', 'desc');
         }
 
-        $pending_cards = $pending_query->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
+        $pending_cards = $pending_query->with(['department.office', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
         $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
@@ -161,6 +189,7 @@ class HomeController extends Controller
             'documents' =>  $documents,
             'pending_cards' => $pending_cards,
             'departments' => $departments,
+            'offices' => $offices,
             // 'categories' =>  $categories,
             // 'copy_requests' =>  $copy_requests,
             // 'months' =>  $months,
