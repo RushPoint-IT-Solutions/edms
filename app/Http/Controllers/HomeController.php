@@ -41,30 +41,34 @@ class HomeController extends Controller
 
         $documentQuery = Document::with('attachments', 'department')->where('public', 1);
 
-        if ($request->filled('doc_office_search')) {
-            $search = $request->doc_office_search;
-            $documentQuery->where(function($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%')
-                ->orWhere('control_code', 'like', '%' . $search . '%');
+        $docRaw = $request->get('doc_office_search', '');
+        $docParsedDate = null;
+
+        if ($docRaw) {
+            if (preg_match('/\d{4}-\d{2}-\d{2}/', $docRaw, $m)) {
+                $docParsedDate = $m[0];
+            } elseif (preg_match('/\d{2}\/\d{2}\/\d{4}/', $docRaw, $m)) {
+                $docParsedDate = date('Y-m-d', strtotime($m[0]));
+            } elseif (preg_match('/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}/i', $docRaw, $m)) {
+                $docParsedDate = date('Y-m-d', strtotime('01 ' . $m[0]));
+            }
+
+            $documentQuery->where(function ($q) use ($docRaw, $docParsedDate) {
+                $q->where('title', 'like', '%' . $docRaw . '%')
+                  ->orWhere('control_code', 'like', '%' . $docRaw . '%')
+                  ->orWhereHas('department', function ($dq) use ($docRaw) {
+                        $dq->where('code', 'like', '%' . $docRaw . '%')
+                        ->orWhere('name', 'like', '%' . $docRaw . '%');
+                    });
+
+                if ($docParsedDate) {
+                    $q->orWhereDate('created_at', $docParsedDate);
+                }
             });
-        }
-
-        if ($request->filled('doc_office_dept')) {
-            $documentQuery->where('department_id', $request->doc_office_dept);
-        }
-
-        if ($request->filled('doc_office_office')) {
-            $documentQuery->whereHas('department', function($q) use ($request) {
-                $q->where('office_id', $request->doc_office_office);
-            });
-        }
-
-        if ($request->filled('doc_office_date')) {
-            $documentQuery->whereDate('created_at', $request->doc_office_date);
         }
 
         $documents = $documentQuery->orderBy('created_at', 'desc')->get();
-        
+
         if (auth()->user()->role != "Administrator")
         {
             $pending_query = ChangeRequest::where('user_id', auth()->user()->id)
@@ -78,27 +82,31 @@ class HomeController extends Controller
                                         ->where('request_status', 'Pending');
             $table_query = ChangeRequest::query();
         }
-        
-        if ($request->has('pending_search') && $request->pending_search) {
-            $search = $request->pending_search;
-            $pending_query->where(function($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%')
-                ->orWhere('file', 'like', '%' . $search . '%');
+
+        $pendingRaw = $request->get('pending_search', '');
+        $pendingParsedDate = null;
+
+        if ($pendingRaw) {
+            if (preg_match('/\d{4}-\d{2}-\d{2}/', $pendingRaw, $m)) {
+                $pendingParsedDate = $m[0];
+            } elseif (preg_match('/\d{2}\/\d{2}\/\d{4}/', $pendingRaw, $m)) {
+                $pendingParsedDate = date('Y-m-d', strtotime($m[0]));
+            } elseif (preg_match('/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}/i', $pendingRaw, $m)) {
+                $pendingParsedDate = date('Y-m-d', strtotime('01 ' . $m[0]));
+            }
+
+            $pending_query->where(function ($q) use ($pendingRaw, $pendingParsedDate) {
+                $q->where('title', 'like', '%' . $pendingRaw . '%')
+                  ->orWhere('file', 'like', '%' . $pendingRaw . '%')
+                  ->orWhereHas('department', function ($dq) use ($pendingRaw) {
+                        $dq->where('code', 'like', '%' . $pendingRaw . '%')
+                        ->orWhere('name', 'like', '%' . $pendingRaw . '%');
+                    });
+
+                if ($pendingParsedDate) {
+                    $q->orWhereDate('created_at', $pendingParsedDate);
+                }
             });
-        }
-
-        if ($request->filled('pending_dept')) {
-            $pending_query->where('department_id', $request->pending_dept);
-        }
-
-        if ($request->filled('pending_office')) {
-            $pending_query->whereHas('department', function($q) use ($request) {
-                $q->where('office_id', $request->pending_office);
-            });
-        }
-
-        if ($request->filled('pending_date')) {
-            $pending_query->whereDate('created_at', $request->pending_date);
         }
 
         if ($request->filled('doc_search')) {
