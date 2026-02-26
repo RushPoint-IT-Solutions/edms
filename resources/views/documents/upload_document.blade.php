@@ -98,7 +98,7 @@
                         
                         <div class='col-md-4'>
                             <label class="form-label">SOFT Copy * <small class="text-muted">(.word,.csv,.ppt,etc)</small></label>
-                            <input type="file" class="form-control" accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint" name="attachment[soft_copy]" required/>
+                            <input type="file" class="form-control" accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint" name="attachment[soft_copy]"/>
                         </div>
                         <div class='col-md-4'>
                             <label class="form-label">PDF/Scanned Copy * <small class="text-muted">(.pdf)</small></label>
