@@ -22,6 +22,10 @@ class ChangeRequest extends Model  implements Auditable
     {
         return $this->belongsTo(Department::class);
     }
+    public function office()
+    {
+        return $this->belongsTo(Office::class, 'office_id');
+    }
     // public function company()
     // {
     //     return $this->belongsTo(Company::class);
