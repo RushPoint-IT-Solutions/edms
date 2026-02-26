@@ -11,6 +11,10 @@ class Department extends Model  implements Auditable
     use \OwenIt\Auditing\Auditable;
     //
 
+    public function office()
+    {
+        return $this->belongsTo(Office::class, 'office_id');
+    }
     public function dep_head()
     {
         return $this->hasOne(User::class, 'id', 'user_id');
