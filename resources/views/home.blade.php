@@ -1002,7 +1002,7 @@
 <div class="card shadow-sm mb-5" style="overflow: visible;">
     <div class="card-body" style="overflow: visible;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-semibold text-dark mb-0">Documents</h5>
+            <h5 class="fw-semibold text-dark mb-0">My Documents</h5>
         </div>
 
         <form action="{{ route('home') }}" method="GET">
