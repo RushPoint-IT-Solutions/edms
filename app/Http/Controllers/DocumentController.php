@@ -973,13 +973,6 @@ class DocumentController extends Controller
         // $logs->change_request_id = $approver->change_request_id;
         // $logs->save();
 
-        // $documents = Document::findOrFail($request->document_id);
-        // $request = $documents->change_requests->sortByDesc('id')->first();
-        // $approver = $request->approvers->first();
-        
-        // $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
-        // Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
-
         $history = new History;
         $history->change_request_id = $approver->change_request_id;
         if ($approver->date_approved) {
@@ -992,6 +985,13 @@ class DocumentController extends Controller
 
         $approver->date_approved = $request->date_approved;
         $approver->save();
+
+        $documents = Document::findOrFail($request->document_id);
+        $request = $documents->change_requests->sortByDesc('id')->first();
+        $approver = $request->approvers->first();
+        
+        $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
+        Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
