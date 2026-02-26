@@ -148,20 +148,20 @@
                         <span>{{ $approver->user->name }} -
                             @if($approver->status == "Pending")
                             <span class="badge bg-warning status-badge">
-                                @elseif($approver->status == "Approved")
-                                <span class="badge bg-success status-badge">
-                                    @elseif($approver->status == "Returned")
-                                    <span class="badge bg-danger status-badge">
-                                        @elseif($approver->status == "Waiting")
-                                        <span class="badge bg-info status-badge">
-                                            @endif
-                                            {{ $approver->status }}
-                                        </span>
+                            @elseif($approver->status == "Approved")
+                            <span class="badge bg-success status-badge">
+                            @elseif($approver->status == "Returned")
+                            <span class="badge bg-danger status-badge">
+                            @elseif($approver->status == "Waiting")
+                            <span class="badge bg-info status-badge">
+                                @endif
+                                {{ $approver->status }}
+                            </span>
                         </span>
 
                         @can('edit date approved')
                             @if($approver->status == "Approved")
-                                <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
+                                <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate{{ $approver->id }}" data-bs-toggle="modal">
                                     <i class="fa fa-calendar fs-3"></i>
                                 </a>
                                 @include('documents.edit_approved_date')

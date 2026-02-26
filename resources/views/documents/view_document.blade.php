@@ -464,6 +464,10 @@
                     {{-- @include('documents.edit_approved_date') --}}
                 </div>
                 @endif
+                <div class="detail-item">
+                    <span class="detail-label">Type of request</span>
+                    <span class="detail-value">{{$document->type_of_request}}</span>
+                </div>
             </div>
         </div>
 

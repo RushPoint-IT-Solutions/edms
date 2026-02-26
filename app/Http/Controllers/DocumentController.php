@@ -377,6 +377,7 @@ class DocumentController extends Controller
         $document->version = $request->version;
         $document->public = $request->public;
         $document->folder_id = $request->folder;
+        $document->type_of_request = $request->type_of_request;
         $document->save();
 
         foreach($request->file('attachment') as $key => $file)
