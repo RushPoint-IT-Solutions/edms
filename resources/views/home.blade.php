@@ -1007,7 +1007,7 @@
                     </div>
                 </form>
 
-                <div style="overflow-y: auto; max-height: 262px;">
+                <div style="overflow-y: auto; height: 244px;">
                     <ul class="list-group">
                         @forelse ($documents as $document)
                         <li class="list-group-item px-2 py-2">
