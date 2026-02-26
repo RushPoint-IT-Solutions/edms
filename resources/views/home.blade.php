@@ -958,7 +958,7 @@
         <div class="col-12 col-lg-3">
             <div class="card shadow-sm w-100">
                 <div class="card-body">
-                <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
+                <h5 class="fw-semibold text-dark mb-3">Public Documents</h5>
 
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
@@ -1009,7 +1009,7 @@
 
                 <div style="overflow-y: auto; height: 244px;">
                     <ul class="list-group">
-                        @forelse ($documents->where("document_type", "FORM") as $document)
+                        @forelse ($documents as $document)
                         <li class="list-group-item px-2 py-2">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="flex-shrink-0">

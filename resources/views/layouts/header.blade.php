@@ -345,14 +345,14 @@
                         </li>
 
                         <!-- Search -->
-                        @can('search')
+                        {{-- @can('search')
                         <li class="nav-item {{ Route::current()->getName() == 'search' ? 'active' : '' }}" onclick="show()">
                             <a class="nav-link menu-link" href="{{url('/search')}}">
                                 <i class="ri-search-line"></i>
                                 <span data-key="t-search">Search</span>
                             </a>
                         </li>
-                        @endcan
+                        @endcan --}}
 
                         <!-- Copy Requests -->
                         {{-- @can('copy request')
@@ -470,11 +470,11 @@
                                             <a href="{{ url('users') }}" class="nav-link {{ Request::is('users') || Request::is('new-user') || Request::is('*user*') && !Request::is('remove-approvers') ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
                                     @endcan
-                                    @can('rmo')
+                                    {{-- @can('rmo')
                                         <li class="nav-item">
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
-                                    @endcan
+                                    @endcan --}}
                                     @can('roles and permission')
                                         <li class="nav-item">
                                             <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
