@@ -1009,7 +1009,7 @@
 
                 <div style="overflow-y: auto; height: 244px;">
                     <ul class="list-group">
-                        @forelse ($documents as $document)
+                        @forelse ($documents->where("document_type", "FORM") as $document)
                         <li class="list-group-item px-2 py-2">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="flex-shrink-0">
