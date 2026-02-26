@@ -10,11 +10,12 @@ use App\Department;
 use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
-use App\DateApprovedLog;
+// use App\DateApprovedLog;
 use App\DocumentFolder;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
 use App\DocumentVisitor;
+use App\History;
 use App\Mail\ApprovedDateEmail;
 use App\RequestApprover;
 use App\User;
@@ -376,6 +377,7 @@ class DocumentController extends Controller
         $document->version = $request->version;
         $document->public = $request->public;
         $document->folder_id = $request->folder;
+        $document->type_of_request = $request->type_of_request;
         $document->save();
 
         foreach($request->file('attachment') as $key => $file)
@@ -965,21 +967,32 @@ class DocumentController extends Controller
     {
         // dd($request->all());
         $approver = RequestApprover::findOrFail($id);
-        $approver->date_approved = $request->date_approved." ".date('H:i:s');
+
+        // $logs = new DateApprovedLog;
+        // $logs->user_id = auth()->id();
+        // $logs->date_approved = $request->date_approved." ".date('H:i:s');
+        // $logs->change_request_id = $approver->change_request_id;
+        // $logs->save();
+
+        $history = new History;
+        $history->change_request_id = $approver->change_request_id;
+        if ($approver->date_approved) {
+            $history->comment = "From: ".$approver->date_approved. "<br>" . "To: " . $request->date_approved;
+        } else {
+            $history->comment = "From: ".date("Y-m-d", strtotime($approver->updated_at)). "<br>" . "To: " . $request->date_approved;
+        }
+        $history->user_id = auth()->user()->id;
+        $history->save();
+
+        $approver->date_approved = $request->date_approved;
         $approver->save();
 
-        $logs = new DateApprovedLog;
-        $logs->user_id = auth()->id();
-        $logs->date_approved = $request->date_approved." ".date('H:i:s');
-        $logs->change_request_id = $approver->change_request_id;
-        $logs->save();
-
-        // $documents = Document::findOrFail($request->document_id);
-        // $request = $documents->change_requests->sortByDesc('id')->first();
-        // $approver = $request->approvers->first();
+        $documents = Document::findOrFail($request->document_id);
+        $request = $documents->change_requests->sortByDesc('id')->first();
+        $approver = $request->approvers->first();
         
-        // $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
-        // Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
+        $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
+        Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
@@ -1038,5 +1051,17 @@ class DocumentController extends Controller
         }
         
         return back();
+    }
+
+    public function visitors(Request $request,$id)
+    {
+        // dd($request->all());
+        $document = Document::with("visitor.user")->findOrFail($id);
+
+        return view("documents.visitors",
+            array(
+                "document" => $document
+            )
+        );
     }
 }

@@ -421,7 +421,17 @@ $(document).ready(function(){
             }
         },
         columns: [
-            { data: 'name', name: 'name' },
+            { 
+                data: 'name', 
+                name: 'name',  
+                render: function(data, type, row) {
+                    if (row["google_id"] == null) {
+                        return row["name"]
+                    } else {
+                        return row["name"] + " <span class='badge bg-info'>SSO</span>"
+                    }
+                }
+            },
             { data: 'email', name: 'email' },
             // { data: 'company', name: 'company', orderable: false },
             { data: 'department', name: 'department', orderable: false },

@@ -130,10 +130,10 @@
                     <i class="ri-history-line me-2"></i>History
                 </div>
                 <div class="card-body">
-                    @if(count($dateLogs) > 0)
+                    @if(count($change_request->history) > 0)
                         <div data-simplebar style="max-height: 300px;">
-                            @foreach ($dateLogs as $log)
-                            <div class="d-flex align-items-start gap-2 mb-3 pb-3 border-bottom">
+                            @foreach ($change_request->history as $history)
+                            {{-- <div class="d-flex align-items-start gap-2 mb-3 pb-3 border-bottom">
                                 <div class="flex-shrink-0">
                                     <span class="badge bg-secondary rounded-circle p-2">
                                         <i class="ri-calendar-check-line"></i>
@@ -154,6 +154,17 @@
                                     @if($log->remarks)
                                     <div class="mt-1 text-muted small">{{ $log->remarks }}</div>
                                     @endif
+                                </div>
+                            </div> --}}
+                            <div class="comment-item">
+                                <div class="d-flex align-items-start gap-2">
+                                    <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
+                                        style="width: 32px; height: 32px;">
+                                    <div class="flex-grow-1">
+                                        <div class="comment-author">{{$history->user->name }}</div>
+                                        <div class="comment-time">{{ date('d M Y - h:i A', strtotime($history->created_at))}}</div>
+                                        <div class="mt-2 text-muted">{!! $history->comment !!}</div>
+                                    </div>
                                 </div>
                             </div>
                             @endforeach

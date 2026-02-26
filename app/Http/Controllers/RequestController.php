@@ -10,7 +10,7 @@ use App\ChangeRequest;
 use App\Comment;
 use App\DocumentAttachment;
 use App\CopyApprover;
-use App\DateApprovedLog;
+// use App\DateApprovedLog;
 use App\DepartmentDco;
 use App\DocumentSignaturePosition;
 use App\Notifications\NewPreAssessment;
@@ -18,6 +18,7 @@ use App\RequestApprover;
 use App\ObsoleteAttachment;
 use App\Obsolete;
 use App\DocumentType;
+use App\History;
 use App\Team;
 use App\Mail\ApprovedRequestEmail;
 use App\Mail\RequestDocumentApproval;
@@ -576,12 +577,12 @@ class RequestController extends Controller
     public function show($id)
     {
         $change_request = ChangeRequest::with('user','comments','approvers.user','supporting_documents')->findOrFail($id);
-        $dateLogs = DateApprovedLog::with('user')->where('change_request_id', $id)->orderBy('id', 'desc')->get();
+        // $dateLogs = DateApprovedLog::with('user')->where('change_request_id', $id)->orderBy('id', 'desc')->get();
 
         return view('change_request.view_approval', 
             array(
                 'change_request' => $change_request,
-                'dateLogs' => $dateLogs
+                // 'dateLogs' => $dateLogs
             )
         );
     }
@@ -712,11 +713,11 @@ class RequestController extends Controller
             }
             
             $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
-            $comments = new Comment;
-            $comments->change_request_id = $changeRequest->id;
-            $comments->comment = $comment;
-            $comments->user_id = auth()->user()->id;
-            $comments->save();
+            $histories = new History;
+            $histories->change_request_id = $changeRequest->id;
+            $histories->comment = $comment;
+            $histories->user_id = auth()->user()->id;
+            $histories->save();
 
             $user = User::where('id',$changeRequest->user_id)->first();
             Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
@@ -739,6 +740,12 @@ class RequestController extends Controller
             $comments->comment = $comment;
             $comments->user_id = auth()->user()->id;
             $comments->save();
+
+            $history = new History;
+            $history->change_request_id = $changeRequest->id;
+            $history->comment = $comment;
+            $history->user_id = auth()->user()->id;
+            $history->save();
 
             $user = User::where('id',$changeRequest->user_id)->first();
             Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
@@ -860,13 +867,11 @@ class RequestController extends Controller
 
     public function viewChangeRequest($id)
     {
-        $changeRequest = ChangeRequest::with('user','comments','approvers','supporting_documents')->findOrFail($id);
-        $dateLogs = DateApprovedLog::with('user')->where('change_request_id',$id)->orderBy('id','desc')->get();
+        $changeRequest = ChangeRequest::with('user','comments','approvers','supporting_documents',"history.user")->findOrFail($id);
 
         return view('change_request.view_change_request',
             array(
                 'change_request' => $changeRequest,
-                'dateLogs' => $dateLogs
             )
         );
     }

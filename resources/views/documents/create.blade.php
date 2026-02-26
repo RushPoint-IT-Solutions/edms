@@ -201,6 +201,8 @@
                                     <option value="">-- Select Category --</option>
                                     <option value="Personal" @if(old('category', $change_request->category ?? '') == "Personal") selected @endif>Personal</option>
                                     <option value="Departmental" @if(old('category', $change_request->category ?? '') == "Departmental") selected @endif>Departmental</option>
+                                    <option value="Private" @if(old('category', $change_request->category ?? '') == "Private") selected @endif>Private</option>
+                                    <option value="Public" @if(old('category', $change_request->category ?? '') == "Public") selected @endif>Public</option>
                                 </select>
                             </div>
                         </div>

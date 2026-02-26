@@ -345,14 +345,14 @@
                         </li>
 
                         <!-- Search -->
-                        @can('search')
+                        {{-- @can('search')
                         <li class="nav-item {{ Route::current()->getName() == 'search' ? 'active' : '' }}" onclick="show()">
                             <a class="nav-link menu-link" href="{{url('/search')}}">
                                 <i class="ri-search-line"></i>
                                 <span data-key="t-search">Search</span>
                             </a>
                         </li>
-                        @endcan
+                        @endcan --}}
 
                         <!-- Copy Requests -->
                         {{-- @can('copy request')
@@ -470,11 +470,11 @@
                                             <a href="{{ url('users') }}" class="nav-link {{ Request::is('users') || Request::is('new-user') || Request::is('*user*') && !Request::is('remove-approvers') ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
                                     @endcan
-                                    @can('rmo')
+                                    {{-- @can('rmo')
                                         <li class="nav-item">
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
-                                    @endcan
+                                    @endcan --}}
                                     @can('roles and permission')
                                         <li class="nav-item">
                                             <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
@@ -528,6 +528,40 @@
                             </a>
                         </li>
                         @endcan
+
+                        {{-- SSO Default Access --}}
+                        @if(auth()->user()->google_id != null)
+                        <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/change-requests')}}">
+                                <i class="ri-edit-line"></i>
+                                <span data-key="t-change-requests">Change Requests</span>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ Route::current()->getName() == 'for-approval' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/for-approval')}}">
+                                <i class="ri-checkbox-line"></i>
+                                <span data-key="t-for-approval">For Approval</span>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/documents')}}">
+                                <i class="ri-folder-2-line"></i>
+                                <span data-key="t-documents">My Documents</span>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/permits')}}">
+                                <i class="ri-file-shield-line"></i>
+                                <span data-key="t-permits">Permits & Licenses</span>
+                            </a>
+                        </li>
+                        <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
+                            <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
+                                <i class="mdi mdi-stamper"></i>
+                                <span data-key="t-memorandum">Approver Stamp</span>
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </div>
                 <!-- Sidebar -->

@@ -11,7 +11,7 @@
 |
 */
 
-use App\DateApprovedLog;
+// use App\DateApprovedLog;
 
 Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 Route::get('auth/google', 'GoogleController@redirectToGoogle');
@@ -29,6 +29,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('folder/{id}','DocumentController@folderView');
             Route::get('view-document/{id}','DocumentController@show');
             Route::get('/view-pdf/{id}','DocumentController@showPDF')->name('documents');
+            Route::get("/visitors/{id}", "DocumentController@visitors");
 
             Route::post('signaturePosition','DocumentController@signaturePosition');
             Route::post('store', 'DocumentController@store')->name('documents.store');

@@ -958,7 +958,7 @@
         <div class="col-12 col-lg-3">
             <div class="card shadow-sm w-100">
                 <div class="card-body">
-                <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
+                <h5 class="fw-semibold text-dark mb-3">Public Documents</h5>
 
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
@@ -1014,16 +1014,22 @@
                             <div class="d-flex align-items-center gap-2">
                                 <div class="flex-shrink-0">
                                     @foreach($document->attachments->where('type','pdf_copy') as $attachment)
-                                    <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                    <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
                                         <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
                                             <i class="ri-file-text-line"></i>
                                         </div>
                                     </a>
+
+                                    <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
+                                        @csrf
+
+                                        <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
+                                    </form>
                                     @endforeach
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
-                                    <h6 class="fs-14 mb-0 text-truncate">{{ $document->control_code }}</h6>
-                                    <small class="text-dark text-truncate d-block">{{ $document->title }}</small>
+                                    <h6 class="fs-14 mb-0 text-truncate">Doc No.: {{ $document->control_code }}</h6>
+                                    <small class="text-dark text-truncate d-block">Title: {{ $document->title }}</small>
                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                         @if($document->department)
                                             <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
@@ -1033,6 +1039,16 @@
                                         @endif
                                         <span class="meta-tag"><i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}</span>
                                     </div>
+                                    <small><a href="{{ url("/documents/visitors/".$document->id) }}" target="_blank">Viewed: {{count($document->visitor)}}</a></small>
+                                    {{-- <div class="avatar-group">
+                                        @foreach ($document->visitor as $visitor)
+                                            <a href="javascript: void(0);" class="avatar-group-item material-shadow" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-placement="top" title="{{ $visitor->user->name }}">
+                                                <div class="avatar-xxs">
+                                                    <img src="{{ asset("images/no_image.png") }}" alt="" class="rounded-circle img-fluid">
+                                                </div>
+                                            </a>
+                                        @endforeach
+                                    </div> --}}
                                 </div>
                             </div>
                         </li>
@@ -1135,13 +1151,13 @@
                         </td>
                         <td>
                             @if($change_request->status == 'Approved')
-                                <span class="badge bg-success" style="font-size: 0.75rem;">Approved</span>
+                                <span class="badge bg-success" style="font-size: 0.75rem;">{{$change_request->status}}</span>
                             @elseif($change_request->status == 'Pending')
-                                <span class="badge bg-warning" style="font-size: 0.75rem;">Pending</span>
+                                <span class="badge bg-warning" style="font-size: 0.75rem;">{{$change_request->status}}</span>
                             @elseif($change_request->status == 'Declined')
-                                <span class="badge bg-danger" style="font-size: 0.75rem;">Declined</span>
+                                <span class="badge bg-danger" style="font-size: 0.75rem;">{{$change_request->status}}</span>
                             @else
-                                <span class="badge bg-secondary" style="font-size: 0.75rem;">Draft</span>
+                                <span class="badge bg-secondary" style="font-size: 0.75rem;">{{$change_request->status}}</span>
                             @endif
                         </td>
                         <td>

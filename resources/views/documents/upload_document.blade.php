@@ -93,6 +93,20 @@
                                 <option value="Legal">Legal</option>
                             </select>
                         </div>
+                        <div class='col-md-4'>
+                            <label class="form-label">Type of request *</label>
+                            <select name="type_of_request" class="form-control cat" required>
+                                <option value=""></option>
+                                <option value="New">New</option>
+                                <option value="Revision">Revision</option>
+                                <option value="Discontinuance">Discontinuance</option>
+                                <option value="Obsolete">Obsolete</option>
+                                <option value="Policy">Policy</option>
+                                <option value="Procedure">Procedure</option>
+                                <option value="Form">Form</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
                         
                         <div class="col-12"><hr class="divider"></div>
                         

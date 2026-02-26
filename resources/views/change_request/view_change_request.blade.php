@@ -116,19 +116,25 @@
                     <i class="ri-user-follow-line me-2"></i>History
                 </div>
                 <div class="card-body">
-                    @foreach($dateLogs as $logs)
-                    <div class="comment-item">
-                        <div class="d-flex align-items-start gap-2">
-                            <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
-                                style="width: 32px; height: 32px;">
-                            <div class="flex-grow-1">
-                                <div class="comment-author">{{"Edited by : ". $logs->user->name }}</div>
-                                <div class="comment-time">{{ date('d M Y - h:i A', strtotime($logs->created_at))}}</div>
-                                <div class="mt-2 text-muted">{{ "Ante Date : " .$logs->date_approved }}</div>
+                    <div data-simplebar style="max-height: 300px;">
+                        @if(count($change_request->history) > 0)
+                            @foreach($change_request->history as $history)
+                            <div class="comment-item">
+                                <div class="d-flex align-items-start gap-2">
+                                    <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
+                                        style="width: 32px; height: 32px;">
+                                    <div class="flex-grow-1">
+                                        <div class="comment-author">{{$history->user->name }}</div>
+                                        <div class="comment-time">{{ date('d M Y - h:i A', strtotime($history->created_at))}}</div>
+                                        <div class="mt-2 text-muted">{!! $history->comment !!}</div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                            @endforeach
+                        @else 
+                            <p class="text-muted text-center py-4" style="font-style: italic;">No histories yet...</p>
+                        @endif
                     </div>
-                    @endforeach
                 </div>
             </div>
 
@@ -142,20 +148,20 @@
                         <span>{{ $approver->user->name }} -
                             @if($approver->status == "Pending")
                             <span class="badge bg-warning status-badge">
-                                @elseif($approver->status == "Approved")
-                                <span class="badge bg-success status-badge">
-                                    @elseif($approver->status == "Returned")
-                                    <span class="badge bg-danger status-badge">
-                                        @elseif($approver->status == "Waiting")
-                                        <span class="badge bg-info status-badge">
-                                            @endif
-                                            {{ $approver->status }}
-                                        </span>
+                            @elseif($approver->status == "Approved")
+                            <span class="badge bg-success status-badge">
+                            @elseif($approver->status == "Returned")
+                            <span class="badge bg-danger status-badge">
+                            @elseif($approver->status == "Waiting")
+                            <span class="badge bg-info status-badge">
+                                @endif
+                                {{ $approver->status }}
+                            </span>
                         </span>
 
                         @can('edit date approved')
                             @if($approver->status == "Approved")
-                                <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate" data-bs-toggle="modal">
+                                <a href='javascript:void(0)' class='text-danger ms-2' data-bs-target="#editApprovedDate{{ $approver->id }}" data-bs-toggle="modal">
                                     <i class="fa fa-calendar fs-3"></i>
                                 </a>
                                 @include('documents.edit_approved_date')
@@ -174,20 +180,20 @@
                 <div class="card-body">
                     <div data-simplebar style="max-height: 400px;" class="mb-3">
                         @if(count($change_request->comments) > 0)
-                        @foreach ($change_request->comments as $comment)
-                        <div class="comment-item">
-                            <div class="d-flex align-items-start gap-2">
-                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
-                                    style="width: 32px; height: 32px;">
-                                <div class="flex-grow-1">
-                                    <div class="comment-author">{{ $comment->user->name }}</div>
-                                    <div class="comment-time">{{ date('d M Y - h:i A', strtotime($comment->created_at))
-                                        }}</div>
-                                    <div class="mt-2 text-muted">{!! $comment->comment !!}</div>
+                            @foreach ($change_request->comments as $comment)
+                            <div class="comment-item">
+                                <div class="d-flex align-items-start gap-2">
+                                    <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle"
+                                        style="width: 32px; height: 32px;">
+                                    <div class="flex-grow-1">
+                                        <div class="comment-author">{{ $comment->user->name }}</div>
+                                        <div class="comment-time">{{ date('d M Y - h:i A', strtotime($comment->created_at))
+                                            }}</div>
+                                        <div class="mt-2 text-muted">{!! $comment->comment !!}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        @endforeach
+                            @endforeach
                         @else
                         <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
                         @endif
