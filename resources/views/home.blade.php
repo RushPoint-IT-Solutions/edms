@@ -764,37 +764,6 @@
                             </a>
                             @endif
                         </div>
-
-                        @if(request()->hasAny(['pending_search','pending_date','pending_dept','pending_office']))
-                        <div class="d-flex flex-wrap gap-1 mt-2">
-                            @if(request('pending_search'))
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.7rem;">
-                                    <i class="ri-search-line me-1"></i>{{ request('pending_search') }}
-                                </span>
-                            @endif
-                            @if(request('pending_date'))
-                                <span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size: 0.7rem;">
-                                    <i class="ri-calendar-line me-1"></i>{{ date('M d, Y', strtotime(request('pending_date'))) }}
-                                </span>
-                            @endif
-                            @if(request('pending_dept'))
-                                @php $selectedDept = collect($departments ?? [])->firstWhere('id', request('pending_dept')); @endphp
-                                @if($selectedDept)
-                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">
-                                    <i class="ri-building-line me-1"></i>{{ $selectedDept->code }}
-                                </span>
-                                @endif
-                            @endif
-                            @if(request('pending_office'))
-                                @php $selectedOffice = collect($offices ?? [])->firstWhere('id', request('pending_office')); @endphp
-                                @if($selectedOffice)
-                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.7rem;">
-                                    <i class="ri-home-office-line me-1"></i>{{ $selectedOffice->name ?? $selectedOffice->code }}
-                                </span>
-                                @endif
-                            @endif
-                        </div>
-                        @endif
                     </form>
                 </div>
 
@@ -1036,40 +1005,9 @@
                             </a>
                         @endif
                     </div>
-
-                    @if(request('doc_office_search') || request('doc_office_dept') || request('doc_office_office') || request('doc_office_date'))
-                    <div class="d-flex flex-wrap gap-1 mt-2">
-                        @if(request('doc_office_search'))
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.65rem;">
-                                <i class="ri-search-line me-1"></i>{{ request('doc_office_search') }}
-                            </span>
-                        @endif
-                        @if(request('doc_office_date'))
-                            <span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size: 0.65rem;">
-                                <i class="ri-calendar-line me-1"></i>{{ date('M d, Y', strtotime(request('doc_office_date'))) }}
-                            </span>
-                        @endif
-                        @if(request('doc_office_dept'))
-                            @php $selectedDept = collect($departments ?? [])->firstWhere('id', request('doc_office_dept')); @endphp
-                            @if($selectedDept)
-                            <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.65rem;">
-                                <i class="ri-building-line me-1"></i>{{ $selectedDept->code }}
-                            </span>
-                            @endif
-                        @endif
-                        @if(request('doc_office_office'))
-                            @php $selectedOffice = collect($offices ?? [])->firstWhere('id', request('doc_office_office')); @endphp
-                            @if($selectedOffice)
-                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.65rem;">
-                                <i class="ri-home-office-line me-1"></i>{{ $selectedOffice->name ?? $selectedOffice->code }}
-                            </span>
-                            @endif
-                        @endif
-                    </div>
-                    @endif
                 </form>
 
-                <div style="overflow-y: auto; max-height: 350px;">
+                <div style="overflow-y: auto; max-height: 280px;">
                     <ul class="list-group">
                         @forelse ($documents as $document)
                         <li class="list-group-item px-2 py-2">
