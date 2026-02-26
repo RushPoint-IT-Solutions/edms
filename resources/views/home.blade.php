@@ -701,9 +701,9 @@
     </div>
 </div> --}}
 
-<div class="row g-4">
-    <div class="col-12 col-lg-9">
-        <div class="card shadow-sm">
+<div class="row g-4 align-items-stretch">
+    <div class="col-12 col-lg-9 d-flex flex-column">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -724,45 +724,37 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('home') }}" method="GET">
+                    <form action="{{ route('home') }}" method="GET" id="pendingSearchForm">
                         @foreach(request()->except(['pending_search','pending_date','pending_dept','pending_office','pending_page']) as $key => $val)
                             <input type="hidden" name="{{ $key }}" value="{{ $val }}">
                         @endforeach
 
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="text" name="pending_search" value="{{ request('pending_search') }}"
-                                placeholder="Search title..."
-                                class="form-control form-control-sm flex-grow-1">
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="position-relative flex-grow-1">
+                                <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
+                                <input type="text" 
+                                    name="pending_search" 
+                                    id="pendingSearchInput"
+                                    value="{{ request('pending_search') }}"
+                                    placeholder="Search title, department, or date (e.g. Jan 2025)..."
+                                    class="form-control form-control-sm ps-5 pe-5"
+                                    autocomplete="off">
+                                @if(request('pending_search'))
+                                <a href="{{ route('home') }}" 
+                                class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
+                                style="z-index:2;">
+                                    <i class="ri-close-circle-fill"></i>
+                                </a>
+                                @endif
+                            </div>
 
-                            <input type="date" name="pending_date" value="{{ request('pending_date') }}"
-                                class="form-control form-control-sm" style="width: auto;">
+                            <input type="hidden" name="pending_date" value="">
+                            <input type="hidden" name="pending_dept" value="">
+                            <input type="hidden" name="pending_office" value="">
 
-                            <select name="pending_dept" class="form-select form-select-sm d-none d-sm-block" style="width: auto;">
-                                <option value="">All Dept.</option>
-                                @foreach($departments ?? [] as $dept)
-                                    <option value="{{ $dept->id }}" {{ request('pending_dept') == $dept->id ? 'selected' : '' }}>
-                                        {{ $dept->code }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <select name="pending_office" class="form-select form-select-sm d-none d-md-block" style="width: auto;">
-                                <option value="">All Office</option>
-                                @foreach($offices ?? [] as $office)
-                                    <option value="{{ $office->id }}" {{ request('pending_office') == $office->id ? 'selected' : '' }}>
-                                        {{ $office->name ?? $office->code }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <button type="submit" class="btn btn-primary btn-sm px-3" style="flex-shrink:0;">
+                            <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
                                 <i class="ri-search-line"></i>
                             </button>
-                            @if(request()->hasAny(['pending_search','pending_date','pending_dept','pending_office']))
-                            <a href="{{ route('home') }}" class="btn btn-danger btn-sm px-2 d-flex align-items-center" style="flex-shrink:0;" title="Clear filters">
-                                <i class="ri-close-line"></i>
-                            </a>
-                            @endif
                         </div>
                     </form>
                 </div>
@@ -955,81 +947,67 @@
         </div>
     </div>
 
-        <div class="col-12 col-lg-3">
-            <div class="card shadow-sm w-100">
-                <div class="card-body">
-                <h5 class="fw-semibold text-dark mb-3">Public Documents</h5>
+        <div class="col-12 col-lg-3 d-flex flex-column">
+            <div class="card shadow-sm w-100 h-100">
+                <div class="card-body d-flex flex-column">
+                <h5 class="fw-semibold text-dark mb-4">Public Documents</h5>
 
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
                         <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
                     @endif
-                    @if(request('doc_search'))
-                        <input type="hidden" name="doc_search" value="{{ request('doc_search') }}">
-                    @endif
 
-                    <div class="d-flex flex-column gap-2 mb-2">
-                        <input type="text" name="doc_office_search" value="{{ request('doc_office_search') }}"
-                            placeholder="Search title or code..."
-                            class="form-control form-control-sm">
-
-                        <input type="date" name="doc_office_date" value="{{ request('doc_office_date') }}"
-                            class="form-control form-control-sm">
-
-                        <select name="doc_office_dept" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value="">All Dept.</option>
-                            @foreach($departments ?? [] as $dept)
-                                <option value="{{ $dept->id }}" {{ request('doc_office_dept') == $dept->id ? 'selected' : '' }}>
-                                    {{ $dept->code }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        <select name="doc_office_office" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value="">All Office</option>
-                            @foreach($offices ?? [] as $office)
-                                <option value="{{ $office->id }}" {{ request('doc_office_office') == $office->id ? 'selected' : '' }}>
-                                    {{ $office->name ?? $office->code }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="d-flex gap-1">
-                        <button type="submit" class="btn btn-danger btn-sm px-2 flex-grow-1">
-                            <i class="ri-search-line"></i> Search
-                        </button>
-                        @if(request('doc_office_search') || request('doc_office_dept') || request('doc_office_office') || request('doc_office_date'))
-                            <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm px-2">
-                                <i class="ri-close-line"></i>
+                    <div class="d-flex gap-2 align-items-center mt-1">
+                        <div class="position-relative flex-grow-1">
+                            <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
+                            <input type="text" 
+                                name="doc_office_search"
+                                value="{{ request('doc_office_search') }}"
+                                placeholder="Search title, dept, office, date..."
+                                class="form-control form-control-sm ps-5 pe-5"
+                                autocomplete="off">
+                            @if(request('doc_office_search'))
+                            <a href="{{ route('home') }}" 
+                            class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
+                            style="z-index:2;">
+                                <i class="ri-close-circle-fill"></i>
                             </a>
-                        @endif
+                            @endif
+                        </div>
+
+                        <input type="hidden" name="doc_office_date" value="">
+                        <input type="hidden" name="doc_office_dept" value="">
+                        <input type="hidden" name="doc_office_office" value="">
+
+                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                            <i class="ri-search-line"></i>
+                        </button>
                     </div>
                 </form>
 
-                <div style="overflow-y: auto; height: 244px;">
+                <div style="overflow-y: auto; flex: 1; min-height: 0;">
                     <ul class="list-group">
                         @forelse ($documents as $document)
                         <li class="list-group-item px-2 py-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="flex-shrink-0">
+                            <div class="d-flex align-items-start gap-2">
+
+                                <div class="flex-shrink-0 pt-1">
                                     @foreach($document->attachments->where('type','pdf_copy') as $attachment)
                                     <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
                                         <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
                                             <i class="ri-file-text-line"></i>
                                         </div>
                                     </a>
-
                                     <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
                                         @csrf
-
                                         <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
                                     </form>
                                     @endforeach
                                 </div>
+
                                 <div class="flex-grow-1 overflow-hidden">
-                                    <h6 class="fs-14 mb-0 text-truncate">Doc No.: {{ $document->control_code }}</h6>
-                                    <small class="text-dark text-truncate d-block">Title: {{ $document->title }}</small>
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $document->control_code }}</h6>
+                                    <small class="text-muted text-truncate d-block" title="{{ $document->title }}">{{ $document->title }}</small>
                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                         @if($document->department)
                                             <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
@@ -1037,19 +1015,20 @@
                                         @if($document->department && $document->department->office)
                                             <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $document->department->office->name ?? $document->department->office->code }}</span>
                                         @endif
-                                        <span class="meta-tag"><i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}</span>
                                     </div>
-                                    <small><a href="{{ url("/documents/visitors/".$document->id) }}" target="_blank">Viewed: {{count($document->visitor)}}</a></small>
-                                    {{-- <div class="avatar-group">
-                                        @foreach ($document->visitor as $visitor)
-                                            <a href="javascript: void(0);" class="avatar-group-item material-shadow" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-placement="top" title="{{ $visitor->user->name }}">
-                                                <div class="avatar-xxs">
-                                                    <img src="{{ asset("images/no_image.png") }}" alt="" class="rounded-circle img-fluid">
-                                                </div>
-                                            </a>
-                                        @endforeach
-                                    </div> --}}
                                 </div>
+
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
+                                    <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
+                                        <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}
+                                    </small>
+                                    <a href="{{ url("/documents/visitors/".$document->id) }}" target="_blank" class="text-decoration-none">
+                                        <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
+                                            <i class="ri-eye-line"></i> {{ count($document->visitor) }}
+                                        </span>
+                                    </a>
+                                </div>
+
                             </div>
                         </li>
                         @empty
