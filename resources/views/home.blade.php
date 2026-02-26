@@ -986,9 +986,9 @@
         </div>
     </div>
 
-    <div class="col-12 col-lg-3 d-flex align-items-stretch">
-        <div class="card shadow-sm w-100 h-100">
-            <div class="card-body h-100" style="overflow-y: auto;">
+        <div class="col-12 col-lg-3">
+            <div class="card shadow-sm w-100">
+                <div class="card-body">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
 
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
@@ -1069,38 +1069,40 @@
                     @endif
                 </form>
 
-                <ul class="list-group">
-                    @forelse ($documents as $document)
-                    <li class="list-group-item px-2 py-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="flex-shrink-0">
-                                @foreach($document->attachments->where('type','pdf_copy') as $attachment)
-                                <a href="{{ url($attachment->attachment) }}" target="_blank">
-                                    <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                        <i class="ri-file-text-line"></i>
+                <div style="overflow-y: auto; max-height: 350px;">
+                    <ul class="list-group">
+                        @forelse ($documents as $document)
+                        <li class="list-group-item px-2 py-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="flex-shrink-0">
+                                    @foreach($document->attachments->where('type','pdf_copy') as $attachment)
+                                    <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                        <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                            <i class="ri-file-text-line"></i>
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <h6 class="fs-14 mb-0 text-truncate">{{ $document->control_code }}</h6>
+                                    <small class="text-dark text-truncate d-block">{{ $document->title }}</small>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        @if($document->department)
+                                            <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
+                                        @endif
+                                        @if($document->department && $document->department->office)
+                                            <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $document->department->office->name ?? $document->department->office->code }}</span>
+                                        @endif
+                                        <span class="meta-tag"><i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}</span>
                                     </div>
-                                </a>
-                                @endforeach
-                            </div>
-                            <div class="flex-grow-1 overflow-hidden">
-                                <h6 class="fs-14 mb-0 text-truncate">{{ $document->control_code }}</h6>
-                                <small class="text-dark text-truncate d-block">{{ $document->title }}</small>
-                                <div class="d-flex flex-wrap gap-1 mt-1">
-                                    @if($document->department)
-                                        <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
-                                    @endif
-                                    @if($document->department && $document->department->office)
-                                        <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $document->department->office->name ?? $document->department->office->code }}</span>
-                                    @endif
-                                    <span class="meta-tag"><i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}</span>
                                 </div>
                             </div>
-                        </div>
-                    </li>
-                    @empty
-                        <li class="list-group-item text-center text-muted">No documents found.</li>
-                    @endforelse
-                </ul>
+                        </li>
+                        @empty
+                            <li class="list-group-item text-center text-muted">No documents found.</li>
+                        @endforelse
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
