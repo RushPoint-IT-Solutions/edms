@@ -1039,4 +1039,16 @@ class DocumentController extends Controller
         
         return back();
     }
+
+    public function visitors(Request $request,$id)
+    {
+        // dd($request->all());
+        $document = Document::with("visitor.user")->findOrFail($id);
+
+        return view("documents.visitors",
+            array(
+                "document" => $document
+            )
+        );
+    }
 }
