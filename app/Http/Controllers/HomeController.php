@@ -49,7 +49,7 @@ class HomeController extends Controller
             $documentQuery->where('department_id', $request->doc_office_dept);
         }
 
-        $documents = $documentQuery->get();
+        $documents = $documentQuery->orderBy('created_at', 'desc')->get();
         
         if (auth()->user()->role != "Administrator")
         {
