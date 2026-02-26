@@ -126,6 +126,45 @@
             </div>
 
             <div class="card section-card">
+                <div class="card-header text-uppercase">
+                    <i class="ri-history-line me-2"></i>History
+                </div>
+                <div class="card-body">
+                    @if(count($dateLogs) > 0)
+                        <div data-simplebar style="max-height: 300px;">
+                            @foreach ($dateLogs as $log)
+                            <div class="d-flex align-items-start gap-2 mb-3 pb-3 border-bottom">
+                                <div class="flex-shrink-0">
+                                    <span class="badge bg-secondary rounded-circle p-2">
+                                        <i class="ri-calendar-check-line"></i>
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold text-dark">{{ $log->user->name }}</div>
+                                    <div class="text-muted small">
+                                        <i class="ri-time-line me-1"></i>
+                                        {{ date('d M Y - h:i A', strtotime($log->created_at)) }}
+                                    </div>
+                                    @if($log->date)
+                                    <div class="mt-1 small">
+                                        <span class="text-muted">Antidate:</span>
+                                        <span class="fw-semibold text-primary">{{ date('d M Y', strtotime($log->date)) }}</span>
+                                    </div>
+                                    @endif
+                                    @if($log->remarks)
+                                    <div class="mt-1 text-muted small">{{ $log->remarks }}</div>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted text-center py-4" style="font-style: italic;">No history yet...</p>
+                    @endif
+                </div>
+            </div>
+
+            <div class="card section-card">
                 <div class="card-header text-uppercase d-flex align-items-center">
                     <i class="ri-chat-3-line me-2"></i>
                     <span class="flex-grow-1">Comments</span>
