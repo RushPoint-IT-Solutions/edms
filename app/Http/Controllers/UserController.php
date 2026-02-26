@@ -117,6 +117,7 @@ class UserController extends Controller
                 'status' => $statusBadge,
                 'action' => $actions,
                 'user_id' => $user->id,
+                "google_id" => $user->google_id
             ];
         }
 
