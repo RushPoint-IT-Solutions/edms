@@ -575,11 +575,13 @@ class RequestController extends Controller
      */
     public function show($id)
     {
-        $change_request = ChangeRequest::with('user','comments','approvers.user')->findOrFail($id);
+        $change_request = ChangeRequest::with('user','comments','approvers.user','supporting_documents')->findOrFail($id);
+        $dateLogs = DateApprovedLog::with('user')->where('change_request_id', $id)->orderBy('id', 'desc')->get();
 
         return view('change_request.view_approval', 
             array(
-                'change_request' => $change_request
+                'change_request' => $change_request,
+                'dateLogs' => $dateLogs
             )
         );
     }
