@@ -686,8 +686,8 @@
     </div>
 </div> --}}
 
-<div class="row g-4 align-items-stretch">
-    <div class="col-12 col-lg-9 d-flex">
+<div class="row g-4">
+    <div class="col-12 col-lg-9">
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="mb-4">
