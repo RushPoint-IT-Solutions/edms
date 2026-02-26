@@ -528,6 +528,40 @@
                             </a>
                         </li>
                         @endcan
+
+                        {{-- SSO Default Access --}}
+                        @if(auth()->user()->google_id != null)
+                        <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/change-requests')}}">
+                                <i class="ri-edit-line"></i>
+                                <span data-key="t-change-requests">Change Requests</span>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ Route::current()->getName() == 'for-approval' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/for-approval')}}">
+                                <i class="ri-checkbox-line"></i>
+                                <span data-key="t-for-approval">For Approval</span>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/documents')}}">
+                                <i class="ri-folder-2-line"></i>
+                                <span data-key="t-documents">My Documents</span>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
+                            <a class="nav-link menu-link" href="{{url('/permits')}}">
+                                <i class="ri-file-shield-line"></i>
+                                <span data-key="t-permits">Permits & Licenses</span>
+                            </a>
+                        </li>
+                        <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
+                            <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
+                                <i class="mdi mdi-stamper"></i>
+                                <span data-key="t-memorandum">Approver Stamp</span>
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </div>
                 <!-- Sidebar -->
