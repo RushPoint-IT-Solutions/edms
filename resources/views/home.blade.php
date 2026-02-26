@@ -708,53 +708,12 @@
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-semibold text-dark mb-0">For Approval</h5>
-                        <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1 d-none d-md-inline-flex">
-                            <i class="ri-file-add-line"></i> New Document
-                        </a>
-                    </div>
-                    
-                    <div class="row g-2">
-                        <div class="col-12 col-md-auto flex-md-grow-1">
-                            <form action="{{ route('home') }}" method="GET" class="d-flex flex-wrap gap-2">
-                                @foreach(request()->except(['pending_search','pending_date','pending_dept','pending_office','pending_page']) as $key => $val)
-                                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
-                                @endforeach
-                                <div class="position-relative flex-grow-1" style="min-width: 140px;">
-                                    <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                                    <input type="text" name="pending_search" value="{{ request('pending_search') }}" 
-                                        placeholder="Search title..." class="form-control form-control-sm ps-5 w-100" style="height: 35px;">
-                                </div>
-                                <input type="date" name="pending_date" value="{{ request('pending_date') }}"
-                                    class="form-control form-control-sm" style="height: 35px; min-width: 130px; font-size: 0.78rem;">
-                                <select name="pending_dept" class="form-select form-select-sm" style="height: 35px; min-width: 100px; font-size: 0.78rem;">
-                                    <option value="">All Dept.</option>
-                                    @foreach($departments ?? [] as $dept)
-                                        <option value="{{ $dept->id }}" {{ request('pending_dept') == $dept->id ? 'selected' : '' }}>
-                                            {{ $dept->code }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <select name="pending_office" class="form-select form-select-sm" style="height: 35px; min-width: 100px; font-size: 0.78rem;">
-                                    <option value="">All Office</option>
-                                    @foreach($offices ?? [] as $office)
-                                        <option value="{{ $office->id }}" {{ request('pending_office') == $office->id ? 'selected' : '' }}>
-                                            {{ $office->name ?? $office->code }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                    <i class="ri-search-line"></i>
-                                </button>
-                                @if(request()->hasAny(['pending_search','pending_date','pending_dept','pending_office']))
-                                <a href="{{ route('home') }}" class="btn btn-outline-danger btn-sm">
-                                    <i class="ri-close-line"></i>
-                                </a>
-                                @endif
-                            </form>
-                        </div>
-                        
-                        <div class="col-auto">
-                            <div class="btn-group" role="group" aria-label="View toggle">
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                                <i class="ri-file-add-line"></i>
+                                <span class="d-none d-md-inline">New Document</span>
+                            </a>
+                            <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-outline-secondary btn-sm view-toggle active" data-view="grid">
                                     <i class="ri-grid-line"></i>
                                 </button>
@@ -763,13 +722,94 @@
                                 </button>
                             </div>
                         </div>
-                        
-                        <div class="col-12 d-md-none">
-                            <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-1 w-100">
-                                <i class="ri-file-add-line"></i> New Document
-                            </a>
-                        </div>
                     </div>
+
+                    <form action="{{ route('home') }}" method="GET">
+                        @foreach(request()->except(['pending_search','pending_date','pending_dept','pending_office','pending_page']) as $key => $val)
+                            <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                        @endforeach
+
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center border rounded-3 bg-white px-3 flex-grow-1" style="height: 36px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); min-width: 160px;">
+                                <i class="ri-search-line text-muted me-2" style="font-size: 0.82rem; flex-shrink:0;"></i>
+                                <input type="text" name="pending_search" value="{{ request('pending_search') }}"
+                                    placeholder="Search title..."
+                                    class="border-0 bg-transparent p-0 w-100"
+                                    style="font-size: 0.8rem; outline: none;">
+                            </div>
+                            <div class="d-flex align-items-center border rounded-3 bg-white px-3 gap-2" style="height: 36px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); min-width: 148px;">
+                                <i class="ri-calendar-line text-muted" style="font-size: 0.8rem; flex-shrink:0;"></i>
+                                <input type="date" name="pending_date" value="{{ request('pending_date') }}"
+                                    class="border-0 bg-transparent p-0"
+                                    style="font-size: 0.78rem; outline: none; cursor: pointer; width: 110px;">
+                            </div>
+                            <div class="d-none d-sm-flex align-items-center border rounded-3 bg-white px-3 gap-2" style="height: 36px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); min-width: 130px;">
+                                <i class="ri-building-line text-muted" style="font-size: 0.8rem; flex-shrink:0;"></i>
+                                <select name="pending_dept"
+                                    class="border-0 bg-transparent p-0 w-100"
+                                    style="font-size: 0.78rem; outline: none; cursor: pointer; color: #495057;">
+                                    <option value="">All Dept.</option>
+                                    @foreach($departments ?? [] as $dept)
+                                        <option value="{{ $dept->id }}" {{ request('pending_dept') == $dept->id ? 'selected' : '' }}>
+                                            {{ $dept->code }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="d-none d-md-flex align-items-center border rounded-3 bg-white px-3 gap-2" style="height: 36px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); min-width: 130px;">
+                                <i class="ri-home-office-line text-muted" style="font-size: 0.8rem; flex-shrink:0;"></i>
+                                <select name="pending_office"
+                                    class="border-0 bg-transparent p-0 w-100"
+                                    style="font-size: 0.78rem; outline: none; cursor: pointer; color: #495057;">
+                                    <option value="">All Office</option>
+                                    @foreach($offices ?? [] as $office)
+                                        <option value="{{ $office->id }}" {{ request('pending_office') == $office->id ? 'selected' : '' }}>
+                                            {{ $office->name ?? $office->code }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm px-3" style="height: 36px; font-size: 0.8rem; flex-shrink:0;">
+                                <i class="ri-search-line"></i>
+                            </button>
+                            @if(request()->hasAny(['pending_search','pending_date','pending_dept','pending_office']))
+                            <a href="{{ route('home') }}" class="btn btn-danger btn-sm px-2 d-flex align-items-center" style="height: 36px; font-size: 0.8rem; flex-shrink:0;" title="Clear filters">
+                                <i class="ri-close-line"></i>
+                            </a>
+                            @endif
+                        </div>
+
+                        @if(request()->hasAny(['pending_search','pending_date','pending_dept','pending_office']))
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            @if(request('pending_search'))
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.7rem;">
+                                    <i class="ri-search-line me-1"></i>{{ request('pending_search') }}
+                                </span>
+                            @endif
+                            @if(request('pending_date'))
+                                <span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size: 0.7rem;">
+                                    <i class="ri-calendar-line me-1"></i>{{ date('M d, Y', strtotime(request('pending_date'))) }}
+                                </span>
+                            @endif
+                            @if(request('pending_dept'))
+                                @php $selectedDept = collect($departments ?? [])->firstWhere('id', request('pending_dept')); @endphp
+                                @if($selectedDept)
+                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">
+                                    <i class="ri-building-line me-1"></i>{{ $selectedDept->code }}
+                                </span>
+                                @endif
+                            @endif
+                            @if(request('pending_office'))
+                                @php $selectedOffice = collect($offices ?? [])->firstWhere('id', request('pending_office')); @endphp
+                                @if($selectedOffice)
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.7rem;">
+                                    <i class="ri-home-office-line me-1"></i>{{ $selectedOffice->name ?? $selectedOffice->code }}
+                                </span>
+                                @endif
+                            @endif
+                        </div>
+                        @endif
+                    </form>
                 </div>
 
                 <div id="gridView" class="row row-cols-1 row-cols-sm-4 g-2">
@@ -840,20 +880,11 @@
                     <div class="drive-list-container">
                         <div class="drive-list-header">
                             <div class="drive-list-row">
-                                <div class="drive-col-name">
-                                    <span>Name</span>
-                                </div>
-                                <div class="drive-col-owner">
-                                    <span>Owner</span>
-                                </div>
-                                <div class="drive-col-modified">
-                                    <span>Last modified</span>
-                                </div>
-                                <div class="drive-col-size">
-                                    <span>File size</span>
-                                </div>
-                                <div class="drive-col-actions">
-                                </div>
+                                <div class="drive-col-name"><span>Name</span></div>
+                                <div class="drive-col-owner"><span>Owner</span></div>
+                                <div class="drive-col-modified"><span>Last modified</span></div>
+                                <div class="drive-col-size"><span>File size</span></div>
+                                <div class="drive-col-actions"></div>
                             </div>
                         </div>
                         
@@ -937,22 +968,16 @@
                     <nav aria-label="Pending documents pagination">
                         <ul class="pagination pagination-sm mb-0">
                             @if ($pending_cards->onFirstPage())
-                                <li class="page-item disabled">
-                                    <span class="page-link">Previous</span>
-                                </li>
+                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->previousPageUrl() }}" rel="prev">
-                                        Previous
-                                    </a>
+                                    <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->previousPageUrl() }}" rel="prev">Previous</a>
                                 </li>
                             @endif
 
                             @foreach ($pending_cards->getUrlRange(1, $pending_cards->lastPage()) as $page => $url)
                                 @if ($page == $pending_cards->currentPage())
-                                    <li class="page-item active" aria-current="page">
-                                        <span class="page-link">{{ $page }}</span>
-                                    </li>
+                                    <li class="page-item active" aria-current="page"><span class="page-link">{{ $page }}</span></li>
                                 @else
                                     <li class="page-item">
                                         <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->url($page) }}">{{ $page }}</a>
@@ -962,14 +987,10 @@
 
                             @if ($pending_cards->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->nextPageUrl() }}" rel="next">
-                                        Next
-                                    </a>
+                                    <a class="page-link" href="{{ $pending_cards->appends(request()->except('pending_page'))->nextPageUrl() }}" rel="next">Next</a>
                                 </li>
                             @else
-                                <li class="page-item disabled">
-                                    <span class="page-link">Next</span>
-                                </li>
+                                <li class="page-item disabled"><span class="page-link">Next</span></li>
                             @endif
                         </ul>
                     </nav>
@@ -984,59 +1005,56 @@
             <div class="card-body overflow-auto">
                 <h5 class="fw-semibold text-dark mb-3">Public Form</h5>
 
-               <form action="{{ route('home') }}" method="GET" class="mb-3">
+                <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
                         <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
                     @endif
                     @if(request('doc_search'))
                         <input type="hidden" name="doc_search" value="{{ request('doc_search') }}">
                     @endif
-                    
-                    <div class="mb-1">
-                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Title</label>
-                        <input type="text"
-                            name="doc_office_search"
-                            value="{{ request('doc_office_search') }}"
-                            class="form-control form-control-sm"
-                            style="font-size: 0.78rem;"
-                            placeholder="Search title or code...">
-                    </div>
-                    <div class="mb-1">
-                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Date</label>
-                        <input type="date"
-                            name="doc_office_date"
-                            value="{{ request('doc_office_date') }}"
-                            class="form-control form-control-sm"
-                            style="font-size: 0.78rem;">
-                    </div>
-                    <div class="mb-1">
-                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Department</label>
-                        <select name="doc_office_dept" 
-                                class="form-select form-select-sm"
-                                style="font-size: 0.78rem;"
+
+                    <div class="d-flex flex-column border rounded-3 bg-white overflow-hidden mb-2" style="box-shadow: 0 1px 4px rgba(0,0,0,0.07);">
+                        <div class="d-flex align-items-center px-3 border-bottom" style="min-height: 36px;">
+                            <i class="ri-search-line text-muted me-2" style="font-size: 0.8rem; flex-shrink:0;"></i>
+                            <input type="text" name="doc_office_search" value="{{ request('doc_office_search') }}"
+                                placeholder="Search title or code..."
+                                class="border-0 bg-transparent p-0 w-100"
+                                style="font-size: 0.78rem; outline: none; min-height: 36px;">
+                        </div>
+                        <div class="d-flex align-items-center px-3 border-bottom" style="min-height: 36px; gap: 6px;">
+                            <i class="ri-calendar-line text-muted" style="font-size: 0.8rem; flex-shrink:0;"></i>
+                            <input type="date" name="doc_office_date" value="{{ request('doc_office_date') }}"
+                                class="border-0 bg-transparent p-0 w-100"
+                                style="font-size: 0.78rem; outline: none; cursor: pointer; min-height: 36px;">
+                        </div>
+                        <div class="d-flex align-items-center px-3 border-bottom" style="min-height: 36px; gap: 6px;">
+                            <i class="ri-building-line text-muted" style="font-size: 0.8rem; flex-shrink:0;"></i>
+                            <select name="doc_office_dept" class="border-0 bg-transparent p-0 w-100"
+                                style="font-size: 0.78rem; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; color: #495057; min-height: 36px;"
                                 onchange="this.form.submit()">
-                            <option value="">All Dept.</option>
-                            @foreach($departments ?? [] as $dept)
-                                <option value="{{ $dept->id }}" {{ request('doc_office_dept') == $dept->id ? 'selected' : '' }}>
-                                    {{ $dept->code }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Office</label>
-                        <select name="doc_office_office"
-                                class="form-select form-select-sm"
-                                style="font-size: 0.78rem;"
+                                <option value="">All Dept.</option>
+                                @foreach($departments ?? [] as $dept)
+                                    <option value="{{ $dept->id }}" {{ request('doc_office_dept') == $dept->id ? 'selected' : '' }}>
+                                        {{ $dept->code }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="d-flex align-items-center px-3" style="min-height: 36px; gap: 6px;">
+                            <i class="ri-home-office-line text-muted" style="font-size: 0.8rem; flex-shrink:0;"></i>
+                            <select name="doc_office_office" class="border-0 bg-transparent p-0 w-100"
+                                style="font-size: 0.78rem; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; color: #495057; min-height: 36px;"
                                 onchange="this.form.submit()">
-                            <option value="">All Office</option>
-                            @foreach($offices ?? [] as $office)
-                                <option value="{{ $office->id }}" {{ request('doc_office_office') == $office->id ? 'selected' : '' }}>
-                                    {{ $office->name ?? $office->code }}
-                                </option>
-                            @endforeach
-                        </select>
+                                <option value="">All Office</option>
+                                @foreach($offices ?? [] as $office)
+                                    <option value="{{ $office->id }}" {{ request('doc_office_office') == $office->id ? 'selected' : '' }}>
+                                        {{ $office->name ?? $office->code }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
+
                     <div class="d-flex gap-1">
                         <button type="submit" class="btn btn-danger btn-sm px-2 flex-grow-1">
                             <i class="ri-search-line"></i> Search
@@ -1047,6 +1065,37 @@
                             </a>
                         @endif
                     </div>
+
+                    @if(request('doc_office_search') || request('doc_office_dept') || request('doc_office_office') || request('doc_office_date'))
+                    <div class="d-flex flex-wrap gap-1 mt-2">
+                        @if(request('doc_office_search'))
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.65rem;">
+                                <i class="ri-search-line me-1"></i>{{ request('doc_office_search') }}
+                            </span>
+                        @endif
+                        @if(request('doc_office_date'))
+                            <span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size: 0.65rem;">
+                                <i class="ri-calendar-line me-1"></i>{{ date('M d, Y', strtotime(request('doc_office_date'))) }}
+                            </span>
+                        @endif
+                        @if(request('doc_office_dept'))
+                            @php $selectedDept = collect($departments ?? [])->firstWhere('id', request('doc_office_dept')); @endphp
+                            @if($selectedDept)
+                            <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.65rem;">
+                                <i class="ri-building-line me-1"></i>{{ $selectedDept->code }}
+                            </span>
+                            @endif
+                        @endif
+                        @if(request('doc_office_office'))
+                            @php $selectedOffice = collect($offices ?? [])->firstWhere('id', request('doc_office_office')); @endphp
+                            @if($selectedOffice)
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.65rem;">
+                                <i class="ri-home-office-line me-1"></i>{{ $selectedOffice->name ?? $selectedOffice->code }}
+                            </span>
+                            @endif
+                        @endif
+                    </div>
+                    @endif
                 </form>
 
                 <ul class="list-group">
