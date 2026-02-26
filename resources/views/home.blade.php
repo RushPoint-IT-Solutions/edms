@@ -617,6 +617,21 @@
         margin: 1cm;
     }
 }
+
+.meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.65rem;
+    background: #f1f3f5;
+    color: #495057;
+    border-radius: 4px;
+    padding: 1px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 </style>
 @endsection
 
@@ -700,16 +715,37 @@
                     
                     <div class="row g-2">
                         <div class="col-12 col-md-auto flex-md-grow-1">
-                            <form action="{{ route('home') }}" method="GET" class="d-flex gap-2">
-                                <div class="position-relative flex-grow-1">
+                            <form action="{{ route('home') }}" method="GET" class="d-flex flex-wrap gap-2">
+                                @foreach(request()->except(['pending_search','pending_date','pending_dept','pending_office','pending_page']) as $key => $val)
+                                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                                @endforeach
+                                <div class="position-relative flex-grow-1" style="min-width: 140px;">
                                     <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
                                     <input type="text" name="pending_search" value="{{ request('pending_search') }}" 
-                                        placeholder="Search pending..." class="form-control form-control-sm ps-5 w-100" style="height: 35px;">
+                                        placeholder="Search title..." class="form-control form-control-sm ps-5 w-100" style="height: 35px;">
                                 </div>
+                                <input type="date" name="pending_date" value="{{ request('pending_date') }}"
+                                    class="form-control form-control-sm" style="height: 35px; min-width: 130px; font-size: 0.78rem;">
+                                <select name="pending_dept" class="form-select form-select-sm" style="height: 35px; min-width: 100px; font-size: 0.78rem;">
+                                    <option value="">All Dept.</option>
+                                    @foreach($departments ?? [] as $dept)
+                                        <option value="{{ $dept->id }}" {{ request('pending_dept') == $dept->id ? 'selected' : '' }}>
+                                            {{ $dept->code }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <select name="pending_office" class="form-select form-select-sm" style="height: 35px; min-width: 100px; font-size: 0.78rem;">
+                                    <option value="">All Office</option>
+                                    @foreach($offices ?? [] as $office)
+                                        <option value="{{ $office->id }}" {{ request('pending_office') == $office->id ? 'selected' : '' }}>
+                                            {{ $office->name ?? $office->code }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 <button type="submit" class="btn btn-outline-secondary btn-sm">
                                     <i class="ri-search-line"></i>
                                 </button>
-                                @if(request('pending_search'))
+                                @if(request()->hasAny(['pending_search','pending_date','pending_dept','pending_office']))
                                 <a href="{{ route('home') }}" class="btn btn-outline-danger btn-sm">
                                     <i class="ri-close-line"></i>
                                 </a>
@@ -774,6 +810,15 @@
                                         @endphp 
                                         <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">{{ $filename[2] }}</div>
                                     </div>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        @if($change_request->department)
+                                            <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->code }}</span>
+                                        @endif
+                                        @if($change_request->department && $change_request->department->office)
+                                            <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $change_request->department->office->name ?? $change_request->department->office->code }}</span>
+                                        @endif
+                                        <span class="meta-tag"><i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($change_request->created_at)) }}</span>
+                                    </div>
                                     @php
                                         $dateCreated = new DateTime($change_request->updated_at);
                                         $now = new DateTime();
@@ -830,6 +875,14 @@
                                             <div class="file-info">
                                                 <div class="file-name">{{ $filename[count($filename)-1] }}</div>
                                                 <div class="file-subtitle text-muted">{{ $change_request->title }}</div>
+                                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                                    @if($change_request->department)
+                                                        <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->code }}</span>
+                                                    @endif
+                                                    @if($change_request->department && $change_request->department->office)
+                                                        <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $change_request->department->office->name ?? $change_request->department->office->code }}</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -939,15 +992,28 @@
                         <input type="hidden" name="doc_search" value="{{ request('doc_search') }}">
                     @endif
                     
-                    <div class="d-flex gap-1">
+                    <div class="mb-1">
+                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Title</label>
                         <input type="text"
                             name="doc_office_search"
                             value="{{ request('doc_office_search') }}"
                             class="form-control form-control-sm"
-                            placeholder="Search form...">
+                            style="font-size: 0.78rem;"
+                            placeholder="Search title or code...">
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Date</label>
+                        <input type="date"
+                            name="doc_office_date"
+                            value="{{ request('doc_office_date') }}"
+                            class="form-control form-control-sm"
+                            style="font-size: 0.78rem;">
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Department</label>
                         <select name="doc_office_dept" 
-                                class="form-select form-select-sm" 
-                                style="max-width: 130px;"
+                                class="form-select form-select-sm"
+                                style="font-size: 0.78rem;"
                                 onchange="this.form.submit()">
                             <option value="">All Dept.</option>
                             @foreach($departments ?? [] as $dept)
@@ -956,10 +1022,26 @@
                                 </option>
                             @endforeach
                         </select>
-                        <button type="submit" class="btn btn-danger btn-sm px-2">
-                            <i class="ri-search-line"></i>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #6c757d;">Office</label>
+                        <select name="doc_office_office"
+                                class="form-select form-select-sm"
+                                style="font-size: 0.78rem;"
+                                onchange="this.form.submit()">
+                            <option value="">All Office</option>
+                            @foreach($offices ?? [] as $office)
+                                <option value="{{ $office->id }}" {{ request('doc_office_office') == $office->id ? 'selected' : '' }}>
+                                    {{ $office->name ?? $office->code }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button type="submit" class="btn btn-danger btn-sm px-2 flex-grow-1">
+                            <i class="ri-search-line"></i> Search
                         </button>
-                        @if(request('doc_office_search') || request('doc_office_dept'))
+                        @if(request('doc_office_search') || request('doc_office_dept') || request('doc_office_office') || request('doc_office_date'))
                             <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm px-2">
                                 <i class="ri-close-line"></i>
                             </a>
@@ -983,9 +1065,15 @@
                             <div class="flex-grow-1 overflow-hidden">
                                 <h6 class="fs-14 mb-0 text-truncate">{{ $document->control_code }}</h6>
                                 <small class="text-dark text-truncate d-block">{{ $document->title }}</small>
-                                @if($document->department)
-                                    <small class="text-muted">{{ $document->department->code }}</small>
-                                @endif
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    @if($document->department)
+                                        <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
+                                    @endif
+                                    @if($document->department && $document->department->office)
+                                        <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $document->department->office->name ?? $document->department->office->code }}</span>
+                                    @endif
+                                    <span class="meta-tag"><i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}</span>
+                                </div>
                             </div>
                         </div>
                     </li>
