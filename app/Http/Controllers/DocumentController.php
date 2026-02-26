@@ -10,11 +10,12 @@ use App\Department;
 use App\DocumentType;
 use App\DocumentAttachment;
 use App\Company;
-use App\DateApprovedLog;
+// use App\DateApprovedLog;
 use App\DocumentFolder;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
 use App\DocumentVisitor;
+use App\History;
 use App\Mail\ApprovedDateEmail;
 use App\RequestApprover;
 use App\User;
@@ -965,14 +966,12 @@ class DocumentController extends Controller
     {
         // dd($request->all());
         $approver = RequestApprover::findOrFail($id);
-        $approver->date_approved = $request->date_approved." ".date('H:i:s');
-        $approver->save();
 
-        $logs = new DateApprovedLog;
-        $logs->user_id = auth()->id();
-        $logs->date_approved = $request->date_approved." ".date('H:i:s');
-        $logs->change_request_id = $approver->change_request_id;
-        $logs->save();
+        // $logs = new DateApprovedLog;
+        // $logs->user_id = auth()->id();
+        // $logs->date_approved = $request->date_approved." ".date('H:i:s');
+        // $logs->change_request_id = $approver->change_request_id;
+        // $logs->save();
 
         // $documents = Document::findOrFail($request->document_id);
         // $request = $documents->change_requests->sortByDesc('id')->first();
@@ -980,6 +979,19 @@ class DocumentController extends Controller
         
         // $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
         // Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
+
+        $history = new History;
+        $history->change_request_id = $approver->change_request_id;
+        if ($approver->date_approved) {
+            $history->comment = "From: ".$approver->date_approved. "<br>" . "To: " . $request->date_approved;
+        } else {
+            $history->comment = "From: ".date("Y-m-d", strtotime($approver->updated_at)). "<br>" . "To: " . $request->date_approved;
+        }
+        $history->user_id = auth()->user()->id;
+        $history->save();
+
+        $approver->date_approved = $request->date_approved;
+        $approver->save();
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();

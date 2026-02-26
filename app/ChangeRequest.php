@@ -58,4 +58,8 @@ class ChangeRequest extends Model  implements Auditable
     {
         return $this->belongsTo(DocumentType::class,'type','id');
     }
+    public function history()
+    {
+        return $this->hasMany(History::class);
+    }
 }

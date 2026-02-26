@@ -11,7 +11,7 @@
 |
 */
 
-use App\DateApprovedLog;
+// use App\DateApprovedLog;
 
 Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 Route::get('auth/google', 'GoogleController@redirectToGoogle');

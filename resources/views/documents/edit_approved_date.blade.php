@@ -26,17 +26,17 @@
                         <div class="col-md-12">
                             <b>Approved Date: </b>
                             @if($approver->date_approved)
-                            {{ date('M d Y h:i A', strtotime($approver->date_approved)) }}
+                            {{ date('M d Y', strtotime($approver->date_approved)) }}
                             @else 
-                            {{ date('M d Y h:i A', strtotime($approver->updated_at)) }}
+                            {{ date('M d Y', strtotime($approver->updated_at)) }}
                             @endif
                         </div>
                     </div>
                     <hr>
-                    @php
+                    {{-- @php
                         $dateLogs = $dateLogs->sortByDesc('id')->first();
-                    @endphp
-                    @if($dateLogs)
+                    @endphp --}}
+                    {{-- @if($dateLogs)
                     <div class="row">
                         <div class="col-md-12">
                             <b>Edited by:</b>
@@ -44,7 +44,7 @@
                         </div>
                     </div>
                     <hr>
-                    @endif
+                    @endif --}}
                     <div class="row">
                         <div class="col-md-12">
                             <label for="" class="form-label">Date</label>
