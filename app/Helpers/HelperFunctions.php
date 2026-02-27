@@ -21,3 +21,17 @@ function getPendingApproval()
 
     return $pendingApproval;
 }
+
+function getDueDateAlerts()
+{
+    return ChangeRequest::where('user_id', auth()->id())
+        ->whereNotNull('due_date')
+        ->where('status', '!=', 'Approved')
+        ->whereNull('is_draft')
+        ->where(function ($q) {
+            $q->whereDate('due_date', '<', today())
+              ->orWhereDate('due_date', '<=', today()->addDays(3));
+        })
+        ->orderBy('due_date', 'asc')
+        ->get();
+}
