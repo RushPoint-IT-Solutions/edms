@@ -202,7 +202,6 @@
                                     <option value="Personal" @if(old('category', $change_request->category ?? '') == "Personal") selected @endif>Personal</option>
                                     <option value="Departmental" @if(old('category', $change_request->category ?? '') == "Departmental") selected @endif>Departmental</option>
                                     <option value="Private" @if(old('category', $change_request->category ?? '') == "Private") selected @endif>Private</option>
-                                    <option value="Public" @if(old('category', $change_request->category ?? '') == "Public") selected @endif>Public</option>
                                 </select>
                             </div>
                         </div>
@@ -247,8 +246,8 @@
                         </select>
                     </div>
 
-                    <div class="mb-3" id="team-field">
-                        <label for="team-select" class="form-label">Access <span class="text-danger">*</span></label>
+                    <div class="mb-3" id="team-field" style="display: none;">
+                        <label for="team-select" class="form-label">Access</label>
                         <select name="privacy" class="form-select" data-choices data-choices-search-false id="team-select">
                             <option value="">-- Select Access --</option>
                             {{-- @foreach($teams as $team)
@@ -831,10 +830,12 @@ $(document).ready(function() {
         if (categoryValue === 'Departmental') {
             departmentField.style.display = 'block';
             departmentSelect.setAttribute('required', 'required');
+            document.getElementById('team-field').style.display = 'block';
         } else {
             departmentField.style.display = 'none';
             departmentSelect.removeAttribute('required');
             departmentSelect.value = '';
+            document.getElementById('team-field').style.display = 'none';
         }
     }
 
