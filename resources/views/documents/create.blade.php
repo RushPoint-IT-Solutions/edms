@@ -216,6 +216,22 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="due-date-input">
+                                Due Date
+                                <span class="text-muted" style="font-size:0.8rem;">(optional)</span>
+                            </label>
+                            <input type="date"
+                                name="due_date"
+                                id="due-date-input"
+                                class="form-control"
+                                value="{{ old('due_date', optional($change_request)->due_date ? \Carbon\Carbon::parse($change_request->due_date)->format('Y-m-d') : '') }}"
+                                min="{{ date('Y-m-d') }}">
+                            <div class="form-text text-muted">
+                                <i class="ri-information-line"></i> 
+                                You will receive an alert when this date is within 3 days or has passed.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-3" id="department-field" style="display: none;">

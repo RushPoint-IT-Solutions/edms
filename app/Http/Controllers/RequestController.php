@@ -298,6 +298,7 @@ class RequestController extends Controller
             $change_request->user_id = auth()->user()->id;
             $change_request->revision = 0;
             $change_request->request_status = "Pending";
+            $change_request->due_date = $request->due_date ?: null;
             if($request->has('save_as_draft'))
             {
                 $change_request->is_draft = 1;
@@ -379,6 +380,7 @@ class RequestController extends Controller
             $change_request->user_id = auth()->user()->id;
             $change_request->revision = 0;
             $change_request->request_status = "Pending";
+            $change_request->due_date = $request->due_date ?: null;
             if($request->has('save_as_draft'))
             {
                 $change_request->is_draft = 1;
