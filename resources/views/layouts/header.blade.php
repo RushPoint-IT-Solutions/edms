@@ -173,7 +173,7 @@
                             </span>
                         </button>
                         
-                         <form class="app-search ">
+                        <form class="app-search">
                             <div class="position-relative">
                                 <input type="text" class="form-control searchbar" placeholder="Search..." autocomplete="off">
                                 <span class="mdi mdi-magnify search-widget-icon"></span>
@@ -182,23 +182,37 @@
                     </div>
 
                     @php
-                        $draft_requests = getDraftRequest();
+                        $draft_requests  = getDraftRequest();
+                        $dueDateAlerts   = getDueDateAlerts();
+                        $totalNotifCount = count($draft_requests) + $dueDateAlerts->count();
                     @endphp
+
                     <div class="d-flex align-items-center">
+
                         <div class="dropdown topbar-head-dropdown ms-1 header-item" id="notificationDropdown">
-                            <button type="button" class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" id="page-header-notifications-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+                            <button type="button" 
+                                    class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" 
+                                    id="page-header-notifications-dropdown" 
+                                    data-bs-toggle="dropdown" 
+                                    data-bs-auto-close="outside" 
+                                    aria-haspopup="true" 
+                                    aria-expanded="false">
                                 <i class='bx bx-bell fs-22'></i>
-                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">{{ count($draft_requests) }}<span class="visually-hidden">unread messages</span></span>
+                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
+                                    {{ $totalNotifCount }}
+                                    <span class="visually-hidden">notifications</span>
+                                </span>
                             </button>
+
                             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown">
                                 <div class="dropdown-head bg-pattern rounded-top" style="background-color: #800000;">
                                     <div class="p-3">
                                         <div class="row align-items-center">
                                             <div class="col">
-                                                <h6 class="m-0 fs-16 fw-semibold text-white"> Notifications </h6>
+                                                <h6 class="m-0 fs-16 fw-semibold text-white">Notifications</h6>
                                             </div>
                                             <div class="col-auto dropdown-tabs">
-                                                <span class="badge bg-light text-body fs-13"> {{ count($draft_requests->where('created_at','>=', date('Y-m-d'))) }} New</span>
+                                                <span class="badge bg-light text-body fs-13">{{ $totalNotifCount }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -207,6 +221,45 @@
                                 <div class="tab-content position-relative" id="notificationItemsTabContent">
                                     <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
                                         <div data-simplebar style="max-height: 300px;" class="pe-2">
+
+                                            @foreach ($dueDateAlerts as $alert)
+                                            @php
+                                                $isOverdue = $alert->is_overdue;
+                                                $dueDate   = \Carbon\Carbon::parse($alert->due_date);
+                                            @endphp
+                                            <div class="text-reset notification-item d-block dropdown-item position-relative">
+                                                <div class="d-flex">
+                                                    <div class="avatar-xs me-3 flex-shrink-0">
+                                                        <span class="avatar-title rounded-circle fs-16 {{ $isOverdue ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning' }}">
+                                                            <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <a href="{{ url('change-request/' . $alert->id) }}" class="stretched-link">
+                                                            <h6 class="mt-0 mb-1 lh-base">
+                                                                DOC-{{ date('Y', strtotime($alert->created_at)) }}-{{ str_pad($alert->id, 3, '0', STR_PAD_LEFT) }}
+                                                            </h6>
+                                                        </a>
+                                                        <p class="mb-1 fs-11 text-truncate" style="max-width: 220px;">
+                                                            {{ $alert->title }}
+                                                        </p>
+                                                        <p class="mb-0 fs-11 fw-medium text-uppercase {{ $isOverdue ? 'text-danger' : 'text-warning' }}">
+                                                            <i class="mdi mdi-calendar-clock"></i>
+                                                            @if($isOverdue)
+                                                                Overdue since {{ $dueDate->format('M d, Y') }}
+                                                            @else
+                                                                Due {{ $dueDate->diffForHumans() }}
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endforeach
+
+                                            @if($dueDateAlerts->count() > 0 && count($draft_requests) > 0)
+                                            <div class="dropdown-divider my-1"></div>
+                                            @endif
+
                                             @foreach ($draft_requests as $draft_request)
                                             <div class="text-reset notification-item d-block dropdown-item position-relative">
                                                 <div class="d-flex">
@@ -217,7 +270,9 @@
                                                     </div>
                                                     <div class="flex-grow-1">
                                                         <a href="{{ url('documents/create/'. $draft_request->id) }}" class="stretched-link">
-                                                            <h6 class="mt-0 mb-2 lh-base">DOC-{{ date('Y', strtotime($draft_request->created_at)) }}-{{ str_pad($draft_request->id,'3',0,STR_PAD_LEFT) }}</h6>
+                                                            <h6 class="mt-0 mb-2 lh-base">
+                                                                DOC-{{ date('Y', strtotime($draft_request->created_at)) }}-{{ str_pad($draft_request->id,'3',0,STR_PAD_LEFT) }}
+                                                            </h6>
                                                         </a>
                                                         <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
                                                             <span><i class="mdi mdi-pencil"></i> {{ $draft_request->title }}</span>
@@ -226,6 +281,14 @@
                                                 </div>
                                             </div>
                                             @endforeach
+
+                                            @if($totalNotifCount === 0)
+                                            <div class="text-center p-4 text-muted">
+                                                <i class="bx bx-bell-off fs-24 mb-2 d-block"></i>
+                                                <small>No notifications</small>
+                                            </div>
+                                            @endif
+
                                         </div>
                                     </div>
                                 </div>
@@ -236,9 +299,18 @@
                             $pendingApproval = getPendingApproval();
                         @endphp
                         <div class="dropdown topbar-head-dropdown ms-1 header-item" id="messagesDropdown">
-                            <button type="button" class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" id="page-header-messages-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+                            <button type="button" 
+                                    class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" 
+                                    id="page-header-messages-dropdown" 
+                                    data-bs-toggle="dropdown" 
+                                    data-bs-auto-close="outside" 
+                                    aria-haspopup="true" 
+                                    aria-expanded="false">
                                 <i class='bx bx-message-square-dots fs-22'></i>
-                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-success">{{ count($pendingApproval) }}<span class="visually-hidden">unread messages</span></span>
+                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-success">
+                                    {{ count($pendingApproval) }}
+                                    <span class="visually-hidden">pending approvals</span>
+                                </span>
                             </button>
 
                             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-messages-dropdown">
@@ -246,7 +318,7 @@
                                     <div class="p-3">
                                         <div class="row align-items-center">
                                             <div class="col">
-                                                <h6 class="m-0 fs-16 fw-semibold text-white"> Pending Approval </h6>
+                                                <h6 class="m-0 fs-16 fw-semibold text-white">Pending Approval</h6>
                                             </div>
                                             <div class="col-auto dropdown-tabs">
                                                 <span class="badge bg-light text-body fs-13">{{ count($pendingApproval) }}</span>
@@ -279,109 +351,26 @@
                                                 </div>
                                             </div>
                                             @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        @php
-                            $dueDateAlerts = getDueDateAlerts();
-                        @endphp
-
-                        <div class="dropdown topbar-head-dropdown ms-1 header-item" id="dueDateDropdown">
-                            <button type="button" 
-                                    class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" 
-                                    id="page-header-duedate-dropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    data-bs-auto-close="outside" 
-                                    aria-haspopup="true" 
-                                    aria-expanded="false">
-                                <i class='bx bx-calendar-exclamation fs-22'></i>
-                                @if($dueDateAlerts->count() > 0)
-                                    <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
-                                        {{ $dueDateAlerts->count() }}
-                                        <span class="visually-hidden">due date alerts</span>
-                                    </span>
-                                @endif
-                            </button>
-
-                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" 
-                                aria-labelledby="page-header-duedate-dropdown">
-                                
-                                <div class="dropdown-head bg-pattern rounded-top" style="background-color: #800000;">
-                                    <div class="p-3">
-                                        <div class="row align-items-center">
-                                            <div class="col">
-                                                <h6 class="m-0 fs-16 fw-semibold text-white">
-                                                    <i class="bx bx-calendar-exclamation me-1"></i> Due Date Alerts
-                                                </h6>
-                                            </div>
-                                            <div class="col-auto dropdown-tabs">
-                                                <span class="badge bg-light text-body fs-13">
-                                                    {{ $dueDateAlerts->count() }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="tab-content position-relative" id="dueDateItemsTabContent">
-                                    <div class="tab-pane fade show active py-2 ps-2" role="tabpanel">
-                                        <div data-simplebar style="max-height: 300px;" class="pe-2">
-                                            @forelse ($dueDateAlerts as $alert)
-                                            @php
-                                                $isOverdue = $alert->is_overdue;
-                                                $dueDate   = \Carbon\Carbon::parse($alert->due_date);
-                                            @endphp
-                                            <div class="text-reset notification-item d-block dropdown-item position-relative">
-                                                <div class="d-flex">
-                                                    <div class="avatar-xs me-3 flex-shrink-0">
-                                                        <span class="avatar-title rounded-circle fs-16
-                                                            {{ $isOverdue 
-                                                                ? 'bg-danger-subtle text-danger' 
-                                                                : 'bg-warning-subtle text-warning' }}">
-                                                            <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}"></i>
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <a href="{{ url('change-request/' . $alert->id) }}" class="stretched-link">
-                                                            <h6 class="mt-0 mb-1 lh-base">
-                                                                DOC-{{ date('Y', strtotime($alert->created_at)) }}-{{ str_pad($alert->id, 3, '0', STR_PAD_LEFT) }}
-                                                            </h6>
-                                                        </a>
-                                                        <p class="mb-1 fs-11 text-truncate" style="max-width: 220px;">
-                                                            {{ $alert->title }}
-                                                        </p>
-                                                        <p class="mb-0 fs-11 fw-medium text-uppercase
-                                                            {{ $isOverdue ? 'text-danger' : 'text-warning' }}">
-                                                            <i class="mdi mdi-calendar-clock"></i>
-                                                            @if($isOverdue)
-                                                                Overdue since {{ $dueDate->format('M d, Y') }}
-                                                            @else
-                                                                Due {{ $dueDate->diffForHumans() }}
-                                                            @endif
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            @empty
+                                            @if(count($pendingApproval) === 0)
                                             <div class="text-center p-4 text-muted">
-                                                <i class="bx bx-calendar-check fs-24 mb-2 d-block"></i>
-                                                <small>No upcoming due dates</small>
+                                                <i class="bx bx-check-circle fs-24 mb-2 d-block"></i>
+                                                <small>No pending approvals</small>
                                             </div>
-                                            @endforelse
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
 
                         <div class="dropdown ms-sm-3 header-item topbar-user">
                             <button type="button" class="btn material-shadow-none" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="d-flex align-items-center">
-                                    <img class="rounded-circle header-profile-user" src="{{asset(auth()->user()->avatar)}}" onerror="this.src='{{url('assets/images/marsu-logo.png')}}';" alt="Header Avatar">
+                                    <img class="rounded-circle header-profile-user" 
+                                        src="{{asset(auth()->user()->avatar)}}" 
+                                        onerror="this.src='{{url('assets/images/marsu-logo.png')}}';" 
+                                        alt="Header Avatar">
                                     <span class="text-start ms-xl-2">
                                         <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ current(explode(' ',auth()->user()->name)) }}</span>
                                     </span>
@@ -400,6 +389,7 @@
                                 </form>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
