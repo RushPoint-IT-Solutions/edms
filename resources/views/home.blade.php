@@ -11,10 +11,6 @@
     width: 100%;
 }
 
-.file-card.dropdown-open {
-    z-index: 9999;
-}
-
 .file-card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
     transform: translateY(-2px);
@@ -48,16 +44,13 @@
 }
 
 .file-dropdown-menu {
-    position: absolute;
-    top: 0;
-    left: 100%;
+    position: fixed;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     min-width: 200px;
-    z-index: 9999;
+    z-index: 1025;
     display: none;
-    margin-left: 8px;
     overflow: hidden;
     animation: dropdownFadeIn 0.15s ease-out;
 }
@@ -146,7 +139,7 @@
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     min-width: 200px;
-    z-index: 10000;
+    z-index: 1026;
     display: none;
     margin-left: 5px;
     overflow: hidden;
@@ -186,7 +179,7 @@
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     min-width: 200px;
-    z-index: 9999;
+    z-index: 1025;
     display: none;
     margin-top: 5px;
     overflow: hidden;
@@ -248,21 +241,26 @@
 .drive-col-name {
     flex: 1;
     min-width: 0;
-    padding-right: 24px;
+    padding-right: 12px;
 }
 
 .drive-col-owner {
+    width: 110px;
+    flex-shrink: 0;
+}
+
+.drive-col-dept {
     width: 180px;
     flex-shrink: 0;
 }
 
 .drive-col-modified {
-    width: 150px;
+    width: 120px;
     flex-shrink: 0;
 }
 
 .drive-col-size {
-    width: 100px;
+    width: 80px;
     flex-shrink: 0;
     text-align: right;
 }
@@ -273,6 +271,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.drive-col-dept span,
+.drive-col-owner span {
+    font-size: 0.8125rem;
+    color: #5f6368;
+}
+
+@media (max-width: 992px) {
+    .drive-col-dept { display: none; }
+    .drive-col-owner { display: none; }
+    .drive-col-size { display: none; }
 }
 
 .file-icon-wrapper {
@@ -350,18 +360,8 @@
     color: #5f6368;
 }
 
-#listView .file-dropdown-menu {
-    position: absolute;
-    right: 48px;
-    top: 50%;
-    transform: translateY(-50%);
-    left: auto;
-    margin-right: 8px;
-}
-
 #listView .file-card.dropdown-open {
     background-color: #e8f0fe;
-    z-index: 1050;
 }
 
 .view-toggle {
@@ -386,15 +386,19 @@
 
 @media (max-width: 1200px) {
     .drive-col-owner {
-        width: 140px;
+        width: 90px;
+    }
+    
+    .drive-col-dept {
+        width: 130px;
     }
     
     .drive-col-modified {
-        width: 120px;
+        width: 100px;
     }
     
     .drive-col-size {
-        width: 80px;
+        width: 70px;
     }
 }
 
@@ -507,11 +511,6 @@
     to {
         opacity: 1;
     }
-}
-
-#listView .file-dropdown-menu.show {
-    display: block;
-    z-index: 1051;
 }
 
 .hover-effect {
@@ -762,14 +761,14 @@
                 <div id="gridView" class="row row-cols-1 row-cols-sm-4 g-2">
                     @foreach ($pending_cards as $change_request)
                     <div class="col">
-                        <div class="card border file-card position-relative">
+                        <div class="card border file-card position-relative" data-card-id="{{ $change_request->id }}">
                             <div class="position-absolute top-0 end-0 m-2 more-btn">
                                 <button class="btn btn-sm btn-light p-1 file-more-btn" style="width: 28px; height: 28px; line-height: 1; border-radius: 6px;">
                                     <i class="ri-more-2-fill"></i>
                                 </button>
                             </div>
 
-                            <div class="file-dropdown-menu">
+                            <div class="file-dropdown-menu" data-card-id="{{ $change_request->id }}">
                                 <button class="file-dropdown-item" data-action="display">
                                     <i class="ri-file-text-line"></i>
                                     <input type="hidden" class="file-path" value="{{ $change_request->file }}" />
@@ -829,6 +828,7 @@
                             <div class="drive-list-row">
                                 <div class="drive-col-name"><span>Name</span></div>
                                 <div class="drive-col-owner"><span>Owner</span></div>
+                                <div class="drive-col-dept"><span>Department</span></div>
                                 <div class="drive-col-modified"><span>Last modified</span></div>
                                 <div class="drive-col-size"><span>File size</span></div>
                                 <div class="drive-col-actions"></div>
@@ -843,7 +843,7 @@
                                 $filesize = file_exists(public_path($file)) ? filesize(public_path($file)) : 0;
                                 $filesizeFormatted = $filesize > 0 ? number_format($filesize / 1024 / 1024, 2) . ' MB' : '--';
                             @endphp
-                            <div class="drive-list-item file-card">
+                            <div class="drive-list-item file-card" data-card-id="{{ $change_request->id }}">
                                 <div class="drive-list-row">
                                     <div class="drive-col-name">
                                         <div class="d-flex align-items-center gap-3">
@@ -854,11 +854,10 @@
                                                 <div class="file-name">{{ $filename[count($filename)-1] }}</div>
                                                 <div class="file-subtitle text-muted">{{ $change_request->title }}</div>
                                                 <div class="d-flex flex-wrap gap-1 mt-1">
-                                                    @if($change_request->department)
-                                                        <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->code }}</span>
-                                                    @endif
                                                     @if($change_request->department && $change_request->department->office)
-                                                        <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $change_request->department->office->name ?? $change_request->department->office->code }}</span>
+                                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                                            <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $change_request->department->office->name ?? $change_request->department->office->code }}</span>
+                                                        </div>
                                                     @endif
                                                 </div>
                                             </div>
@@ -866,6 +865,13 @@
                                     </div>
                                     <div class="drive-col-owner">
                                         <span>{{ $change_request->user->name }}</span>
+                                    </div>
+                                    <div class="drive-col-dept">
+                                        @if($change_request->department)
+                                            <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->name }}</span>
+                                        @else
+                                            <span class="text-muted" style="font-size:0.8rem;">—</span>
+                                        @endif
                                     </div>
                                     <div class="drive-col-modified">
                                         <span>{{ date('M d, Y', strtotime($change_request->created_at)) }}</span>
@@ -880,15 +886,11 @@
                                     </div>
                                 </div>
 
-                                <div class="file-dropdown-menu">
+                                <div class="file-dropdown-menu" data-card-id="{{ $change_request->id }}">
                                     <button class="file-dropdown-item" data-action="display">
                                         <i class="ri-eye-line"></i>
                                         <input type="hidden" class="file-path" value="{{ $change_request->file }}" />
-                                        <span>Open</span>
-                                    </button>
-                                    <button class="file-dropdown-item" data-action="download">
-                                        <i class="ri-download-line"></i>
-                                        <span>Download</span>
+                                        <span>View</span>
                                     </button>
                                     <div class="file-dropdown-divider"></div>
                                     <button class="file-dropdown-item" data-action="approve" data-id="{{ $change_request->id }}">
@@ -896,10 +898,6 @@
                                         <span>Approve</span>
                                     </button>
                                     <div class="file-dropdown-divider"></div>
-                                    <button class="file-dropdown-item" data-action="details">
-                                        <i class="ri-information-line"></i>
-                                        <span>Details</span>
-                                    </button>
                                 </div>
                             </div>
                             @endforeach
@@ -1379,13 +1377,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+
+        JsBarcode(".barcode").init();
+
         const viewToggles = document.querySelectorAll('.view-toggle');
         const gridView = document.getElementById('gridView');
         const listView = document.getElementById('listView');
-        
+
         const savedView = localStorage.getItem('pendingDocsView') || 'grid';
         setActiveView(savedView);
-        
+
         viewToggles.forEach(button => {
             button.addEventListener('click', function() {
                 const view = this.getAttribute('data-view');
@@ -1393,118 +1394,108 @@
                 localStorage.setItem('pendingDocsView', view);
             });
         });
-        
+
         function setActiveView(view) {
             viewToggles.forEach(btn => {
-                if (btn.getAttribute('data-view') === view) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.getAttribute('data-view') === view);
             });
-            
+
             if (view === 'grid') {
                 listView.classList.add('d-none');
-                setTimeout(() => {
-                    gridView.classList.remove('d-none');
-                }, 50);
+                setTimeout(() => gridView.classList.remove('d-none'), 50);
             } else {
                 gridView.classList.add('d-none');
-                setTimeout(() => {
-                    listView.classList.remove('d-none');
-                }, 50);
+                setTimeout(() => listView.classList.remove('d-none'), 50);
             }
         }
-    });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const moreButtons = document.querySelectorAll('.file-more-btn');
-        
-        moreButtons.forEach(button => {
+        document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
+            document.body.appendChild(menu);
+        });
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.file-dropdown-menu').forEach(menu => menu.classList.remove('show'));
+            document.querySelectorAll('.file-card').forEach(c => c.classList.remove('dropdown-open'));
+        }
+
+        document.querySelectorAll('.file-more-btn').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 const fileCard = this.closest('.file-card');
-                const dropdown = fileCard.querySelector('.file-dropdown-menu');
-                
+                const cardId = fileCard.dataset.cardId;
+                const dropdown = document.querySelector(`.file-dropdown-menu[data-card-id="${cardId}"]`);
+
                 document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
-                    if (menu !== dropdown) {
-                        menu.classList.remove('show');
-                        const parentCard = menu.closest('.file-card');
-                        if (parentCard) {
-                            parentCard.classList.remove('dropdown-open');
-                        }
-                    }
+                    if (menu !== dropdown) menu.classList.remove('show');
                 });
-                
+                document.querySelectorAll('.file-card').forEach(c => c.classList.remove('dropdown-open'));
+
+                const rect = this.getBoundingClientRect();
+                const dropdownWidth = 200;
+
+                let left = rect.right - dropdownWidth;
+                let top = rect.bottom + 4;
+
+                if (left < 8) left = 8;
+                if (left + dropdownWidth > window.innerWidth - 8) left = window.innerWidth - dropdownWidth - 8;
+
+                dropdown.style.top = top + 'px';
+                dropdown.style.left = left + 'px';
+                dropdown.style.position = 'fixed';
+
                 dropdown.classList.toggle('show');
-                
                 if (dropdown.classList.contains('show')) {
                     fileCard.classList.add('dropdown-open');
-                } else {
-                    fileCard.classList.remove('dropdown-open');
+                    dropdown.dataset.fileCard = cardId;
                 }
             });
         });
 
         document.addEventListener('click', function(e) {
-            if (e.target.closest('.file-dropdown-item')) {
-                const item = e.target.closest('.file-dropdown-item');
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const action = item.getAttribute('data-action');
-                const filePath = item.querySelector(".file-path")?.value;
-                const fileCard = item.closest('.file-card');
-                
-                switch(action) {
-                    case 'display':
-                        if (filePath) {
-                            window.open("{{ url('') }}/" + filePath, '_blank');
-                        }
-                        break;
-                        
-                    case 'download':
-                        if (filePath) {
-                            const link = document.createElement('a');
-                            link.href = "{{ url('') }}/" + filePath;
-                            link.download = filePath.split('/').pop();
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }
-                        break;
-                        
-                    case 'approve':
-                        const changeRequestId = item.getAttribute('data-id');
-                        if (changeRequestId) {
-                            window.location.href = "{{ route('documents.signature', '') }}/" + changeRequestId;
-                        }
-                        break;
-                        
-                    case 'details':
-                        console.log('Show details for:', filePath);
-                        alert('Details feature - to be implemented');
-                        break;
-                }
-                
-                const menu = item.closest('.file-dropdown-menu');
-                menu.classList.remove('show');
-                fileCard.classList.remove('dropdown-open');
+            const item = e.target.closest('.file-dropdown-item');
+            if (!item) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const action = item.getAttribute('data-action');
+            const filePath = item.querySelector('.file-path')?.value;
+            const menu = item.closest('.file-dropdown-menu');
+
+            switch (action) {
+                case 'display':
+                    if (filePath) {
+                        window.open("{{ url('') }}/" + filePath, '_blank');
+                    }
+                    break;
+
+                case 'download':
+                    if (filePath) {
+                        const link = document.createElement('a');
+                        link.href = "{{ url('') }}/" + filePath;
+                        link.download = filePath.split('/').pop();
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                    break;
+
+                case 'approve':
+                    const changeRequestId = item.getAttribute('data-id');
+                    if (changeRequestId) {
+                        window.location.href = "{{ route('documents.signature', '') }}/" + changeRequestId;
+                    }
+                    break;
             }
+
+            closeAllDropdowns();
         });
 
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.file-more-btn') && 
-                !e.target.closest('.file-dropdown-menu')) {
-                document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
-                    menu.classList.remove('show');
-                    const parentCard = menu.closest('.file-card');
-                    if (parentCard) {
-                        parentCard.classList.remove('dropdown-open');
-                    }
-                });
+            if (!e.target.closest('.file-more-btn') && !e.target.closest('.file-dropdown-menu')) {
+                closeAllDropdowns();
             }
         });
 
@@ -1515,326 +1506,139 @@
                 }
             });
         });
-    });
 
-    document.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('scroll', function() {
+            closeAllDropdowns();
+        }, { passive: true });
+
+        window.addEventListener('resize', function() {
+            closeAllDropdowns();
+        }, { passive: true });
+
         const listItems = document.querySelectorAll('#listView .drive-list-item');
-        
+
         listItems.forEach(item => {
             item.addEventListener('click', function(e) {
-                if (e.target.closest('.file-more-btn') || 
-                    e.target.closest('.file-dropdown-menu')) {
-                    return;
-                }
-                
+                if (e.target.closest('.file-more-btn') || e.target.closest('.file-dropdown-menu')) return;
                 listItems.forEach(i => i.classList.remove('selected'));
-                
                 this.classList.add('selected');
             });
         });
-    });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const listItems = document.querySelectorAll('#listView .drive-list-item');
-        
         listItems.forEach(item => {
             item.addEventListener('dblclick', function(e) {
-                if (e.target.closest('.file-more-btn')) {
-                    return;
-                }
-                
+                if (e.target.closest('.file-more-btn')) return;
                 const filePath = this.querySelector('.file-path')?.value;
                 if (filePath) {
                     window.open("{{ url('') }}/" + filePath, '_blank');
                 }
             });
         });
-    });
-</script>
 
-<script>
-JsBarcode(".barcode").init();
+        const qrModalElement = document.getElementById('qrCodeModal');
+        if (qrModalElement) {
+            const qrModal = new bootstrap.Modal(qrModalElement);
 
-document.addEventListener('DOMContentLoaded', function() {
-    const moreButtons = document.querySelectorAll('.file-more-btn');
-    
-    moreButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const dropdown = this.parentElement.nextElementSibling;
-            const fileCard = this.closest('.file-card');
-            
-            document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
-                if (menu !== dropdown) {
-                    menu.classList.remove('show');
-                    menu.closest('.file-card')?.classList.remove('dropdown-open');
+            document.querySelectorAll('.view-qr-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const docId = this.getAttribute('data-doc-id');
+                    const docTitle = this.getAttribute('data-doc-title');
+                    const changeRequestId = this.getAttribute('data-change-request-id');
+                    const docUrl = window.location.origin + '/change-request/' + changeRequestId;
+
+                    document.getElementById('qrDocId').textContent = docId;
+                    document.getElementById('qrDocTitle').textContent = docTitle;
+                    document.getElementById('qrDocUrl').value = docUrl;
+
+                    const qrContainer = document.getElementById('qrCodeContainer');
+                    qrContainer.innerHTML = '';
+                    new QRCode(qrContainer, {
+                        text: docUrl,
+                        width: 256,
+                        height: 256,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+
+                    JsBarcode(".barcode-display", docId, {
+                        format: "CODE39",
+                        textMargin: 0,
+                        fontOptions: "bold",
+                        displayValue: true
+                    });
+
+                    qrModal.show();
+                });
+            });
+
+            document.getElementById('copyUrlBtn').addEventListener('click', function() {
+                const urlInput = document.getElementById('qrDocUrl');
+                urlInput.select();
+                document.execCommand('copy');
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="ri-check-line"></i> Copied!';
+                setTimeout(() => { this.innerHTML = originalText; }, 2000);
+            });
+
+            document.getElementById('printQrBtn').addEventListener('click', function() {
+                const docId = document.getElementById('qrDocId').textContent;
+                const docTitle = document.getElementById('qrDocTitle').textContent;
+                const docUrl = document.getElementById('qrDocUrl').value;
+
+                document.getElementById('qrPrintDocId').textContent = docId;
+                document.getElementById('qrPrintDocTitle').textContent = docTitle;
+                document.getElementById('qrPrintDate').textContent = new Date().toLocaleString();
+
+                const printQrContainer = document.getElementById('qrPrintCode');
+                printQrContainer.innerHTML = '';
+                new QRCode(printQrContainer, {
+                    text: docUrl,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                JsBarcode(".barcode-print", docId, {
+                    format: "CODE39",
+                    width: 2,
+                    height: 80,
+                    textMargin: 0,
+                    fontOptions: "bold",
+                    displayValue: true,
+                    fontSize: 14
+                });
+
+                setTimeout(() => {
+                    const printContents = document.getElementById('qrPrintTemplate').innerHTML;
+                    document.body.innerHTML = printContents;
+                    document.body.style.display = 'flex';
+                    document.body.style.justifyContent = 'center';
+                    document.body.style.alignItems = 'center';
+                    window.print();
+                    document.body.innerHTML = '';
+                    location.reload();
+                }, 500);
+            });
+
+            document.getElementById('downloadQrBtn').addEventListener('click', function() {
+                const qrCanvas = document.querySelector('#qrCodeContainer canvas');
+                if (qrCanvas) {
+                    const docId = document.getElementById('qrDocId').textContent;
+                    const url = qrCanvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = `QR_${docId}.png`;
+                    link.href = url;
+                    link.click();
                 }
             });
-            
-            dropdown.classList.toggle('show');
-            
-            if (dropdown.classList.contains('show')) {
-                fileCard.classList.add('dropdown-open');
-            } else {
-                fileCard.classList.remove('dropdown-open');
-            }
-        });
-    });
-
-    document.querySelectorAll('.file-dropdown-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const action = this.getAttribute('data-action');
-            const actionText = this.querySelector('span').textContent.trim();
-            const filePath = this.querySelector("#file").value
-            
-            switch(action) {
-                case 'display':
-                    window.location.href = "{{ url('') }}/" + filePath;
-                    break;
-                case 'approve':
-                    // @php
-                    // window.location.href = '{{ route("documents.signature") }}';
-                    // @endphp
-                    break;
-                case 'view':
-                    window.location.href = filePath;
-                    break;
-            }
-            
-            const menu = this.closest('.file-dropdown-menu');
-            menu.classList.remove('show');
-            menu.closest('.file-card')?.classList.remove('dropdown-open');
-        });
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.file-more-btn') && 
-            !e.target.closest('.file-dropdown-menu')) {
-            document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
-                menu.classList.remove('show');
-                menu.closest('.file-card')?.classList.remove('dropdown-open');
-            });
         }
-    });
 
-    document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
-        menu.addEventListener('click', e => e.stopPropagation());
     });
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const qrModalElement = document.getElementById('qrCodeModal');
-    const qrModal = new bootstrap.Modal(qrModalElement);
-    
-    const viewQrButtons = document.querySelectorAll('.view-qr-btn');
-    
-    viewQrButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const docId = this.getAttribute('data-doc-id');
-            const docTitle = this.getAttribute('data-doc-title');
-            const changeRequestId = this.getAttribute('data-change-request-id');
-            
-            const docUrl = window.location.origin + '/change-request/' + changeRequestId;
-            
-            document.getElementById('qrDocId').textContent = docId;
-            document.getElementById('qrDocTitle').textContent = docTitle;
-            document.getElementById('qrDocUrl').value = docUrl;
-            
-            const qrContainer = document.getElementById('qrCodeContainer');
-            qrContainer.innerHTML = '';
-            
-            new QRCode(qrContainer, {
-                text: docUrl,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            JsBarcode(".barcode-display", docId, {
-                format: "CODE39",
-                textMargin: 0,
-                fontOptions: "bold",
-                displayValue: true
-            });
-            
-            qrModal.show();
-        });
-    });
-    
-    document.getElementById('copyUrlBtn').addEventListener('click', function() {
-        const urlInput = document.getElementById('qrDocUrl');
-        urlInput.select();
-        document.execCommand('copy');
-        
-        const originalText = this.innerHTML;
-        this.innerHTML = '<i class="ri-check-line"></i> Copied!';
-        setTimeout(() => {
-            this.innerHTML = originalText;
-        }, 2000);
-    });
-    
-    document.getElementById('printQrBtn').addEventListener('click', function() {
-        const docId = document.getElementById('qrDocId').textContent;
-        const docTitle = document.getElementById('qrDocTitle').textContent;
-        const docUrl = document.getElementById('qrDocUrl').value;
-        
-        document.getElementById('qrPrintDocId').textContent = docId;
-        document.getElementById('qrPrintDocTitle').textContent = docTitle;
-        // document.getElementById('qrPrintDocUrl').textContent = docUrl;
-        document.getElementById('qrPrintDate').textContent = new Date().toLocaleString();
-        
-        const printQrContainer = document.getElementById('qrPrintCode');
-        printQrContainer.innerHTML = '';
-        new QRCode(printQrContainer, {
-            text: docUrl,
-            width: 256,
-            height: 256,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
-        
-        JsBarcode(".barcode-print", docId, {
-            format: "CODE39",
-            width: 2,
-            height: 80,
-            textMargin: 0,
-            fontOptions: "bold",
-            displayValue: true,
-            fontSize: 14
-        });
-        
-        setTimeout(() => {
-            const printContents = document.getElementById('qrPrintTemplate').innerHTML;
-            const originalContents = document.body.innerHTML;
-            
-            document.body.innerHTML = printContents;
-            document.body.style.display = 'flex';
-            document.body.style.justifyContent = 'center';
-            document.body.style.alignItems = 'center';
-            
-            window.print();
-            
-            document.body.innerHTML = originalContents;
-            location.reload();
-        }, 500);
-    });
-    
-    document.getElementById('downloadQrBtn').addEventListener('click', function() {
-        const qrCanvas = document.querySelector('#qrCodeContainer canvas');
-        if (qrCanvas) {
-            const docId = document.getElementById('qrDocId').textContent;
-            const url = qrCanvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = `QR_${docId}.png`;
-            link.href = url;
-            link.click();
-        }
-    });
-    
-    const moreButtons = document.querySelectorAll('.file-more-btn');
-    
-    moreButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            const dropdown = this.nextElementSibling;
-            const previewMenu = dropdown.nextElementSibling;
-            const shareMenu = previewMenu.nextElementSibling;
-            const fileCard = this.closest('.file-card');
-            
-            document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu').forEach(menu => {
-                if (menu !== dropdown && menu !== previewMenu && menu !== shareMenu) {
-                    menu.classList.remove('show');
-                    menu.closest('.file-card')?.classList.remove('dropdown-open');
-                }
-            });
-            
-            dropdown.classList.toggle('show');
-            previewMenu.classList.remove('show');
-            shareMenu.classList.remove('show');
-            
-            if (dropdown.classList.contains('show')) {
-                fileCard.classList.add('dropdown-open');
-            } else {
-                fileCard.classList.remove('dropdown-open');
-            }
-        });
-    });
-
-    document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu')
-        .forEach(menu => {
-            menu.addEventListener('click', e => e.stopPropagation());
-        });
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.file-more-btn') &&
-            !e.target.closest('.file-dropdown-menu') &&
-            !e.target.closest('.file-preview-menu') &&
-            !e.target.closest('.file-share-menu')) {
-            document.querySelectorAll('.file-dropdown-menu, .file-preview-menu, .file-share-menu').forEach(menu => {
-                menu.classList.remove('show');
-                menu.closest('.file-card')?.classList.remove('dropdown-open');
-            });
-        }
-    });
-
-    document.querySelectorAll('.file-dropdown-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const action = this.getAttribute('data-action');
-            
-            if (action === 'preview') {
-                const dropdown = this.closest('.file-dropdown-menu');
-                const previewMenu = dropdown.nextElementSibling;
-                dropdown.classList.remove('show');
-                previewMenu.classList.add('show');
-                return;
-            }
-            if (action === 'share') {
-                const dropdown = this.closest('.file-dropdown-menu');
-                const previewMenu = dropdown.nextElementSibling;
-                const shareMenu = previewMenu.nextElementSibling;
-                dropdown.classList.remove('show');
-                shareMenu.classList.add('show');
-                return;
-            }
-            if (action === 'back') {
-                const previewMenu = this.closest('.file-preview-menu');
-                const dropdown = previewMenu.previousElementSibling;
-                previewMenu.classList.remove('show');
-                dropdown.classList.add('show');
-                return;
-            }
-            if (action === 'back-share') {
-                const shareMenu = this.closest('.file-share-menu');
-                const previewMenu = shareMenu.previousElementSibling;
-                const dropdown = previewMenu.previousElementSibling;
-                shareMenu.classList.remove('show');
-                dropdown.classList.add('show');
-                return;
-            }
-
-            const actionText = this.querySelector('span').textContent.trim();
-            console.log('Action clicked:', actionText);
-            
-            const menu = this.closest('.file-dropdown-menu, .file-preview-menu, .file-share-menu');
-            menu.classList.remove('show');
-            menu.closest('.file-card')?.classList.remove('dropdown-open');
-        });
-    });
-});
 </script>
 
 {{-- Chart Scripts (COMMENTED OUT) --}}
