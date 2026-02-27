@@ -462,7 +462,7 @@
                                     @endcan
                                     
                                     <li class="nav-item">
-                                        <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams') || Request::is('new-team') || Request::is('*team*') ? 'active' : '' }}" data-key="t-teams">Teams</a>
+                                        <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams') || Request::is('new-team') || Request::is('*team*') ? 'active' : '' }}" data-key="t-teams">Offices</a>
                                     </li>
                                         
                                     @can('users')
@@ -480,11 +480,11 @@
                                             <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
                                         </li>
                                     @endcan
-                                    @can("office")
+                                    {{-- @can("office")
                                     <li class="nav-item">
                                         <a href="{{ url('offices') }}" class="nav-link" data-key="t-dco">Offices</a>
                                     </li>
-                                    @endcan
+                                    @endcan --}}
                                 </ul>
                             </div>
                         </li>
