@@ -207,9 +207,19 @@
                                         <td>—</td>
                                         <td>{{ date('M d, Y', strtotime($doc->updated_at)) }}</td>
                                         <td class="actions-cell" onclick="event.stopPropagation()">
-                                            <button class="action-btn">
-                                                <i class="ri-more-2-fill"></i>
-                                            </button>
+                                            <div class="dropdown">
+                                                <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                                                    <i class="ri-more-2-fill"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                                            onclick="event.stopPropagation(); deleteDocument({{ $doc->id }}, '{{ addslashes($doc->control_code . ' - ' . $doc->title) }}')">
+                                                            <i class="ri-delete-bin-line me-2"></i>Delete document
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -235,7 +245,7 @@
                                         <button class="grid-item-menu" 
                                                 onclick="event.stopPropagation()" 
                                                 data-bs-toggle="dropdown"
-                                                data-bs-display="dynamic">  {{-- ADD THIS --}}
+                                                aria-expanded="false">
                                             <i class="ri-more-2-fill"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
@@ -278,9 +288,20 @@
                                                data-id="{{ $doc->id }}"
                                                data-name="{{ $doc->control_code }} - {{ $doc->title }}"
                                                onclick="event.stopPropagation(); handleGridCheckbox(this)">
-                                        <button class="grid-item-menu" onclick="event.stopPropagation()">
+                                        <button class="grid-item-menu"
+                                                onclick="event.stopPropagation()"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false">
                                             <i class="ri-more-2-fill"></i>
                                         </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                                    onclick="event.stopPropagation(); deleteDocument({{ $doc->id }}, '{{ addslashes($doc->control_code . ' - ' . $doc->title) }}')">
+                                                    <i class="ri-delete-bin-line me-2"></i>Delete document
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </div>
                                     <div class="grid-item-preview {{ $doc->previewClass }}">
                                         <i class="{{ $doc->iconClass }} grid-item-icon"></i>
@@ -1057,47 +1078,83 @@
     let currentView = 'list';
     let dragCounter = 0;
 
+    function deleteDocument(id, name) {
+        swal({
+            title: 'Are you sure?',
+            text: 'Delete "' + name + '"? This action cannot be undone.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false,
+            closeOnCancel: true
+        }, function(confirmed) {
+            if (!confirmed) return;
+            $.ajax({
+                url: '{{ url("documents/bulk-delete") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    folder_ids: '',
+                    document_ids: id
+                },
+                success: function(response) {
+                    if (response.success) {
+                        swal('Deleted!', 'Document successfully deleted.', 'success');
+                        setTimeout(function() { window.location.reload(); }, 1500);
+                    } else {
+                        swal('Cannot Delete!', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    swal('Error!', 'Something went wrong. Please try again.', 'error');
+                }
+            });
+        });
+    }
+
     function getSelectedItems() {
-    const selected = [];
+        const selected = [];
 
-    $('#documentTableBody tr').each(function () {
-        const $row = $(this);
-        const $cb = $row.find('input[type="checkbox"]');
-        if (!$cb.is(':checked')) return;
+        $('#documentTableBody tr').each(function () {
+            const $row = $(this);
+            const $cb = $row.find('input[type="checkbox"]');
+            if (!$cb.is(':checked')) return;
 
-        if ($row.hasClass('folder-tree-row')) {
-            const folderId = $row.data('folder-id');
-            if (folderId) {
-                const parentId = $row.data('parent-id');
-                const parentAlreadySelected = parentId && 
-                    selected.some(i => String(i.id) === String(parentId) && i.type === 'folder');
-                if (!parentAlreadySelected) {
-                    const exists = selected.some(i => String(i.id) === String(folderId) && i.type === 'folder');
-                    if (!exists) selected.push({ id: folderId, type: 'folder' });
+            if ($row.hasClass('folder-tree-row')) {
+                const folderId = $row.data('folder-id');
+                if (folderId) {
+                    const parentId = $row.data('parent-id');
+                    const parentAlreadySelected = parentId && 
+                        selected.some(i => String(i.id) === String(parentId) && i.type === 'folder');
+                    if (!parentAlreadySelected) {
+                        const exists = selected.some(i => String(i.id) === String(folderId) && i.type === 'folder');
+                        if (!exists) selected.push({ id: folderId, type: 'folder' });
+                    }
+                }
+            } else if ($row.hasClass('document-row') || $row.hasClass('child-row')) {
+                const docId = $row.data('document-id');
+                if (docId) {
+                    const exists = selected.some(i => String(i.id) === String(docId) && i.type === 'document');
+                    if (!exists) selected.push({ id: docId, type: 'document' });
                 }
             }
-        } else if ($row.hasClass('document-row') || $row.hasClass('child-row')) {
-            const docId = $row.data('document-id');
-            if (docId) {
-                const exists = selected.some(i => String(i.id) === String(docId) && i.type === 'document');
-                if (!exists) selected.push({ id: docId, type: 'document' });
+        });
+
+        $('.grid-item.selected-item').each(function () {
+            const folderId   = $(this).data('folder-id');
+            const documentId = $(this).data('document-id');
+            const id   = folderId || documentId;
+            const type = folderId ? 'folder' : 'document';
+            if (id) {
+                const exists = selected.some(i => String(i.id) === String(id) && i.type === type);
+                if (!exists) selected.push({ id, type });
             }
-        }
-    });
+        });
 
-    $('.grid-item.selected-item').each(function () {
-        const folderId   = $(this).data('folder-id');
-        const documentId = $(this).data('document-id');
-        const id   = folderId || documentId;
-        const type = folderId ? 'folder' : 'document';
-        if (id) {
-            const exists = selected.some(i => String(i.id) === String(id) && i.type === type);
-            if (!exists) selected.push({ id, type });
-        }
-    });
-
-    return selected;
-}
+        return selected;
+    }
 
     function updateBulkToolbar() {
         const count = getSelectedItems().length;
@@ -1412,6 +1469,11 @@
         $input.after(`<small class="file-selected-indicator text-success d-block mt-1">✓ ${fileName}</small>`);
     }
 
+    let filters = {
+        types: ['all', 'folder', 'pdf', 'docx', 'xlsx'],
+        modifiedDays: 'all'
+    };
+
     $(document).ready(function() {
         $('.select2').select2({
             dropdownParent: $('#addDocumentInFolder'),
@@ -1587,6 +1649,7 @@
 
         $(document).on('click', '.delete-folder-btn', function (e) {
             e.stopPropagation();
+            e.preventDefault();
             const id   = $(this).data('id');
             const name = $(this).data('name');
 
@@ -1623,11 +1686,6 @@
                 });
             });
         });
-
-        let filters = {
-            types: ['all', 'folder', 'pdf', 'docx', 'xlsx'],
-            modifiedDays: 'all'
-        };
 
         $('#typeFilterBtn').on('click', function(e) {
             e.stopPropagation();
