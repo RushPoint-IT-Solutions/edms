@@ -137,6 +137,20 @@ class DocumentController extends Controller
             $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
         }
 
+        $existingDocuments = Document::selectRaw('
+                control_code,
+                title,
+                category,
+                folder_id,
+                other_category,
+                type_of_request,
+                MAX(version) AS latest_revision,
+                COUNT(*) AS upload_count
+            ')
+            ->groupBy('control_code','title','category','folder_id','other_category','type_of_request')
+            ->orderBy('control_code','asc')
+            ->get();
+
         $document_folders = $document_folders->map(function($folder) {
             if ($folder->document) {
                 $folder->document = $folder->document->map(function($doc) {
@@ -177,7 +191,8 @@ class DocumentController extends Controller
                 'totalFolders' => $totalFolders,
                 'allFolders' => $allFolders,
                 'hasOthers' => $hasOthers,
-                'folderTreeHtml' => $folderTreeHtml
+                'folderTreeHtml' => $folderTreeHtml,
+                'existingDocuments' => $existingDocuments,
             )
         );
     }
@@ -196,11 +211,12 @@ class DocumentController extends Controller
                 $rowClass = 'child-row folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
             }
             
-            $html .= '<tr class="' . $rowClass . ' demoTableRow" ';
+            $html .= '<tr class="' . $rowClass . '" ';
             if ($level > 0) {
                 $html .= 'data-parent-id="' . $parentId . '" ';
             }
-            $html .= 'data-folder-id="' . $folder->id . '" 
+            $html .= 'data-folder-id="' . $folder->id . '"
+                        data-folder-name="' . strtolower(htmlspecialchars($folder->name, ENT_QUOTES)) . '"
                         data-type="folder"
                         data-modified="' . $folder->updated_at . '"
                         data-level="' . $level . '">';
@@ -230,14 +246,24 @@ class DocumentController extends Controller
             $html .= '<td>Folder</td>';
             $html .= '<td>—</td>';
             $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
-            $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
+            $html .= '<td class="actions-cell">
                 <div class="dropdown">
-                    <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                    <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()"><i class="ri-more-2-fill"></i></button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
-                            data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
-                            <i class="ri-delete-bin-line me-2"></i>Delete folder
-                        </a></li>
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0)"
+                                data-bs-toggle="modal"
+                                data-bs-target="#renameFolderModal' . $folder->id . '">
+                                <i class="ri-pencil-line me-2"></i>Rename folder
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
+                                data-id="' . $folder->id . '"
+                                data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                                <i class="ri-delete-bin-line me-2"></i>Delete folder
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </td>';
@@ -277,12 +303,14 @@ class DocumentController extends Controller
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
                         <div class="dropdown">
-                            <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()"><i class="ri-more-2-fill"></i></button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
-                                    data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
-                                    <i class="ri-delete-bin-line me-2"></i>Delete folder
-                                </a></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES)) . '\')">
+                                        <i class="ri-delete-bin-line me-2"></i>Delete document
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </td>';
@@ -300,16 +328,32 @@ class DocumentController extends Controller
         $documentIds = array_filter(explode(',', $request->document_ids ?? ''));
 
         foreach ($folderIds as $id) {
-            $folder = DocumentFolder::with('document')->find(trim($id));
+            $folder = DocumentFolder::with('document.attachments')->find(trim($id));
             if ($folder) {
-                Document::where('folder_id', $folder->id)->delete();
+                foreach ($folder->document as $doc) {
+                    foreach ($doc->attachments as $attachment) {
+                        $filePath = public_path($attachment->attachment);
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+                        $attachment->delete();
+                    }
+                    $doc->delete();
+                }
                 $folder->delete();
             }
         }
 
         foreach ($documentIds as $id) {
-            $doc = Document::find(trim($id));
+            $doc = Document::with('attachments')->find(trim($id));
             if ($doc) {
+                foreach ($doc->attachments as $attachment) {
+                    $filePath = public_path($attachment->attachment);
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                    $attachment->delete();
+                }
                 $doc->delete();
             }
         }
@@ -361,12 +405,21 @@ class DocumentController extends Controller
     {
         //
         // dd($request->all());
-        $request->validate([
-            'control_code' => 'unique:documents,control_code'
-        ]);
+
+        $controlCode = $request->filled('control_code_existing')
+            ? trim($request->control_code_existing)
+            : trim($request->control_code);
+
+        $isRevision = $request->input('is_revision', '0') === '1';
+
+        if (! $isRevision) {
+            $request->validate([
+                'control_code' => 'unique:documents,control_code'
+            ]);
+        }
 
         $document = new Document;
-        $document->control_code = $request->control_code;
+        $document->control_code = $controlCode;
         $document->title = $request->title;
         // $document->company_id = $request->company;
         // $document->department_id = $request->department;
@@ -563,7 +616,6 @@ class DocumentController extends Controller
     
                 if ($pageNo == $pageCount)
                 {
-                    // Generate QR code
                     $options = new QROptions([
                         'outputType' => QRCode::OUTPUT_IMAGE_PNG,
                     ]);
@@ -571,7 +623,6 @@ class DocumentController extends Controller
                     $qrCode = new QRCode($options);
                     $qrImageString = $qrCode->render($data);
     
-                    // Bottom-right position
                     $qrSize = 15;
                     $margin = 10;
     
@@ -1063,5 +1114,32 @@ class DocumentController extends Controller
                 "document" => $document
             )
         );
+    }
+
+    public function getDocumentByControlCode(Request $request)
+    {
+        $code = $request->input('control_code');
+
+        $latest = Document::where('control_code', $code)
+            ->orderBy('version', 'desc')
+            ->first();
+
+        if (! $latest) {
+            return response()->json(['found' => false]);
+        }
+
+        $nextRevision = ($latest->version ?? 0) + 1;
+
+        return response()->json([
+            'found'            => true,
+            'control_code'     => $latest->control_code,
+            'title'            => $latest->title,
+            'category'         => $latest->category,
+            'folder_id'        => $latest->folder_id,
+            'other'            => $latest->other_category,
+            'type_of_request'  => $latest->type_of_request,
+            'latest_revision'  => $latest->version,
+            'next_revision'    => $nextRevision,
+        ]);
     }
 }

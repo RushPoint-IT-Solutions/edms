@@ -64,7 +64,6 @@
                 </div>
 
                 <form id="bulkDeleteForm" method="POST" action="{{ url('documents/bulk-delete') }}" style="display:none;">
-
                     @csrf
                     @method('DELETE')
                     <input type="hidden" name="selected_ids" id="bulkDeleteIds">
@@ -750,7 +749,6 @@
         min-width: 160px;
     }
 
-
     .grid-item:hover {
         border-color: #0078d4;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -866,6 +864,42 @@
     let clickTimer    = null;
     let selectedRow   = null;
     let currentView   = 'list';
+
+    function deleteDocument(id, name) {
+        swal({
+            title: 'Are you sure?',
+            text: 'Delete "' + name + '"? This action cannot be undone.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false,
+            closeOnCancel: true
+        }, function(confirmed) {
+            if (!confirmed) return;
+            $.ajax({
+                url: '{{ url("documents/bulk-delete") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    folder_ids: '',
+                    document_ids: id
+                },
+                success: function(response) {
+                    if (response.success) {
+                        swal('Deleted!', 'Document successfully deleted.', 'success');
+                        setTimeout(function() { window.location.reload(); }, 1500);
+                    } else {
+                        swal('Cannot Delete!', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    swal('Error!', 'Something went wrong. Please try again.', 'error');
+                }
+            });
+        });
+    }
 
     function getSelectedCount() {
         return Object.keys(selectedItems).length;
@@ -1123,14 +1157,30 @@
         }
     }
 
-    function clearAllSelections() {
-        $('.form-check-input').prop('checked', false);
-        $('#selectAll').prop('checked', false);
-        $('.grid-item').removeClass('selected-item');
-        updateBulkToolbar();
+    function setChosenValue(selector, value) {
+        $(selector).val(value).trigger('chosen:updated');
+    }
+
+    function resetUploadForm() {
+        $('#titleField').val('');
+        $('#revisionField').val('');
+        $('#revisionAutoIcon').hide();
+        $('#revisionHint').hide().text('');
+        $('#revisionInfoBox').hide();
+        $('#manualControlCodeWrapper').hide();
+        $('#manualControlCode').val('').removeAttr('required');
+        $('#selectedControlCode').val('');
+        $('#isRevision').val('0');
+        $('#newDocBadge').hide();
+        $('#revisionBadge').hide();
+        setChosenValue('#documentTypeField', '');
+        setChosenValue('#folderField', '');
+        setChosenValue('#typeOfRequestField', '');
     }
 
     $(document).ready(function() {
+
+        // ---- Existing page JS ----
         $('.cat').chosen({width: "100%"});
 
         $('.select2').select2({
@@ -1302,6 +1352,7 @@
             });
         });
 
+
         const searchInput = $('#folderSearch');
         const clearBtn = $('#clearSearch');
         const noResults = $('#noResults');
@@ -1383,6 +1434,13 @@
             fetchElementData: function($rowElem) {
                 return { id: $rowElem.data('folder-id') };
             },
+            onBeforeShow: function($rowElem, event) {
+                if ($(event.target).closest('.actions-cell').length > 0 ||
+                    $(event.target).closest('.dropdown-menu').length > 0 ||
+                    $(event.target).closest('.dropdown').length > 0) {
+                    return false;
+                }
+            },
             actions: {
                 renameFolder: {
                     name: 'Rename folder',
@@ -1401,6 +1459,77 @@
                 }
             }
         });
+
+        $('#controlCodeSelect').select2({
+            dropdownParent: $('#uploadDocument'),
+            placeholder: '— Search or select a control code —',
+            allowClear: true,
+            width: '100%',
+        });
+
+        $('#controlCodeSelect').on('change', function () {
+            var val       = $(this).val();
+            var $selected = $(this).find('option:selected');
+
+            if (!val) {
+                resetUploadForm();
+                return;
+            }
+
+            if (val === '__OTHER__') {
+                resetUploadForm();
+                $('#manualControlCodeWrapper').show();
+                $('#manualControlCode').attr('required', true);
+                $('#newDocBadge').show();
+                return;
+            }
+
+            resetUploadForm();
+
+            var title        = $selected.data('title')    || '';
+            var docType      = $selected.data('type')     || '';
+            var folderId     = $selected.data('folder')   || '';
+            var other        = $selected.data('other')    || '';
+            var curRevision  = parseInt($selected.data('revision') || 0);
+            var nextRevision = curRevision + 1;
+
+            $('#selectedControlCode').val(val);
+            $('#titleField').val(title);
+            $('#otherField').val(other);
+            $('#isRevision').val('1');
+            $('#revisionBadge').show();
+
+            setChosenValue('#documentTypeField', docType);
+            setChosenValue('#folderField', folderId);
+            setChosenValue('#typeOfRequestField', 'Revision');
+
+            $('#revisionField').val(nextRevision);
+            $('#revisionAutoIcon').show();
+            $('#revisionHint').show().text('(was ' + curRevision + ', auto-incremented to ' + nextRevision + ')');
+
+            $('#revisionInfoText').html(
+                'You are uploading <strong>Revision ' + nextRevision + '</strong> of ' +
+                '<strong>' + val + '</strong>. ' +
+                'Previous revision: <strong>' + curRevision + '</strong>.'
+            );
+            $('#revisionInfoBox').show();
+        });
+
+        $('#uploadDocument').on('hidden.bs.modal', function () {
+            $('#controlCodeSelect').val(null).trigger('change');
+            resetUploadForm();
+        });
+
+        $('#uploadDocumentForm').on('submit', function () {
+            var val = $('#controlCodeSelect').val();
+            if (val && val !== '__OTHER__') {
+                $('#manualControlCode').removeAttr('name');
+            } else {
+                $('#manualControlCode').attr('name', 'control_code');
+                $('#selectedControlCode').removeAttr('name');
+            }
+        });
+
     });
 </script>
 @endsection

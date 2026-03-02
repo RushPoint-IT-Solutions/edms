@@ -39,6 +39,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('edit_date_approved/{id}', 'DocumentController@editDateApproved');
             Route::post('upload-document-folder','DocumentController@uploadDocumentFolder');
             Route::post('upload-document','DocumentController@store')->name('documents');
+            Route::get('by-control-code', 'DocumentController@getDocumentByControlCode');
             Route::post('refresh-team','DocumentController@refreshTeam');
 
             Route::post('bulk-delete', 'DocumentController@bulkDelete');
