@@ -137,6 +137,20 @@ class DocumentController extends Controller
             $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
         }
 
+        $existingDocuments = Document::selectRaw('
+                control_code,
+                title,
+                category,
+                folder_id,
+                other_category,
+                type_of_request,
+                MAX(version) AS latest_revision,
+                COUNT(*) AS upload_count
+            ')
+            ->groupBy('control_code','title','category','folder_id','other_category','type_of_request')
+            ->orderBy('control_code','asc')
+            ->get();
+
         $document_folders = $document_folders->map(function($folder) {
             if ($folder->document) {
                 $folder->document = $folder->document->map(function($doc) {
@@ -177,7 +191,8 @@ class DocumentController extends Controller
                 'totalFolders' => $totalFolders,
                 'allFolders' => $allFolders,
                 'hasOthers' => $hasOthers,
-                'folderTreeHtml' => $folderTreeHtml
+                'folderTreeHtml' => $folderTreeHtml,
+                'existingDocuments' => $existingDocuments,
             )
         );
     }
@@ -279,10 +294,13 @@ class DocumentController extends Controller
                         <div class="dropdown">
                             <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
-                                    data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
-                                    <i class="ri-delete-bin-line me-2"></i>Delete folder
-                                </a></li>
+                                <li>
+                                    <a class="dropdown-item text-danger delete-document-btn" href="javascript:void(0)"
+                                        data-id="' . $doc->id . '"
+                                        data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                                        <i class="ri-delete-bin-line me-2"></i>Delete document
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </td>';
@@ -361,12 +379,21 @@ class DocumentController extends Controller
     {
         //
         // dd($request->all());
-        $request->validate([
-            'control_code' => 'unique:documents,control_code'
-        ]);
+
+        $controlCode = $request->filled('control_code_existing')
+            ? trim($request->control_code_existing)
+            : trim($request->control_code);
+
+        $isRevision = $request->input('is_revision', '0') === '1';
+
+        if (! $isRevision) {
+            $request->validate([
+                'control_code' => 'unique:documents,control_code'
+            ]);
+        }
 
         $document = new Document;
-        $document->control_code = $request->control_code;
+        $document->control_code = $controlCode;
         $document->title = $request->title;
         // $document->company_id = $request->company;
         // $document->department_id = $request->department;
@@ -563,7 +590,6 @@ class DocumentController extends Controller
     
                 if ($pageNo == $pageCount)
                 {
-                    // Generate QR code
                     $options = new QROptions([
                         'outputType' => QRCode::OUTPUT_IMAGE_PNG,
                     ]);
@@ -571,7 +597,6 @@ class DocumentController extends Controller
                     $qrCode = new QRCode($options);
                     $qrImageString = $qrCode->render($data);
     
-                    // Bottom-right position
                     $qrSize = 15;
                     $margin = 10;
     
@@ -1063,5 +1088,32 @@ class DocumentController extends Controller
                 "document" => $document
             )
         );
+    }
+
+    public function getDocumentByControlCode(Request $request)
+    {
+        $code = $request->input('control_code');
+
+        $latest = Document::where('control_code', $code)
+            ->orderBy('version', 'desc')
+            ->first();
+
+        if (! $latest) {
+            return response()->json(['found' => false]);
+        }
+
+        $nextRevision = ($latest->version ?? 0) + 1;
+
+        return response()->json([
+            'found'            => true,
+            'control_code'     => $latest->control_code,
+            'title'            => $latest->title,
+            'category'         => $latest->category,
+            'folder_id'        => $latest->folder_id,
+            'other'            => $latest->other_category,
+            'type_of_request'  => $latest->type_of_request,
+            'latest_revision'  => $latest->version,
+            'next_revision'    => $nextRevision,
+        ]);
     }
 }
