@@ -865,6 +865,42 @@
     let selectedRow   = null;
     let currentView   = 'list';
 
+    function deleteDocument(id, name) {
+        swal({
+            title: 'Are you sure?',
+            text: 'Delete "' + name + '"? This action cannot be undone.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false,
+            closeOnCancel: true
+        }, function(confirmed) {
+            if (!confirmed) return;
+            $.ajax({
+                url: '{{ url("documents/bulk-delete") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    folder_ids: '',
+                    document_ids: id
+                },
+                success: function(response) {
+                    if (response.success) {
+                        swal('Deleted!', 'Document successfully deleted.', 'success');
+                        setTimeout(function() { window.location.reload(); }, 1500);
+                    } else {
+                        swal('Cannot Delete!', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    swal('Error!', 'Something went wrong. Please try again.', 'error');
+                }
+            });
+        });
+    }
+
     function getSelectedCount() {
         return Object.keys(selectedItems).length;
     }
@@ -1280,7 +1316,6 @@
 
         $(document).on('click', '.delete-folder-btn', function(e) {
             e.stopPropagation();
-            e.stopImmediatePropagation();
             e.preventDefault();
             
             const id   = $(this).data('id');
@@ -1317,90 +1352,6 @@
             });
         });
 
-        $(document).on('click', '.delete-document-btn', function(e) {
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-
-            const id   = $(this).data('id');
-            const name = $(this).data('name');
-
-            swal({
-                title: 'Are you sure?',
-                text: 'Delete "' + name + '"? This action cannot be undone.',
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Delete',
-                cancelButtonText: 'Cancel',
-                closeOnConfirm: false,
-                closeOnCancel: true
-            }, function(confirmed) {
-                if (!confirmed) return;
-                $.ajax({
-                    url: '{{ url("documents/bulk-delete") }}',
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        folder_ids: '',
-                        document_ids: id
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            swal('Deleted!', 'Document successfully deleted.', 'success');
-                            setTimeout(function() { window.location.reload(); }, 1500);
-                        } else {
-                            swal('Cannot Delete!', response.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        swal('Error!', 'Something went wrong. Please try again.', 'error');
-                    }
-                });
-            });
-        });
-
-        $(document).on('click', '.delete-document-btn', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-
-            const id   = $(this).data('id');
-            const name = $(this).data('name');
-
-            swal({
-                title: 'Are you sure?',
-                text: 'Delete "' + name + '"? This action cannot be undone.',
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Delete',
-                cancelButtonText: 'Cancel',
-                closeOnConfirm: false,
-                closeOnCancel: true
-            }, function(confirmed) {
-                if (!confirmed) return;
-                $.ajax({
-                    url: '{{ url("documents/bulk-delete") }}',
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        folder_ids: '',
-                        document_ids: id
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            swal('Deleted!', 'Document successfully deleted.', 'success');
-                            setTimeout(function() { window.location.reload(); }, 1500);
-                        } else {
-                            swal('Cannot Delete!', response.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        swal('Error!', 'Something went wrong. Please try again.', 'error');
-                    }
-                });
-            });
-        });
 
         const searchInput = $('#folderSearch');
         const clearBtn = $('#clearSearch');
@@ -1482,6 +1433,13 @@
         var menu = new BootstrapMenu('.demoTableRow', {
             fetchElementData: function($rowElem) {
                 return { id: $rowElem.data('folder-id') };
+            },
+            onBeforeShow: function($rowElem, event) {
+                if ($(event.target).closest('.actions-cell').length > 0 ||
+                    $(event.target).closest('.dropdown-menu').length > 0 ||
+                    $(event.target).closest('.dropdown').length > 0) {
+                    return false;
+                }
             },
             actions: {
                 renameFolder: {

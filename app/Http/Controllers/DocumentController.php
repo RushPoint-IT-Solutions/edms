@@ -211,11 +211,12 @@ class DocumentController extends Controller
                 $rowClass = 'child-row folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
             }
             
-            $html .= '<tr class="' . $rowClass . ' demoTableRow" ';
+            $html .= '<tr class="' . $rowClass . '" ';
             if ($level > 0) {
                 $html .= 'data-parent-id="' . $parentId . '" ';
             }
-            $html .= 'data-folder-id="' . $folder->id . '" 
+            $html .= 'data-folder-id="' . $folder->id . '"
+                        data-folder-name="' . strtolower(htmlspecialchars($folder->name, ENT_QUOTES)) . '"
                         data-type="folder"
                         data-modified="' . $folder->updated_at . '"
                         data-level="' . $level . '">';
@@ -245,14 +246,24 @@ class DocumentController extends Controller
             $html .= '<td>Folder</td>';
             $html .= '<td>—</td>';
             $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
-            $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
+            $html .= '<td class="actions-cell">
                 <div class="dropdown">
-                    <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                    <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()"><i class="ri-more-2-fill"></i></button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)" 
-                            data-id="' . $folder->id . '" data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
-                            <i class="ri-delete-bin-line me-2"></i>Delete folder
-                        </a></li>
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0)"
+                                data-bs-toggle="modal"
+                                data-bs-target="#renameFolderModal' . $folder->id . '">
+                                <i class="ri-pencil-line me-2"></i>Rename folder
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
+                                data-id="' . $folder->id . '"
+                                data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                                <i class="ri-delete-bin-line me-2"></i>Delete folder
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </td>';
@@ -292,12 +303,11 @@ class DocumentController extends Controller
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
                         <div class="dropdown">
-                            <button class="action-btn" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()"><i class="ri-more-2-fill"></i></button>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item text-danger delete-document-btn" href="javascript:void(0)"
-                                        data-id="' . $doc->id . '"
-                                        data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                                    <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES)) . '\')">
                                         <i class="ri-delete-bin-line me-2"></i>Delete document
                                     </a>
                                 </li>
@@ -318,16 +328,32 @@ class DocumentController extends Controller
         $documentIds = array_filter(explode(',', $request->document_ids ?? ''));
 
         foreach ($folderIds as $id) {
-            $folder = DocumentFolder::with('document')->find(trim($id));
+            $folder = DocumentFolder::with('document.attachments')->find(trim($id));
             if ($folder) {
-                Document::where('folder_id', $folder->id)->delete();
+                foreach ($folder->document as $doc) {
+                    foreach ($doc->attachments as $attachment) {
+                        $filePath = public_path($attachment->attachment);
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+                        $attachment->delete();
+                    }
+                    $doc->delete();
+                }
                 $folder->delete();
             }
         }
 
         foreach ($documentIds as $id) {
-            $doc = Document::find(trim($id));
+            $doc = Document::with('attachments')->find(trim($id));
             if ($doc) {
+                foreach ($doc->attachments as $attachment) {
+                    $filePath = public_path($attachment->attachment);
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                    $attachment->delete();
+                }
                 $doc->delete();
             }
         }
