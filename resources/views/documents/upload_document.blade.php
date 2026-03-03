@@ -114,10 +114,7 @@
                                 <small id="revisionHint" class="text-muted ms-1" style="display:none;"></small>
                             </label>
                             <div class="input-group">
-                                <input type="number" id="revisionField" class="form-control" value="{{ old('version') }}" min='0' name="version" required/>
-                                <span class="input-group-text" id="revisionAutoIcon" style="display:none; background:#e6f4ff; border-color:#bae0ff; color:#0078d4;" title="Auto-calculated from upload history">
-                                    <i class="ri-magic-line"></i>
-                                </span>
+                                <input type="number" id="revisionField" class="form-control" value="{{ old('version', 0) }}" min='0' name="version" style="background:#f8f9fa; cursor:not-allowed;" readonly/>
                             </div>
                         </div>
 
