@@ -24,6 +24,64 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
+    private function parseDateFromSearch(?string $raw): array
+    {
+        $raw = $raw ?? '';
+        $result = [];
+
+        if (preg_match('/\b(\d{4}-\d{2}-\d{2})\b/', $raw, $m)) {
+            $result['exact'] = $m[1];
+            return $result;
+        }
+
+        if (preg_match('/\b(\d{2}\/\d{2}\/\d{4})\b/', $raw, $m)) {
+            $result['exact'] = date('Y-m-d', strtotime($m[1]));
+            return $result;
+        }
+
+        $monthNames = 'jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?';
+
+        if (preg_match('/\b(' . $monthNames . ')\w*\s+(\d{4})\b/i', $raw, $m)) {
+            $result['month'] = date('m', strtotime('01 ' . $m[1] . ' 2000'));
+            $result['year']  = $m[2];
+            return $result;
+        }
+
+        if (preg_match('/\b(\d{4})\s+(' . $monthNames . ')\w*\b/i', $raw, $m)) {
+            $result['year']  = $m[1];
+            $result['month'] = date('m', strtotime('01 ' . $m[2] . ' 2000'));
+            return $result;
+        }
+
+        if (preg_match('/^(' . $monthNames . ')\w*$/i', trim($raw), $m)) {
+            $result['month'] = date('m', strtotime('01 ' . $m[1] . ' 2000'));
+            return $result;
+        }
+
+        if (preg_match('/^\s*(\d{4})\s*$/', $raw, $m)) {
+            $result['year'] = $m[1];
+            return $result;
+        }
+
+        return $result;
+    }
+
+    private function applyDateFilter($query, array $dateParts, string $column = 'created_at'): void
+    {
+        if (!empty($dateParts['exact'])) {
+            $query->orWhereDate($column, $dateParts['exact']);
+        } elseif (!empty($dateParts['month']) && !empty($dateParts['year'])) {
+            $query->orWhere(function ($q) use ($dateParts, $column) {
+                $q->whereMonth($column, $dateParts['month'])
+                  ->whereYear($column, $dateParts['year']);
+            });
+        } elseif (!empty($dateParts['month'])) {
+            $query->orWhereMonth($column, $dateParts['month']);
+        } elseif (!empty($dateParts['year'])) {
+            $query->orWhereYear($column, $dateParts['year']);
+        }
+    }
+
     /**
      * Show the application dashboard.
      *
@@ -42,18 +100,10 @@ class HomeController extends Controller
         $documentQuery = Document::with('attachments', 'department')->where('public', 1);
 
         $docRaw = $request->get('doc_office_search', '');
-        $docParsedDate = null;
+        $docDateParts = $this->parseDateFromSearch($docRaw);
 
         if ($docRaw) {
-            if (preg_match('/\d{4}-\d{2}-\d{2}/', $docRaw, $m)) {
-                $docParsedDate = $m[0];
-            } elseif (preg_match('/\d{2}\/\d{2}\/\d{4}/', $docRaw, $m)) {
-                $docParsedDate = date('Y-m-d', strtotime($m[0]));
-            } elseif (preg_match('/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}/i', $docRaw, $m)) {
-                $docParsedDate = date('Y-m-d', strtotime('01 ' . $m[0]));
-            }
-
-            $documentQuery->where(function ($q) use ($docRaw, $docParsedDate) {
+            $documentQuery->where(function ($q) use ($docRaw, $docDateParts) {
                 $q->where('title', 'like', '%' . $docRaw . '%')
                   ->orWhere('control_code', 'like', '%' . $docRaw . '%')
                   ->orWhereHas('department', function ($dq) use ($docRaw) {
@@ -61,9 +111,7 @@ class HomeController extends Controller
                         ->orWhere('name', 'like', '%' . $docRaw . '%');
                     });
 
-                if ($docParsedDate) {
-                    $q->orWhereDate('created_at', $docParsedDate);
-                }
+                $this->applyDateFilter($q, $docDateParts);
             });
         }
 
@@ -84,18 +132,10 @@ class HomeController extends Controller
         }
 
         $pendingRaw = $request->get('pending_search', '');
-        $pendingParsedDate = null;
+        $pendingDateParts = $this->parseDateFromSearch($pendingRaw);
 
         if ($pendingRaw) {
-            if (preg_match('/\d{4}-\d{2}-\d{2}/', $pendingRaw, $m)) {
-                $pendingParsedDate = $m[0];
-            } elseif (preg_match('/\d{2}\/\d{2}\/\d{4}/', $pendingRaw, $m)) {
-                $pendingParsedDate = date('Y-m-d', strtotime($m[0]));
-            } elseif (preg_match('/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}/i', $pendingRaw, $m)) {
-                $pendingParsedDate = date('Y-m-d', strtotime('01 ' . $m[0]));
-            }
-
-            $pending_query->where(function ($q) use ($pendingRaw, $pendingParsedDate) {
+            $pending_query->where(function ($q) use ($pendingRaw, $pendingDateParts) {
                 $q->where('title', 'like', '%' . $pendingRaw . '%')
                   ->orWhere('file', 'like', '%' . $pendingRaw . '%')
                   ->orWhereHas('department', function ($dq) use ($pendingRaw) {
@@ -103,9 +143,7 @@ class HomeController extends Controller
                         ->orWhere('name', 'like', '%' . $pendingRaw . '%');
                     });
 
-                if ($pendingParsedDate) {
-                    $q->orWhereDate('created_at', $pendingParsedDate);
-                }
+                $this->applyDateFilter($q, $pendingDateParts);
             });
         }
 
