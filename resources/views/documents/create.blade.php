@@ -190,7 +190,8 @@
     
                     <div class="mb-3">
                         <label class="form-label">Document Description <span class="text-danger">*</span></label>
-                        <textarea name="description" class="form-control" cols="30" rows="5" maxlength="1000" placeholder="Enter document description" required>{{ old('description', $change_request->description ?? '') }}</textarea>
+                        <textarea name="description" class="form-control" cols="30" rows="5" placeholder="Enter document description" required>{{ old('description', $change_request->description ?? '') }}</textarea>
+                        <p class="mt-1" style="text-align: right;"><small><span id="countPerWord">0</span>/1000</small></p>
                     </div>
     
                     <div class="row">
@@ -394,6 +395,28 @@ let pdfDoc = null;
 let scale = 1.0;
 let placingLevel = null;
 let approverBoxes = {};
+
+$("[name='description']").on("input", function() {
+    const value = $(this).val()
+    countToWords(value)
+})
+
+function countToWords(value) {
+    const trimVal = value.trim()
+    const wordsArray = trimVal.split(/\s+/);
+    const countPerWord = wordsArray.length
+    
+    if (trimVal === "") {
+        $("#countPerWord").text(0)
+        return
+    } else {
+        $("#countPerWord").text(countPerWord)
+    }
+    
+    if (wordsArray.length > 1000) {
+        alert("Word limit is exceed")
+    }
+}
 
 function prepareSubmit(event) {
     // event.preventDefault()
