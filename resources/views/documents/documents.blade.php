@@ -1162,10 +1162,9 @@
     }
 
     function resetUploadForm() {
-        $('#titleField').val('');
-        $('#revisionField').val('');
+        $('#titleField').val('').prop('readonly', false);
+        $('#revisionField').val(0).prop('readonly', true).css({ background: '#f8f9fa', cursor: 'not-allowed' });
         $('#revisionAutoIcon').hide();
-        $('#revisionHint').hide().text('');
         $('#revisionInfoBox').hide();
         $('#manualControlCodeWrapper').hide();
         $('#manualControlCode').val('').removeAttr('required');
@@ -1481,6 +1480,7 @@
                 $('#manualControlCodeWrapper').show();
                 $('#manualControlCode').attr('required', true);
                 $('#newDocBadge').show();
+                $('#revisionField').val(0).prop('readonly', true).css({ background: '#f8f9fa', cursor: 'not-allowed' });
                 return;
             }
 
@@ -1494,7 +1494,7 @@
             var nextRevision = curRevision + 1;
 
             $('#selectedControlCode').val(val);
-            $('#titleField').val(title);
+            $('#titleField').val(title).prop('readonly', true);
             $('#otherField').val(other);
             $('#isRevision').val('1');
             $('#revisionBadge').show();
@@ -1503,9 +1503,8 @@
             setChosenValue('#folderField', folderId);
             setChosenValue('#typeOfRequestField', 'Revision');
 
-            $('#revisionField').val(nextRevision);
+            $('#revisionField').val(nextRevision).prop('readonly', true).css({ background: '#f8f9fa', cursor: 'not-allowed' });
             $('#revisionAutoIcon').show();
-            $('#revisionHint').show().text('(was ' + curRevision + ', auto-incremented to ' + nextRevision + ')');
 
             $('#revisionInfoText').html(
                 'You are uploading <strong>Revision ' + nextRevision + '</strong> of ' +
