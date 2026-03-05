@@ -182,6 +182,7 @@ class RequestController extends Controller
                         ->when($request->status, function($q)use($request) {
                             $q->where('status', $request->status);
                         })
+                        ->orderBy('id', 'desc')
                         ->get();
                         
         if (auth()->user()->role != "Administrator" && auth()->user()->role != "Approver")
@@ -191,8 +192,9 @@ class RequestController extends Controller
                                 $q->where('status', $request->status);
                             })
                             ->where('user_id', auth()->user()->id)
+                            ->orderBy('id', 'desc')
                             ->get();
-            }
+        }
 
         return view('change_request.change_requests',
         
