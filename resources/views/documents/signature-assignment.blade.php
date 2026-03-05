@@ -672,7 +672,11 @@
                 const page = pdfLibDoc.getPage(pageIndex);
                 const { width, height } = page.getSize();
     
-                const correctedY = height - Number(signaturePositionArray.y_position) - Number(signaturePositionArray.height)
+                // const correctedY = height - Number(signaturePositionArray.y_position) - Number(signaturePositionArray.height)
+                const pdfPageHeight = height
+                const htmlY = Number(element.y_position)
+                const yInsidePage = htmlY % pdfPageHeight;
+                const correctedY = pdfPageHeight - yInsidePage - Number(element.height);
     
                 page.drawImage(pngImage, {
                     x: Number(signaturePositionArray.x_position),
