@@ -299,7 +299,7 @@
                     <div id="approvers-wrapper">
                         <div class="approver-row mb-2 d-flex align-items-center gap-2">
                             <span class="approver-level badge bg-primary">1</span>
-                            <select name="approvers[]" class="form-select approver-select chosen-select" style="flex: 1;" required>
+                            <select name="approvers[]" class="form-select approver-select chosen-select" style="flex: 1;">
                                 <option value="">-- Select Approver --</option>
                                 @if($change_request)
                                 @foreach ($change_request->approvers as $approver)
@@ -419,33 +419,74 @@ function countToWords(value) {
 }
 
 function prepareSubmit(event) {
-    // event.preventDefault()
+    event.preventDefault();
 
+    const selectedStatus = document.querySelector('select[name="status"]').value;
+    const isApproved = selectedStatus === 'Approved';
+
+    // Check approver - use chosen's underlying select value
+    const approverSelects = document.querySelectorAll('[name="approvers[]"]');
+    let hasApprover = false;
+    approverSelects.forEach(select => {
+        if (select.value && select.value !== '') hasApprover = true;
+    });
+
+    if (isApproved) {
+        if (!hasApprover) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Approver Required!',
+                html: `Please select an <strong>approver</strong> before submitting.<br><br>
+                       An approver is required for <strong>accountability purposes</strong> 
+                       even if the document is already marked as <strong>Approved</strong>.`,
+                confirmButtonText: "OK, I'll select one",
+                confirmButtonColor: '#0ab39c'
+            });
+            return false;
+        }
+
+        // Approver selected — skip signatures, submit
+        document.getElementById('signature-positions-input').value = JSON.stringify([]);
+        event.target.submit();
+        return false;
+    }
+
+    // Non-approved: check approver first
+    if (!hasApprover) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Approver Required!',
+            html: `Please select an <strong>approver</strong> before submitting.`,
+            confirmButtonText: "OK, I'll select one",
+            confirmButtonColor: '#0ab39c'
+        });
+        return false;
+    }
+
+    // Then check signature placement
     const signatureData = [];
     const pdfContainer = document.getElementById('pdf-container');
-    
+
     Object.keys(approverBoxes).forEach(level => {
         approverBoxes[level].forEach(box => {
             const approverRow = document.querySelector(`[data-level="${level}"]`).closest('.approver-row');
-            const userId = approverRow.querySelector('.approver-select').value;
-            
+            const userId = approverRow.querySelector('[name="approvers[]"]').value;
+
             const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
             let pageNumber = 1;
             let cumulativeHeight = 0;
-            
             const boxTop = parseFloat(box.style.top);
-            
+
             for (let i = 0; i < canvases.length; i++) {
                 const canvasHeight = canvases[i].height;
                 const canvasMargin = 10;
-                
                 if (boxTop < cumulativeHeight + canvasHeight) {
                     pageNumber = i + 1;
                     break;
                 }
                 cumulativeHeight += canvasHeight + canvasMargin;
             }
-            
+
             signatureData.push({
                 user_id: userId,
                 page_number: pageNumber,
@@ -456,21 +497,22 @@ function prepareSubmit(event) {
             });
         });
     });
-    
-    const dataSignature = document.getElementById('signature-positions-input')
+
+    const dataSignature = document.getElementById('signature-positions-input');
     dataSignature.value = JSON.stringify(signatureData);
-    
-    if (dataSignature.value == "[]") {
-        alert('Signature placement is required.')
+
+    if (dataSignature.value === '[]') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Signature Placement Required',
+            text: 'Please place at least one signature box on the document before submitting.',
+            confirmButtonColor: '#0ab39c'
+        });
         return false;
     }
-    else 
-    {
-        if (typeof show === 'function') {
-            show();
-        }
-        return true;
-    }
+
+    event.target.submit();
+    return false;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -768,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function () {
         newRow.dataset.oldLevel = level;
         newRow.innerHTML = `
             <span class="approver-level badge bg-primary">${level}</span>
-            <select name="approvers[]" class="form-select approver-select chosen-select-${approverCount}" style="flex: 1;" required>
+            <select name="approvers[]" class="form-select approver-select chosen-select-${approverCount}" style="flex: 1;">
                 <option value="">-- Select Approver --</option>
                 @foreach($approvers as $user)
                     <option value="{{ $user->id }}">{{ $user->name }}</option>
