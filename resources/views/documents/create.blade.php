@@ -424,7 +424,6 @@ function prepareSubmit(event) {
     const selectedStatus = document.querySelector('select[name="status"]').value;
     const isApproved = selectedStatus === 'Approved';
 
-    // Check approver - use chosen's underlying select value
     const approverSelects = document.querySelectorAll('[name="approvers[]"]');
     let hasApprover = false;
     approverSelects.forEach(select => {
@@ -445,13 +444,11 @@ function prepareSubmit(event) {
             return false;
         }
 
-        // Approver selected — skip signatures, submit
         document.getElementById('signature-positions-input').value = JSON.stringify([]);
         event.target.submit();
         return false;
     }
 
-    // Non-approved: check approver first
     if (!hasApprover) {
         Swal.fire({
             icon: 'warning',
@@ -463,7 +460,6 @@ function prepareSubmit(event) {
         return false;
     }
 
-    // Then check signature placement
     const signatureData = [];
     const pdfContainer = document.getElementById('pdf-container');
 
