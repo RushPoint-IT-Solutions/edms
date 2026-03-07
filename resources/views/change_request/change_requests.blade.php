@@ -314,7 +314,7 @@
 
 <div class="row mb-4 dashboard-header">
     <div class="col-12">
-        <h4 class="mb-0">Change Requests</h4>
+        <h4 class="mb-0">My files</h4>
         <p class="text-muted mb-0">Manage and track document change requests</p>
     </div>
 </div>
@@ -326,9 +326,9 @@
                 <i class="fa fa-clock-o"></i>
             </div>
             <h2>
-                {{ count($requests->where('status','Pending')) }}
+                 {{ $allRequests->where('status','For Approval')->count() }}
             </h2>
-            <p>Pending</p>
+            <p>For Approval</p>
         </div>
     </div>
     
@@ -338,7 +338,7 @@
                 <i class="fa fa-times-circle"></i>
             </div>
             <h2>
-                {{ count($requests->where('status','Declined')) }}
+                {{ $allRequests->where('status','Declined')->count() }}
             </h2>
             <p>Declined</p>
         </div>
@@ -350,7 +350,7 @@
                 <i class="fa fa-check-circle"></i>
             </div>
             <h2>
-                {{ count($requests->where('status','Approved')) }}
+                {{ $allRequests->where('status','Approved')->count() }}
             </h2>
             <p>Approved</p>
         </div>
@@ -372,7 +372,7 @@
 <!-- Requests Section -->
 <div class="requests-section mb-5">
     <div class="section-header">
-        <h5 class="section-title">Change Requests</h5>
+        <h5 class="section-title">My Files</h5>
         <div class="header-actions">
             {{-- @if(auth()->user()->role == "Documents and Records Controller")
             <button class="btn btn-success "  data-target="#newRequest" data-toggle="modal" type="button"><i class="fa fa-plus"></i>&nbsp;New </button>
@@ -392,9 +392,9 @@
         <label>Status</label>
         <select id="statusFilter" name="status" class="form-control w-25">
             <option value="">All Status</option>
-            <option value="Pending" @if($status == "Pending") selected @endif>Pending</option>
-            <option value="Declined" @if($status == "Declined") selected @endif>Declined</option>
-            <option value="Approved" @if($status == "Approved") selected @endif>Approved</option>
+            <option value="For Approval" @if($status == 'For Approval') selected @endif>For Approval</option>
+            <option value="Declined"     @if($status == 'Declined')     selected @endif>Declined</option>
+            <option value="Approved"     @if($status == 'Approved')     selected @endif>Approved</option>
         </select>
     </form>
 
