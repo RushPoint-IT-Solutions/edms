@@ -462,7 +462,7 @@
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
-                                <span data-key="t-change-requests">Change Requests</span>
+                                <span data-key="t-change-requests">My Files</span>
                             </a>
                         </li>
                         @endcan

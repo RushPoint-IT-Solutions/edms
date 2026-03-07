@@ -76,14 +76,23 @@
                             </div>
                             <div>
                                 <div class="text-muted small mb-1">STATUS</div>
+                                @php
+                                    $currentApprover = $change_request->approvers->sortBy('level')->firstWhere('status', 'Pending');
+                                @endphp
+
                                 @if($change_request->status == 'Approved')
                                     <span class="badge bg-success">Approved</span>
-                                @elseif($change_request->status == 'Pending')
-                                    <span class="badge bg-warning">Pending</span>
+                                @elseif($change_request->status == 'Returned')
+                                    <span class="badge bg-warning text-dark">Returned</span>
                                 @elseif($change_request->status == 'Declined')
                                     <span class="badge bg-danger">Declined</span>
+                                @elseif($currentApprover)
+                                    <span class="badge bg-primary">For Approval</span>
+                                    <div class="text-muted mt-1" style="font-size: 0.75rem;">
+                                        Pending with: {{ $currentApprover->user->name }}
+                                    </div>
                                 @else
-                                    <span class="badge bg-secondary">Draft</span>
+                                    <span class="badge bg-secondary">{{ $change_request->status }}</span>
                                 @endif
                             </div>
                         </div>
@@ -199,7 +208,7 @@
                         <h6 class="fw-semibold text-dark mb-0">Approval Details</h6>
                     </div>
 
-                    @foreach($change_request->approvers as $approver)
+                   @foreach($change_request->approvers->sortBy('level') as $approver)
                     <div class="approver-card">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="flex-grow-1">
@@ -208,13 +217,22 @@
                                     @if($approver->status == 'Approved')
                                         <span class="badge bg-success" style="font-size: 0.7rem;">Approved</span>
                                     @elseif($approver->status == 'Pending')
-                                        <span class="badge bg-warning" style="font-size: 0.7rem;">Pending</span>
+                                        <span class="badge bg-primary" style="font-size: 0.7rem;">For Approval</span>
+                                    @elseif($approver->status == 'Waiting')
+                                        <span class="badge bg-secondary" style="font-size: 0.7rem;">Waiting</span>
+                                    @elseif($approver->status == 'Returned')
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Returned</span>
                                     @elseif($approver->status == 'Declined')
                                         <span class="badge bg-danger" style="font-size: 0.7rem;">Declined</span>
                                     @endif
                                 </div>
                                 <div class="text-muted" style="font-size: 0.75rem;">
-                                    {{ $approver->user->role }} • {{ date('M d, Y', strtotime($approver->updated_at)) }} at {{ date('h:i A', strtotime($approver->updated_at)) }}
+                                    {{ $approver->user->role }} • 
+                                    @if($approver->status == 'Waiting')
+                                        Not yet reached
+                                    @else
+                                        {{ date('M d, Y', strtotime($approver->updated_at)) }} at {{ date('h:i A', strtotime($approver->updated_at)) }}
+                                    @endif
                                 </div>
                             </div>
                             <button class="btn btn-link text-decoration-none p-0" 
@@ -235,9 +253,9 @@
                                 </div>
                                 <div class="text-muted" style="font-size: 0.8rem;">
                                     @if($approver->remarks)
-                                    {!! nl2br(e($approver->remarks)) !!}
+                                        {!! nl2br(e($approver->remarks)) !!}
                                     @else
-                                    No remarks
+                                        No remarks
                                     @endif
                                 </div>
                             </div>

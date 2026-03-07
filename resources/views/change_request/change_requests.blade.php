@@ -314,7 +314,7 @@
 
 <div class="row mb-4 dashboard-header">
     <div class="col-12">
-        <h4 class="mb-0">Change Requests</h4>
+        <h4 class="mb-0">My files</h4>
         <p class="text-muted mb-0">Manage and track document change requests</p>
     </div>
 </div>
@@ -326,9 +326,9 @@
                 <i class="fa fa-clock-o"></i>
             </div>
             <h2>
-                {{ count($requests->where('status','Pending')) }}
+                 {{ $allRequests->where('status','For Approval')->count() }}
             </h2>
-            <p>Pending</p>
+            <p>For Approval</p>
         </div>
     </div>
     
@@ -338,7 +338,7 @@
                 <i class="fa fa-times-circle"></i>
             </div>
             <h2>
-                {{ count($requests->where('status','Declined')) }}
+                {{ $allRequests->where('status','Declined')->count() }}
             </h2>
             <p>Declined</p>
         </div>
@@ -350,7 +350,7 @@
                 <i class="fa fa-check-circle"></i>
             </div>
             <h2>
-                {{ count($requests->where('status','Approved')) }}
+                {{ $allRequests->where('status','Approved')->count() }}
             </h2>
             <p>Approved</p>
         </div>
@@ -372,7 +372,7 @@
 <!-- Requests Section -->
 <div class="requests-section mb-5">
     <div class="section-header">
-        <h5 class="section-title">Change Requests</h5>
+        <h5 class="section-title">My Files</h5>
         <div class="header-actions">
             {{-- @if(auth()->user()->role == "Documents and Records Controller")
             <button class="btn btn-success "  data-target="#newRequest" data-toggle="modal" type="button"><i class="fa fa-plus"></i>&nbsp;New </button>
@@ -392,9 +392,9 @@
         <label>Status</label>
         <select id="statusFilter" name="status" class="form-control w-25">
             <option value="">All Status</option>
-            <option value="Pending" @if($status == "Pending") selected @endif>Pending</option>
-            <option value="Declined" @if($status == "Declined") selected @endif>Declined</option>
-            <option value="Approved" @if($status == "Approved") selected @endif>Approved</option>
+            <option value="For Approval" @if($status == 'For Approval') selected @endif>For Approval</option>
+            <option value="Declined"     @if($status == 'Declined')     selected @endif>Declined</option>
+            <option value="Approved"     @if($status == 'Approved')     selected @endif>Approved</option>
         </select>
     </form>
 
@@ -419,30 +419,22 @@
                 @foreach($requests as $request)
                 <tr>
                     <td>
-                        {{-- <div class="dropdown">
+                        <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary" type="button" id="requestDropdown{{$request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="ri-more-2-fill"></i>
                             </button>
+
                             <ul class="dropdown-menu" aria-labelledby="requestDropdown{{$request->id}}">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request{{$request->id}}">
-                                        <i class="ri-eye-line me-2"></i>View
+                                    <a class="dropdown-item" href="{{ url('change-request/' . $request->id) }}">
+                                        <i class="ri-information-line me-2"></i> View Status
+                                    </a>
+                                    <a href="{{ url($request->file) }}" class="dropdown-item" target="_blank">
+                                        <i class="ri-file-text-line me-2"></i> View Document
                                     </a>
                                 </li>
-                                @if((auth()->user()->role == "Document Control Officer") || (auth()->user()->role == "Administrator"))
-                                    @if($request->status == "Pending" && $request->request_type == "Revision")
-                                        <li>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#edit_request{{$request->id}}">
-                                                <i class="ri-pencil-line me-2"></i>Edit
-                                            </a>
-                                        </li>
-                                    @endif
-                                @endif
                             </ul>
-                        </div> --}}
-                        <a href="{{ url('change-request/view-change-request/'.$request->id) }}" class="btn btn-sm btn-outline-info me-1">
-                            <i class="ri-eye-line"></i>
-                        </a>
+                        </div>
                     </td>
                     <td>DOC-{{ date('Y', strtotime($request->created_at)) }}-{{ str_pad($request->id,3,'0',STR_PAD_LEFT) }}</td>
                     <td>{{ $request->title }}</td>
