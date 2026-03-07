@@ -419,30 +419,22 @@
                 @foreach($requests as $request)
                 <tr>
                     <td>
-                        {{-- <div class="dropdown">
+                        <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary" type="button" id="requestDropdown{{$request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="ri-more-2-fill"></i>
                             </button>
+
                             <ul class="dropdown-menu" aria-labelledby="requestDropdown{{$request->id}}">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request{{$request->id}}">
-                                        <i class="ri-eye-line me-2"></i>View
+                                    <a class="dropdown-item" href="{{ url('change-request/' . $request->id) }}">
+                                        <i class="ri-information-line me-2"></i> View Status
+                                    </a>
+                                    <a href="{{ url($request->file) }}" class="dropdown-item" target="_blank">
+                                        <i class="ri-file-text-line me-2"></i> View Document
                                     </a>
                                 </li>
-                                @if((auth()->user()->role == "Document Control Officer") || (auth()->user()->role == "Administrator"))
-                                    @if($request->status == "Pending" && $request->request_type == "Revision")
-                                        <li>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#edit_request{{$request->id}}">
-                                                <i class="ri-pencil-line me-2"></i>Edit
-                                            </a>
-                                        </li>
-                                    @endif
-                                @endif
                             </ul>
-                        </div> --}}
-                        <a href="{{ url('change-request/view-change-request/'.$request->id) }}" class="btn btn-sm btn-outline-info me-1">
-                            <i class="ri-eye-line"></i>
-                        </a>
+                        </div>
                     </td>
                     <td>DOC-{{ date('Y', strtotime($request->created_at)) }}-{{ str_pad($request->id,3,'0',STR_PAD_LEFT) }}</td>
                     <td>{{ $request->title }}</td>
