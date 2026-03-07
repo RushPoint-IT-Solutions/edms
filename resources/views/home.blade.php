@@ -573,6 +573,24 @@
     object-fit: cover;
 }
 
+body.modal-open {
+    overflow: hidden !important;
+}
+
+#qrCodeModal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1055 !important;
+}
+
+.modal-backdrop {
+    position: fixed !important;
+    z-index: 1050 !important;
+}
+
 @media (max-width: 768px) {
     .file-dropdown-menu {
         left: auto;
@@ -1469,6 +1487,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+
+        const qrModalEl = document.getElementById('qrCodeModal');
+        if (qrModalEl) {
+            document.body.appendChild(qrModalEl);
+        }
+
+        const qrPrintEl = document.getElementById('qrPrintTemplate');
+        if (qrPrintEl) {
+            document.body.appendChild(qrPrintEl);
+        }
 
         JsBarcode(".barcode").init();
 
