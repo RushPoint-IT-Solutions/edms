@@ -1093,13 +1093,10 @@ class DocumentController extends Controller
 
     public function userView(Request $request)
     {
-        $visitors = DocumentVisitor::where("user_id", auth()->id())->where("document_id", $request->document_id)->first();
-        if(empty($visitors)){
-            $visitor = new DocumentVisitor;
-            $visitor->user_id = auth()->id();
-            $visitor->document_id = $request->document_id;
-            $visitor->save();
-        }
+        $visitor = new DocumentVisitor;
+        $visitor->user_id = auth()->id();
+        $visitor->document_id = $request->document_id;
+        $visitor->save();
         
         return back();
     }
@@ -1108,10 +1105,14 @@ class DocumentController extends Controller
     {
         // dd($request->all());
         $document = Document::with("visitor.user")->findOrFail($id);
+        $totalUniqueVisitors = $document->visitor->unique('user_id')->count();
+        $totalVisitors = $document->visitor->count();
 
         return view("documents.visitors",
             array(
-                "document" => $document
+                "document" => $document,
+                "totalUniqueVisitors" => $totalUniqueVisitors,
+                "totalVisitors" => $totalVisitors
             )
         );
     }

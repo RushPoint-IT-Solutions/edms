@@ -720,8 +720,8 @@ body.modal-open {
 
 <div class="row g-4 align-items-stretch">
     <div class="col-12 col-lg-6 d-flex flex-column">
-        <div class="card shadow-sm">
-            <div class="card-body">
+        <div class="card shadow-sm w-100" style="max-height: 450px;">
+            <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-semibold text-dark mb-0">For Approval</h5>
@@ -1006,7 +1006,7 @@ body.modal-open {
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-shrink-0 pt-1">
                                     @foreach($private_document->attachments->where('type','pdf_copy') as $attachment)
-                                    <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
+                                    <a href="{{ url($attachment->attachment) }}" target="_blank">
                                         <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
                                             <i class="ri-file-text-line"></i>
                                         </div>
@@ -1033,11 +1033,11 @@ body.modal-open {
                                     <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
                                         <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($private_document->created_at)) }}
                                     </small>
-                                    <a href="{{ url("/documents/visitors/".$private_document->id) }}" target="_blank" class="text-decoration-none">
+                                    {{-- <a href="{{ url("/documents/visitors/".$private_document->id) }}" target="_blank" class="text-decoration-none">
                                         <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
                                             <i class="ri-eye-line"></i> {{ count($private_document->visitor) }}
                                         </span>
-                                    </a>
+                                    </a> --}}
                                 </div>
                             </div>
                         </li>
@@ -1094,15 +1094,11 @@ body.modal-open {
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-shrink-0 pt-1">
                                     @foreach($document->attachments->where('type','pdf_copy') as $attachment)
-                                    <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
+                                    <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->document_id }})">
                                         <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
                                             <i class="ri-file-text-line"></i>
                                         </div>
                                     </a>
-                                    <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
-                                        @csrf
-                                        <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                    </form>
                                     @endforeach
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
@@ -1123,7 +1119,7 @@ body.modal-open {
                                     </small>
                                     <a href="{{ url("/documents/visitors/".$document->id) }}" target="_blank" class="text-decoration-none">
                                         <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
-                                            <i class="ri-eye-line"></i> {{ count($document->visitor) }}
+                                            <i class="ri-eye-line"></i> {{ $document->visitor->count() }}
                                         </span>
                                     </a>
                                 </div>
@@ -1473,8 +1469,15 @@ body.modal-open {
 <script src="{{ asset('barcode/JsBarcode.all.min.js') }}"></script>
 
 <script>
-    function userView(id) {
-        document.getElementById("userView"+id).submit()
+    function userView(documentId) {
+        fetch("{{ url('/documents/user-view') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ document_id: documentId })
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
