@@ -97,7 +97,7 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
-        $documentQuery = Document::with('attachments', 'department')->where('public', 1);
+        $documentQuery = Document::with('attachments', 'department', 'visitor')->where('public', 1);
 
         $docRaw = $request->get('public_search', '');
         $docDateParts = $this->parseDateFromSearch($docRaw);
@@ -120,7 +120,7 @@ class HomeController extends Controller
         $privateRaw = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
-        $privateQuery = Document::with('attachments', 'department')->where('public', null);
+        $privateQuery = Document::with('attachments', 'department', 'visitor')->where('public', null);
 
         if ($privateRaw) {
             $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {

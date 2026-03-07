@@ -1,9 +1,6 @@
 @extends("layouts.header")
 
 @section('css')
-<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
 
 <style>
     .dashboard-header {
@@ -332,19 +329,24 @@
 @section("content")
 <div class="row mb-4 dashboard-header">
     <div class="col-12">
-        <h4 class="mb-0">{{$document->control_code}}</h4>
-        <p class="text-muted mb-0">{{$document->title}}</p>
+        <h4 class="mb-0">Document Visitors — {{ $document->control_code }}</h4>
+        <p class="text-muted mb-0">List of users who viewed this document</p>
     </div>
 </div>
 
 <div class="row g-3 mb-4">
     <div class="col-xl-4 col-md-6">
+        <div class="dashboard-card active">
+            <div class="icon-circle"><i class="fa fa-eye"></i></div>
+            <h2>{{ $document->visitor->count() }}</h2>
+            <p>Total Visits</p>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
-            <div class="icon-circle">
-                <i class="fa fa-users"></i>
-            </div>
-            <h2>{{count($document->visitor)}}</h2>
-            <p>Total Visitors</p>
+            <div class="icon-circle"><i class="fa fa-users"></i></div>
+            <h2>{{ $document->visitor->unique('user_id')->count() }}</h2>
+            <p>Unique Visitors</p>
         </div>
     </div>
 </div>
@@ -358,29 +360,112 @@
         <table class="modern-table" id="visitorsTable">
             <thead>
                 <tr>
-                    <th>Profile</th>
+                    <th>Date</th>
+                    <th>Time</th>
                     <th>Name</th>
+                    <th>Department</th>
+                    <th>Count Visits</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($document->visitor as $visitor)
-                    <tr>
-                        <td>
+                @foreach ($document->visitor->groupBy('user_id') as $userId => $visits)
+                @php $sortedVisits = $visits->sortByDesc('created_at'); @endphp
+                <tr>
+                    <td><small>{{ date('M d, Y', strtotime($sortedVisits->first()->created_at)) }}</small></td>
+                    <td><small>{{ date('h:i A', strtotime($sortedVisits->first()->created_at)) }}</small></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
                             <div class="avatar-sm">
-                                <img src="{{ asset("images/no_image.png") }}" alt="" class="rounded-circle img-fluid">
+                                <img src="{{ asset("images/no_image.png") }}" alt="" class="rounded-circle img-fluid" style="width:32px;height:32px;object-fit:cover;">
                             </div>
-                        </td>
-                        <td>{{$visitor->user->name}}</td>
-                    </tr>
+                            <span>{{ $sortedVisits->first()->user->name }}</span>
+                        </div>
+                    </td>
+                    <td><small class="text-muted">{{ $sortedVisits->first()->user->department->name ?? '—' }}</small></td>
+                    <td>
+                        <span class="badge bg-primary visit-badge" 
+                            style="cursor: pointer;" 
+                            data-name="{{ $sortedVisits->first()->user->name }}"
+                            data-visits='@json($sortedVisits->pluck('created_at')->map(fn($d) => date('M d, Y h:i A', strtotime($d))))'>
+                            {{ $visits->count() }} {{ $visits->count() > 1 ? 'visits' : 'visit' }}
+                        </span>
+                    </td>
+                </tr>
                 @endforeach
             </tbody>
         </table>
+    </div>
+</div>
+
+<div class="modal fade" id="visitsModal" tabindex="-1" aria-labelledby="visitsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header text-black">
+                <h5 class="modal-title" id="visitsModalLabel">
+                    <i class="ri-history-line me-2"></i>Visit History — <span id="modalUserName"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-hover table-bordered mb-0" id="visitsHistoryTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 60px;">#</th>
+                            <th>Date & Time</th>
+                            <th style="width: 100px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitsHistoryList"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
 
 @section("js")
 <script>
-    let visitors = $('#visitorsTable').DataTable()
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('visitsModal');
+        if (modal) document.body.appendChild(modal);
+    });
+
+    $(document).on('click', '.visit-badge', function() {
+        const name = $(this).attr('data-name');
+        const visitsRaw = $(this).attr('data-visits');
+        
+        let visits = [];
+        try {
+            visits = JSON.parse(visitsRaw);
+        } catch(e) {
+            console.log('parse error', e);
+            return;
+        }
+
+        $('#modalUserName').text(name);
+
+        const list = document.getElementById('visitsHistoryList');
+        list.innerHTML = '';
+
+        if (visits.length === 0) {
+            list.innerHTML = '<li class="list-group-item text-muted text-center py-3">No visit records found.</li>';
+        } else {
+            visits.forEach(function(date, index) {
+                list.innerHTML += `
+                    <tr>
+                        <td><span class="badge bg-secondary">${index + 1}</span></td>
+                        <td>${date}</td>
+                        <td>${index === 0 ? '<span class="badge bg-success">Latest</span>' : '<span class="badge bg-light text-muted">—</span>'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        var modal = new bootstrap.Modal(document.getElementById('visitsModal'));
+        modal.show();
+    });
 </script>
 @endsection
