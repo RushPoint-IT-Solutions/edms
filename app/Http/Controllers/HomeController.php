@@ -99,7 +99,7 @@ class HomeController extends Controller
 
         $documentQuery = Document::with('attachments', 'department')->where('public', 1);
 
-        $docRaw = $request->get('doc_office_search', '');
+        $docRaw = $request->get('public_search', '');
         $docDateParts = $this->parseDateFromSearch($docRaw);
 
         if ($docRaw) {
@@ -116,6 +116,25 @@ class HomeController extends Controller
         }
 
         $documents = $documentQuery->orderBy('created_at', 'desc')->get();
+        
+        $privateRaw = $request->get('private_search', '');
+        $privateDateParts = $this->parseDateFromSearch($privateRaw);
+
+        $privateQuery = Document::with('attachments', 'department')->where('public', null);
+
+        if ($privateRaw) {
+            $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
+                $q->where('title', 'like', '%' . $privateRaw . '%')
+                ->orWhere('control_code', 'like', '%' . $privateRaw . '%')
+                ->orWhereHas('department', function ($dq) use ($privateRaw) {
+                    $dq->where('code', 'like', '%' . $privateRaw . '%')
+                        ->orWhere('name', 'like', '%' . $privateRaw . '%');
+                });
+                $this->applyDateFilter($q, $privateDateParts);
+            });
+        }
+
+        $private_documents = $privateQuery->orderBy('created_at', 'desc')->get();
 
         if (auth()->user()->role != "Administrator")
         {
@@ -241,6 +260,7 @@ class HomeController extends Controller
             // 'months' =>  $months,
             // 'yearChangeRequests' =>  $yearChangeRequests,
             // 'yearCopyRequests' =>  $yearCopyRequests,
+            'private_documents' => $private_documents
 
         ));
     }
