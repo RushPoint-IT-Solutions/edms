@@ -720,7 +720,7 @@ body.modal-open {
 
 <div class="row g-4 align-items-stretch">
     <div class="col-12 col-lg-6 d-flex flex-column">
-        <div class="card shadow-sm h-100">
+        <div class="card shadow-sm">
             <div class="card-body">
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -963,10 +963,10 @@ body.modal-open {
         </div>
     </div>
 
-        <div class="col-12 col-lg-3 d-flex flex-column">
-            <div class="card shadow-sm w-100 h-100">
-                <div class="card-body d-flex flex-column">
-                <h5 class="fw-semibold text-dark mb-4">Private Documents</h5>
+    <div class="col-12 col-lg-3">
+        <div class="card shadow-sm w-100" style="max-height: 450px; overflow: hidden;">
+            <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
+                <h5 class="fw-semibold text-dark mb-3">Private Documents</h5>
 
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
@@ -984,29 +984,26 @@ body.modal-open {
                                 autocomplete="off">
                             @if(request('private_search'))
                             <a href="{{ route('home') }}" 
-                            class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
-                            style="z-index:2;">
+                                class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
+                                style="z-index:2;">
                                 <i class="ri-close-circle-fill"></i>
                             </a>
                             @endif
                         </div>
-
                         <input type="hidden" name="doc_office_date" value="">
                         <input type="hidden" name="doc_office_dept" value="">
                         <input type="hidden" name="doc_office_office" value="">
-
                         <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
                             <i class="ri-search-line"></i>
                         </button>
                     </div>
                 </form>
 
-                <div style="overflow-y: auto; flex: 1; min-height: 0;">
+                <div style="overflow-y: scroll; flex-grow: 1; min-height: 0;">
                     <ul class="list-group">
                         @forelse ($private_documents as $private_document)
                         <li class="list-group-item px-2 py-2">
                             <div class="d-flex align-items-start gap-2">
-
                                 <div class="flex-shrink-0 pt-1">
                                     @foreach($private_document->attachments->where('type','pdf_copy') as $attachment)
                                     <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
@@ -1020,7 +1017,6 @@ body.modal-open {
                                     </form>
                                     @endforeach
                                 </div>
-
                                 <div class="flex-grow-1 overflow-hidden">
                                     <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $private_document->control_code }}</h6>
                                     <small class="text-muted text-truncate d-block" title="{{ $private_document->title }}">{{ $private_document->title }}</small>
@@ -1033,7 +1029,6 @@ body.modal-open {
                                         @endif
                                     </div>
                                 </div>
-
                                 <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
                                     <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
                                         <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($private_document->created_at)) }}
@@ -1044,7 +1039,6 @@ body.modal-open {
                                         </span>
                                     </a>
                                 </div>
-
                             </div>
                         </li>
                         @empty
@@ -1052,98 +1046,95 @@ body.modal-open {
                         @endforelse
                     </ul>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-lg-3 d-flex flex-column">
-        <div class="card shadow-sm w-100 h-100">
-            <div class="card-body d-flex flex-column">
-            <h5 class="fw-semibold text-dark mb-4">Public Documents</h5>
+    <div class="col-12 col-lg-3">
+        <div class="card shadow-sm w-100" style="max-height: 450px; overflow: hidden;">
+            <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
+                <h5 class="fw-semibold text-dark mb-3">Public Documents</h5>
 
-            <form action="{{ route('home') }}" method="GET" class="mb-3">
-                @if(request('pending_search'))
-                    <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
-                @endif
+                <form action="{{ route('home') }}" method="GET" class="mb-3">
+                    @if(request('pending_search'))
+                        <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
+                    @endif
 
-                <div class="d-flex gap-2 align-items-center mt-1">
-                    <div class="position-relative flex-grow-1">
-                        <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
-                        <input type="text" 
-                            name="public_search"
-                            value="{{ request('public_search') }}"
-                            placeholder="Search title, dept, office, date..."
-                            class="form-control form-control-sm ps-5 pe-5"
-                            autocomplete="off">
-                        @if(request('public_search'))
-                        <a href="{{ route('home') }}" 
-                        class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
-                        style="z-index:2;">
-                            <i class="ri-close-circle-fill"></i>
-                        </a>
-                        @endif
+                    <div class="d-flex gap-2 align-items-center mt-1">
+                        <div class="position-relative flex-grow-1">
+                            <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
+                            <input type="text" 
+                                name="public_search"
+                                value="{{ request('public_search') }}"
+                                placeholder="Search title, dept, office, date..."
+                                class="form-control form-control-sm ps-5 pe-5"
+                                autocomplete="off">
+                            @if(request('public_search'))
+                            <a href="{{ route('home') }}" 
+                                class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
+                                style="z-index:2;">
+                                <i class="ri-close-circle-fill"></i>
+                            </a>
+                            @endif
+                        </div>
+                        <input type="hidden" name="doc_office_date" value="">
+                        <input type="hidden" name="doc_office_dept" value="">
+                        <input type="hidden" name="doc_office_office" value="">
+                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                            <i class="ri-search-line"></i>
+                        </button>
                     </div>
+                </form>
 
-                    <input type="hidden" name="doc_office_date" value="">
-                    <input type="hidden" name="doc_office_dept" value="">
-                    <input type="hidden" name="doc_office_office" value="">
-
-                    <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
-                        <i class="ri-search-line"></i>
-                    </button>
-                </div>
-            </form>
-
-            <div style="overflow-y: auto; flex: 1; min-height: 0;">
-                <ul class="list-group">
-                    @forelse ($documents as $document)
-                    <li class="list-group-item px-2 py-2">
-                        <div class="d-flex align-items-start gap-2">
-
-                            <div class="flex-shrink-0 pt-1">
-                                @foreach($document->attachments->where('type','pdf_copy') as $attachment)
-                                <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
-                                    <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                        <i class="ri-file-text-line"></i>
+                <div style="overflow-y: scroll; flex-grow: 1; min-height: 0;">
+                    <ul class="list-group">
+                        @forelse ($documents as $document)
+                        <li class="list-group-item px-2 py-2">
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="flex-shrink-0 pt-1">
+                                    @foreach($document->attachments->where('type','pdf_copy') as $attachment)
+                                    <a href="{{ url($attachment->attachment) }}" target="_blank" onclick="userView({{ $attachment->id }})">
+                                        <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                            <i class="ri-file-text-line"></i>
+                                        </div>
+                                    </a>
+                                    <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
+                                        @csrf
+                                        <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
+                                    </form>
+                                    @endforeach
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $document->control_code }}</h6>
+                                    <small class="text-muted text-truncate d-block" title="{{ $document->title }}">{{ $document->title }}</small>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        @if($document->department)
+                                            <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
+                                        @endif
+                                        @if($document->department && $document->department->office)
+                                            <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $document->department->office->name ?? $document->department->office->code }}</span>
+                                        @endif
                                     </div>
-                                </a>
-                                <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
-                                    @csrf
-                                    <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                </form>
-                                @endforeach
-                            </div>
-
-                            <div class="flex-grow-1 overflow-hidden">
-                                <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $document->control_code }}</h6>
-                                <small class="text-muted text-truncate d-block" title="{{ $document->title }}">{{ $document->title }}</small>
-                                <div class="d-flex flex-wrap gap-1 mt-1">
-                                    @if($document->department)
-                                        <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
-                                    @endif
-                                    @if($document->department && $document->department->office)
-                                        <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $document->department->office->name ?? $document->department->office->code }}</span>
-                                    @endif
+                                </div>
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
+                                    <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
+                                        <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}
+                                    </small>
+                                    <a href="{{ url("/documents/visitors/".$document->id) }}" target="_blank" class="text-decoration-none">
+                                        <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
+                                            <i class="ri-eye-line"></i> {{ count($document->visitor) }}
+                                        </span>
+                                    </a>
                                 </div>
                             </div>
+                        </li>
+                        @empty
+                            <li class="list-group-item text-center text-muted">No documents found.</li>
+                        @endforelse
+                    </ul>
+                </div>
 
-                            <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
-                                <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
-                                    <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}
-                                </small>
-                                <a href="{{ url("/documents/visitors/".$document->id) }}" target="_blank" class="text-decoration-none">
-                                    <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
-                                        <i class="ri-eye-line"></i> {{ count($document->visitor) }}
-                                    </span>
-                                </a>
-                            </div>
-
-                        </div>
-                    </li>
-                    @empty
-                        <li class="list-group-item text-center text-muted">No documents found.</li>
-                    @endforelse
-                </ul>
             </div>
         </div>
     </div>
@@ -1211,7 +1202,7 @@ body.modal-open {
                         <th style="font-size: 0.875rem; font-weight: 600;">Created By</th>
                         <th style="font-size: 0.875rem; font-weight: 600;">Status</th>
                         <th style="font-size: 0.875rem; font-weight: 600;">QR Code</th>
-                        <th style="font-size: 0.875rem; font-weight: 600;" class="text-center">Actions</th>
+                        {{-- <th style="font-size: 0.875rem; font-weight: 600;" class="text-center">Actions</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -1255,7 +1246,7 @@ body.modal-open {
                                 <i class="ri-qr-code-line"></i> View QR
                             </button>
                         </td>
-                        <td class="text-center">
+                        {{-- <td class="text-center">
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="ri-more-2-fill"></i>
@@ -1280,7 +1271,7 @@ body.modal-open {
                                     </li>
                                 </ul>
                             </div>
-                        </td>
+                        </td> --}}
                     </tr>
                     @empty
                     <tr>
