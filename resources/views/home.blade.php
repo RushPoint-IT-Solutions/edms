@@ -1141,7 +1141,7 @@ body.modal-open {
 </div>
 
 <!-- Documents Section -->
-<div class="card shadow-sm mb-5" style="overflow: visible;">
+<!-- <div class="card shadow-sm mb-5" style="overflow: visible;">
     <div class="card-body" style="overflow: visible;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="fw-semibold text-dark mb-0">My Documents</h5>
@@ -1319,9 +1319,9 @@ body.modal-open {
         </div>
         @endif
     </div>
-</div>
+</div> -->
 
-@if($change_requests->count() > 0)
+<!-- @if($change_requests->count() > 0)
 <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1379,9 +1379,9 @@ body.modal-open {
         </div>
     </div>
 </div>
-@endif
+@endif -->
 
-<div id="qrPrintTemplate" style="display: none;">
+<!-- <div id="qrPrintTemplate" style="display: none;">
     <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
         <h2 style="margin-bottom: 30px; color: #333;">Document QR Code</h2>
         
@@ -1410,7 +1410,7 @@ body.modal-open {
             <p style="font-size: 12px; color: #999; margin: 10px 0;">Generated on: <span id="qrPrintDate"></span></p>
         </div>
     </div>
-</div>
+</div> -->
 
 {{-- Documents Library Chart --}}
 {{-- <div class="row">
