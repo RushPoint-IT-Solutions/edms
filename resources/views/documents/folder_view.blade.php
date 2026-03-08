@@ -107,6 +107,9 @@
                                     New
                                 </button>
                                 <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="{{ route("documents.create") }}">
+                                        <i class="ri-folder-add-line me-2"></i>Request document
+                                    </a>
                                     <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#uploadDocument">
                                         <i class="ri-file-add-line me-2"></i>New file
                                     </a>

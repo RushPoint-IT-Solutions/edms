@@ -726,10 +726,10 @@ body.modal-open {
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-semibold text-dark mb-0">For Approval</h5>
                         <div class="d-flex align-items-center gap-2">
-                            <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                            {{-- <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
                                 <i class="ri-file-add-line"></i>
                                 <span class="d-none d-md-inline">New Document</span>
-                            </a>
+                            </a> --}}
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-outline-secondary btn-sm view-toggle active" data-view="grid">
                                     <i class="ri-grid-line"></i>

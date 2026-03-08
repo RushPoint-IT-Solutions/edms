@@ -117,15 +117,14 @@
                                 <input type="number" id="revisionField" class="form-control" value="{{ old('version', 0) }}" min='0' name="version" style="background:#f8f9fa; cursor:not-allowed;" readonly/>
                             </div>
                         </div>
-
                         <div class='col-md-4'>
                             <label class="form-label">Choose Folder *</label>
                             <select id="folderField" name='folder' class='form-control cat' required>
                                 <option value=""></option>
                                 @foreach($document_folders as $folder)
-                                    <option value='{{$folder->id}}' @if(old('folder') == $folder->id) selected @endif>
-                                        {{$folder->name}}
-                                    </option>
+                                    @if($folder->parent_id == null)
+                                        @include("documents.option", ['folder' => $folder, 'level' => 0])
+                                    @endif  
                                 @endforeach
                             </select>
                         </div>
@@ -136,7 +135,7 @@
                                 <option value=""></option>
                                 <option value="Confidential">Confidential</option>
                                 <option value="Urgent">Urgent</option>
-                                <option value="Draft">Draft</option>
+                                {{-- <option value="Draft">Draft</option> --}}
                                 <option value="Final">Final</option>
                                 <option value="Important">Important</option>
                                 <option value="Legal">Legal</option>
@@ -151,10 +150,10 @@
                                 <option value="Revision">Revision</option>
                                 <option value="Discontinuance">Discontinuance</option>
                                 <option value="Obsolete">Obsolete</option>
-                                <option value="Policy">Policy</option>
-                                <option value="Procedure">Procedure</option>
-                                <option value="Form">Form</option>
-                                <option value="Others">Others</option>
+                                {{-- <option value="Policy">Policy</option> --}}
+                                {{-- <option value="Procedure">Procedure</option> --}}
+                                {{-- <option value="Form">Form</option> --}}
+                                {{-- <option value="Others">Others</option> --}}
                             </select>
                         </div>
 
