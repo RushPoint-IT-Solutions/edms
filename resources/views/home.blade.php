@@ -841,84 +841,86 @@ body.modal-open {
                 </div>
 
                 <div id="listView" class="d-none mb-2">
-                    <div class="drive-list-container">
-                        <div class="drive-list-header">
-                            <div class="drive-list-row">
-                                <div class="drive-col-name"><span>Name</span></div>
-                                <div class="drive-col-owner"><span>Owner</span></div>
-                                <div class="drive-col-dept"><span>Department</span></div>
-                                <div class="drive-col-modified"><span>Last modified</span></div>
-                                <div class="drive-col-size"><span>File size</span></div>
-                                <div class="drive-col-actions"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="drive-list-body">
-                            @foreach ($pending_cards as $change_request)
-                            @php
-                                $file = $change_request->file;
-                                $filename = explode('/',$file);
-                                $filesize = file_exists(public_path($file)) ? filesize(public_path($file)) : 0;
-                                $filesizeFormatted = $filesize > 0 ? number_format($filesize / 1024 / 1024, 2) . ' MB' : '--';
-                            @endphp
-                            <div class="drive-list-item file-card" data-card-id="{{ $change_request->id }}">
+                    <div class="overflow-auto">
+                        <div class="drive-list-container"  style="min-width: 700px;">
+                            <div class="drive-list-header">
                                 <div class="drive-list-row">
-                                    <div class="drive-col-name">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="file-icon-wrapper">
-                                                <i class="ri-file-pdf-line text-danger"></i>
-                                            </div>
-                                            <div class="file-info">
-                                                <div class="file-name">{{ $filename[count($filename)-1] }}</div>
-                                                <div class="file-subtitle text-muted">{{ $change_request->title }}</div>
-                                                <div class="d-flex flex-wrap gap-1 mt-1">
-                                                    @if($change_request->department && $change_request->department->office)
-                                                        <div class="d-flex flex-wrap gap-1 mt-1">
-                                                            <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $change_request->department->office->name ?? $change_request->department->office->code }}</span>
-                                                        </div>
-                                                    @endif
+                                    <div class="drive-col-name"><span>Name</span></div>
+                                    <div class="drive-col-owner"><span>Owner</span></div>
+                                    <div class="drive-col-dept"><span>Department</span></div>
+                                    <div class="drive-col-modified"><span>Last modified</span></div>
+                                    <div class="drive-col-size"><span>File size</span></div>
+                                    <div class="drive-col-actions"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="drive-list-body">
+                                @foreach ($pending_cards as $change_request)
+                                @php
+                                    $file = $change_request->file;
+                                    $filename = explode('/',$file);
+                                    $filesize = file_exists(public_path($file)) ? filesize(public_path($file)) : 0;
+                                    $filesizeFormatted = $filesize > 0 ? number_format($filesize / 1024 / 1024, 2) . ' MB' : '--';
+                                @endphp
+                                <div class="drive-list-item file-card" data-card-id="{{ $change_request->id }}">
+                                    <div class="drive-list-row">
+                                        <div class="drive-col-name">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="file-icon-wrapper">
+                                                    <i class="ri-file-pdf-line text-danger"></i>
+                                                </div>
+                                                <div class="file-info">
+                                                    <div class="file-name">{{ $filename[count($filename)-1] }}</div>
+                                                    <div class="file-subtitle text-muted">{{ $change_request->title }}</div>
+                                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                                        @if($change_request->department && $change_request->department->office)
+                                                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                                                <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $change_request->department->office->name ?? $change_request->department->office->code }}</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="drive-col-owner">
+                                            <span>{{ $change_request->user->name }}</span>
+                                        </div>
+                                        <div class="drive-col-dept">
+                                            @if($change_request->department)
+                                                <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->name }}</span>
+                                            @else
+                                                <span class="text-muted" style="font-size:0.8rem;">—</span>
+                                            @endif
+                                        </div>
+                                        <div class="drive-col-modified">
+                                            <span>{{ date('M d, Y', strtotime($change_request->created_at)) }}</span>
+                                        </div>
+                                        <div class="drive-col-size">
+                                            <span>{{ $filesizeFormatted }}</span>
+                                        </div>
+                                        <div class="drive-col-actions">
+                                            <button class="btn btn-sm btn-light file-more-btn drive-more-btn">
+                                                <i class="ri-more-2-fill"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="drive-col-owner">
-                                        <span>{{ $change_request->user->name }}</span>
-                                    </div>
-                                    <div class="drive-col-dept">
-                                        @if($change_request->department)
-                                            <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->name }}</span>
-                                        @else
-                                            <span class="text-muted" style="font-size:0.8rem;">—</span>
-                                        @endif
-                                    </div>
-                                    <div class="drive-col-modified">
-                                        <span>{{ date('M d, Y', strtotime($change_request->created_at)) }}</span>
-                                    </div>
-                                    <div class="drive-col-size">
-                                        <span>{{ $filesizeFormatted }}</span>
-                                    </div>
-                                    <div class="drive-col-actions">
-                                        <button class="btn btn-sm btn-light file-more-btn drive-more-btn">
-                                            <i class="ri-more-2-fill"></i>
-                                        </button>
-                                    </div>
-                                </div>
 
-                                <div class="file-dropdown-menu" data-card-id="{{ $change_request->id }}">
-                                    <button class="file-dropdown-item" data-action="display">
-                                        <i class="ri-eye-line"></i>
-                                        <input type="hidden" class="file-path" value="{{ $change_request->file }}" />
-                                        <span>View</span>
-                                    </button>
-                                    <div class="file-dropdown-divider"></div>
-                                    <button class="file-dropdown-item" data-action="approve" data-id="{{ $change_request->id }}">
-                                        <i class="ri-checkbox-circle-line"></i>
-                                        <span>Approve</span>
-                                    </button>
-                                    <div class="file-dropdown-divider"></div>
+                                    <div class="file-dropdown-menu" data-card-id="{{ $change_request->id }}">
+                                        <button class="file-dropdown-item" data-action="display">
+                                            <i class="ri-eye-line"></i>
+                                            <input type="hidden" class="file-path" value="{{ $change_request->file }}" />
+                                            <span>View</span>
+                                        </button>
+                                        <div class="file-dropdown-divider"></div>
+                                        <button class="file-dropdown-item" data-action="approve" data-id="{{ $change_request->id }}">
+                                            <i class="ri-checkbox-circle-line"></i>
+                                            <span>Approve</span>
+                                        </button>
+                                        <div class="file-dropdown-divider"></div>
+                                    </div>
                                 </div>
+                                @endforeach
                             </div>
-                            @endforeach
                         </div>
                     </div>
                 </div>
