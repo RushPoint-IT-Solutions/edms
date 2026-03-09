@@ -362,6 +362,219 @@ class RequestController extends Controller
         ));
     }
 
+    public function getChangeApprovalsData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+
+        $query = RequestApprover::with('change_request.document_type', 'change_request.user')
+            ->where('status', 'Pending')
+            ->whereHas('change_request', function ($q) {
+                $q->whereNull('is_draft');
+            })
+            ->when(auth()->user()->role !== 'Administrator', function ($q) {
+                $q->where('user_id', auth()->user()->id);
+            });
+
+        $totalRecords = (clone $query)->count();
+
+        if (!empty($search)) {
+            $query->whereHas('change_request', function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        $totalFiltered = $query->count();
+
+        $approvals = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($approvals as $approval) {
+            $cr = $approval->change_request;
+            if (!$cr) continue;
+
+            $docId = 'DOC-' . date('Y', strtotime($cr->created_at)) . '-' . str_pad($cr->id, 3, '0', STR_PAD_LEFT);
+
+            $data[] = [
+                'action' => '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="' . url('change-request/for_approval/' . $cr->id) . '">
+                                    <i class="ri-eye-line me-2"></i>View Request
+                                </a>
+                            </li>
+                            <!-- <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-success approve-btn" href="#"
+                                    data-id="' . $cr->id . '"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#approveModal' . $cr->id . '">
+                                    <i class="ri-check-line me-2"></i>Approve
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-warning return-btn" href="#"
+                                    data-id="' . $cr->id . '"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#returnModal' . $cr->id . '">
+                                    <i class="ri-arrow-go-back-line me-2"></i>Return
+                                </a>
+                            </li> -->
+                        </ul>
+                    </div>
+
+                    <!-- <div class="modal fade" id="approveModal' . $cr->id . '" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Approve Request</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form action="' . url('change-request/change-request-action/' . $cr->id) . '" method="POST" enctype="multipart/form-data">
+                                    ' . csrf_field() . '
+                                    <input type="hidden" name="action" value="Approved">
+                                    <input type="hidden" name="old_status" value="' . e($cr->status) . '">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Remarks</label>
+                                            <textarea name="remarks" class="form-control" rows="3" placeholder="Enter remarks..."></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Upload File <small class="text-muted">(optional)</small></label>
+                                            <input type="file" name="file" class="form-control" accept=".pdf">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="ri-check-line me-1"></i>Confirm Approve
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="returnModal' . $cr->id . '" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Return Request</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form action="' . url('change-request/change-request-action/' . $cr->id) . '" method="POST">
+                                    ' . csrf_field() . '
+                                    <input type="hidden" name="action" value="Returned">
+                                    <input type="hidden" name="old_status" value="' . e($cr->status) . '">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Reason for Return <span class="text-danger">*</span></label>
+                                            <textarea name="remarks" class="form-control" rows="3" placeholder="Enter reason..." required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="ri-arrow-go-back-line me-1"></i>Confirm Return
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div> -->
+                ',
+                'reference' => '<span class="ref-badge">' . $docId . '</span>',
+                'date' => $cr->created_at ? $cr->created_at->format('M d, Y') : '-',
+                'title' => e($cr->title),
+                'requested_by' => $cr->user->name ?? 'N/A',
+                'type' => optional($cr->document_type)->name ?? '-',
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
+    }
+
+    public function getCopyApprovalsData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+        $order = $request->get('order')[0] ?? ['column' => 2, 'dir' => 'desc'];
+        $columnIndex = $order['column'];
+        $columnName = $request->get('columns')[$columnIndex]['data'] ?? 'created_at';
+        $columnSortOrder = $order['dir'];
+
+        if (auth()->user()->role === 'Administrator') {
+            $query = CopyApprover::with('copy_request.user')
+                ->where('status', 'Pending');
+        } else {
+            $query = CopyApprover::with('copy_request.user')
+                ->where('user_id', auth()->user()->id)
+                ->where('status', 'Pending');
+        }
+
+        $totalRecords = (clone $query)->count();
+
+        if (!empty($search)) {
+            $query->whereHas('copy_request', function ($q) use ($search) {
+                $q->where('title',         'like', "%{$search}%")
+                  ->orWhere('control_code', 'like', "%{$search}%");
+            });
+        }
+
+        $totalFiltered = $query->count();
+
+        $query->orderBy('id', 'desc');
+
+        $approvals = $query->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($approvals as $approval) {
+            $cr = $approval->copy_request;
+            if (!$cr) continue;
+
+            $data[] = [
+                'action'       => '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request_copy' . $cr->id . '">
+                                    <i class="ri-eye-line me-2"></i>View Request
+                                </a>
+                            </li>
+                        </ul>
+                    </div>',
+                'reference' => '<span class="ref-badge">CR-' . str_pad($cr->id, 5, '0', STR_PAD_LEFT) . '</span>',
+                'date' => $cr->created_at ? $cr->created_at->format('M d, Y') : '-',
+                'document' => '<small><strong>' . e($cr->control_code) . ' Rev. ' . e($cr->revision) . '</strong><br>' . e($cr->title) . '<br>' . e($cr->type_of_document) . '</small>',
+                'requested_by' => $cr->user->name ?? 'N/A',
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
