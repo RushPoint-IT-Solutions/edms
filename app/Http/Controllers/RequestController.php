@@ -189,11 +189,13 @@ class RequestController extends Controller
         $forApprovalCount = (clone $query)->where('status', 'For Approval')->count();
         $declinedCount    = (clone $query)->where('status', 'Declined')->count();
         $approvedCount    = (clone $query)->where('status', 'Approved')->count();
+        $returnedCount    = (clone $query)->where('status', 'Returned')->count();
 
         return view('change_request.change_requests', [
             'forApprovalCount' => $forApprovalCount,
             'declinedCount'    => $declinedCount,
             'approvedCount'    => $approvedCount,
+            'returnedCount'    => $returnedCount,
         ]);
     }
 

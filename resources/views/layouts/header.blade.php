@@ -179,6 +179,11 @@
             color: #6c757d; 
         }
 
+        .dashboard-card.returned .icon-circle { 
+            background: #ffe5d0; 
+            color: #cc5500; 
+        }
+
         .dashboard-card.pending .icon-circle {
             background: #e8f5e9;
             color: #4caf50;

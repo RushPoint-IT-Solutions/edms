@@ -15,7 +15,7 @@
 </div>
 
 <div class="row g-3 mb-4 h-100">
-    <div class="col-xl-4 col-md-4">
+    <div class="col-xl-3 col-md-4">
         <div class="dashboard-card pending">
             <div class="icon-circle">
                 <i class="fa fa-clock-o"></i>
@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="col-xl-4 col-md-4">
+    <div class="col-xl-3 col-md-4">
         <div class="dashboard-card declined">
             <div class="icon-circle">
                 <i class="fa fa-times-circle"></i>
@@ -35,13 +35,23 @@
         </div>
     </div>
 
-    <div class="col-xl-4 col-md-4">
+    <div class="col-xl-3 col-md-4">
         <div class="dashboard-card approved">
             <div class="icon-circle">
                 <i class="fa fa-check-circle"></i>
             </div>
             <h2 class="mb-0 font-weight-bold">{{ $approvedCount ?? 0 }}</h2>
             <p>Approved</p>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-4">
+        <div class="dashboard-card returned">
+            <div class="icon-circle">
+                <i class="fa fa-undo"></i>
+            </div>
+            <h2 class="mb-0 font-weight-bold">{{ $returnedCount ?? 0 }}</h2>
+            <p>Returned</p>
         </div>
     </div>
 </div>
@@ -51,7 +61,10 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">My Files</h5>
-                <div class="d-flex gap-2 align-items-center">
+            </div>
+
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:140px;">
                         <option value="">All Status</option>
                         <option value="For Approval">For Approval</option>
@@ -60,22 +73,12 @@
                         <option value="Draft">Draft</option>
                         <option value="Returned">Returned</option>
                     </select>
+                    <div id="table-filter-control"></div>
                 </div>
-            </div>
 
-            <div class="card-body">
-                <div class="top-controls-container">
-                    <div class="left-controls">
-                        <div id="table-length-control"></div>
-                    </div>
-                    <div class="right-controls">
-                        <div class="search-wrapper">
-                            <div id="table-filter-control"></div>
-                        </div>
-                        <div class="buttons-wrapper">
-                            <div id="table-buttons-control"></div>
-                        </div>
-                    </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div id="table-length-control"></div>
+                    <div id="table-buttons-control"></div>
                 </div>
 
                 <div class="table-scroll-container">
