@@ -181,28 +181,138 @@ class RequestController extends Controller
         // dd($request->all());
         $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
 
-        $allRequests = ChangeRequest::whereNull('is_draft')
-                        ->when(!$isAdmin, function($q) {
-                            $q->where('user_id', auth()->user()->id);
-                        })
-                        ->get();
+        $query = ChangeRequest::whereNull('is_draft')
+            ->when(!$isAdmin, function ($q) {
+                $q->where('user_id', auth()->user()->id);
+            });
 
-        $requests = ChangeRequest::whereNull('is_draft')
-                        ->when(!$isAdmin, function($q) {
-                            $q->where('user_id', auth()->user()->id);
-                        })
-                        ->when($request->status, function($q) use ($request) {
-                            $q->where('status', $request->status);
-                        })
-                        ->orderBy('id', 'desc')
-                        ->get();
+        $forApprovalCount = (clone $query)->where('status', 'For Approval')->count();
+        $declinedCount    = (clone $query)->where('status', 'Declined')->count();
+        $approvedCount    = (clone $query)->where('status', 'Approved')->count();
 
         return view('change_request.change_requests', [
-            'requests'    => $requests,
-            'allRequests' => $allRequests,
-            'status'      => $request->status ?? ''
+            'forApprovalCount' => $forApprovalCount,
+            'declinedCount'    => $declinedCount,
+            'approvedCount'    => $approvedCount,
         ]);
     }
+
+    public function getChangeRequestsData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+        $order = $request->get('order')[0] ?? ['column' => 8, 'dir' => 'desc'];
+        $columnIndex = $order['column'];
+        $columnName = $request->get('columns')[$columnIndex]['data'] ?? 'created_at';
+        $columnSortOrder = $order['dir'];
+        $statusFilter = $request->get('status', '');
+
+        $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
+
+        $query = ChangeRequest::with('user')
+            ->whereNull('is_draft')
+            ->when(!$isAdmin, function ($q) {
+                $q->where('user_id', auth()->user()->id);
+            });
+
+        $totalRecords = (clone $query)->count();
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('description','like', "%{$search}%")
+                ->orWhere('category', 'like', "%{$search}%")
+                ->orWhere('privacy', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($statusFilter)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $totalFiltered = $query->count();
+
+        $allowed = ['title', 'description', 'category', 'privacy', 'revision', 'created_at', 'status'];
+        if (in_array($columnName, $allowed)) {
+            $query->orderBy($columnName, $columnSortOrder);
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        $changeRequests = $query->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($changeRequests as $cr) {
+
+            switch ($cr->status) {
+                case 'Approved':
+                    $badgeClass = 'bg-success';
+                    break;
+                case 'For Approval':
+                    $badgeClass = 'bg-primary';
+                    break;
+                case 'Declined':
+                    $badgeClass = 'bg-danger';
+                    break;
+                case 'Returned':
+                    $badgeClass = 'bg-warning text-dark';
+                    break;
+                case 'Draft':
+                    $badgeClass = 'bg-secondary';
+                    break;
+                default:
+                    $badgeClass = 'bg-secondary';
+                    break;
+            }
+            $statusBadge = '<span class="badge ' . $badgeClass . '">' . e($cr->status) . '</span>';
+
+            $docId = 'DOC-' . date('Y', strtotime($cr->created_at)) . '-' . str_pad($cr->id, 3, '0', STR_PAD_LEFT);
+
+            $viewDoc = $cr->file
+                ? '<li><a class="dropdown-item" href="' . url($cr->file) . '" target="_blank"><i class="ri-file-text-line me-2"></i> View Document</a></li>'
+                : '';
+
+            $actions = '
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="' . url('change-request/' . $cr->id) . '">
+                                <i class="ri-information-line me-2"></i> View Status
+                            </a>
+                        </li>
+                        ' . $viewDoc . '
+                    </ul>
+                </div>
+            ';
+
+            $data[] = [
+                'action' => $actions,
+                'doc_id' => $docId,
+                'title' => e($cr->title),
+                'description' => e($cr->description),
+                'category' => e($cr->category),
+                'privacy' => e($cr->privacy),
+                'revision' => e($cr->revision),
+                'requested_by' => $cr->user->name ?? 'N/A',
+                'created_at' => $cr->created_at ? $cr->created_at->format('Y-m-d') : '-',
+                'status' => $statusBadge,
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
+    }
+    
 
     public function removeApprover()
     {
