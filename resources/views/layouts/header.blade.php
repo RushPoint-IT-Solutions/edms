@@ -154,6 +154,31 @@
             flex-shrink: 0;
         }
 
+        .dashboard-card.total .icon-circle { 
+            background: #e7f3ff; 
+            color: #0066cc; 
+        }
+
+        .dashboard-card.active .icon-circle { 
+            background: #d1e7dd; 
+            color: #0f5132; 
+        }
+        
+        .dashboard-card.renewal .icon-circle { 
+            background: #fff3cd; 
+            color: #856404; 
+        }
+        
+        .dashboard-card.overdue .icon-circle { 
+            background: #f8d7da; 
+            color: #842029; 
+        }
+
+        .dashboard-card.inactive .icon-circle { 
+            background: #f1f3f5; 
+            color: #6c757d; 
+        }
+
         .dashboard-card.pending .icon-circle {
             background: #e8f5e9;
             color: #4caf50;
