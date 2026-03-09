@@ -61,6 +61,7 @@ Route::group(['middleware' => 'auth'], function () {
         });
 
         //ChangeRequest
+        Route::get('/change-requests/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
         Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::prefix('change-request')->group(function() {
             Route::get('for_approval/{id}', 'RequestController@show');

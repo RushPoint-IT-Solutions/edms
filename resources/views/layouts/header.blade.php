@@ -22,10 +22,9 @@
     <link href="{{asset('/assets/css/custom.min.css')}}" rel="stylesheet" type="text/css" />
     <link href="{{asset('/assets/css/style.css')}}" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 
-
- 
-    
     <style>
         .helpdesk-link-wrapper {
             position: absolute;
@@ -125,6 +124,209 @@
             100% {
                 transform: translateY(0);
             }
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .dashboard-card .icon-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .dashboard-card.pending .icon-circle {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .dashboard-card.declined .icon-circle {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .dashboard-card.approved .icon-circle {
+            background: #e3f2fd;
+            color: #2196F3;
+        }
+
+        .dashboard-card h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            color: #2c3e50;
+            line-height: 1;
+        }
+
+        .dashboard-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .top-controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .left-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .right-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .search-wrapper {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .buttons-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .bottom-controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table-scroll-container {
+            overflow-x: auto;
+        }
+
+        .dataTables_length {
+            margin: 0 !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0;
+        }
+
+        .dataTables_length select {
+            padding: 6px 30px 6px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin: 0;
+        }
+
+        .dataTables_filter {
+            margin: 0 !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .dataTables_filter label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0;
+        }
+
+        .dataTables_filter input {
+            padding: 6px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin: 0;
+        }
+
+        .dataTables_info {
+            margin: 0 !important;
+            padding: 8px 0;
+        }
+
+        .dataTables_paginate {
+            margin: 0 !important;
+        }
+
+        .dt-buttons {
+            margin: 0 !important;
+            display: flex;
+            gap: 5px;
+        }
+
+        .dt-buttons .dt-button {
+            background: transparent !important;
+            border: 1px solid #dee2e6 !important;
+            color: #6c757d !important;
+            padding: 4px 10px !important;
+            border-radius: 4px !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            white-space: nowrap;
+            box-shadow: none !important;
+            transition: all 0.2s;
+        }
+
+        .dt-buttons .dt-button:hover {
+            background: #f8f9fa !important;
+            border-color: #adb5bd !important;
+            color: #495057 !important;
+        }
+
+        .dt-buttons .dt-button:first-child {
+            border-radius: 4px 0 0 4px !important;
+        }
+
+        .dt-buttons .dt-button:last-child {
+            border-radius: 0 4px 4px 0 !important;
+            margin-left: -1px;
+        }
+
+        table.dataTable {
+            width: 100% !important;
+        }
+
+        .table {
+            margin-bottom: 0 !important;
+        }
+
+        .table thead th {
+            white-space: nowrap;
+            background-color: #f8f9fa;
         }
     </style>
     @yield('css')
@@ -702,6 +904,14 @@
     <script src="{{asset('/assets/libs/feather-icons/feather.min.js')}}"></script>
     <script src="{{asset('/assets/js/pages/plugins/lord-icon-2.1.0.js')}}"></script>
     <script src="{{asset('/assets/js/plugins.js')}}"></script>
+
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
 
     @yield('js')
