@@ -1,6 +1,5 @@
 @extends('layouts.header')
 
-
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
@@ -9,7 +8,7 @@
     </div>
 </div>
 
-<div class="row g-3 mb-4 h-100">
+{{-- <div class="row g-3 mb-4 h-100">
     <div class="col-xl-4 col-md-4">
         <div class="dashboard-card pending">
             <div class="icon-circle"><i class="fa fa-clock-o"></i></div>
@@ -37,7 +36,7 @@
             <p>Declined</p>
         </div>
     </div>
-</div>
+</div> --}}
 
 <div class="row">
     <div class="col-md-12 mb-4">
