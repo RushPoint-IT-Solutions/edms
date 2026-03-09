@@ -42,7 +42,7 @@
     <div class="col-md-12 mb-4">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h5 class="mb-0">Change Requests</h5>
+                <h5 class="mb-0">For Approval</h5>
             </div>
             <div class="card-body">
                 <div class="top-controls-container">
@@ -76,7 +76,7 @@
     </div>
 </div>
 
-<div class="row">
+{{-- <div class="row">
     <div class="col-md-12 mb-5">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
@@ -111,7 +111,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 @foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
 @php $request = $copy_approval->copy_request; @endphp
@@ -176,32 +176,32 @@ $(document).ready(function () {
         }
     }));
 
-    var copyTable = $('#copyApprovalTable').DataTable($.extend(true, {}, dtConfig, {
-        ajax: {
-            url: '{{ route("for-approval.copy.data") }}',
-            type: 'GET',
-            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
-        },
-        columns: [
-            { data: 'action', orderable: false, searchable: false },
-            { data: 'reference', orderable: false, searchable: false },
-            { data: 'date', name: 'created_at' },
-            { data: 'document', name: 'document' },
-            { data: 'requested_by', orderable: false, searchable: false },
-        ],
-        order: [[2, 'desc']],
-        drawCallback: function () { moveControls('copyApprovalTable', 'copy'); },
-        initComplete: function () {
-            var inp = $('#copyApprovalTable_filter input');
-            inp.unbind();
-            var t;
-            inp.on('input', function () {
-                var v = $(this).val();
-                clearTimeout(t);
-                t = setTimeout(function () { copyTable.search(v).draw(); }, 500);
-            });
-        }
-    }));
+    // var copyTable = $('#copyApprovalTable').DataTable($.extend(true, {}, dtConfig, {
+    //     ajax: {
+    //         url: '{{ route("for-approval.copy.data") }}',
+    //         type: 'GET',
+    //         error: function (xhr) { console.error(xhr.status, xhr.responseText); }
+    //     },
+    //     columns: [
+    //         { data: 'action', orderable: false, searchable: false },
+    //         { data: 'reference', orderable: false, searchable: false },
+    //         { data: 'date', name: 'created_at' },
+    //         { data: 'document', name: 'document' },
+    //         { data: 'requested_by', orderable: false, searchable: false },
+    //     ],
+    //     order: [[2, 'desc']],
+    //     drawCallback: function () { moveControls('copyApprovalTable', 'copy'); },
+    //     initComplete: function () {
+    //         var inp = $('#copyApprovalTable_filter input');
+    //         inp.unbind();
+    //         var t;
+    //         inp.on('input', function () {
+    //             var v = $(this).val();
+    //             clearTimeout(t);
+    //             t = setTimeout(function () { copyTable.search(v).draw(); }, 500);
+    //         });
+    //     }
+    // }));
 
     function moveControls(tableId, prefix) {
         var wrapper = $('#' + tableId + '_wrapper');
