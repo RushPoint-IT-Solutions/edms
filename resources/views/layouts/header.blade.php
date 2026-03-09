@@ -755,6 +755,10 @@
                                             <a href="{{ url('users') }}" class="nav-link {{ Request::is('users') || Request::is('new-user') || Request::is('*user*') && !Request::is('remove-approvers') ? 'active' : '' }}" data-key="t-users">Users</a>
                                         </li>
                                     @endcan
+
+                                    <li class="nav-item">
+                                        <a href="{{ url('documents_type') }}" class="nav-link {{ Request::is('documents_type') || Request::is('new-documents_type') || Request::is('*documents_type*') ? 'active' : '' }}" data-key="t-documents_type">Type of Documents</a>
+                                    </li>
                                     {{-- @can('rmo')
                                         <li class="nav-item">
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
