@@ -61,9 +61,9 @@ Route::group(['middleware' => 'auth'], function () {
         });
 
         //ChangeRequest
-        Route::get('/change-requests/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
         Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::prefix('change-request')->group(function() {
+            Route::get('/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
             Route::get('for_approval/{id}', 'RequestController@show');
             Route::get('view-change-request/{id}','RequestController@viewChangeRequest');
             
@@ -135,6 +135,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/request', 'RequestController@index')->name('requests');
         Route::post('change-request-edit/{id}','RequestController@editRequest')->name('change-requests');
         Route::get('/for-approval','RequestController@forApproval')->name('for-approval');
+        Route::get('/for-approval/change/data', 'RequestController@getChangeApprovalsData')->name('for-approval.change.data');
+        Route::get('/for-approval/copy/data',   'RequestController@getCopyApprovalsData')->name('for-approval.copy.data');
         Route::post('/edit-title/{id}','RequestController@editTile');
     
         Route::post('/upload-file/{id}', 'DocumentController@upload')->name('documents');

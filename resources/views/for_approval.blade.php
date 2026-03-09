@@ -1,311 +1,7 @@
 @extends('layouts.header')
 
-@section('css')
-<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-
-<style>
-    .btn-md {
-        border: none !important;
-    }
-
-    .dashboard-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: all 0.3s;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .dashboard-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    .dashboard-card .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 12px;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .dashboard-card.pending .icon-circle {
-        background: #fff3cd;
-        color: #856404;
-    }
-
-    .dashboard-card.approved .icon-circle {
-        background: #cff4fc;
-        color: #055160;
-    }
-
-    .dashboard-card.declined .icon-circle {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    .dashboard-card h2 {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-        color: #2c3e50;
-        line-height: 1;
-    }
-
-    .dashboard-card h2 a {
-        color: #2c3e50;
-        text-decoration: none;
-    }
-
-    .dashboard-card h2 a:hover {
-        color: #0d6efd;
-    }
-
-    .dashboard-card p {
-        margin: 0;
-        font-size: 13px;
-        color: #6c757d;
-        font-weight: 500;
-    }
-
-    .requests-section {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        padding: 15px 12px;
-        border-bottom: 2px solid #8B0000;
-        white-space: nowrap;
-    }
-
-    .modern-table tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        vertical-align: middle;
-        font-size: 14px;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .modern-table tbody td small {
-        display: block;
-        line-height: 1.5;
-        color: #6c757d;
-    }
-
-    .btn-action {
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 13px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-        margin-right: 4px;
-    }
-
-    .btn-action:last-child {
-        margin-right: 0;
-    }
-
-    .btn-action.btn-info {
-        background: #0dcaf0;
-        color: white;
-    }
-
-    .btn-action.btn-info:hover {
-        background: #31d2f2;
-        color: white;
-    }
-
-    .btn-action.btn-warning {
-        background: #ffc107;
-        color: #000;
-    }
-
-    .btn-action.btn-warning:hover {
-        background: #ffcd39;
-    }
-
-    .ref-badge {
-        background: #e7f3ff;
-        color: #0066cc;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .type-badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .type-badge.new {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .type-badge.revision {
-        background: #cff4fc;
-        color: #055160;
-    }
-
-    .type-badge.obsolete {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-     
-    .dataTables_wrapper {
-        padding-top: 20px;
-    }
-
-    .dataTables_wrapper .dataTables_length {
-        float: right;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_length select {
-        padding: 6px 30px 6px 10px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin: 0 5px;
-    }
-
-    .dataTables_wrapper .dataTables_filter {
-        float: left;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        padding: 6px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin-left: 5px;
-    }
-
-    .dataTables_wrapper .dataTables_info {
-        float: left;
-        padding-top: 8px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate {
-        float: right;
-        margin-top: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f8f9fa;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #8B0000;
-        color: white !important;
-        border-color: #8B0000;
-    }
-
-    div.dt-buttons {
-        float: right;
-        margin-bottom: 15px;
-        margin-right: 10px;
-    }
-
-    .dt-button {
-        background: white !important;
-        border: 1px solid #dee2e6 !important;
-        color: #495057 !important;
-        padding: 6px 12px !important;
-        border-radius: 4px !important;
-        margin-right: 5px !important;
-        font-size: 13px !important;
-    }
-
-    .dt-button:hover {
-        background: #f8f9fa !important;
-        border-color: #8B0000 !important;
-    }
-
-     
-    .dataTables_wrapper:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    .table-container {
-        clear: both;
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-card {
-            margin-bottom: 15px;
-        }
-    }
-</style>
-@endsection
 
 @section('content')
- 
 <div class="row mb-4">
     <div class="col-12">
         <h4 class="mb-0">Request Approvals</h4>
@@ -313,223 +9,248 @@
     </div>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-xl-4 col-md-6">
+<div class="row g-3 mb-4 h-100">
+    <div class="col-xl-4 col-md-4">
         <div class="dashboard-card pending">
-            <div class="icon-circle">
-                <i class="fa fa-clock-o"></i>
-            </div>
-            <h2>{{count($copy_for_approvals->where('status','Pending'))+count($change_for_approvals->where('status','Pending'))}}</h2>
+            <div class="icon-circle"><i class="fa fa-clock-o"></i></div>
+            <h2 class="mb-0 font-weight-bold">
+                {{ count($copy_for_approvals->where('status','Pending')) + count($change_for_approvals->where('status','Pending')) }}
+            </h2>
             <p>For Approval</p>
         </div>
     </div>
-    
-    <div class="col-xl-4 col-md-6">
+    <div class="col-xl-4 col-md-4">
         <div class="dashboard-card approved">
-            <div class="icon-circle">
-                <i class="fa fa-check-circle"></i>
-            </div>
-            <h2>{{count($copy_for_approvals->where('status','Approved'))+count($change_for_approvals->where('status','Approved'))}}</h2>
+            <div class="icon-circle"><i class="fa fa-check-circle"></i></div>
+            <h2 class="mb-0 font-weight-bold">
+                {{ count($copy_for_approvals->where('status','Approved')) + count($change_for_approvals->where('status','Approved')) }}
+            </h2>
             <p>Approved</p>
         </div>
     </div>
-    
-    <div class="col-xl-4 col-md-6">
+    <div class="col-xl-4 col-md-4">
         <div class="dashboard-card declined">
-            <div class="icon-circle">
-                <i class="fa fa-times-circle"></i>
-            </div>
-            <h2>{{count($copy_for_approvals->where('status','Declined'))+count($change_for_approvals->where('status','Declined'))}}</h2>
+            <div class="icon-circle"><i class="fa fa-times-circle"></i></div>
+            <h2 class="mb-0 font-weight-bold">
+                {{ count($copy_for_approvals->where('status','Declined')) + count($change_for_approvals->where('status','Declined')) }}
+            </h2>
             <p>Declined</p>
         </div>
     </div>
 </div>
 
-<div class="requests-section">
-    <div class="section-header">
-        <h5 class="section-title">Change Requests</h5>
-    </div>
-
-    <div class="table-container">
-        <table class="modern-table tables">
-            <thead>
-                <tr>
-                    <th>Actions</th>
-                    <th>Reference</th>
-                    <th>Date</th>
-                    <th>Document</th>
-                    <th>Requested By</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($change_for_approvals->where('status','Pending') as $change_approval)
-                @php
-                    $request = ($change_approval->change_request);
-                @endphp
-                @if($request && $request->is_draft == null)
-                <tr>
-                    <td>
-                        <a href={{ url('change-request/for_approval/'.$request->id) }} class="btn btn-sm btn-outline-info me-1" title="View Request">
-                            <i class="ri-eye-line"></i>
-                        </a>
-
-                        {{-- @if(auth()->user()->role == "Document Control Officer")
-                            <a href="#" data-bs-target="#edit_title{{$request->id}}" data-bs-toggle="modal" class="btn btn-sm btn-outline-primary me-1" title="Edit">
-                                <i class="ri-pencil-line"></i>
-                            </a>
-                        @endif --}}
-                    </td>
-                    <td>
-                        <span class="ref-badge">DOC-{{ date('Y', strtotime($request->created_at)) }}-{{ str_pad($request->id,3,'0',STR_PAD_LEFT) }}</span>
-                    </td>
-                    <td>{{date('M d, Y',strtotime($request->created_at))}}</td>
-                    <td>
-                        <small>
-                            <strong>DOC-{{ date('Y', strtotime($request->created_at)) }}-{{ str_pad($request->id,3,'0',STR_PAD_LEFT) }} Rev. {{$request->revision}}</strong><br>
-                            {{$request->title}}<br>
-                        </small>
-                    </td>
-                    <td>{{$request->user->name}}</td>
-                    <td>
-                        {{ $request->document_type->name }}
-                    </td>
-                </tr>
-                @endif
-                @endforeach
-            </tbody>
-        </table>
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">Change Requests</h5>
+            </div>
+            <div class="card-body">
+                <div class="top-controls-container">
+                    <div class="left-controls"><div id="change-length-control"></div></div>
+                    <div class="right-controls">
+                        <div class="search-wrapper"><div id="change-filter-control"></div></div>
+                        <div class="buttons-wrapper"><div id="change-buttons-control"></div></div>
+                    </div>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="changeApprovalTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Actions</th>
+                                <th>Reference</th>
+                                <th>Date</th>
+                                <th>Title</th>
+                                <th>Requested&nbsp;By</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="bottom-controls-container">
+                    <div id="change-info-control"></div>
+                    <div id="change-pagination-control"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="requests-section">
-    <div class="section-header">
-        <h5 class="section-title">Copy Requests</h5>
-    </div>
-
-    <div class="table-container">
-        <table class="modern-table tables">
-            <thead>
-                <tr>
-                    <th>Actions</th>
-                    <th>Reference</th>
-                    <th>Date</th>
-                    <th>Document</th>
-                    <th>Requested By</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
-                @php
-                    $request = $copy_approval->copy_request;
-                @endphp
-                <tr>
-                    <td>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="copyRequestDropdown{{$copy_approval->copy_request->id}}" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="ri-more-2-fill"></i>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="copyRequestDropdown{{$copy_approval->copy_request->id}}">
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#view_request_copy{{$copy_approval->copy_request->id}}">
-                                        <i class="ri-eye-line me-2"></i>View Request
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="ref-badge">CR-{{str_pad($request->id, 5, '0', STR_PAD_LEFT)}}</span>
-                    </td>
-                    <td>{{date('M d, Y',strtotime($copy_approval->copy_request->created_at))}}</td>
-                    <td>
-                        <small>
-                            <strong>{{$copy_approval->copy_request->control_code}} Rev. {{$copy_approval->copy_request->revision}}</strong><br>
-                            {{$copy_approval->copy_request->title}}<br>
-                            {{$copy_approval->copy_request->type_of_document}}
-                        </small>
-                    </td>
-                    <td>{{$copy_approval->copy_request->user->name}}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+<div class="row">
+    <div class="col-md-12 mb-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">Copy Requests</h5>
+            </div>
+            <div class="card-body">
+                <div class="top-controls-container">
+                    <div class="left-controls"><div id="copy-length-control"></div></div>
+                    <div class="right-controls">
+                        <div class="search-wrapper"><div id="copy-filter-control"></div></div>
+                        <div class="buttons-wrapper"><div id="copy-buttons-control"></div></div>
+                    </div>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="copyApprovalTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Actions</th>
+                                <th>Reference</th>
+                                <th>Date</th>
+                                <th>Document</th>
+                                <th>Requested&nbsp;By</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="bottom-controls-container">
+                    <div id="copy-info-control"></div>
+                    <div id="copy-pagination-control"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-{{-- @foreach($change_for_approvals->where('status','Pending') as $change_approval)
-@php
-$request = $change_approval->change_request;
-@endphp
-@include('view_approval_change')
-@include('edit_title')
-@endforeach --}}
 
 @foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
-@php
-$request = $copy_approval->copy_request;
-@endphp
+@php $request = $copy_approval->copy_request; @endphp
 @include('copy_request.view_approval_copy')
 @endforeach
+
 @endsection
 
 @section('js')
-<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-
 <script>
-    function remove_required(id,value)
-    {
-        if(value=="Declined")
-        {
-            $('#soft_copy_'+id).prop('required',false);
-            $('#pdf_copy_'+id).prop('required',false);
+$(document).ready(function () {
 
-            $('.returnOptions'+id).css('display', 'none');
-            $("#returned_to"+id).prop('required', false);
+    var dtConfig = {
+        processing: true,
+        serverSide: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50], [10, 25, 50]],
+        responsive: true,
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'copy',  text: 'Copy'  },
+            { extend: 'excel', text: 'Excel' }
+        ],
+        language: {
+            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+            emptyTable: "No records found",
+            zeroRecords: "No matching records found",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
         }
-        else if(value=="Returned")
-        {
-            $('#soft_copy_'+id).prop('required',false);
-            $('#pdf_copy_'+id).prop('required',false);
-            
-            $('.returnOptions'+id).css('display', 'block');
-            $("#returned_to"+id).prop('required', true);
-        }
-        else
-        {
-            $('#soft_copy_'+id).prop('required',true);
-            $('#pdf_copy_'+id).prop('required',true);
+    };
 
-            $('.returnOptions'+id).css('display', 'none');
-            $("#returned_to"+id).prop('required', false);
+    var changeTable = $('#changeApprovalTable').DataTable($.extend(true, {}, dtConfig, {
+        ajax: {
+            url: '{{ route("for-approval.change.data") }}',
+            type: 'GET',
+            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
+        },
+        columns: [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'reference', orderable: false, searchable: false },
+            { data: 'date', name: 'created_at' },
+            { data: 'title', name: 'title' },
+            { data: 'requested_by', orderable: false, searchable: false },
+            { data: 'type', orderable: false, searchable: false },
+        ],
+        order: [[2, 'desc']],
+        drawCallback: function () { moveControls('changeApprovalTable', 'change'); },
+        initComplete: function () {
+            var inp = $('#changeApprovalTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { changeTable.search(v).draw(); }, 500);
+            });
+        }
+    }));
+
+    var copyTable = $('#copyApprovalTable').DataTable($.extend(true, {}, dtConfig, {
+        ajax: {
+            url: '{{ route("for-approval.copy.data") }}',
+            type: 'GET',
+            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
+        },
+        columns: [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'reference', orderable: false, searchable: false },
+            { data: 'date', name: 'created_at' },
+            { data: 'document', name: 'document' },
+            { data: 'requested_by', orderable: false, searchable: false },
+        ],
+        order: [[2, 'desc']],
+        drawCallback: function () { moveControls('copyApprovalTable', 'copy'); },
+        initComplete: function () {
+            var inp = $('#copyApprovalTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { copyTable.search(v).draw(); }, 500);
+            });
+        }
+    }));
+
+    function moveControls(tableId, prefix) {
+        var wrapper = $('#' + tableId + '_wrapper');
+
+        var length = wrapper.find('.dataTables_length');
+        if (length.length) {
+            $('#' + prefix + '-length-control').empty().append(length.detach());
+        }
+
+        var filter = wrapper.find('.dataTables_filter');
+        if (filter.length) {
+            var searchInput = filter.find('input');
+            var hasFocus  = searchInput.is(':focus');
+            var cursorPos = searchInput[0] ? searchInput[0].selectionStart : null;
+            $('#' + prefix + '-filter-control').empty().append(filter.detach());
+            if (hasFocus) {
+                var newInp = $('#' + tableId + '_filter input');
+                newInp.focus();
+                if (cursorPos !== null) newInp[0].setSelectionRange(cursorPos, cursorPos);
+            }
+        }
+
+        var buttons = wrapper.find('.dt-buttons');
+        if (buttons.length) {
+            $('#' + prefix + '-buttons-control').empty().append(buttons.detach());
+        }
+
+        var info = wrapper.find('.dataTables_info');
+        if (info.length) {
+            $('#' + prefix + '-info-control').empty().append(info.detach());
+        }
+
+        var paginate = wrapper.find('.dataTables_paginate');
+        if (paginate.length) {
+            $('#' + prefix + '-pagination-control').empty().append(paginate.detach());
         }
     }
-    
-    $(document).ready(function(){
-        $('.cat').chosen({width: "100%"});
-        
-        $('.tables').DataTable({
-            pageLength: 25,
-            responsive: true,
-            sorting: false,
-            dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
-            buttons: [
-                {extend: 'copy'},
-                {extend: 'csv'},
-                {extend: 'excel', title: 'Request Approvals'},
-                {extend: 'pdf', title: 'Request Approvals'},
-                {extend: 'print',
-                 customize: function (win) {
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
-                 }
-                }
-            ]
-        });
+
+    setTimeout(function () {
+        moveControls('changeApprovalTable', 'change');
+        moveControls('copyApprovalTable', 'copy');
+    }, 100);
+
+    $(window).on('resize', function () {
+        moveControls('changeApprovalTable', 'change');
+        moveControls('copyApprovalTable', 'copy');
     });
+
+});
 </script>
 @endsection
