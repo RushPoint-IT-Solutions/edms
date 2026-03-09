@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentType extends Model implements Auditable
 {
-    //
     use \OwenIt\Auditing\Auditable;
+
+    protected $fillable = ['
+        name'
+    ];
 }
