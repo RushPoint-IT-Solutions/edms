@@ -63,10 +63,10 @@ Route::group(['middleware' => 'auth'], function () {
         // Type of Documents
         Route::get('/documents_type', 'TypeOfDocumentController@index')->name('settings');
         Route::prefix('documents_type')->group(function() {
+            Route::get('/data', 'TypeOfDocumentController@getData')->name('document-types.data');
             Route::post('/store', 'TypeOfDocumentController@store')->name('settings');
             Route::post('/update/{id}', 'TypeOfDocumentController@update')->name('settings');
-            Route::post('/deactivate', 'TypeOfDocumentController@deactivate')->name('settings');
-            Route::post('/activate', 'TypeOfDocumentController@activate')->name('settings');
+            Route::post('/delete/{id}', 'TypeOfDocumentController@destroy')->name('document-types.destroy');
         });    
 
         //ChangeRequest
