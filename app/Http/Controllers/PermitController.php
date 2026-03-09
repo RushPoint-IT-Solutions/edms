@@ -14,15 +14,8 @@ use App\Notifications\ForRenewal;
 
 class PermitController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index(Request $request)
     {
-        $permits = Permit::get();
-
         $permits_count = Permit::count();
         $for_renewal_count = Permit::where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status', null)->count();
         $overdue_count = Permit::where('expiration_date', '<', date('Y-m-d'))->where('status', null)->count();
@@ -53,7 +46,6 @@ class PermitController extends Controller
         //     $overdue_count = Permit::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('expiration_date', '<', date('Y-m-d'))->where('status',null)->count();
         //     $active_permits_count = Permit::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('expiration_date', '>', date('Y-m-d'))->where('expiration_date', '>', date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('status',null)->count();
         //     $inactive_permits_count = Permit::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('status', 'Inactive')->count();
-
         //     $departments = Department::whereHas('permit_accounts')->whereIn('id',((auth()->user()->dco)->pluck('department_id')->toArray()))->where('status', '=', null)->get();
         // }
         
@@ -77,7 +69,6 @@ class PermitController extends Controller
         //         ->get();
         //     // $departments = Department::whereHas('permit_accounts')->whereIn('id',(auth()->user()->permits)->pluck('department_id')->toArray())->where('status', '=', null)->get();
         //     $departments = Department::whereHas('permit_accounts')->where('id',auth()->user()->department_id)->where('status', '=', null)->get();
-
         //     $permits_count = Permit::where('department_id',auth()->user()->department_id)->where('status',null)->count();
         //     $for_renewal_count = Permit::where('department_id',auth()->user()->department_id)->where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status',null)->count();
         //     $overdue_count = Permit::where('department_id',auth()->user()->department_id)->where('expiration_date', '<', date('Y-m-d'))->where('status',null)->count();
@@ -103,13 +94,11 @@ class PermitController extends Controller
         //         })
         //         ->get();
         //     $departments = Department::whereHas('permit_accounts')->whereIn('id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('status', '=', null)->get();
-
         //     $permits_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('status',null)->count();
         //     $for_renewal_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status',null)->count();
         //     $overdue_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('expiration_date', '<', date('Y-m-d'))->where('status',null)->count();
         //     $active_permits_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('expiration_date', '>', date('Y-m-d'))->where('expiration_date', '>', date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('status',null)->count();
         //     $inactive_permits_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('status', 'Inactive')->count();
-
         //     $archives = Archive::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
         // }
         // if((auth()->user()->role == "Documents and Records Controller"))
@@ -125,36 +114,157 @@ class PermitController extends Controller
         //         ->get();
         //     $departments = Department::whereHas('permit_accounts')->whereIn('id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('status', '=', null)->get();
         // }
-       
+
         return view('permits.permits', array(
             // 'companies' => $companies,
             // 'departments' => $departments,
-            'permits' => $permits,
             // 'archives' => $archives,
             'for_renewal_count' => $for_renewal_count,
             'overdue_count' => $overdue_count,
             'permits_count' => $permits_count,
             'active_permits_count' => $active_permits_count,
-            'inactive_permits_count' => $inactive_permits_count
+            'inactive_permits_count' => $inactive_permits_count,
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public function getData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+        $statusFilter = $request->get('status_filter', '');
+
+        $today = date('Y-m-d');
+        $threeMonths = date('Y-m-d', strtotime("+3 months", strtotime($today)));
+
+        $query = Permit::with('user');
+
+        if (!empty($statusFilter)) {
+            if ($statusFilter === 'Inactive') {
+                $query->where('status', 'Inactive');
+            } elseif ($statusFilter === 'Active') {
+                $query->where('expiration_date', '>', $today)
+                      ->where('expiration_date', '>', $threeMonths)
+                      ->whereNull('status');
+            } elseif ($statusFilter === 'For Renewal') {
+                $query->where('expiration_date', '<', $threeMonths)
+                      ->where('expiration_date', '>', $today)
+                      ->whereNull('status');
+            } elseif ($statusFilter === 'Overdue') {
+                $query->where('expiration_date', '<', $today)
+                      ->whereNull('status');
+            }
+        }
+
+        $totalRecords = (clone $query)->count();
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('type', 'like', "%{$search}%")
+                  ->orWhere('expiration_date', 'like', "%{$search}%");
+            });
+        }
+
+        $totalFiltered = $query->count();
+
+        $permits = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($permits as $permit) {
+
+            if ($permit->status === 'Inactive') {
+                $statusBadge = '<span class="badge bg-secondary">Inactive</span>';
+            } elseif ($permit->expiration_date !== null) {
+                if ($permit->expiration_date < $today) {
+                    $statusBadge = '<span class="badge bg-danger">For Renewal (Overdue)</span>';
+                } elseif ($permit->expiration_date < $threeMonths) {
+                    $statusBadge = '<span class="badge bg-warning text-dark">For Renewal</span>';
+                } else {
+                    $statusBadge = '<span class="badge bg-success">Active</span>';
+                }
+            } else {
+                $statusBadge = '<span class="badge bg-secondary">—</span>';
+            }
+
+            $fileLink = $permit->file
+                ? '<a href="' . url($permit->file) . '" target="_blank"><i class="ri-file-line"></i></a>'
+                : '—';
+
+            $data[] = [
+                'action' => '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#upload' . $permit->id . '">
+                                    <i class="ri-upload-line me-2"></i>Upload
+                                </a>
+                            </li>
+                            {{-- <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change' . $permit->id . '">
+                                    <i class="ri-user-line me-2"></i>Transfer Department
+                                </a>
+                            </li> --}}
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType' . $permit->id . '">
+                                    <i class="ri-edit-line me-2"></i>Change Types
+                                </a>
+                            </li>
+                            {{-- @if($permit->status == null)
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ url(\'inactive-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
+                                        @csrf
+                                        <button type="button" class="dropdown-item text-danger inactiveBtn">
+                                            <i class="ri-delete-bin-line me-2"></i>Inactive Permits
+                                        </button>
+                                    </form>
+                                </li>
+                            @endif --}}
+                            {{-- @if($permit->status == "Inactive")
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ url(\'activate-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
+                                        @csrf
+                                        <button type="button" class="dropdown-item text-success activatePermitsBtn">
+                                            <i class="ri-check-line me-2"></i>Activate Permits
+                                        </button>
+                                    </form>
+                                </li>
+                            @endif --}}
+                        </ul>
+                    </div>',
+                'title' => e($permit->title),
+                'description' => e($permit->description),
+                // 'company' => optional($permit->company)->name ?? '—',
+                // 'department' => optional($permit->department)->name ?? '—',
+                'date_uploaded' => date('M d, Y', strtotime($permit->created_at)),
+                'file' => $fileLink,
+                'type' => e($permit->type),
+                'expiration_date' => $permit->expiration_date ? date('M d, Y', strtotime($permit->expiration_date)) : '—',
+                'status' => $statusBadge,
+                'created_by' => $permit->user->name ?? '—',
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
+    }
+
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         // dd($request->all());
@@ -188,35 +298,16 @@ class PermitController extends Controller
         return back();
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     // public function update(Request $request, $id)
     // {
     //     //
@@ -227,9 +318,9 @@ class PermitController extends Controller
     //     Alert::success('Successfully Updated')->persistent('Dismiss');
     //     return back();
     // }
+
     public function change_type(Request $request, $id)
     {
-        //
         $permit = Permit::findOrfail($id);
         $permit->type = $request->type;
         $permit->title = $request->title;
@@ -239,12 +330,6 @@ class PermitController extends Controller
         return back();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         //
@@ -256,7 +341,6 @@ class PermitController extends Controller
             'file' => 'required',
             // 'expiration_date' => 'required',
         ]);
-
 
         $attachment = $request->file('file');
         $name = time() . '_' . $attachment->getClientOriginalName();
@@ -284,7 +368,7 @@ class PermitController extends Controller
         Alert::success('Successfully Uploaded')->persistent('Dismiss');
         return back();
     }
-    
+
     // public function email_notif()
     // {
     //     $users = User::where('status',null)->get();
@@ -346,12 +430,10 @@ class PermitController extends Controller
     //         $permits = Permit::with('company', 'department')
     //             ->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())
     //             ->get();
-
     //         $active_permits_count = Permit::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('expiration_date', '>', date('Y-m-d'))->where('expiration_date', '>', date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->count();
     //         $inactive_count = Permit::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('status', 'Inactive')->get();
     //         $overdue_count = Permit::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('expiration_date', '<', date('Y-m-d'))->where('status', null)->count();
     //         $for_renewal_count = Permit::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status', null)->count();
-
     //         $departments = Department::whereHas('permit_accounts')->whereIn('id',((auth()->user()->dco)->pluck('department_id')->toArray()))->where('status', '=', null)->get();
     //     }
     //     if((auth()->user()->role == "Department Head"))
@@ -372,7 +454,6 @@ class PermitController extends Controller
     //             ->get();
     //         // $departments = Department::whereHas('permit_accounts')->whereIn('id',(auth()->user()->permits)->pluck('department_id')->toArray())->where('status', '=', null)->get();
     //         $departments = Department::whereHas('permit_accounts')->where('id',auth()->user()->department_id)->where('status', '=', null)->get();
-
     //         $permits_count = Permit::where('department_id',auth()->user()->department_id)->where('status',null)->count();
     //         $for_renewal_count = Permit::where('department_id',auth()->user()->department_id)->where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status',null)->count();
     //         $overdue_count = Permit::where('department_id',auth()->user()->department_id)->where('expiration_date', '<', date('Y-m-d'))->where('status',null)->count();
@@ -386,13 +467,11 @@ class PermitController extends Controller
     //             ->whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())
     //             ->get();
     //         $departments = Department::whereHas('permit_accounts')->whereIn('id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('status', '=', null)->get();
-
     //         $permits_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('status',null)->count();
     //         $for_renewal_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status',null)->count();
     //         $overdue_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('expiration_date', '<', date('Y-m-d'))->where('status',null)->count();
     //         $active_permits_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('expiration_date', '>', date('Y-m-d'))->where('expiration_date', '>', date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('status',null)->count();
     //         $inactive_count = Permit::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->where('status', 'Inactive')->get();
-
     //         $archives = Archive::whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
     //     }
     //     if((auth()->user()->role == "Documents and Records Controller"))

@@ -1,389 +1,5 @@
 @extends('layouts.header')
 
-@section('css')
-<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-
-<style>
-    .btn-md {
-        border: none !important;
-    }
-
-     
-    .dashboard-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: all 0.3s;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .dashboard-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    .dashboard-card .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 12px;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .dashboard-card.total .icon-circle {
-        background: #e7f3ff;
-        color: #0066cc;
-    }
-
-    .dashboard-card.active .icon-circle {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .dashboard-card.renewal .icon-circle {
-        background: #fff3cd;
-        color: #856404;
-    }
-
-    .dashboard-card.overdue .icon-circle {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    .dashboard-card.archived .icon-circle {
-        background: #e9ecef;
-        color: #495057;
-    }
-
-    .dashboard-card.inactive .icon-circle {
-        background: #f1f3f5;
-        color: #6c757d;
-    }
-
-    .dashboard-card h2 {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-        color: #2c3e50;
-        line-height: 1;
-    }
-
-    .dashboard-card h2 a,
-    .dashboard-card h2 input[type="submit"] {
-        color: #2c3e50;
-        text-decoration: none;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        font-size: 28px;
-        font-weight: 700;
-    }
-
-    .dashboard-card h2 a:hover,
-    .dashboard-card h2 input[type="submit"]:hover {
-        color: #0d6efd;
-    }
-
-    .dashboard-card p {
-        margin: 0;
-        font-size: 13px;
-        color: #6c757d;
-        font-weight: 500;
-    }
-
-    .requests-section {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    .btn-new {
-        background: #800000;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .btn-new:hover {
-        background: #6B0000;
-    }
-
-    .btn-new i {
-        font-size: 14px;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        padding: 15px 12px;
-        border-bottom: 2px solid #8B0000;
-        white-space: nowrap;
-    }
-
-    .modern-table tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        vertical-align: middle;
-        font-size: 14px;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .modern-table tbody td small {
-        display: block;
-        line-height: 1.5;
-        color: #6c757d;
-    }
-
-    .modern-table tbody td small hr {
-        margin: 4px 0;
-        border-color: #e9ecef;
-    }
-
-    
-    .btn-action {
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 13px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-        margin-right: 4px;
-        margin-bottom: 4px;
-    }
-
-    .btn-action:last-child {
-        margin-right: 0;
-    }
-
-    .btn-action.btn-primary {
-        background: #0d6efd;
-        color: white;
-    }
-
-    .btn-action.btn-primary:hover {
-        background: #0b5ed7;
-    }
-
-    .btn-action.btn-warning {
-        background: #ffc107;
-        color: #000;
-    }
-
-    .btn-action.btn-warning:hover {
-        background: #ffcd39;
-    }
-
-    .btn-action.btn-info {
-        background: #0dcaf0;
-        color: white;
-    }
-
-    .btn-action.btn-info:hover {
-        background: #31d2f2;
-    }
-
-    .btn-action.btn-danger {
-        background: #dc3545;
-        color: white;
-    }
-
-    .btn-action.btn-danger:hover {
-        background: #bb2d3b;
-    }
-
-    .btn-action.btn-success {
-        background: #198754;
-        color: white;
-    }
-
-    .btn-action.btn-success:hover {
-        background: #157347;
-    }
-
-    .btn-action i {
-        font-size: 14px;
-    }
-
-    /* Status Badges */
-    .badge-status {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-status.active {
-        background: #e8f5e9;
-        color: #4caf50;
-    }
-
-    .badge-status.renewal {
-        background: #fff3e0;
-        color: #ff9800;
-    }
-
-    .badge-status.overdue {
-        background: #ffebee;
-        color: #f44336;
-    }
-
-    .badge-status.inactive {
-        background: #ffebee;
-        color: #f44336;
-    }
-
-     
-    .dataTables_wrapper {
-        padding-top: 20px;
-    }
-
-    .dataTables_wrapper .dataTables_length {
-        float: right;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_length select {
-        padding: 6px 30px 6px 10px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin: 0 5px;
-    }
-
-    .dataTables_wrapper .dataTables_filter {
-        float: left;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        padding: 6px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin-left: 5px;
-    }
-
-    .dataTables_wrapper .dataTables_info {
-        float: left;
-        padding-top: 8px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate {
-        float: right;
-        margin-top: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f8f9fa;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #8B0000;
-        color: white !important;
-        border-color: #8B0000;
-    }
-
-    div.dt-buttons {
-        float: right;
-        margin-bottom: 15px;
-        margin-right: 10px;
-    }
-
-    .dt-button {
-        background: white !important;
-        border: 1px solid #dee2e6 !important;
-        color: #495057 !important;
-        padding: 6px 12px !important;
-        border-radius: 4px !important;
-        margin-right: 5px !important;
-        font-size: 13px !important;
-    }
-
-    .dt-button:hover {
-        background: #f8f9fa !important;
-        border-color: #8B0000 !important;
-    }
-
-     
-    .dataTables_wrapper:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    .table-container {
-        clear: both;
-    }
-
-     
-    @media (max-width: 768px) {
-        .dashboard-card {
-            margin-bottom: 15px;
-        }
-    }
-</style>
-@endsection
-
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
@@ -392,275 +8,258 @@
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4 h-100">
     <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card total">
-            <div class="icon-circle">
-                <i class="ri-file-list-3-line"></i>
-            </div>
-            <h2>
-                <a href="{{url('permits')}}">{{$permits_count}}</a>
+            <div class="icon-circle"><i class="ri-file-list-3-line"></i></div>
+            <h2 class="mb-0 font-weight-bold">
+                <a href="{{ url('permits') }}">{{ $permits_count }}</a>
             </h2>
             <p>Total</p>
         </div>
     </div>
     <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card active">
-            <div class="icon-circle">
-                <i class="ri-checkbox-circle-line"></i>
-            </div>
-            <form action="" method="get">
-                <h2>
-                    <input type="hidden" name="active_permits_filter" value="Active">
-                    <input type="submit" value="{{$active_permits_count}}">
-                </h2>
-            </form>
+            <div class="icon-circle"><i class="ri-checkbox-circle-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="Active" style="cursor:pointer;">
+                {{ $active_permits_count }}
+            </h2>
             <p>Active</p>
         </div>
     </div>
     <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card renewal">
-            <div class="icon-circle">
-                <i class="ri-refresh-line"></i>
-            </div>
-            <form action="" method="get">
-                <h2>
-                    <input type="hidden" name="renewal_filter" value="For Renewal">
-                    <input type="submit" value="{{$for_renewal_count}}">
-                </h2>
-            </form>
+            <div class="icon-circle"><i class="ri-refresh-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="For Renewal" style="cursor:pointer;">
+                {{ $for_renewal_count }}
+            </h2>
             <p>For Renewal</p>
         </div>
     </div>
     <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card overdue">
-            <div class="icon-circle">
-                <i class="ri-alert-line"></i>
-            </div>
-            <form method="GET">
-                <h2>
-                    <input type="hidden" name="overdue_filter" value="Overdue">
-                    <input type="submit" value="{{$overdue_count}}">
-                </h2>
-            </form>
+            <div class="icon-circle"><i class="ri-alert-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="Overdue" style="cursor:pointer;">
+                {{ $overdue_count }}
+            </h2>
             <p>Overdue</p>
         </div>
     </div>
     {{-- <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card archived">
-            <div class="icon-circle">
-                <i class="ri-archive-line"></i>
-            </div>
-            <h2>
-                <a href="{{url('archive_permits')}}">{{count($archives)}}</a>
+            <div class="icon-circle"><i class="ri-archive-line"></i></div>
+            <h2 class="mb-0 font-weight-bold">
+                <a href="{{ url('archive_permits') }}">{{ count($archives) }}</a>
             </h2>
             <p>Archived</p>
         </div>
     </div> --}}
     <div class="col-lg-2 col-md-4 col-sm-6">
         <div class="dashboard-card inactive">
-            <div class="icon-circle">
-                <i class="ri-close-circle-line"></i>
-            </div>
-            <form method="GET">
-                <h2>
-                    <input type="hidden" name="inactive_filter" value="Inactive">
-                    <input type="submit" value="{{$inactive_permits_count}}">
-                </h2>
-            </form>
+            <div class="icon-circle"><i class="ri-close-circle-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="Inactive" style="cursor:pointer;">
+                {{ $inactive_permits_count }}
+            </h2>
             <p>Inactive</p>
         </div>
     </div>
 </div>
 
-<div class="requests-section mb-5">
-    <div class="section-header">
-        <h5 class="section-title">Permits & Licenses</h5>
-        <button class="btn-new" data-bs-toggle="modal" data-bs-target="#new_permit" type="button">
-            <i class="fa fa-plus"></i> New
-        </button>
-    </div>
+<div class="row">
+    <div class="col-md-12 mb-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">Permits & Licenses</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new_permit">
+                    <i class="fa fa-plus"></i> New
+                </button>
+            </div>
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="For Renewal">For Renewal</option>
+                        <option value="Overdue">Overdue</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                    <div id="table-filter-control"></div>
+                </div>
 
-    <div class="table-container">
-        <table class="modern-table tables">
-            <thead>
-                <tr>
-                    <th>Action</th>
-                    <th>Title</th>
-                    <th>Description</th>
-                    {{-- <th>Company</th> --}}
-                    {{-- <th>Department</th> --}}
-                    {{-- <th>Accountable Person</th> --}}
-                    <th>Date Uploaded</th>
-                    <th>File</th>
-                    <th>Type</th>
-                    <th>Expiration Date</th>
-                    <th>Status</th>
-                    <th>Created by</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($permits as $permit)
-                <tr>
-                    <td>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="dropdownMenuButton{{$permit->id}}" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="ri-more-2-fill"></i>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{$permit->id}}">
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#upload{{$permit->id}}">
-                                        <i class="ri-upload-line me-2"></i>Upload
-                                    </a>
-                                </li>
-                                {{-- <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change{{$permit->id}}">
-                                        <i class="ri-user-line me-2"></i>Transfer Department
-                                    </a>
-                                </li> --}}
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType{{$permit->id}}">
-                                        <i class="ri-edit-line me-2"></i>Change Types
-                                    </a>
-                                </li>
-                                {{-- @if($permit->status == null)
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form method="POST" action="{{ url('inactive-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
-                                            @csrf
-                                            <button type="button" class="dropdown-item text-danger inactiveBtn">
-                                                <i class="ri-delete-bin-line me-2"></i>Inactive Permits
-                                            </button>
-                                        </form>
-                                    </li>
-                                @endif --}}
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div id="table-length-control"></div>
+                    <div id="table-buttons-control"></div>
+                </div>
 
-                                {{-- @if($permit->status == "Inactive")
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form method="POST" action="{{ url('activate-permits/'.$permit->id) }}" style="display: inline-block; width: 100%;">
-                                            @csrf
-                                            <button type="button" class="dropdown-item text-success activatePermitsBtn">
-                                                <i class="ri-check-line me-2"></i>Activate Permits
-                                            </button>
-                                        </form>
-                                    </li>
-                                @endif --}}
-                            </ul>
-                        </div>
-                    </td>
-                    <td>{{$permit->title}}</td>
-                    <td>{{$permit->description}}</td>
-                    {{-- <td>{{$permit->company->name}}</td> --}}
-                    {{-- <td>{{$permit->department->name}}</td> --}}
-                    {{-- <td>
-                        <small>
-                            @foreach($permit->department->permit_accounts as $accountable)
-                                {{optional($accountable->user)->name}} <hr>
-                            @endforeach
-                        </small>
-                    </td> --}}
-                    <td>{{date('M d, Y',strtotime($permit->created_at))}}</td>
-                    <td>
-                        <a href='{{url($permit->file)}}' target='_blank'>
-                            <i class='fa fa-file'></i>
-                        </a>
-                    </td>
-                    <td>{{$permit->type}}</td>
-                    <td>@if($permit->expiration_date != null){{date('M d, Y',strtotime($permit->expiration_date))}}@endif</td>
-                    <td>
-                        @if($permit->status != null)
-                            @if($permit->status == "Inactive")
-                            <span class="badge-status inactive">{{$permit->status}}</span>
-                            @endif
-                        @else
-                            @if($permit->expiration_date != null)
-                                @if($permit->expiration_date < date("Y-m-d")) 
-                                <span class="badge-status overdue">For Renewal (Overdue)</span> 
-                                @elseif($permit->expiration_date < date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d'))))) 
-                                <span class="badge-status renewal">For Renewal</span> 
-                                @else 
-                                <span class="badge-status active">Active</span> 
-                                @endif 
-                            @endif
-                        @endif
-                    </td>
-                    <td>{{$permit->user->name}}</td>
-                </tr>
-                @include('permits.upload_permit')
-                {{-- @include('transfer_department') --}}
-                @include('permits.edit_type')
-                @endforeach
-            </tbody>
-        </table>
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="permitsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Action</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                {{-- <th>Company</th> --}}
+                                {{-- <th>Department</th> --}}
+                                {{-- <th>Accountable Person</th> --}}
+                                <th>Date&nbsp;Uploaded</th>
+                                <th>File</th>
+                                <th>Type</th>
+                                <th>Expiration&nbsp;Date</th>
+                                <th>Status</th>
+                                <th>Created&nbsp;By</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="bottom-controls-container">
+                    <div id="table-info-control"></div>
+                    <div id="table-pagination-control"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 @include('permits.new_permit')
+
 @endsection
 
 @section('js')
-<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
-
 <script>
-    $(document).ready(function(){
-        
-        $('.cat').chosen({width: "100%"});
-        $('.locations').chosen({width: "100%"});
-        $('.tables').DataTable({
-            pageLength: 25,
-            responsive: true,
-            stateSave: true,
-            sorting: false,
-            dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
-            buttons: [
-                {extend: 'copy'},
-                {extend: 'csv'},
-                {extend: 'excel', title: 'Permits & Licenses'},
-                {extend: 'pdf', title: 'Permits & Licenses'},
-                {extend: 'print',
-                 customize: function (win) {
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
-                 }
-                }
-            ]
+$(document).ready(function () {
 
-        });
+    var currentFilter = '';
 
-        $('.inactiveBtn').on('click', function() {
-            swal({
-                title: "Are you sure?",
-                text: "This permits will be inactive!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, Inactive it!",
-                closeOnConfirm: false
-            }, function (){
-                $('.inactiveBtn').closest('form').submit()
+    var table = $('#permitsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ url("permits/data") }}',
+            type: 'GET',
+            data: function (d) { d.status_filter = currentFilter; },
+            error: function (xhr) {
+                console.error(xhr.status, xhr.responseText);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load data.' });
+            }
+        },
+        columns: [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'title', name: 'title' },
+            { data: 'description', name: 'description' },
+            {{-- { data: 'company', name: 'company' }, --}}
+            {{-- { data: 'department', name: 'department' }, --}}
+            { data: 'date_uploaded', name: 'created_at' },
+            { data: 'file', orderable: false, searchable: false },
+            { data: 'type', name: 'type' },
+            { data: 'expiration_date', name: 'expiration_date' },
+            { data: 'status', orderable: false, searchable: false },
+            { data: 'created_by', orderable: false, searchable: false },
+        ],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        responsive: true,
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'copy', text: 'Copy' },
+            { extend: 'excel', text: 'Excel', title: 'Permits & Licenses' },
+            { extend: 'pdf', text: 'PDF', title: 'Permits & Licenses' },
+        ],
+        order: [[0, 'desc']],
+        language: {
+            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+            emptyTable: "No permits found",
+            zeroRecords: "No matching permits found",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
+        },
+        drawCallback: function () { moveControls(); },
+        initComplete: function () {
+            var inp = $('#permitsTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { table.search(v).draw(); }, 500);
             });
-        })
-
-        $('.activatePermitsBtn').on('click', function() {
-            
-            swal({
-                title: "Are you sure?",
-                text: "This permits will be activate!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, Activate it!",
-                closeOnConfirm: false
-            }, function (){
-                $('.activatePermitsBtn').closest('form').submit()
-            });
-        })
+        }
     });
+
+    function moveControls() {
+        var wrapper = $('#permitsTable_wrapper');
+
+        var length = wrapper.find('.dataTables_length');
+        if (length.length) $('#table-length-control').empty().append(length.detach());
+
+        var filter = wrapper.find('.dataTables_filter');
+        if (filter.length) {
+            var inp = filter.find('input');
+            var hasFocus = inp.is(':focus');
+            var curPos = inp[0] ? inp[0].selectionStart : null;
+            $('#table-filter-control').empty().append(filter.detach());
+            if (hasFocus) {
+                var newInp = $('#permitsTable_filter input');
+                newInp.focus();
+                if (curPos !== null) newInp[0].setSelectionRange(curPos, curPos);
+            }
+        }
+
+        var buttons = wrapper.find('.dt-buttons');
+        if (buttons.length) $('#table-buttons-control').empty().append(buttons.detach());
+
+        var info = wrapper.find('.dataTables_info');
+        if (info.length) $('#table-info-control').empty().append(info.detach());
+
+        var paginate = wrapper.find('.dataTables_paginate');
+        if (paginate.length) $('#table-pagination-control').empty().append(paginate.detach());
+    }
+
+    setTimeout(function () { moveControls(); }, 100);
+    $(window).on('resize', function () { moveControls(); });
+
+    $('#statusFilter').on('change', function () {
+        currentFilter = $(this).val();
+        table.ajax.reload();
+    });
+
+    $('.filter-btn').on('click', function () {
+        currentFilter = $(this).data('filter');
+        $('#statusFilter').val(currentFilter);
+        table.ajax.reload();
+    });
+
+    $(document).on('click', '.inactiveBtn', function () {
+        var form = $(this).closest('form');
+        swal({
+            title: "Are you sure?",
+            text: "This permits will be inactive!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, Inactive it!",
+            closeOnConfirm: false
+        }, function () { form.submit(); });
+    });
+
+    $(document).on('click', '.activatePermitsBtn', function () {
+        var form = $(this).closest('form');
+        swal({
+            title: "Are you sure?",
+            text: "This permits will be activate!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, Activate it!",
+            closeOnConfirm: false
+        }, function () { form.submit(); });
+    });
+
+});
 </script>
 @endsection

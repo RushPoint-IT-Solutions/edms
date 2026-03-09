@@ -109,9 +109,10 @@ Route::group(['middleware' => 'auth'], function () {
         // Permits
         Route::get('/permits', 'PermitController@index')->name('permits');
         Route::prefix('permits')->group(function() {
+            Route::get('/data', 'PermitController@getData')->name('permits.data');
             Route::post('/store', 'PermitController@store')->name('permits');
             Route::post('/upload/{id}', 'PermitController@upload')->name('permits');
-            Route::post('change-type/{id}','PermitController@change_type')->name('permits');
+            Route::post('change-type/{id}', 'PermitController@change_type')->name('permits');
         });
 
         // Departments
