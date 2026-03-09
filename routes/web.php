@@ -60,6 +60,15 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('activate-user', 'UserController@activate_user')->name('settings');
         });
 
+        // Type of Documents
+        Route::get('/documents_type', 'TypeOfDocumentController@index')->name('settings');
+        Route::prefix('documents_type')->group(function() {
+            Route::post('/store', 'TypeOfDocumentController@store')->name('settings');
+            Route::post('/update/{id}', 'TypeOfDocumentController@update')->name('settings');
+            Route::post('/deactivate', 'TypeOfDocumentController@deactivate')->name('settings');
+            Route::post('/activate', 'TypeOfDocumentController@activate')->name('settings');
+        });    
+
         //ChangeRequest
         Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::prefix('change-request')->group(function() {
