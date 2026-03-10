@@ -1,36 +1,30 @@
-<div class="modal fade" id="new_team" tabindex="-1" aria-labelledby="newTeamLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="new_team" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="border-bottom: 1px solid #000000;">
-                <h5 class="modal-title" id="newTeamLabel">
-                    <i class="fa fa-plus me-2"></i>Create New Team
-                </h5>
-                <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-2">
+                <h5 class="modal-title mb-3">Create New Team</h5>
+                <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
             <form id="newTeamForm">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
-                        <select name="department" id="department" class="form-control cat">
-                            <option value=""></option>
-                            @foreach ($departments as $department)
+                        <label class="form-label">Department <span class="text-danger">*</span></label>
+                        <select name="department" id="new_department_id" class="form-select select2-team" required>
+                            <option value="">Select department...</option>
+                            @foreach($departments as $department)
                                 <option value="{{ $department->id }}">{{ $department->name }}</option>
                             @endforeach
                         </select>
-                        <div class="invalid-feedback" id="department_name_error"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="team_name" class="form-label">Team Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="team_name" name="team_name" placeholder="Enter team name" required>
-                        <div class="invalid-feedback" id="team_name_error"></div>
+                        <label class="form-label">Team Name <span class="text-danger">*</span></label>
+                        <input type="text" id="team_name" name="team_name" class="form-control" placeholder="Enter team name" required>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fa fa-times me-1"></i>Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary" id="createTeamBtn">
+                <div class="modal-footer border-top border-2">
+                    <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary mt-3" id="createTeamBtn">
                         <i class="fa fa-save"></i> Create Team
                     </button>
                 </div>

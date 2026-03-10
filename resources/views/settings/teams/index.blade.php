@@ -1,275 +1,7 @@
 @extends('layouts.header')
 
-@section('css')
-<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-
-<style>
-    .dashboard-header {
-        margin-bottom: 30px;
-    }
-
-    .dashboard-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: all 0.3s;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .dashboard-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    .dashboard-card .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 12px;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .dashboard-card.total .icon-circle {
-        background: #e3f2fd;
-        color: #2196F3;
-    }
-
-    .dashboard-card.active .icon-circle {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .dashboard-card.inactive .icon-circle {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    .dashboard-card h2 {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-        color: #2c3e50;
-        line-height: 1;
-    }
-
-    .dashboard-card p {
-        margin: 0;
-        font-size: 13px;
-        color: #6c757d;
-        font-weight: 500;
-    }
-
-    .teams-section {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    .btn-new {
-        background: #800000;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .btn-new:hover {
-        background: #6B0000;
-        color: white;
-    }
-
-    .btn-new i {
-        font-size: 14px;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        padding: 15px 12px;
-        border-bottom: 2px solid #8B0000;
-        white-space: nowrap;
-    }
-
-    .modern-table tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        vertical-align: middle;
-        font-size: 14px;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .modern-table tbody td small {
-        display: block;
-        line-height: 1.6;
-        color: #495057;
-    }
-
-    .badge-status {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-status.active {
-        background: #e8f5e9;
-        color: #4caf50;
-    }
-
-    .badge-status.inactive {
-        background: #ffebee;
-        color: #f44336;
-    }
-
-    .dataTables_wrapper {
-        padding-top: 20px;
-    }
-
-    .dataTables_wrapper .dataTables_length {
-        float: right;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_length select {
-        padding: 6px 30px 6px 10px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin: 0 5px;
-    }
-
-    .dataTables_wrapper .dataTables_filter {
-        float: left;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        padding: 6px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin-left: 5px;
-    }
-
-    .dataTables_wrapper .dataTables_info {
-        float: left;
-        padding-top: 8px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate {
-        float: right;
-        margin-top: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f8f9fa;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #8B0000;
-        color: white !important;
-        border-color: #8B0000;
-    }
-
-    div.dt-buttons {
-        float: right;
-        margin-bottom: 15px;
-        margin-right: 10px;
-    }
-
-    .dt-button {
-        background: white !important;
-        border: 1px solid #dee2e6 !important;
-        color: #495057 !important;
-        padding: 6px 12px !important;
-        border-radius: 4px !important;
-        margin-right: 5px !important;
-        font-size: 13px !important;
-    }
-
-    .dt-button:hover {
-        background: #f8f9fa !important;
-        border-color: #8B0000 !important;
-    }
-
-    .dataTables_wrapper:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    .table-container {
-        clear: both;
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-card {
-            margin-bottom: 15px;
-        }
-    }
-</style>
-@endsection
-
 @section('content')
-@include('error')
-
-<div class="row mb-4 dashboard-header">
+<div class="row mb-4">
     <div class="col-12">
         <h4 class="mb-0">Teams</h4>
         <p class="text-muted mb-0">Manage and track team information</p>
@@ -279,278 +11,309 @@
 <div class="row g-3 mb-4">
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
-            <div class="icon-circle">
-                <i class="ri-folder-line"></i>
-            </div>
-            <h2 id="totalTeamsCount">{{ $totalTeams }}</h2>
+            <div class="icon-circle"><i class="ri-folder-line"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $totalTeams }}</h2>
             <p>Total Teams</p>
         </div>
     </div>
-
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card active">
-            <div class="icon-circle">
-                <i class="ri-checkbox-circle-line"></i>
-            </div>
-            <h2>{{ $activeTeams }}</h2>
+            <div class="icon-circle"><i class="ri-checkbox-circle-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="Active" style="cursor:pointer;">{{ $activeTeams }}</h2>
             <p>Active</p>
         </div>
     </div>
-
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card inactive">
-            <div class="icon-circle">
-                <i class="ri-close-circle-line"></i>
-            </div>
-            <h2>{{ $inactiveTeams }}</h2>
+            <div class="icon-circle"><i class="ri-close-circle-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="Inactive" style="cursor:pointer;">{{ $inactiveTeams }}</h2>
             <p>Deactivated</p>
         </div>
     </div>
 </div>
 
-<div class="teams-section mb-5">
-    <div class="section-header">
-        <h5 class="section-title">All Teams</h5>
-        <button class="btn-new" data-bs-toggle="modal" data-bs-target="#new_team" type="button">
-            <i class="fa fa-plus"></i> New Team
-        </button>
-    </div>
+<div class="row">
+    <div class="col-md-12 mb-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">All Teams</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new_team">
+                    <i class="fa fa-plus"></i> New
+                </button>
+            </div>
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                    <div id="table-filter-control"></div>
+                </div>
 
-    <div class="table-container">
-        <table class="modern-table tables" id="teamsTable">
-            <thead>
-                <tr>
-                    <th>Team Name</th>
-                    <th>Created By</th>
-                    <th>Status</th>
-                    <th>Department</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($teams as $team)
-                <tr id="team-row-{{ $team->id }}">
-                    <td>
-                        <strong class="team-name">{{ $team->name }}</strong>
-                    </td>
-                    <td>
-                        <div>
-                            {{ $team->creator ? $team->creator->name : 'Unknown' }}
-                            <br>
-                            <small class="text-muted">{{ $team->created_at->format('M d, Y') }}</small>
-                        </div>
-                    </td>
-                    <td>
-                        @if($team->status)
-                            <span class="badge-status inactive">Inactive</span>
-                        @else
-                            <span class="badge-status active">Active</span>
-                        @endif
-                    </td>
-                    <td>{{optional($team->department)->name}}</td>
-                    <td>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="teamDropdown{{ $team->id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="ri-more-2-fill"></i>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="teamDropdown{{ $team->id }}">
-                                @if($team->status)
-                                    <li>
-                                        <button type="button" class="dropdown-item activate-team" data-id='{{ $team->id }}'>
-                                            <i class="ri-check-line me-2"></i>Activate
-                                        </button>
-                                    </li>
-                                @else
-                                    <li>
-                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam{{ $team->id }}">
-                                            <i class="ri-pencil-line me-2"></i>Edit
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button type="button" class="dropdown-item deactivate-team" data-id='{{ $team->id }}'>
-                                            <i class="ri-close-line me-2"></i>Deactivate
-                                        </button>
-                                    </li>
-                                @endif
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div id="table-length-control"></div>
+                    <div id="table-buttons-control"></div>
+                </div>
+
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="teamsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Action</th>
+                                <th>Team Name</th>
+                                <th>Created By</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="bottom-controls-container">
+                    <div id="table-info-control"></div>
+                    <div id="table-pagination-control"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 @include('settings.teams.new')
-@foreach($teams->where('status', null) as $team)
+@foreach($teams as $team)
     @include('settings.teams.edit')
 @endforeach
+
 @endsection
 
 @section('js')
-<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
-
 <script>
-    $(document).ready(function(){
-        var table = $('.tables').DataTable({
-            pageLength: 25,
-            responsive: true,
-            stateSave: true,
-            deferRender: true,
-            dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
-            buttons: [
-                {extend: 'copy'},
-                {extend: 'csv'},
-                {extend: 'excel', title: 'Teams'},
-                {extend: 'pdf', title: 'Teams'},
-                {extend: 'print',
-                 customize: function (win){
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
-                 }
-                }
-            ]
-        });
+$(document).ready(function () {
 
-        $(document).on('click', '.deactivate-team', function () {
-            var id = $(this).data('id');
-            swal({
-                title: "Are you sure?",
-                text: "This team will be deactivated!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, deactivate it!",
-                closeOnConfirm: false
-            }, function (){
-                $.ajax({
-                    type:'POST',
-                    url:  '{{ url("/teams/deactivate") }}',
-                    data: {id: id},
-                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                    success: function(data) {
-                        swal("Deactivated!", "Team is now deactivated.", "success");
-                        location.reload();
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        swal("Error!", "Something went wrong.", "error");
-                    }
-                })
+    var currentFilter = '';
+
+    var table = $('#teamsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ route("teams.data") }}',
+            type: 'GET',
+            data: function (d) { d.status_filter = currentFilter; },
+            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
+        },
+        columns: [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'name', name: 'name' },
+            { data: 'created_by', orderable: false, searchable: false },
+            { data: 'department', orderable: false, searchable: false },
+            { data: 'status', orderable: false, searchable: false },
+        ],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'copy', text: 'Copy' },
+            { extend: 'excel', text: 'Excel', title: 'Teams' },
+        ],
+        order: [[0, 'desc']],
+        language: {
+            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+            emptyTable: "No teams found",
+            zeroRecords: "No matching teams found",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
+        },
+        drawCallback: function () { moveControls(); },
+        initComplete: function () {
+            var inp = $('#teamsTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { table.search(v).draw(); }, 500);
             });
-        });
-
-        $(document).on('click', '.activate-team', function () {
-            var id = $(this).data('id');
-            swal({
-                title: "Are you sure?",
-                text: "This team will be activated!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, activate it!",
-                closeOnConfirm: false
-            }, function (){
-                $.ajax({
-                    type:'POST',
-                    url:  '{{ url("/teams/activate") }}',
-                    data: {id: id},
-                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                    success: function(data){
-                        swal("Activated!", "Team is now activated.", "success");
-                        location.reload();
-                    },
-                    error: function() {
-                        swal("Error!", "Something went wrong.", "error");
-                    }
-                });
-            });
-        });
-
-        $('#newTeamForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            var teamName = $('#team_name').val().trim();
-            var department = $("#department").val().trim()
-            
-            if (!teamName) {
-                swal("Error!", "Please enter a team name", "error");
-                return;
-            }
-            
-            var btn = $('#createTeamBtn');
-            btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Creating...');
-            
-            $.ajax({
-                dataType: 'json',
-                type: 'POST',
-                url: '{{ url("teams") }}',
-                data: {team_name: teamName, department:department},
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                success: function(data) {
-                    swal("Success!", "Team created successfully!", "success");
-                    $('#new_team').modal('hide');
-                    location.reload();
-                },
-                error: function(data) {
-                    btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Team');
-                    var message = 'Something went wrong.';
-                    if(data.responseJSON && data.responseJSON.message) {
-                        message = data.responseJSON.message;
-                    }
-                    swal("Error!", message, "error");
-                }
-            });
-        });
-
-        $('.edit-team-form').on('submit', function(e) {
-            e.preventDefault();
-            
-            var form = $(this);
-            var teamId = form.data('id');
-            var teamName = form.find('input[name="team_name"]').val().trim();
-            var department = form.find("select[name='department']").val().trim();
-            
-            if (!teamName) {
-                swal("Error!", "Please enter a team name", "error");
-                return;
-            }
-            
-            var btn = form.find('.update-team-btn');
-            btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
-            
-            $.ajax({
-                dataType: 'json',
-                type: 'POST',
-                url: '{{ url("teams") }}/' + teamId,
-                data: {
-                    _method: 'PUT',
-                    team_name: teamName,
-                    department:department
-                },
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                success: function(data) {
-                    swal("Success!", "Team updated successfully!", "success");
-                    $('#editTeam' + teamId).modal('hide');
-                    location.reload();
-                },
-                error: function(data) {
-                    btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Team');
-                    var message = 'Something went wrong.';
-                    if(data.responseJSON && data.responseJSON.message) {
-                        message = data.responseJSON.message;
-                    }
-                    swal("Error!", message, "error");
-                }
-            });
-        });
-
-        $('.cat, .locations').chosen({width: "100%"});
+        }
     });
+
+    function moveControls() {
+        var wrapper = $('#teamsTable_wrapper');
+
+        var length = wrapper.find('.dataTables_length');
+        if (length.length) $('#table-length-control').empty().append(length.detach());
+
+        var filter = wrapper.find('.dataTables_filter');
+        if (filter.length) {
+            var inp = filter.find('input');
+            var hasFocus = inp.is(':focus');
+            var curPos = inp[0] ? inp[0].selectionStart : null;
+            $('#table-filter-control').empty().append(filter.detach());
+            if (hasFocus) {
+                var newInp = $('#teamsTable_filter input');
+                newInp.focus();
+                if (curPos !== null) newInp[0].setSelectionRange(curPos, curPos);
+            }
+        }
+
+        var buttons = wrapper.find('.dt-buttons');
+        if (buttons.length) $('#table-buttons-control').empty().append(buttons.detach());
+
+        var info = wrapper.find('.dataTables_info');
+        if (info.length) $('#table-info-control').empty().append(info.detach());
+
+        var paginate = wrapper.find('.dataTables_paginate');
+        if (paginate.length) $('#table-pagination-control').empty().append(paginate.detach());
+    }
+
+    setTimeout(function () { moveControls(); }, 100);
+    $(window).on('resize', function () { moveControls(); });
+
+    $('#statusFilter').on('change', function () {
+        currentFilter = $(this).val();
+        table.ajax.reload();
+    });
+
+    $('.filter-btn').on('click', function () {
+        currentFilter = $(this).data('filter');
+        $('#statusFilter').val(currentFilter);
+        table.ajax.reload();
+    });
+
+    $('#newTeamForm').on('submit', function (e) {
+        e.preventDefault();
+        var teamName = $('#team_name').val().trim();
+        var department = $('#new_department_id').val();
+        if (!teamName) { swal("Error!", "Please enter a team name", "error"); return; }
+        var btn = $('#createTeamBtn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Creating...');
+        $.ajax({
+            type: 'POST',
+            url: '{{ url("teams") }}',
+            data: { team_name: teamName, department: department },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function () {
+                swal("Success!", "Team created successfully!", "success");
+                $('#new_team').modal('hide');
+                table.ajax.reload();
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Team');
+            },
+            error: function (data) {
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Team');
+                var message = data.responseJSON && data.responseJSON.message ? data.responseJSON.message : 'Something went wrong.';
+                swal("Error!", message, "error");
+            }
+        });
+    });
+
+    $(document).on('submit', '.edit-team-form', function (e) {
+        e.preventDefault();
+        var form = $(this);
+        var teamId = form.data('id');
+        var teamName = form.find('input[name="team_name"]').val().trim();
+        var department = form.find('select[name="department"]').val();
+        if (!teamName) { swal("Error!", "Please enter a team name", "error"); return; }
+        var btn = form.find('.update-team-btn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+        $.ajax({
+            type: 'POST',
+            url: '{{ url("teams") }}/' + teamId,
+            data: { _method: 'PUT', team_name: teamName, department: department },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function () {
+                swal("Success!", "Team updated successfully!", "success");
+                $('#editTeam' + teamId).modal('hide');
+                table.ajax.reload();
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Team');
+            },
+            error: function (data) {
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Team');
+                var message = data.responseJSON && data.responseJSON.message ? data.responseJSON.message : 'Something went wrong.';
+                swal("Error!", message, "error");
+            }
+        });
+    });
+
+    $(document).on('click', '.deactivate-team', function () {
+        var id = $(this).data('id');
+        swal({
+            title: "Are you sure?",
+            text: "This team will be deactivated!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, deactivate it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ url("/teams/deactivate") }}',
+                data: { id: id },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function () {
+                    swal("Deactivated!", "Team is now deactivated.", "success");
+                    location.reload();
+                },
+                error: function () { swal("Error!", "Something went wrong.", "error"); }
+            });
+        });
+    });
+
+    $(document).on('click', '.activate-team', function () {
+        var id = $(this).data('id');
+        swal({
+            title: "Are you sure?",
+            text: "This team will be activated!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, activate it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ url("/teams/activate") }}',
+                data: { id: id },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function () {
+                    swal("Activated!", "Team is now activated.", "success");
+                    location.reload();
+                },
+                error: function () { swal("Error!", "Something went wrong.", "error"); }
+            });
+        });
+    });
+
+    $('#new_team').on('shown.bs.modal', function () {
+        $(this).find('.select2-team').select2({
+            dropdownParent: $(this),
+            placeholder: 'Select department...',
+            allowClear: true
+        });
+    });
+    $('#new_team').on('hide.bs.modal', function () {
+        $(this).find('.select2-team').select2('close');
+    });
+
+    @foreach($teams as $team)
+    $('#editTeam{{ $team->id }}').on('shown.bs.modal', function () {
+        var $select = $(this).find('.select2-team');
+        if ($select.hasClass('select2-hidden-accessible')) { $select.select2('destroy'); }
+        $select.select2({
+            dropdownParent: $(this),
+            placeholder: 'Select department...',
+            allowClear: true
+        });
+    });
+    $('#editTeam{{ $team->id }}').on('hide.bs.modal', function () {
+        $(this).find('.select2-team').select2('close');
+    });
+    @endforeach
+
+});
 </script>
 @endsection

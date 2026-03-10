@@ -12,13 +12,93 @@ class TeamsController extends Controller
 {
     public function index()
     {
+        $totalTeams = Team::count();
+        $activeTeams = Team::where('status', 1)->count();
+        $inactiveTeams = Team::where('status', 0)->count();
+        $departments = Department::where('status', '1')->get();
         $teams = Team::with('creator')->get();
-        $totalTeams = $teams->count();
-        $activeTeams = $teams->where('status', null)->count();
-        $inactiveTeams = $totalTeams - $activeTeams;
-        $departments = Department::whereNull('status')->get();
-        
-        return view('settings.teams.index', compact('teams', 'totalTeams', 'activeTeams', 'inactiveTeams','departments'));
+
+        return view('settings.teams.index', compact('totalTeams', 'activeTeams', 'inactiveTeams', 'departments', 'teams'));
+    }
+
+    public function getData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+        $statusFilter = $request->get('status_filter');
+
+        $query = Team::with(['creator', 'department']);
+
+        $totalRecords = (clone $query)->count();
+
+        if (!empty($statusFilter)) {
+            if ($statusFilter === 'Active') {
+                $query->where('status', 1);
+            } else {
+                $query->where('status', 0);
+            }
+        }
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                ->orWhereHas('creator', function($q2) use ($search) {
+                    $q2->where('name', 'like', "%$search%");
+                });
+            });
+        }
+
+        $totalFiltered = $query->count();
+        $items = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($items as $team) {
+            $status = $team->status == 1
+                ? '<span class="badge bg-success">Active</span>'
+                : '<span class="badge bg-danger">Inactive</span>';
+
+            $createdBy = $team->creator
+                ? $team->creator->name . '<br><small class="text-muted">' . $team->created_at->format('M d, Y') . '</small>'
+                : 'Unknown';
+
+            $department = optional($team->department)->name ?? '<span class="text-muted">-</span>';
+
+            if ($team->status == 0) {
+                $actions = '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                        <ul class="dropdown-menu">
+                            <li><button class="dropdown-item activate-team" data-id="' . $team->id . '"><i class="ri-check-line me-2"></i>Activate</button></li>
+                        </ul>
+                    </div>';
+            } else {
+                $actions = '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                        <ul class="dropdown-menu">
+                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam' . $team->id . '"><i class="ri-pencil-line me-2"></i>Edit</button></li>
+                            <li><button class="dropdown-item deactivate-team" data-id="' . $team->id . '"><i class="ri-close-line me-2"></i>Deactivate</button></li>
+                        </ul>
+                    </div>';
+            }
+
+            $data[] = [
+                'name' => '<strong>' . $team->name . '</strong>',
+                'created_by' => $createdBy,
+                'department' => $department,
+                'status' => $status,
+                'action' => $actions,
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
     }
 
     public function store(Request $request)
@@ -45,7 +125,7 @@ class TeamsController extends Controller
                 'name' => $request->team_name,
                 'department_id' => $request->department,
                 'created_by' => Auth::id(),
-                'status' => null,
+                'status' => 1,
             ]);
 
             return response()->json([
@@ -109,7 +189,7 @@ class TeamsController extends Controller
     {
         try {
             $team = Team::findOrFail($request->id);
-            $team->update(['status' => 1]);
+            $team->update(['status' => 0]);
 
             return response()->json([
                 'success' => true,
@@ -130,7 +210,7 @@ class TeamsController extends Controller
     {
         try {
             $team = Team::findOrFail($request->id);
-            $team->update(['status' => null]);
+            $team->update(['status' => 1]);
 
             return response()->json([
                 'success' => true,
