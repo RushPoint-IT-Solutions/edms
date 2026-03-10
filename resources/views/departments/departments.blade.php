@@ -1,340 +1,7 @@
 @extends('layouts.header')
 
-@section('css')
-<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-
-<style>
-    .dashboard-header {
-        margin-bottom: 30px;
-    }
-
-    .dashboard-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: all 0.3s;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .dashboard-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    .dashboard-card .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 12px;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .dashboard-card.total .icon-circle {
-        background: #e3f2fd;
-        color: #2196F3;
-    }
-
-    .dashboard-card.active .icon-circle {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .dashboard-card.inactive .icon-circle {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    .dashboard-card h2 {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-        color: #2c3e50;
-        line-height: 1;
-    }
-
-    .dashboard-card p {
-        margin: 0;
-        font-size: 13px;
-        color: #6c757d;
-        font-weight: 500;
-    }
-
-    .departments-section {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    .btn-new {
-        background: #800000;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .btn-new:hover {
-        background: #6B0000;
-        color: white;
-    }
-
-    .btn-new i {
-        font-size: 14px;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        padding: 15px 12px;
-        border-bottom: 2px solid #8B0000;
-        white-space: nowrap;
-    }
-
-    .modern-table tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        vertical-align: middle;
-        font-size: 14px;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .modern-table tbody td small {
-        display: block;
-        line-height: 1.6;
-        color: #495057;
-    }
-
-    .btn-action {
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 13px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-right: 4px;
-        margin-bottom: 4px;
-    }
-
-    .btn-action.activate {
-        background: #2196F3;
-        color: white;
-    }
-
-    .btn-action.activate:hover {
-        background: #1976D2;
-    }
-
-    .btn-action.edit {
-        background: #0dcaf0;
-        color: white;
-    }
-
-    .btn-action.edit:hover {
-        background: #31d2f2;
-    }
-
-    .btn-action.deactivate {
-        background: #dc3545;
-        color: white;
-    }
-
-    .btn-action.deactivate:hover {
-        background: #bb2d3b;
-    }
-
-    .btn-action i {
-        font-size: 14px;
-    }
-
-    .badge-status {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-status.active {
-        background: #e8f5e9;
-        color: #4caf50;
-    }
-
-    .badge-status.inactive {
-        background: #ffebee;
-        color: #f44336;
-    }
-
-    .badge-info {
-        background: #e3f2fd;
-        color: #2196F3;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        display: inline-block;
-        margin: 2px;
-    }
-
-     
-    .dataTables_wrapper {
-        padding-top: 20px;
-    }
-
-    .dataTables_wrapper .dataTables_length {
-        float: right;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_length select {
-        padding: 6px 30px 6px 10px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin: 0 5px;
-    }
-
-    .dataTables_wrapper .dataTables_filter {
-        float: left;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        padding: 6px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin-left: 5px;
-    }
-
-    .dataTables_wrapper .dataTables_info {
-        float: left;
-        padding-top: 8px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate {
-        float: right;
-        margin-top: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f8f9fa;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #8B0000;
-        color: white !important;
-        border-color: #8B0000;
-    }
-
-    div.dt-buttons {
-        float: right;
-        margin-bottom: 15px;
-        margin-right: 10px;
-    }
-
-    .dt-button {
-        background: white !important;
-        border: 1px solid #dee2e6 !important;
-        color: #495057 !important;
-        padding: 6px 12px !important;
-        border-radius: 4px !important;
-        margin-right: 5px !important;
-        font-size: 13px !important;
-    }
-
-    .dt-button:hover {
-        background: #f8f9fa !important;
-        border-color: #8B0000 !important;
-    }
-
-     
-    .dataTables_wrapper:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    .table-container {
-        clear: both;
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-card {
-            margin-bottom: 15px;
-        }
-    }
-</style>
-@endsection
-
 @section('content')
-@include('error')
-
-@php
-    $totalDepartments = $departments->count();
-    $activeDepartments = $departments->where('status', null)->count();
-    $inactiveDepartments = $totalDepartments - $activeDepartments;
-@endphp
-
- 
-<div class="row mb-4 dashboard-header">
+<div class="row mb-4">
     <div class="col-12">
         <h4 class="mb-0">Departments</h4>
         <p class="text-muted mb-0">Manage and track department information</p>
@@ -344,220 +11,267 @@
 <div class="row g-3 mb-4">
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
-            <div class="icon-circle">
-                <i class="ri-community-line"></i>
-            </div>
-            <h2>{{ $totalDepartments }}</h2>
+            <div class="icon-circle"><i class="ri-community-line"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $totalDepartments }}</h2>
             <p>Total Departments</p>
         </div>
     </div>
-
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card active">
-            <div class="icon-circle">
-                <i class="ri-checkbox-circle-line"></i>
-            </div>
-            <h2>{{ $activeDepartments }}</h2>
+            <div class="icon-circle"><i class="ri-checkbox-circle-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="Active" style="cursor:pointer;">{{ $activeDepartments }}</h2>
             <p>Active</p>
         </div>
     </div>
-
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card inactive">
-            <div class="icon-circle">
-                <i class="ri-close-circle-line"></i>
-            </div>
-            <h2>{{ $inactiveDepartments }}</h2>
+            <div class="icon-circle"><i class="ri-close-circle-line"></i></div>
+            <h2 class="mb-0 font-weight-bold filter-btn" data-filter="Inactive" style="cursor:pointer;">{{ $inactiveDepartments }}</h2>
             <p>Deactivated</p>
         </div>
     </div>
 </div>
 
-<div class="departments-section mb-5">
-    <div class="section-header">
-        <h5 class="section-title">All Departments</h5>
-        <button class="btn-new" data-target="#new_department" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#new_department" type="button">
-            <i class="fa fa-plus"></i> New
-        </button>
-    </div>
+<div class="row">
+    <div class="col-md-12 mb-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">All Departments</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new_department">
+                    <i class="fa fa-plus"></i> New
+                </button>
+            </div>
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                    <div id="table-filter-control"></div>
+                </div>
 
-    <div class="table-container">
-        <table class="modern-table tables">
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Department Head</th>
-                    {{-- <th>Permit Accountable Person</th> --}}
-                    {{-- <th>Approver</th> --}}
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($departments as $department)
-                <tr>
-                    <td><strong>{{ $department->code }}</strong></td>
-                    <td>{{ $department->name ?? 'N/A' }}</td>
-                    <td>
-                        @if($department->dep_head)
-                            <span class="badge-info">{{ $department->dep_head->name }}</span>
-                        @else
-                            <span class="text-muted">No Head</span>
-                        @endif
-                    </td>
-                    {{-- <td>
-                        @if($department->permit_accounts->count() > 0)
-                            @foreach($department->permit_accounts as $accountable)
-                                <span class="badge-info">{{ $accountable->user->name ?? 'N/A' }}</span>
-                            @endforeach
-                        @else
-                            <span class="text-muted">-</span>
-                        @endif
-                    </td> --}}
-                    {{-- <td>
-                        @if($department->approvers->count() > 0)
-                            <small>
-                                @foreach($department->approvers as $approver)
-                                    {{ $approver->level }}. {{ $approver->user->name ?? 'N/A' }}<br>
-                                @endforeach
-                            </small>
-                        @else
-                            <span class="text-muted">-</span>
-                        @endif
-                    </td> --}}
-                    <td>
-                        @if($department->status)
-                            <span class="badge-status inactive">Inactive</span>
-                        @else
-                            <span class="badge-status active">Active</span>
-                        @endif
-                    </td>
-                    <td data-id='{{ $department->id }}' id='actioncompanytd{{ $department->id }}'>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="departmentDropdown{{ $department->id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="ri-more-2-fill"></i>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="departmentDropdown{{ $department->id }}">
-                                @if($department->status)
-                                    <li>
-                                        <button type="button" class="dropdown-item activate-department" data-id='{{ $department->id }}'>
-                                            <i class="ri-check-line me-2"></i>Activate
-                                        </button>
-                                    </li>
-                                @else
-                                    <li>
-                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment{{ $department->id }}">
-                                            <i class="ri-pencil-line me-2"></i>Edit
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button type="button" class="dropdown-item deactivate-department" data-id='{{ $department->id }}'>
-                                            <i class="ri-close-line me-2"></i>Deactivate
-                                        </button>
-                                    </li>
-                                @endif
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div id="table-length-control"></div>
+                    <div id="table-buttons-control"></div>
+                </div>
+
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="departmentsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Action</th>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Department Head</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="bottom-controls-container">
+                    <div id="table-info-control"></div>
+                    <div id="table-pagination-control"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 @include('departments.new_department')
-@foreach($departments->where('status', null) as $department)
+@foreach($departments as $department)
     @include('departments.edit_department')
 @endforeach
+
 @endsection
 
 @section('js')
-<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
-
 <script>
-    $(document).ready(function(){
-        $(document).on('click', '.deactivate-department', function () {
-            var id = $(this).data('id');
-            swal({
-                title: "Are you sure?",
-                text: "This department will be deactivated!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, deactivate it!",
-                closeOnConfirm: false
-            }, function (){
-                $.ajax({
-                    type:'POST',
-                    url:  '{{ url("/departments/deactivate") }}',
-                    data: {id: id},
-                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                    success: function(data) {
-                        swal("Deactivated!", "Department is now deactivated.", "success");
-                        location.reload();
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        swal("Error!", "Something went wrong.", "error");
-                    }
-                })
-            });
-        });
+$(document).ready(function () {
 
-        $(document).on('click', '.activate-department', function () {
-            var id = $(this).data('id');
-            swal({
-                title: "Are you sure?",
-                text: "This department will be activated!",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, activate it!",
-                closeOnConfirm: false
-            }, function (){
-                $.ajax({
-                    type:'POST',
-                    url:  '{{ url("/departments/activate") }}',
-                    data: {id: id},
-                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                    success: function(data){
-                        swal("Activated!", "Department is now activated.", "success");
-                        location.reload();
-                    },
-                    error: function() {
-                        swal("Error!", "Something went wrong.", "error");
-                    }
-                });
-            });
-        });
-        
-        $('.cat, .locations').chosen({width: "100%"});
-        
-        $('.tables').DataTable({
-            pageLength: 25,
-            responsive: true,
-            stateSave: true,
-            deferRender: true,
-            dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>', 
-            buttons: [
-                {extend: 'copy'},
-                {extend: 'csv'},
-                {extend: 'excel', title: 'Departments'},
-                {extend: 'pdf', title: 'Departments'},
-                {extend: 'print',
-                 customize: function (win){
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
-                 }
-                }
-            ]
+    $('#new_department').on('shown.bs.modal', function () {
+        $(this).find('.select2-dept-head').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $(this),
+            placeholder: 'Select department head...',
+            allowClear: true
         });
     });
+
+    $('#new_department').on('hide.bs.modal', function () {
+        $(this).find('.select2-dept-head').select2('close');
+    });
+
+    @foreach($departments as $department)
+    $('#editDepartment{{ $department->id }}').on('shown.bs.modal', function () {
+        var $select = $(this).find('.select2-dept-head');
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.select2('destroy');
+        }
+        $select.select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $(this),
+            placeholder: 'Select department head...',
+            allowClear: true
+        });
+    });
+
+    $('#editDepartment{{ $department->id }}').on('hide.bs.modal', function () {
+        $(this).find('.select2-dept-head').select2('close');
+    });
+    @endforeach
+
+    var currentFilter = '';
+
+    var table = $('#departmentsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ route("departments.data") }}',
+            type: 'GET',
+            data: function (d) { d.status_filter = currentFilter; },
+            error: function (xhr) {
+                console.error(xhr.status, xhr.responseText);
+            }
+        },
+        columns: [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'code', name: 'code' },
+            { data: 'name', name: 'name' },
+            { data: 'dep_head', orderable: false, searchable: false },
+            { data: 'status', orderable: false, searchable: false },
+        ],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'copy', text: 'Copy' },
+            { extend: 'excel', text: 'Excel', title: 'Departments' },
+        ],
+        order: [[0, 'desc']],
+        language: {
+            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+            emptyTable: "No departments found",
+            zeroRecords: "No matching departments found",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
+        },
+        drawCallback: function () { moveControls(); },
+        initComplete: function () {
+            var inp = $('#departmentsTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { table.search(v).draw(); }, 500);
+            });
+        }
+    });
+
+    function moveControls() {
+        var wrapper = $('#departmentsTable_wrapper');
+
+        var length = wrapper.find('.dataTables_length');
+        if (length.length) $('#table-length-control').empty().append(length.detach());
+
+        var filter = wrapper.find('.dataTables_filter');
+        if (filter.length) {
+            var inp = filter.find('input');
+            var hasFocus = inp.is(':focus');
+            var curPos = inp[0] ? inp[0].selectionStart : null;
+            $('#table-filter-control').empty().append(filter.detach());
+            if (hasFocus) {
+                var newInp = $('#departmentsTable_filter input');
+                newInp.focus();
+                if (curPos !== null) newInp[0].setSelectionRange(curPos, curPos);
+            }
+        }
+
+        var buttons = wrapper.find('.dt-buttons');
+        if (buttons.length) $('#table-buttons-control').empty().append(buttons.detach());
+
+        var info = wrapper.find('.dataTables_info');
+        if (info.length) $('#table-info-control').empty().append(info.detach());
+
+        var paginate = wrapper.find('.dataTables_paginate');
+        if (paginate.length) $('#table-pagination-control').empty().append(paginate.detach());
+    }
+
+    setTimeout(function () { moveControls(); }, 100);
+        $(window).on('resize', function () { moveControls(); });
+
+        $('#statusFilter').on('change', function () {
+            currentFilter = $(this).val();
+            table.ajax.reload();
+        });
+
+        $('.filter-btn').on('click', function () {
+            currentFilter = $(this).data('filter');
+            $('#statusFilter').val(currentFilter);
+            table.ajax.reload();
+        });
+
+        $('#departmentsTable tbody').on('click', '.deactivate-department', function () {
+        var id = $(this).data('id');
+        swal({
+            title: "Are you sure?",
+            text: "This department will be deactivated!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, deactivate it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ url("/departments/deactivate") }}',
+                data: { id: id },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function () {
+                    swal("Deactivated!", "Department is now deactivated.", "success");
+                    table.ajax.reload();
+                },
+                error: function () {
+                    swal("Error!", "Something went wrong.", "error");
+                }
+            });
+        });
+    });
+
+    $('#departmentsTable tbody').on('click', '.activate-department', function () {
+        var id = $(this).data('id');
+        swal({
+            title: "Are you sure?",
+            text: "This department will be activated!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, activate it!",
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ url("/departments/activate") }}',
+                data: { id: id },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function () {
+                    swal("Activated!", "Department is now activated.", "success");
+                    table.ajax.reload();
+                },
+                error: function () {
+                    swal("Error!", "Something went wrong.", "error");
+                }
+            });
+        });
+    });
+
+});
 </script>
 @endsection
