@@ -2,8 +2,8 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header border-bottom border-2">
-                <h5 class="modal-title">Permissions — {{ $role->name }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title mb-3">Permissions — {{ $role->name }}</h5>
+                <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url('/roles/add-permission/'.$role->id) }}" onsubmit="show();">
                 @csrf
@@ -21,8 +21,8 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top border-2">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary mt-3">Save</button>
                 </div>
             </form>
         </div>
