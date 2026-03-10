@@ -96,12 +96,15 @@ Route::group(['middleware' => 'auth'], function () {
         });
 
         // Roles & Permissions
-        Route::get('roles','RoleController@index');
+        Route::get('/roles', 'RoleController@index')->name('roles.index');
         Route::prefix('roles')->group(function() {
-            Route::post('/store','RoleController@store');
-            Route::post('/update/{id}','RoleController@update');
-            Route::post('/add-permission/{id}','RoleController@addPermission');
+            Route::get('/data', 'RoleController@getData')->name('roles.data');
+            Route::get('/permissions/data', 'RoleController@getPermissionsData')->name('permissions.data');
+            Route::post('/store', 'RoleController@store')->name('roles.store');
+            Route::post('/permissions/store', 'RoleController@storePermission')->name('permissions.store');
+            Route::post('/add-permission/{id}', 'RoleController@addPermission')->name('roles.addPermission');
         });
+        
         Route::prefix('permission')->group(function() {
             Route::post('/store','PermissionController@store');
             Route::post('/update/{id}','PermissionController@update');

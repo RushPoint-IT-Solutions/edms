@@ -1,245 +1,98 @@
 @extends('layouts.header')
 
-@section('css')
-<link href="{{ asset('login_css/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-<style>
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        padding: 15px 12px;
-        border-bottom: 2px solid #8B0000;
-        white-space: nowrap;
-    }
-
-    .modern-table tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        vertical-align: middle;
-        font-size: 14px;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .dataTables_wrapper {
-        padding-top: 20px;
-    }
-
-    .dataTables_wrapper .dataTables_length {
-        float: right;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_length select {
-        padding: 6px 30px 6px 10px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin: 0 5px;
-    }
-
-    .dataTables_wrapper .dataTables_filter {
-        float: left;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        padding: 6px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin-left: 5px;
-    }
-
-    .dataTables_wrapper .dataTables_info {
-        float: left;
-        padding-top: 8px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate {
-        float: right;
-        margin-top: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f8f9fa;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #8B0000;
-        color: white !important;
-        border-color: #8B0000;
-    }
-
-    div.dt-buttons {
-        float: right;
-        margin-bottom: 15px;
-        margin-right: 10px;
-    }
-
-    .dt-button {
-        background: white !important;
-        border: 1px solid #dee2e6 !important;
-        color: #495057 !important;
-        padding: 6px 12px !important;
-        border-radius: 4px !important;
-        margin-right: 5px !important;
-        font-size: 13px !important;
-    }
-
-    .dt-button:hover {
-        background: #f8f9fa !important;
-        border-color: #8B0000 !important;
-    }
-
-    .dataTables_wrapper:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    .table-container {
-        clear: both;
-    }
-
-    .dataTables_processing {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 200px;
-        margin-left: -100px;
-        margin-top: -26px;
-        text-align: center;
-        padding: 20px;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-</style>
-@endsection
-
 @section('content')
-<div class="row mb-4 dashboard-header">
+<div class="row mb-4">
     <div class="col-12">
         <h4 class="mb-0">Roles & Permissions</h4>
-        {{-- <p class="text-muted mb-0">Manage and monitor user accounts</p> --}}
+        <p class="text-muted mb-0">Manage roles and permissions</p>
     </div>
 </div>
 
 <div class="row g-3 mb-4">
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
-            {{-- <div class="icon-circle">
-                <i class="fa fa-users"></i>
-            </div> --}}
-            <h2>0</h2>
+            <div class="icon-circle"><i class="ri-shield-user-line"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $totalRoles }}</h2>
             <p>Total Roles</p>
         </div>
     </div>
-
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card active">
-            {{-- <div class="icon-circle">
-                <i class="fa fa-check-circle"></i>
-            </div> --}}
-            <h2>0</h2>
+            <div class="icon-circle"><i class="ri-key-2-line"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $totalPermissions }}</h2>
             <p>Total Permissions</p>
         </div>
     </div>
 </div>
 
-<div class="row mb-5">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between">
-                <h5 class="card-title m-0">Roles</h5>
-                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#new" type="button">
-                    <i class="fa fa-plus"></i>Add new roles
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">Roles</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new">
+                    <i class="fa fa-plus"></i> Add New Role
                 </button>
             </div>
             <div class="card-body">
-                <div class="table-container">
-                    <table class="modern-table" id="rolesTable">
-                        <thead>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <div></div>
+                    <div id="roles-filter-control"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div id="roles-length-control"></div>
+                    <div id="roles-buttons-control"></div>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="rolesTable">
+                        <thead class="table-light">
                             <tr>
                                 <th>Action</th>
-                                <th>Name</th>
+                                <th>Role</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @foreach ($roles as $role)
-                                <tr>
-                                    <td>
-                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#edit{{ $role->id }}">
-                                            <i class="ri-edit-box-line"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#view{{ $role->id }}">
-                                            <i class="ri-key-2-line"></i>
-                                        </button>
-                                    </td>
-                                    <td>{{ $role->name }}</td>
-                                </tr>
-
-                                @include('roles.edit')
-                                @include('roles.view')
-                            @endforeach
-                        </tbody>
+                        <tbody></tbody>
                     </table>
+                </div>
+                <div class="bottom-controls-container">
+                    <div id="roles-info-control"></div>
+                    <div id="roles-pagination-control"></div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between">
-                <h6 class="card-title m-0">Permissions</h6>
-                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newPermission">
-                    <i class="ri-add-line"></i>
-                    Add new permission
+
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">Permissions</h5>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newPermission">
+                    <i class="fa fa-plus"></i> Add New Permission
                 </button>
             </div>
             <div class="card-body">
-                <div class="table-container">
-                    <table class="modern-table" id="permissionTable">
-                        <thead>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <div></div>
+                    <div id="perms-filter-control"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div id="perms-length-control"></div>
+                    <div id="perms-buttons-control"></div>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="permissionTable">
+                        <thead class="table-light">
                             <tr>
                                 <th>Action</th>
                                 <th>Name</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @foreach ($permissions as $permission)
-                                <tr>
-                                    <td>
-                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editPermission{{ $permission->id }}">
-                                            <i class="ri-edit-box-line"></i>
-                                        </button>
-                                    </td>
-                                    <td>{{ $permission->name }}</td>
-                                </tr>
-
-                                @include('permissions.editPermission')
-                            @endforeach
-                        </tbody>
+                        <tbody></tbody>
                     </table>
+                </div>
+                <div class="bottom-controls-container">
+                    <div id="perms-info-control"></div>
+                    <div id="perms-pagination-control"></div>
                 </div>
             </div>
         </div>
@@ -247,15 +100,155 @@
 </div>
 
 @include('roles.new')
+@foreach($roles as $role)
+    @include('roles.edit')
+    @include('roles.view')
+@endforeach
+@foreach($permissions as $permission)
+    @include('permissions.editPermission')
+@endforeach
 @include('permissions.newPermission')
 @endsection
 
 @section('js')
-<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script>
-    $(document).ready(function(){
-        $("#rolesTable").DataTable()
-        $("#permissionTable").DataTable()
-    })
+$(document).ready(function () {
+
+    var rolesTable = $('#rolesTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ route("roles.data") }}',
+            type: 'GET',
+            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
+        },
+        columns: [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'name', name: 'name' },
+        ],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'copy', text: 'Copy' },
+            { extend: 'excel', text: 'Excel', title: 'Roles' },
+        ],
+        order: [[1, 'asc']],
+        language: {
+            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+            emptyTable: "No roles found",
+            zeroRecords: "No matching roles found",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
+        },
+        drawCallback: function () { moveRolesControls(); },
+        initComplete: function () {
+            var inp = $('#rolesTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { rolesTable.search(v).draw(); }, 500);
+            });
+        }
+    });
+
+    function moveRolesControls() {
+        var wrapper = $('#rolesTable_wrapper');
+
+        var length = wrapper.find('.dataTables_length');
+        if (length.length) $('#roles-length-control').empty().append(length.detach());
+
+        var filter = wrapper.find('.dataTables_filter');
+        if (filter.length) $('#roles-filter-control').empty().append(filter.detach());
+
+        var buttons = wrapper.find('.dt-buttons');
+        if (buttons.length) $('#roles-buttons-control').empty().append(buttons.detach());
+
+        var info = wrapper.find('.dataTables_info');
+        if (info.length) $('#roles-info-control').empty().append(info.detach());
+
+        var paginate = wrapper.find('.dataTables_paginate');
+        if (paginate.length) $('#roles-pagination-control').empty().append(paginate.detach());
+    }
+
+    setTimeout(function () { moveRolesControls(); }, 100);
+
+    var permsTable = $('#permissionTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ route("permissions.data") }}',
+            type: 'GET',
+            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
+        },
+        columns: [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'name', name: 'name' },
+        ],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        dom: 'lBfrtip',
+        buttons: [
+            { extend: 'copy', text: 'Copy' },
+            { extend: 'excel', text: 'Excel', title: 'Permissions' },
+        ],
+        order: [[1, 'asc']],
+        language: {
+            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+            emptyTable: "No permissions found",
+            zeroRecords: "No matching permissions found",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
+        },
+        drawCallback: function () { movePermsControls(); },
+        initComplete: function () {
+            var inp = $('#permissionTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { permsTable.search(v).draw(); }, 500);
+            });
+        }
+    });
+
+    function movePermsControls() {
+        var wrapper = $('#permissionTable_wrapper');
+
+        var length = wrapper.find('.dataTables_length');
+        if (length.length) $('#perms-length-control').empty().append(length.detach());
+
+        var filter = wrapper.find('.dataTables_filter');
+        if (filter.length) $('#perms-filter-control').empty().append(filter.detach());
+
+        var buttons = wrapper.find('.dt-buttons');
+        if (buttons.length) $('#perms-buttons-control').empty().append(buttons.detach());
+
+        var info = wrapper.find('.dataTables_info');
+        if (info.length) $('#perms-info-control').empty().append(info.detach());
+
+        var paginate = wrapper.find('.dataTables_paginate');
+        if (paginate.length) $('#perms-pagination-control').empty().append(paginate.detach());
+    }
+
+    setTimeout(function () { movePermsControls(); }, 100);
+
+    $(window).on('resize', function () {
+        moveRolesControls();
+        movePermsControls();
+    });
+
+});
 </script>
 @endsection
