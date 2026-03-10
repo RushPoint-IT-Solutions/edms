@@ -124,6 +124,11 @@
 
 @include('permits.new_permit')
 
+@foreach($permits as $permit)
+    @include('permits.upload_permit')
+    @include('permits.edit_type')
+@endforeach
+
 @endsection
 
 @section('js')
