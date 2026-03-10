@@ -697,7 +697,11 @@
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
-                                <span data-key="t-change-requests">My Files</span>
+                                @if(auth()->user()->role == 'Administrator')
+                                    <span data-key="t-change-requests">Files</span>
+                                @else
+                                    <span data-key="t-change-requests">My Files</span>
+                                @endif
                             </a>
                         </li>
                         @endcan
