@@ -48,7 +48,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Action</th>
-                                <th>Role</th>
+                                <th>Name</th>
+                                <th>Users</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -62,7 +63,7 @@
         </div>
     </div>
 
-    <div class="col-md-12">
+    {{-- <div class="col-md-12">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">Permissions</h5>
@@ -96,7 +97,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 </div>
 
 @include('roles.new')
@@ -125,6 +126,7 @@ $(document).ready(function () {
         columns: [
             { data: 'action', orderable: false, searchable: false },
             { data: 'name', name: 'name' },
+            { data: 'users_count', orderable: false, searchable: false },
         ],
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
