@@ -17,6 +17,7 @@ class PermitController extends Controller
     public function index(Request $request)
     {
         $permits_count = Permit::count();
+        $permits = Permit::get();
         $for_renewal_count = Permit::where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status', null)->count();
         $overdue_count = Permit::where('expiration_date', '<', date('Y-m-d'))->where('status', null)->count();
         $active_permits_count = Permit::where('expiration_date', '>', date('Y-m-d'))->where('expiration_date', '>', date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('status', null)->count();
@@ -119,6 +120,7 @@ class PermitController extends Controller
             // 'companies' => $companies,
             // 'departments' => $departments,
             // 'archives' => $archives,
+            'permits' => $permits,
             'for_renewal_count' => $for_renewal_count,
             'overdue_count' => $overdue_count,
             'permits_count' => $permits_count,
@@ -205,17 +207,17 @@ class PermitController extends Controller
                                     <i class="ri-upload-line me-2"></i>Upload
                                 </a>
                             </li>
-                            {{-- <li>
+                            <!-- <li>
                                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change' . $permit->id . '">
                                     <i class="ri-user-line me-2"></i>Transfer Department
                                 </a>
-                            </li> --}}
+                            </li> -->
                             <li>
                                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType' . $permit->id . '">
                                     <i class="ri-edit-line me-2"></i>Change Types
                                 </a>
                             </li>
-                            {{-- @if($permit->status == null)
+                            <!-- @if($permit->status == null)
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ url(\'inactive-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
@@ -225,8 +227,8 @@ class PermitController extends Controller
                                         </button>
                                     </form>
                                 </li>
-                            @endif --}}
-                            {{-- @if($permit->status == "Inactive")
+                            @endif -->
+                            <!-- @if($permit->status == "Inactive")
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ url(\'activate-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
@@ -236,7 +238,7 @@ class PermitController extends Controller
                                         </button>
                                     </form>
                                 </li>
-                            @endif --}}
+                            @endif -->
                         </ul>
                     </div>',
                 'title' => e($permit->title),

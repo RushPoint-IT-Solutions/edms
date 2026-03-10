@@ -1,129 +1,27 @@
-<div class="modal fade" id="upload{{$permit->id}}" tabindex="-1" aria-labelledby="uploadLabel{{$permit->id}}" aria-hidden="true">
+<div class="modal fade" id="upload{{$permit->id}}" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="uploadModalLabel{{$permit->id}}">Upload Permit/License</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-2">
+                <h5 class="modal-title mb-3">Upload Permit/License</h5>
+                <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
-            <form method='post' action='{{ url('permits/upload/'.$permit->id) }}' onsubmit='show();' enctype="multipart/form-data">
+            <form method="POST" action="{{ url('permits/upload/'.$permit->id) }}" onsubmit="show();" enctype="multipart/form-data">
+                @csrf
                 <div class="modal-body">
-                    {{ csrf_field() }}
-                    <div class='row'>
-                        <div class='col-md-12'>
-                            <label>File :</label>
-                            <input type="file" class="form-control-sm form-control" name="file" required/>
-                        </div>
-                        <div class='col-md-12'>
-                            <label>Expiration Date :</label>
-                            <input type="date" class="form-control-sm form-control" min='{{date('Y-m-d')}}' name="expiration_date"/>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">File <span class="text-danger">*</span></label>
+                        <input type="file" name="file" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Expiration Date</label>
+                        <input type="date" name="expiration_date" min="{{ date('Y-m-d') }}" class="form-control">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
-                    <button type='submit' class="btn btn-primary">Submit</button>
+                <div class="modal-footer border-top border-2">
+                    <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<style>
-    .modal-content {
-        border: none;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .modal-header {
-        border-bottom: solid 2px #800000;
-        color: white;
-        border-radius: 10px 10px 0 0;
-        padding: 20px 25px;
-    }
-    
-    .modal-header h5 {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0;
-    }
-
-    .modal-header .close {
-        color: white;
-        opacity: 1;
-        font-size: 24px;
-        font-weight: 300;
-        text-shadow: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .modal-header .close:hover {
-        color: white;
-        opacity: 0.8;
-    }
-
-    .modal-body {
-        padding: 25px;
-        background: white;
-    }
-
-    .modal-body .form-control,
-    .modal-body .form-control-sm {
-        padding: 8px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-        font-size: 14px;
-        margin-top: 5px;
-        margin-bottom: 15px;
-    }
-
-    .modal-body .form-control:focus,
-    .modal-body .form-control-sm:focus {
-        border-color: #8B0000;
-        outline: none;
-        box-shadow: 0 0 0 0.2rem rgba(139, 0, 0, 0.15);
-    }
-
-    .modal-body label {
-        font-size: 14px;
-        font-weight: 500;
-        color: #495057;
-        margin-bottom: 5px;
-        display: block;
-    }
-
-    .modal-footer {
-        padding: 20px 25px;
-        background: #f8f9fa;
-        border-top: 1px solid #dee2e6;
-        border-radius: 0 0 10px 10px;
-    }
-
-    .modal-footer .btn {
-        padding: 8px 20px;
-        border-radius: 5px;
-        font-size: 14px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .modal-footer .btn-secondary {
-        background: #6c757d;
-        color: white;
-    }
-
-    .modal-footer .btn-secondary:hover {
-        background: #5a6268;
-    }
-
-    .modal-footer .btn-primary {
-        background: #8B0000;
-        color: white;
-    }
-
-    .modal-footer .btn-primary:hover {
-        background: #6B0000;
-    }
-</style>
