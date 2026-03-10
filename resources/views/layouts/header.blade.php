@@ -780,7 +780,7 @@
                                     @endcan
                                     
                                     <li class="nav-item">
-                                        <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams') || Request::is('new-team') || Request::is('*team*') ? 'active' : '' }}" data-key="t-teams">Offices</a>
+                                        <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams') || Request::is('new-team') || Request::is('*teams*') ? 'active' : '' }}" data-key="t-teams">Offices</a>
                                     </li>
                                         
                                     @can('users')

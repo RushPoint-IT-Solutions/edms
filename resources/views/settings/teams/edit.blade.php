@@ -1,43 +1,34 @@
-@foreach($teams as $team)
-<div class="modal fade" id="editTeam{{ $team->id }}" tabindex="-1" aria-labelledby="editTeamLabel{{ $team->id }}" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="editTeam{{ $team->id }}" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="border-bottom: 1px solid #000000;">
-                <h5 class="modal-title" id="editTeamLabel{{ $team->id }}">
-                    <i class="ri-pencil-line me-2"></i>Edit Team
-                </h5>
-                <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-2">
+                <h5 class="modal-title">Edit Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editTeamForm{{ $team->id }}" class="edit-team-form" data-id="{{ $team->id }}">
+            <form class="edit-team-form" data-id="{{ $team->id }}">
                 @csrf
-                @method('PUT')
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
-                        <select name="department" id="department" class="form-control cat">
-                            <option value=""></option>
-                            @foreach ($departments as $department)
+                        <label class="form-label">Department <span class="text-danger">*</span></label>
+                        <select name="department" class="form-select select2-team" required>
+                            <option value="">Select department...</option>
+                            @foreach($departments as $department)
                                 <option value="{{ $department->id }}" @if($department->id == $team->department_id) selected @endif>{{ $department->name }}</option>
                             @endforeach
                         </select>
-                        <div class="invalid-feedback" id="department_name_error"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_team_name{{ $team->id }}" class="form-label">Team Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control edit-team-name" id="edit_team_name{{ $team->id }}" name="team_name" value="{{ $team->name }}" required>
-                        <div class="invalid-feedback edit-team-error"></div>
+                        <label class="form-label">Team Name <span class="text-danger">*</span></label>
+                        <input type="text" name="team_name" class="form-control" value="{{ $team->name }}" required>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fa fa-times me-1"></i>Cancel
-                    </button>
+                <div class="modal-footer border-top border-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary update-team-btn">
-                        <i class="fa fa-save"></i>Update Team
+                        <i class="fa fa-save"></i> Update Team
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-@endforeach
