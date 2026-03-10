@@ -48,7 +48,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Action</th>
-                                <th>Role</th>
+                                <th>Name</th>
+                                <th>Users</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -125,6 +126,7 @@ $(document).ready(function () {
         columns: [
             { data: 'action', orderable: false, searchable: false },
             { data: 'name', name: 'name' },
+            { data: 'users_count', orderable: false, searchable: false },
         ],
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],

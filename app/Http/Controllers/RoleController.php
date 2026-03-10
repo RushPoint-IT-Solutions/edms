@@ -34,7 +34,7 @@ class RoleController extends Controller
         $length = $request->get('length');
         $search = $request->get('search')['value'] ?? '';
 
-        $query = Role::query();
+        $query = Role::withCount('users');
 
         $totalRecords = (clone $query)->count();
 
@@ -59,6 +59,7 @@ class RoleController extends Controller
             $data[] = [
                 'action' => $actions,
                 'name' => $role->name,
+                'users_count' => '<span class="badge bg-primary">' . $role->users_count . '</span>',
             ];
         }
 
