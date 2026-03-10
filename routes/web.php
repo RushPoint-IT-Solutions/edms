@@ -89,8 +89,9 @@ Route::group(['middleware' => 'auth'], function () {
         });
 
         // Approver stamp
-        Route::get('/approver-stamp','ApproverStampController@index');
+        Route::get('/approver-stamp', 'ApproverStampController@index');
         Route::prefix('approver-stamp')->group(function() {
+            Route::get('/data', 'ApproverStampController@getData')->name('approver-stamp.data');
             Route::post('/store', 'ApproverStampController@store');
         });
 

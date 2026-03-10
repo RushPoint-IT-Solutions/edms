@@ -15,13 +15,45 @@ class ApproverStampController extends Controller
      */
     public function index()
     {
-        $approver = ApproverStamp::where('user_id', auth()->id())->first();
+        return view('approver_stamp.index');
+    }
 
-        return view('approver_stamp.index',
-            array(
-                'approver' => $approver
-            )
-        );
+    public function getData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+
+        $query = ApproverStamp::with('user');
+
+        $totalRecords = (clone $query)->count();
+
+        if (!empty($search)) {
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', "%$search%");
+            })->orWhere('file_name', 'like', "%$search%");
+        }
+
+        $totalFiltered = $query->count();
+        $items = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($items as $item) {
+            $data[] = [
+                'file_name' => $item->file_name,
+                'user' => $item->user->name ?? '-',
+                'preview' => '<img src="' . url($item->file) . '" style="height:50px;object-fit:contain;">',
+                'created_at' => $item->created_at ? $item->created_at->format('M d, Y') : '-',
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
     }
 
     /**
