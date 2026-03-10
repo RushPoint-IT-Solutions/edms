@@ -61,6 +61,13 @@ class UserController extends Controller
             });
         }
 
+        $roleFilter = $request->get('role_filter');
+        if (!empty($roleFilter)) {
+            $query->where('role', $roleFilter);
+        }
+
+        $totalFiltered = $query->count();
+
         $totalFiltered = $query->count();
 
         $columns = ['name', 'email', 'role', 'status'];
@@ -145,13 +152,26 @@ class UserController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = \Validator::make($request->all(), [
             'name' => 'required|min:3|max:50',
-            'email' => 'email|unique:users',
-            // 'password' => 'required|confirmed|min:6',
+            'email' => 'required|email|unique:users',
             'role' => 'required'
+        ], [
+            'name.required' => 'Name is required',
+            'name.min' => 'Name must be at least 3 characters',
+            'email.required' => 'Email is required',
+            'email.email' => 'Please enter a valid email address',
+            'email.unique' => 'This email address is already registered',
+            'role.required' => 'Role is required',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
         $new_account = new User;
         $new_account->name = $request->name;
@@ -164,9 +184,9 @@ class UserController extends Controller
 
         $new_account->syncRoles($request->role);
 
-        Alert::success('Successfully Store')->persistent('Dismiss');
-        return back();
+        return response()->json(['success' => true, 'message' => 'Account created successfully!'], 201);
     }
+    
     public function changepassword(Request $request)
     {
         // dd($request->all());
