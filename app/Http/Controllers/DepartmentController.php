@@ -18,21 +18,13 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $employees = User::where('status', null)->select('id', 'name', 'status')->get();
-
         $totalDepartments = Department::count();
-        $activeDepartments = Department::where('status', 'Active')->count();
-        $inactiveDepartments = Department::where('status', 'deactivated')->count();
+        $activeDepartments = Department::where('status', 1)->count();
+        $inactiveDepartments = Department::where('status', 0)->count();
+        $departments = Department::with('dep_head')->get();
+        $employees = User::all();
 
-        $departments = Department::with(['dep_head:id,name'])->get();
-
-        return view('departments.departments', array(
-            'employees' => $employees,
-            'departments' => $departments,
-            'totalDepartments' => $totalDepartments,
-            'activeDepartments' => $activeDepartments,
-            'inactiveDepartments' => $inactiveDepartments,
-        ));
+        return view('departments.departments', compact('totalDepartments', 'activeDepartments', 'inactiveDepartments', 'departments', 'employees'));
     }
 
     public function getData(Request $request)
@@ -49,9 +41,9 @@ class DepartmentController extends Controller
 
         if (!empty($statusFilter)) {
             if ($statusFilter === 'Active') {
-                $query->where('status', 'Active');
+                $query->where('status', 1);
             } else {
-                $query->where('status', 'deactivated');
+                $query->where('status', 0);
             }
         }
 
@@ -67,7 +59,7 @@ class DepartmentController extends Controller
 
         $data = [];
         foreach ($items as $department) {
-            $status = $department->status === 'Active'
+            $status = $department->status == 1
                 ? '<span class="badge bg-success">Active</span>'
                 : '<span class="badge bg-danger">Inactive</span>';
 
@@ -75,7 +67,7 @@ class DepartmentController extends Controller
                 ? $department->dep_head->name
                 : '<span class="text-muted">No Head</span>';
 
-            if ($department->status === 'deactivated') {
+            if ($department->status == 0) {
                 $actions = '
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
                         <i class="ri-more-2-fill"></i>
@@ -147,7 +139,7 @@ class DepartmentController extends Controller
             $department->code = $request->code;
             $department->name = $request->name;
             $department->user_id = $request->user_id;
-            $department->status = "Active";
+            $department->status = 1;
             $department->save();
 
             if ($request->approvers) {
@@ -284,14 +276,14 @@ class DepartmentController extends Controller
     
     public function deactivate(Request $request)
     {
-        Department::where('id', $request->id)->update(['status' => 'deactivated']);
+        Department::where('id', $request->id)->update(['status' => 0]);
         return "success";
     }
     
     public function activate(Request $request)
     {
         // dd($request->all());
-        Department::where('id', $request->id)->update(['status' => 'Active']);
+        Department::where('id', $request->id)->update(['status' => 1]);
         return "success";
     }
 }

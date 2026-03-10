@@ -45,8 +45,8 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                     <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
                         <option value="">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                     </select>
                     <div id="table-filter-control"></div>
                 </div>
@@ -93,7 +93,6 @@ $(document).ready(function () {
 
     $('#new_department').on('shown.bs.modal', function () {
         $(this).find('.select2-dept-head').select2({
-            theme: 'bootstrap-5',
             dropdownParent: $(this),
             placeholder: 'Select department head...',
             allowClear: true
@@ -111,7 +110,6 @@ $(document).ready(function () {
             $select.select2('destroy');
         }
         $select.select2({
-            theme: 'bootstrap-5',
             dropdownParent: $(this),
             placeholder: 'Select department head...',
             allowClear: true
@@ -236,7 +234,7 @@ $(document).ready(function () {
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 success: function () {
                     swal("Deactivated!", "Department is now deactivated.", "success");
-                    table.ajax.reload();
+                    location.reload();
                 },
                 error: function () {
                     swal("Error!", "Something went wrong.", "error");
@@ -263,7 +261,7 @@ $(document).ready(function () {
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 success: function () {
                     swal("Activated!", "Department is now activated.", "success");
-                    table.ajax.reload();
+                    location.reload();
                 },
                 error: function () {
                     swal("Error!", "Something went wrong.", "error");
