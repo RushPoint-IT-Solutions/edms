@@ -1,336 +1,7 @@
 @extends('layouts.header')
 
-@section('css')
-<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
-
-<style>
-    .dashboard-header {
-        margin-bottom: 30px;
-    }
-
-    .dashboard-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: all 0.3s;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .dashboard-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    .dashboard-card .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 12px;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .dashboard-card.total .icon-circle {
-        background: #e3f2fd;
-        color: #2196F3;
-    }
-
-    .dashboard-card.active .icon-circle {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .dashboard-card.inactive .icon-circle {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    .dashboard-card h2 {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-        color: #2c3e50;
-        line-height: 1;
-    }
-
-    .dashboard-card p {
-        margin: 0;
-        font-size: 13px;
-        color: #6c757d;
-        font-weight: 500;
-    }
-
-    .users-section {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    .btn-new-account {
-        background: #800000;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .btn-new-account:hover {
-        background: #6B0000;
-        transform: translateY(-1px);
-        color: white;
-    }
-
-    .btn-new-account i {
-        margin-right: 6px;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead th {
-        background: #f8f9fa;
-        color: #495057;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        padding: 15px 12px;
-        border-bottom: 2px solid #8B0000;
-        white-space: nowrap;
-    }
-
-    .modern-table tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        vertical-align: middle;
-        font-size: 14px;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .badge-status {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .badge-status.active {
-        background: #e8f5e9;
-        color: #4caf50;
-    }
-
-    .badge-status.inactive {
-        background: #ffebee;
-        color: #f44336;
-    }
-
-    .btn-action {
-        padding: 6px 10px;
-        border-radius: 4px;
-        font-size: 13px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-right: 4px;
-    }
-
-    .btn-action.activate {
-        background: #2196F3;
-        color: white;
-    }
-
-    .btn-action.activate:hover {
-        background: #1976D2;
-    }
-
-    .btn-action.change-pass {
-        background: #ff9800;
-        color: white;
-    }
-
-    .btn-action.change-pass:hover {
-        background: #f57c00;
-    }
-
-    .btn-action.edit {
-        background: #2196F3;
-        color: white;
-    }
-
-    .btn-action.edit:hover {
-        background: #1976D2;
-    }
-
-    .btn-action.deactivate {
-        background: #f44336;
-        color: white;
-    }
-
-    .btn-action.deactivate:hover {
-        background: #d32f2f;
-    }
-
-    .dept-list {
-        font-size: 12px;
-        color: #6c757d;
-        line-height: 1.6;
-    }
-
-    .dataTables_wrapper {
-        padding-top: 20px;
-    }
-
-    .dataTables_wrapper .dataTables_length {
-        float: right;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_length select {
-        padding: 6px 30px 6px 10px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin: 0 5px;
-    }
-
-    .dataTables_wrapper .dataTables_filter {
-        float: left;
-        margin-bottom: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        padding: 6px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        margin-left: 5px;
-    }
-
-    .dataTables_wrapper .dataTables_info {
-        float: left;
-        padding-top: 8px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate {
-        float: right;
-        margin-top: 15px;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f8f9fa;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #8B0000;
-        color: white !important;
-        border-color: #8B0000;
-    }
-
-    div.dt-buttons {
-        float: right;
-        margin-bottom: 15px;
-        margin-right: 10px;
-    }
-
-    .dt-button {
-        background: white !important;
-        border: 1px solid #dee2e6 !important;
-        color: #495057 !important;
-        padding: 6px 12px !important;
-        border-radius: 4px !important;
-        margin-right: 5px !important;
-        font-size: 13px !important;
-    }
-
-    .dt-button:hover {
-        background: #f8f9fa !important;
-        border-color: #8B0000 !important;
-    }
-
-    .dataTables_wrapper:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    .table-container {
-        clear: both;
-    }
-
-    .dataTables_processing {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 200px;
-        margin-left: -100px;
-        margin-top: -26px;
-        text-align: center;
-        padding: 20px;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-card {
-            margin-bottom: 15px;
-        }
-    }
-</style>
-@endsection
-
 @section('content')
-<div class="row mb-4 dashboard-header">
+<div class="row mb-4">
     <div class="col-12">
         <h4 class="mb-0">User Management</h4>
         <p class="text-muted mb-0">Manage and monitor user accounts</p>
@@ -340,59 +11,74 @@
 <div class="row g-3 mb-4">
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
-            <div class="icon-circle">
-                <i class="fa fa-users"></i>
-            </div>
-            <h2>{{ $totalUsers }}</h2>
+            <div class="icon-circle"><i class="fa fa-users"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $totalUsers }}</h2>
             <p>Total Users</p>
         </div>
     </div>
-
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card active">
-            <div class="icon-circle">
-                <i class="fa fa-check-circle"></i>
-            </div>
-            <h2>{{ $activeUsers }}</h2>
+            <div class="icon-circle"><i class="fa fa-check-circle"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $activeUsers }}</h2>
             <p>Active Users</p>
         </div>
     </div>
-
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card inactive">
-            <div class="icon-circle">
-                <i class="fa fa-times-circle"></i>
-            </div>
-            <h2>{{ $inactiveUsers }}</h2>
+            <div class="icon-circle"><i class="fa fa-times-circle"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $inactiveUsers }}</h2>
             <p>Deactivated Users</p>
         </div>
     </div>
 </div>
 
-<div class="users-section mb-5">
-    <div class="section-header">
-        <h5 class="section-title">Users List</h5>
-        <button class="btn-new-account" data-bs-toggle="modal" data-bs-target="#new_account" type="button">
-            <i class="fa fa-plus"></i>New Account
-        </button>
-    </div>
+<div class="row">
+    <div class="col-md-12 mb-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">Users List</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new_account">
+                    <i class="fa fa-plus"></i> New Account
+                </button>
+            </div>
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <select id="roleFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
+                        <option value="">All Roles</option>
+                        @foreach($roles as $role)
+                            <option value="{{ $role->name }}">{{ $role->name }}</option>
+                        @endforeach
+                    </select>
+                    <div id="table-filter-control"></div>
+                </div>
 
-    <div class="table-container">
-        <table class="modern-table" id="usersTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Department</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data will be loaded via AJAX -->
-            </tbody>
-        </table>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                    <div id="table-length-control"></div>
+                    <div id="table-buttons-control"></div>
+                </div>
+
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="usersTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="bottom-controls-container">
+                    <div id="table-info-control"></div>
+                    <div id="table-pagination-control"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -404,120 +90,167 @@
 @endsection
 
 @section('js')
-<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
-
 <script>
-$(document).ready(function(){
+$(document).ready(function () {
+
+    var currentRoleFilter = '';
+
     var table = $('#usersTable').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
             url: '{{ route("users.data") }}',
             type: 'GET',
-            error: function(xhr, error, code) {
-                console.log(xhr, error, code);
-            }
+            data: function (d) { d.role_filter = currentRoleFilter; },
+            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
         },
         columns: [
-            { 
-                data: 'name', 
-                name: 'name',  
-                render: function(data, type, row) {
-                    if (row["google_id"] == null) {
-                        return row["name"]
-                    } else {
-                        return row["name"] + " <span class='badge bg-info'>SSO</span>"
-                    }
+            {
+                data: 'name', name: 'name',
+                render: function (data, type, row) {
+                    return row.google_id == null ? row.name : row.name + ' <span class="badge bg-info">SSO</span>';
                 }
             },
             { data: 'email', name: 'email' },
-            // { data: 'company', name: 'company', orderable: false },
             { data: 'department', name: 'department', orderable: false },
-            // { data: 'share_department', name: 'share_department', orderable: false },
             { data: 'role', name: 'role' },
             { data: 'status', name: 'status' },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
+            { data: 'action', name: 'action', orderable: false, searchable: false },
         ],
-        pageLength: 10,
+        pageLength: 25,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        responsive: true,
-        dom: '<"html5buttons"B>lTfg<"bottom-controls"t<"info-paginate"ip>>',
+        dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy'},
-            { extend: 'csv'},
-            { extend: 'excel', title: 'Users'},
-            { extend: 'pdf', title: 'Users'},
-            { 
-                extend: 'print',
-                customize: function (win){
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
-                }
-            }
+            { extend: 'copy', text: 'Copy' },
+            { extend: 'excel', text: 'Excel', title: 'Users' },
         ],
+        order: [[0, 'desc']],
         language: {
             processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
             emptyTable: "No users found",
-            zeroRecords: "No matching users found"
+            zeroRecords: "No matching users found",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            search: "Search:",
+            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
         },
-        drawCallback: function() {
+        drawCallback: function () {
+            moveControls();
             loadModalsForVisibleUsers();
         },
-        rowCallback:function(row, data) {
-            $(row).find("#editUserBtn").on('click', function() {
-                $("#editUserModal").modal('show')
-
-                $("[name='id']").val(data.user_id)
-                $("[name='name']").val(data.name)
-                $("[name='email']").val(data.email)
-                $("[name='department']").val(data.department_id).trigger("chosen:updated")
-                $("[name='role']").val(data.role).trigger("chosen:updated")
-            })
-            $(row).find('.change-pass').on('click', function() {
-                $('#change_pass').modal('show')
-                $("[name='user_id']").val(data.user_id)
-            })
+        initComplete: function () {
+            var inp = $('#usersTable_filter input');
+            inp.unbind();
+            var t;
+            inp.on('input', function () {
+                var v = $(this).val();
+                clearTimeout(t);
+                t = setTimeout(function () { table.search(v).draw(); }, 500);
+            });
+        },
+        rowCallback: function (row, data) {
+            $(row).find('#editUserBtn').on('click', function () {
+                $('#editUserModal').modal('show');
+                $("[name='id']").val(data.user_id);
+                $("[name='name']").val(data.name);
+                $("[name='email']").val(data.email);
+                $("[name='department']").val(data.department_id).trigger('chosen:updated');
+                $("[name='role']").val(data.role).trigger('chosen:updated');
+            });
+            $(row).find('.change-pass').on('click', function () {
+                $('#change_pass').modal('show');
+                $("[name='user_id']").val(data.user_id);
+            });
         }
     });
 
-    function loadModalsForVisibleUsers() {
-        var data = table.rows({page: 'current'}).data();
-        var userIds = [];
-        
-        data.each(function(row) {
-            if (row.user_id) {
-                userIds.push(row.user_id);
-            }
-        });
+    function moveControls() {
+        var wrapper = $('#usersTable_wrapper');
 
+        var length = wrapper.find('.dataTables_length');
+        if (length.length) $('#table-length-control').empty().append(length.detach());
+
+        var filter = wrapper.find('.dataTables_filter');
+        if (filter.length) {
+            var inp = filter.find('input');
+            var hasFocus = inp.is(':focus');
+            var curPos = inp[0] ? inp[0].selectionStart : null;
+            $('#table-filter-control').empty().append(filter.detach());
+            if (hasFocus) {
+                var newInp = $('#usersTable_filter input');
+                newInp.focus();
+                if (curPos !== null) newInp[0].setSelectionRange(curPos, curPos);
+            }
+        }
+
+        var buttons = wrapper.find('.dt-buttons');
+        if (buttons.length) $('#table-buttons-control').empty().append(buttons.detach());
+
+        var info = wrapper.find('.dataTables_info');
+        if (info.length) $('#table-info-control').empty().append(info.detach());
+
+        var paginate = wrapper.find('.dataTables_paginate');
+        if (paginate.length) $('#table-pagination-control').empty().append(paginate.detach());
+    }
+
+    $('#roleFilter').on('change', function () {
+        currentRoleFilter = $(this).val();
+        table.ajax.reload();
+    });
+
+    setTimeout(function () { moveControls(); }, 100);
+    $(window).on('resize', function () { moveControls(); });
+
+    function loadModalsForVisibleUsers() {
+        var data = table.rows({ page: 'current' }).data();
+        var userIds = [];
+        data.each(function (row) {
+            if (row.user_id) userIds.push(row.user_id);
+        });
         if (userIds.length > 0) {
             $.ajax({
                 url: '{{ route("users.modals") }}',
                 type: 'POST',
-                data: {
-                    user_ids: userIds,
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    $('#modalsContainer').html(response);
-                },
-                error: function(xhr, error, code) {
-                    console.log('Error loading modals:', error);
-                }
+                data: { user_ids: userIds, _token: '{{ csrf_token() }}' },
+                success: function (response) { $('#modalsContainer').html(response); },
+                error: function (xhr) { console.error('Error loading modals:', xhr.responseText); }
             });
         }
     }
 
-    $(document).on('click', '.deactivate-user', function(e) {
+    $('#newAccountForm').on('submit', function (e) {
+        e.preventDefault();
+        var form = $(this);
+        var btn = $('#createAccountBtn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action'),
+            data: form.serialize(),
+            success: function () {
+                swal("Success!", "Account created successfully!", "success");
+                $('#new_account').modal('hide');
+                form[0].reset();
+                form.find('.cat').trigger('chosen:updated');
+                table.ajax.reload(null, false);
+                btn.prop('disabled', false).html('Submit');
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('Submit');
+                var message = 'Something went wrong.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                swal("Error!", message, "error");
+            }
+        });
+    });
+
+    $(document).on('click', '.deactivate-user', function (e) {
         e.preventDefault();
         var id = $(this).data('id');
-        console.log(id);
-        
         swal({
             title: "Are you sure?",
             text: "This user will be deactivated!",
@@ -526,34 +259,26 @@ $(document).ready(function(){
             confirmButtonColor: "#DD6B55",
             confirmButtonText: "Yes, deactivate it!",
             closeOnConfirm: false
-        }, function(){
+        }, function () {
             $.ajax({
-                dataType: 'json',
                 type: 'POST',
                 url: '{{ url("users/deactivate-user") }}',
-                data: {
-                    id: id,
-                    _token: '{{ csrf_token() }}'
-                },
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(data) {
+                data: { id: id },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function () {
                     swal("Deactivated!", "User is now deactivated.", "success");
                     table.ajax.reload(null, false);
                 },
-                error: function(data) {
-                    swal("Deactivated!", "User is now deactivated.", "success");
-                    table.ajax.reload(null, false);
+                error: function () {
+                    swal("Error!", "Something went wrong.", "error");
                 }
             });
         });
     });
 
-    $(document).on('click', '.activate-user', function(e) {
+    $(document).on('click', '.activate-user', function (e) {
         e.preventDefault();
         var id = $(this).data('id');
-        
         swal({
             title: "Are you sure?",
             text: "This user will be activated!",
@@ -562,35 +287,28 @@ $(document).ready(function(){
             confirmButtonColor: "#DD6B55",
             confirmButtonText: "Yes, activate it!",
             closeOnConfirm: false
-        }, function(){
+        }, function () {
             $.ajax({
-                dataType: 'json',
                 type: 'POST',
                 url: '{{ url("users/activate-user") }}',
-                data: {
-                    id: id,
-                    _token: '{{ csrf_token() }}'
-                },
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(data) {
+                data: { id: id },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function () {
                     swal("Activated!", "User is now activated.", "success");
                     table.ajax.reload(null, false);
                 },
-                error: function(data) {
-                    swal("Activated!", "User is now activated.", "success");
-                    table.ajax.reload(null, false);
+                error: function () {
+                    swal("Error!", "Something went wrong.", "error");
                 }
             });
         });
     });
 
-    $(document).on('hidden.bs.modal', '#new_account, [id^="editUser"], [id^="change_pass"]', function() {
+    $(document).on('hidden.bs.modal', '#new_account, [id^="editUser"], [id^="change_pass"]', function () {
         table.ajax.reload(null, false);
     });
 
-    $('.cat').chosen({width: "100%"});
+    $('.cat').chosen({ width: "100%" });
 });
 </script>
 @endsection
