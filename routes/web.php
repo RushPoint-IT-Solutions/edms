@@ -119,8 +119,9 @@ Route::group(['middleware' => 'auth'], function () {
         // Departments
         Route::get('/departments', 'DepartmentController@index')->name('settings');
         Route::prefix('departments')->group(function() {
+            Route::get('/data', 'DepartmentController@getData')->name('departments.data');
             Route::post('/store', 'DepartmentController@store')->name('settings');
-            Route::post('/update/{id}','DepartmentController@update')->name('settings');
+            Route::post('/update/{id}', 'DepartmentController@update')->name('settings');
             Route::post('/deactivate', 'DepartmentController@deactivate')->name('settings');
             Route::post('/activate', 'DepartmentController@activate')->name('settings');
         });

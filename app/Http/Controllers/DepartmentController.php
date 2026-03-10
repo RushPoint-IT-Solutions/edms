@@ -18,22 +18,103 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::with([
-            'dep_head:id,name',
-            'approvers.user:id,name',
-            'permit_accounts.user:id,name'
-        ])->get();
-        
-        $employees = User::where('status', null)
-            ->select('id', 'name', 'status')
-            ->get();
-            
-        return view('departments.departments', 
-            array(
-                'departments' => $departments,
-                'employees' => $employees,
-            )
-        );
+        $employees = User::where('status', null)->select('id', 'name', 'status')->get();
+
+        $totalDepartments = Department::count();
+        $activeDepartments = Department::where('status', 'Active')->count();
+        $inactiveDepartments = Department::where('status', 'deactivated')->count();
+
+        $departments = Department::with(['dep_head:id,name'])->get();
+
+        return view('departments.departments', array(
+            'employees' => $employees,
+            'departments' => $departments,
+            'totalDepartments' => $totalDepartments,
+            'activeDepartments' => $activeDepartments,
+            'inactiveDepartments' => $inactiveDepartments,
+        ));
+    }
+
+    public function getData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+        $statusFilter = $request->get('status_filter');
+
+        $query = Department::with(['dep_head:id,name']);
+
+        $totalRecords = (clone $query)->count();
+
+        if (!empty($statusFilter)) {
+            if ($statusFilter === 'Active') {
+                $query->where('status', 'Active');
+            } else {
+                $query->where('status', 'deactivated');
+            }
+        }
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('code', 'like', "%$search%")
+                ->orWhere('name', 'like', "%$search%");
+            });
+        }
+
+        $totalFiltered = $query->count();
+        $items = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($items as $department) {
+            $status = $department->status === 'Active'
+                ? '<span class="badge bg-success">Active</span>'
+                : '<span class="badge bg-danger">Inactive</span>';
+
+            $depHead = $department->dep_head
+                ? $department->dep_head->name
+                : '<span class="text-muted">No Head</span>';
+
+            if ($department->status === 'deactivated') {
+                $actions = '
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><button class="dropdown-item activate-department" data-id="' . $department->id . '">
+                            <i class="ri-check-line me-2"></i>Activate
+                        </button></li>
+                    </ul>';
+            } else {
+                $actions = '
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment' . $department->id . '">
+                            <i class="ri-pencil-line me-2"></i>Edit
+                        </button></li>
+                        <li><button class="dropdown-item deactivate-department" data-id="' . $department->id . '">
+                            <i class="ri-close-line me-2"></i>Deactivate
+                        </button></li>
+                    </ul>';
+            }
+
+            $data[] = [
+                'action' => '<div class="dropdown">' . $actions . '</div>',
+                'code' => '<strong>' . $department->code . '</strong>',
+                'name' => $department->name ?? 'N/A',
+                'dep_head' => $depHead,
+                'status' => $status,
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
     }
 
     /**
@@ -66,6 +147,7 @@ class DepartmentController extends Controller
             $department->code = $request->code;
             $department->name = $request->name;
             $department->user_id = $request->user_id;
+            $department->status = "Active";
             $department->save();
 
             if ($request->approvers) {
@@ -209,7 +291,7 @@ class DepartmentController extends Controller
     public function activate(Request $request)
     {
         // dd($request->all());
-        Department::where('id', $request->id)->update(['status' => null]);
+        Department::where('id', $request->id)->update(['status' => 'Active']);
         return "success";
     }
 }
