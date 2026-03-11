@@ -719,9 +719,9 @@ body.modal-open {
 </div> --}}
 
 <div class="row g-4 align-items-stretch">
-    <div class="col-12 col-lg-6 d-flex flex-column">
-        <div class="card shadow-sm w-100" style="max-height: 450px;">
-            <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
+    <div class="col-12 col-lg-12 d-flex flex-column">
+        <div class="card shadow-sm w-100">
+            <div class="card-body d-flex flex-column">
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-semibold text-dark mb-0">For Approval</h5>
@@ -840,7 +840,7 @@ body.modal-open {
                     @endforeach
                 </div>
 
-                <div id="listView" class="d-none mb-2">
+                <div id="listView" class="d-none">
                     <div class="overflow-auto">
                         <div class="drive-list-container"  style="min-width: 700px;">
                             <div class="drive-list-header">
@@ -964,12 +964,13 @@ body.modal-open {
             </div>
         </div>
     </div>
+</div>
 
-    <div class="col-12 col-lg-3">
+<div class="row">
+    <div class="col-12 col-lg-6">
         <div class="card shadow-sm w-100" style="max-height: 450px; overflow: hidden;">
             <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
                 <h5 class="fw-semibold text-dark mb-3">Private Documents</h5>
-
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
                         <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
@@ -1053,7 +1054,7 @@ body.modal-open {
         </div>
     </div>
 
-    <div class="col-12 col-lg-3">
+    <div class="col-12 col-lg-6">
         <div class="card shadow-sm w-100" style="max-height: 450px; overflow: hidden;">
             <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
                 <h5 class="fw-semibold text-dark mb-3">Public Documents</h5>
