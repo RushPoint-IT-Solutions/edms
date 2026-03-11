@@ -104,6 +104,9 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/permissions/store', 'RoleController@storePermission')->name('permissions.store');
             Route::post('/add-permission/{id}', 'RoleController@addPermission')->name('roles.addPermission');
         });
+
+        Route::get('/access-control', 'AccessControlController@index')->name('access-control');
+        Route::post('/access-control/update', 'AccessControlController@update')->name('access-control.update');
         
         Route::prefix('permission')->group(function() {
             Route::post('/store','PermissionController@store');
