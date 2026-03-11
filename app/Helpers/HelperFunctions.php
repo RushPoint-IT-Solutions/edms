@@ -49,3 +49,55 @@ function canView($permissionKey)
 
     return $permission && $permission->can_view === 'on';
 }
+
+function canCreate($permissionKey)
+{
+    if (!auth()->check()) return false;
+
+    $role = auth()->user()->role ?? 'User';
+
+    $permission = RolePermission::where('role', $role)
+        ->where('permission_key', $permissionKey)
+        ->first();
+
+    return $permission && $permission->can_create === 'on';
+}
+
+function canEdit($permissionKey)
+{
+    if (!auth()->check()) return false;
+
+    $role = auth()->user()->role ?? 'User';
+
+    $permission = RolePermission::where('role', $role)
+        ->where('permission_key', $permissionKey)
+        ->first();
+
+    return $permission && $permission->can_edit === 'on';
+}
+
+function canApprove($permissionKey)
+{
+    if (!auth()->check()) return false;
+
+    $role = auth()->user()->role ?? 'User';
+
+    $permission = RolePermission::where('role', $role)
+        ->where('permission_key', $permissionKey)
+        ->first();
+
+    return $permission && $permission->can_approve === 'on';
+}
+
+function canDelete($permissionKey)
+{
+    if (!auth()->check()) return false;
+
+    $role = auth()->user()->role ?? 'User';
+
+    $permission = RolePermission::where('role', $role)
+        ->where('permission_key', $permissionKey)
+        ->first();
+
+    return $permission && $permission->can_delete === 'on';
+}
