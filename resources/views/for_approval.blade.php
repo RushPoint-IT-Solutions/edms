@@ -62,6 +62,7 @@
                                 <th>Title</th>
                                 <th>Requested&nbsp;By</th>
                                 <th>Type</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -161,6 +162,7 @@ $(document).ready(function () {
             { data: 'title', name: 'title' },
             { data: 'requested_by', orderable: false, searchable: false },
             { data: 'type', orderable: false, searchable: false },
+            { data: 'status', orderable: false, searchable: false },
         ],
         order: [[2, 'desc']],
         drawCallback: function () { moveControls('changeApprovalTable', 'change'); },

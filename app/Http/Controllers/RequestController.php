@@ -497,6 +497,7 @@ class RequestController extends Controller
                 'title' => e($cr->title),
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'type' => optional($cr->document_type)->name ?? '-',
+                'status' => e($cr->status),
             ];
         }
 
