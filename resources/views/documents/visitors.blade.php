@@ -338,14 +338,14 @@
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card active">
             <div class="icon-circle"><i class="fa fa-eye"></i></div>
-            <h2>{{ $document->visitor->count() }}</h2>
+            <h2>{{ $document->visitor->unique('user_id')->count() }}</h2>
             <p>Total Visits</p>
         </div>
     </div>
     <div class="col-xl-4 col-md-6">
         <div class="dashboard-card total">
             <div class="icon-circle"><i class="fa fa-users"></i></div>
-            <h2>{{ $document->visitor->unique('user_id')->count() }}</h2>
+            <h2>{{ $document->visitor->count() }}</h2>
             <p>Unique Visitors</p>
         </div>
     </div>
