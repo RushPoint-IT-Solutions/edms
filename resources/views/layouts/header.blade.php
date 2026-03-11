@@ -405,12 +405,12 @@
                             </span>
                         </button>
                         
-                        <form class="app-search">
+                        {{-- <form class="app-search">
                             <div class="position-relative">
                                 <input type="text" class="form-control searchbar" placeholder="Search..." autocomplete="off">
                                 <span class="mdi mdi-magnify search-widget-icon"></span>
                             </div>
-                        </form>
+                        </form> --}}
                     </div>
 
                     @php
