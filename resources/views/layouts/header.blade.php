@@ -363,11 +363,9 @@
         }
     </style>
     @yield('css')
-    
-
 </head>
+
 <body>
-    {{-- <div id="loader" class="loader"></div> --}}
     <div id="preloaderMarsu">
         <div class="logo-placeholder">
             <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
@@ -389,7 +387,6 @@
                                     <img src="{{asset('assets/images/library-icon.png')}}" alt="" height="100">
                                 </span>
                             </a>
-
                             <a href="{{url('/')}}" class="logo logo-light">
                                 <span class="logo-sm">
                                     <img src="{{asset('assets/images/library-icon.png')}}" alt="" height="100">
@@ -530,9 +527,7 @@
                             </div>
                         </div>
 
-                        @php
-                            $pendingApproval = getPendingApproval();
-                        @endphp
+                        @php $pendingApproval = getPendingApproval(); @endphp
                         <div class="dropdown topbar-head-dropdown ms-1 header-item" id="messagesDropdown">
                             <button type="button" 
                                     class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" 
@@ -566,9 +561,7 @@
                                     <div class="tab-pane fade show active py-2 ps-2" id="all-messages-tab" role="tabpanel">
                                         <div data-simplebar style="max-height: 300px;" class="pe-2">
                                             @foreach ($pendingApproval as $request)
-                                            @php
-                                                $req = $request->change_request;
-                                            @endphp
+                                            @php $req = $request->change_request; @endphp
                                             <div class="text-reset notification-item d-block dropdown-item">
                                                 <div class="d-flex">
                                                     <img src="{{asset('assets/images/marsu-logo.png')}}" class="me-3 rounded-circle avatar-xs flex-shrink-0" alt="user-pic">
@@ -630,9 +623,7 @@
             </div>
         </header>
 
-        <!-- ========== App Menu ========== -->
         <div class="app-menu navbar-menu">
-            <!-- LOGO -->
             <div class="navbar-brand-box">
                 <a href="{{url('/')}}" class="logo logo-light">
                     <span class="logo-sm">
@@ -654,13 +645,16 @@
                         <li class="menu-title"><span data-key="t-menu">DOCUMENT MANAGEMENT SYSTEM</span></li>
                         <li class="menu-title"><span data-key="t-menu">Menu</span></li>
                         
-                        <!-- Dashboard (Hidden for Users) -->
+                        <!-- Dashboard -->
+                        @if(canView('dashboard'))
+
                         <li class="nav-item {{ Route::current()->getName() == 'home' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/home')}}">
                                 <i class="ri-dashboard-2-line"></i> 
                                 <span data-key="t-dashboards">Dashboard</span>
                             </a>
                         </li>
+                        @endif
 
                         <!-- Search -->
                         {{-- @can('search')
@@ -693,7 +687,7 @@
                         @endif --}}
 
                         <!-- Change Requests -->
-                        @can('change request')
+                        @if(canView('change request'))
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
@@ -704,21 +698,20 @@
                                 @endif
                             </a>
                         </li>
-                        @endcan
+                        @endif
 
-                        <!-- For Approval (For approvers only) -->
-                        @can('for approval')
+                        <!-- For Approval -->
+                        @if(canView('for approval'))
                         <li class="nav-item {{ Route::current()->getName() == 'for-approval' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/for-approval')}}">
                                 <i class="ri-checkbox-line"></i>
                                 <span data-key="t-for-approval">For Approval</span>
                             </a>
                         </li>
-                        @endcan
-                        {{-- @endif --}}
+                        @endif
 
                         <!-- Documents -->
-                        @can('documents')
+                        @if(canView('documents'))
                         <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/documents')}}">
                                 <i class="ri-folder-2-line"></i>
@@ -735,8 +728,8 @@
                             </a>
                         </li> --}}
 
-                        <!-- Permits & Licenses (Specific roles and accountable persons) -->
-                        @can('permits and license')
+                        <!-- Permits & Licenses -->
+                        @if(canView('permits and license'))
                         <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/permits')}}">
                                 <i class="ri-file-shield-line"></i>
@@ -763,58 +756,64 @@
                         </li> --}}
 
                         <!-- Settings Submenu -->
-                        @if(auth()->user()->can('users') || auth()->user()->can('rmo') || auth()->user()->can('roles and permission') || auth()->user()->can('departments') || auth()->user()->can('teams') || auth()->user()->can('department'))
+                        @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control'))
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
-                            href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
-                            aria-expanded="{{ Route::current()->getName() == 'settings' ? 'true' : 'false' }}" 
-                            aria-controls="sidebarSettings">
+                               href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
+                               aria-expanded="{{ Route::current()->getName() == 'settings' ? 'true' : 'false' }}" 
+                               aria-controls="sidebarSettings">
                                 <i class="ri-settings-3-line"></i> 
                                 <span data-key="t-settings">Settings</span>
                             </a>
                             <div class="menu-dropdown collapse {{ Route::current()->getName() == 'settings' ? 'show' : '' }}" id="sidebarSettings">
                                 <ul class="nav nav-sm flex-column">
-                                    {{-- <li class="nav-item">
-                                        <a href="{{ url('companies') }}" class="nav-link {{ Request::is('companies') || Request::is('new-company') || Request::is('*company*') ? 'active' : '' }}" data-key="t-companies">Companies</a>
-                                    </li> --}}
-                                    @can('department')
+                                    @if(canView('department'))
                                     <li class="nav-item">
-                                        <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments') || Request::is('new-department') || Request::is('*department*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
+                                        <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                     </li>
-                                    @endcan
-                                    
-                                    <li class="nav-item">
-                                        <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams') || Request::is('new-team') || Request::is('*teams*') ? 'active' : '' }}" data-key="t-teams">Offices</a>
-                                    </li>
-                                        
-                                    @can('users')
-                                        <li class="nav-item">
-                                            <a href="{{ url('users') }}" class="nav-link {{ Request::is('users') || Request::is('new-user') || Request::is('*user*') && !Request::is('remove-approvers') ? 'active' : '' }}" data-key="t-users">Users</a>
-                                        </li>
-                                    @endcan
+                                    @endif
 
+                                    @if(canView('teams'))
                                     <li class="nav-item">
-                                        <a href="{{ url('documents_type') }}" class="nav-link {{ Request::is('documents_type') || Request::is('new-documents_type') || Request::is('*documents_type*') ? 'active' : '' }}" data-key="t-documents_type">Type of Documents</a>
+                                        <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams*') ? 'active' : '' }}" data-key="t-teams">Offices</a>
                                     </li>
+                                    @endif
+
+                                    @if(canView('users'))
+                                    <li class="nav-item">
+                                        <a href="{{ url('users') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}" data-key="t-users">Users</a>
+                                    </li>
+                                    @endif
+
+                                    @if(canView('documents_type'))
+                                    <li class="nav-item">
+                                        <a href="{{ url('documents_type') }}" class="nav-link {{ Request::is('documents_type*') ? 'active' : '' }}" data-key="t-documents_type">Type of Documents</a>
+                                    </li>
+                                    @endif
+
                                     {{-- @can('rmo')
                                         <li class="nav-item">
                                             <a href="{{ url('dco') }}" class="nav-link {{ Request::is('dco') || Request::is('new-dco') || Request::is('*dco*') && !Request::is('dco-reports') ? 'active' : '' }}" data-key="t-dco">RMO</a>
                                         </li>
                                     @endcan --}}
-                                    @can('roles and permission')
-                                        <li class="nav-item">
-                                            <a href="{{ url('roles') }}" class="nav-link" data-key="t-dco">Roles & Permissions</a>
-                                        </li>
-                                    @endcan
+
+                                    @if(canView('roles and permission'))
+                                    <li class="nav-item">
+                                        <a href="{{ url('roles') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}" data-key="t-roles">Roles</a>
+                                    </li>
+                                    @endif
+
                                     {{-- @can("office")
                                     <li class="nav-item">
                                         <a href="{{ url('offices') }}" class="nav-link" data-key="t-dco">Offices</a>
                                     </li>
                                     @endcan --}}
 
+                                    @if(canView('access_control'))
                                     <li class="nav-item">
-                                        <a href="{{ url('#') }}" class="nav-link {{ Request::is('#') ? 'active' : '' }}" data-key="t-#">Access Control</a>
+                                        <a href="{{ url('access-control') }}" class="nav-link {{ Request::is('access-control*') ? 'active' : '' }}" data-key="t-access-control">Access Control</a>
                                     </li>
+                                    @endif
                                 </ul>
                             </div>
                         </li>
@@ -849,15 +848,15 @@
                             </div>
                         </li> --}}
 
-                        <!-- Memorandum (All users) -->
-                        @can('approver stamp')
+                        <!-- Approver Stamp -->
+                        @if(canView('approver stamp'))
                         <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
                             <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
                                 <i class="mdi mdi-stamper"></i>
                                 <span data-key="t-memorandum">Approver Stamp</span>
                             </a>
                         </li>
-                        @endcan
+                        @endif
 
                         {{-- SSO Default Access --}}
                         @if(auth()->user()->google_id != null)
@@ -892,16 +891,14 @@
                             </a>
                         </li>
                         @endif
+
                     </ul>
                 </div>
-                <!-- Sidebar -->
             </div>
 
             <div class="sidebar-background"></div>
         </div>
-        <!-- Left Sidebar End -->
-        
-        <!-- Vertical Overlay-->
+
         <div class="vertical-overlay"></div>
         
         <div class="main-content">
@@ -929,21 +926,14 @@
         </div>
     </div>
 
-    <!--start back-to-top-->
     <button onclick="topFunction()" class="btn btn-danger btn-icon" id="back-to-top">
         <i class="ri-arrow-up-line"></i>
     </button>
-    <!--end back-to-top-->
 
-    <!-- Theme Settings -->
-    {{-- @include('layouts.change_password') --}}
     @include('sweetalert::alert')
     
-    <!-- JAVASCRIPT -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <script src="{{asset('/assets/libs/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
-
     <script src="{{asset('/assets/libs/simplebar/simplebar.min.js')}}"></script>
     <script src="{{asset('/assets/libs/node-waves/waves.min.js')}}"></script>
     <script src="{{asset('/assets/libs/feather-icons/feather.min.js')}}"></script>
@@ -963,7 +953,6 @@
 
     @yield('js')
     
-    <!-- App js -->
     <script src="{{asset('/assets/js/app.js')}}"></script>
 
     <script>

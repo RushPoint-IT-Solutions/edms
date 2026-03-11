@@ -4,6 +4,7 @@ use App\ChangeRequest;
 use App\CopyApprover;
 use App\PreAssessmentApprover;
 use App\RequestApprover;
+use App\RolePermission;
 
 
 function getDraftRequest()
@@ -34,4 +35,17 @@ function getDueDateAlerts()
         })
         ->orderBy('due_date', 'asc')
         ->get();
+}
+
+function canView($permissionKey)
+{
+    if (!auth()->check()) return false;
+
+    $role = auth()->user()->role ?? 'User';
+
+    $permission = RolePermission::where('role', $role)
+        ->where('permission_key', $permissionKey)
+        ->first();
+
+    return $permission && $permission->can_view === 'on';
 }
