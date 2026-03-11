@@ -288,6 +288,11 @@ class RequestController extends Controller
                                 <i class="ri-information-line me-2"></i> View Status
                             </a>
                         </li>
+                        <li>
+                            <a class="dropdown-item" href="' . url('change-request/view-change-request/' . $cr->id) . '">
+                                <i class="ri-eye-line me-2"></i> View Request
+                            </a>
+                        </li>
                         ' . $viewDoc . '
                     </ul>
                 </div>
