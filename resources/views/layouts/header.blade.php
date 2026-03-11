@@ -811,6 +811,10 @@
                                         <a href="{{ url('offices') }}" class="nav-link" data-key="t-dco">Offices</a>
                                     </li>
                                     @endcan --}}
+
+                                    <li class="nav-item">
+                                        <a href="{{ url('#') }}" class="nav-link {{ Request::is('#') ? 'active' : '' }}" data-key="t-#">Access Control</a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
