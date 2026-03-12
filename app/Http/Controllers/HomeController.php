@@ -124,6 +124,7 @@ class HomeController extends Controller
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
         $privateQuery = Document::with('attachments', 'department', 'visitor')->where('public', null);
+        
         // $privateQuery = ChangeRequest::with(['department.office', 'user', 'visitors', 'accesses'])
         //     ->where('category', 'Private')
         //     ->whereNull('is_draft');
