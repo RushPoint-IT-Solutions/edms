@@ -107,8 +107,8 @@
                                 <th>Revision</th>
                                 <th>Requested&nbsp;By</th>
                                 <th>Date&nbsp;Requested</th>
-                                <th>Status</th>
                                 <th>QR Code</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -223,8 +223,8 @@ $(document).ready(function () {
             { data: 'revision', name: 'revision' },
             { data: 'requested_by', name: 'requested_by', orderable: false, searchable: false },
             { data: 'created_at', name: 'created_at' },
-            { data: 'status', name: 'status' },
             { data: 'qr_code', name: 'qr_code', orderable: false, searchable: false },
+            { data: 'status', name: 'status' },
         ],
         pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
