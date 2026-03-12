@@ -209,7 +209,7 @@ class HomeController extends Controller
             $table_query->orderBy('created_at', 'desc');
         }
 
-        $pending_cards = $pending_query->with(['department.office', 'user', 'approvers'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
+        $pending_cards = $pending_query->with(['department.office', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
         $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
