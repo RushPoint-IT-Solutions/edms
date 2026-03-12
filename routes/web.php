@@ -27,6 +27,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::group(['middleware' => 'deactivate'], function() {
         
         // Documents
+        Route::get('/dashboard/stats', 'HomeController@stats')->name('dashboard.stats');
         Route::get('/documents', 'DocumentController@index')->name('documents');
         Route::prefix('documents')->group(function() {
             Route::get('create/{id?}', 'DocumentController@create')->name('documents.create');

@@ -2,7 +2,20 @@
 
 @section('css')
 <style>
-    
+@media print {
+    body {
+        margin: 0;
+        padding: 20px;
+    }
+
+    #qrPrintTemplate {
+        display: block !important;
+    }
+
+    @page {
+        margin: 1cm;
+    }
+}
 </style>
 @endsection
 
@@ -95,6 +108,7 @@
                                 <th>Requested&nbsp;By</th>
                                 <th>Date&nbsp;Requested</th>
                                 <th>Status</th>
+                                <th>QR Code</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -109,9 +123,75 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrCodeModalLabel">Document QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="card border-0 bg-light p-4 mb-3">
+                    <div id="qrCodeContainer" class="d-flex justify-content-center"></div>
+                </div>
+                <div class="alert alert-info mb-3" role="alert">
+                    <i class="ri-information-line"></i> Scan this QR code to access document details
+                </div>
+                <div class="mb-2">
+                    <strong>Document ID:</strong> <span id="qrDocId" class="text-primary"></span>
+                </div>
+                <div class="mb-2">
+                    <strong>Document Title:</strong> <span id="qrDocTitle"></span>
+                </div>
+                <div>
+                    <strong>URL:</strong>
+                    <div class="input-group input-group-sm mt-1">
+                        <input type="text" class="form-control" id="qrDocUrl" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copyUrlBtn">
+                            <i class="ri-file-copy-line"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="printQrBtn">
+                    <i class="ri-printer-line"></i> Print QR
+                </button>
+                <button type="button" class="btn btn-success" id="downloadQrBtn">
+                    <i class="ri-download-line"></i> Download QR
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="qrPrintTemplate" style="display: none;">
+    <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+        <h2 style="margin-bottom: 30px; color: #333;">Document QR Code</h2>
+
+        <div style="display: flex; justify-content: center; margin: 30px auto;">
+            <div id="qrPrintCode" style="display: inline-block;"></div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <p style="font-size: 18px; margin: 15px 0;"><strong>Document ID:</strong> <span id="qrPrintDocId"></span></p>
+            <p style="font-size: 18px; margin: 15px 0;"><strong>Title:</strong> <span id="qrPrintDocTitle"></span></p>
+        </div>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #ddd;">
+            <p style="font-size: 12px; color: #999; margin: 10px 0;">Scan this QR code to access document details</p>
+            <p style="font-size: 12px; color: #999; margin: 10px 0;">Generated on: <span id="qrPrintDate"></span></p>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('js')
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 $(document).ready(function () {
 
@@ -144,6 +224,7 @@ $(document).ready(function () {
             { data: 'requested_by', name: 'requested_by', orderable: false, searchable: false },
             { data: 'created_at', name: 'created_at' },
             { data: 'status', name: 'status' },
+            { data: 'qr_code', name: 'qr_code', orderable: false, searchable: false },
         ],
         pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
@@ -217,6 +298,81 @@ $(document).ready(function () {
         table.ajax.reload();
     });
 
+    $(document).on('click', '.view-qr-btn', function () {
+        var docId    = $(this).data('doc-id');
+        var docTitle = $(this).data('doc-title');
+        var crId     = $(this).data('change-request-id');
+        var docUrl   = window.location.origin + '/change-request/' + crId;
+
+        $('#qrDocId').text(docId);
+        $('#qrDocTitle').text(docTitle);
+        $('#qrDocUrl').val(docUrl);
+
+        $('#qrCodeContainer').empty();
+        new QRCode(document.getElementById('qrCodeContainer'), {
+            text: docUrl,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        var modal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+        modal.show();
+    });
+
+    $('#copyUrlBtn').on('click', function () {
+        var urlInput = document.getElementById('qrDocUrl');
+        urlInput.select();
+        document.execCommand('copy');
+        var btn = $(this);
+        btn.html('<i class="ri-check-line"></i> Copied!');
+        setTimeout(function () { btn.html('<i class="ri-file-copy-line"></i> Copy'); }, 2000);
+    });
+
+    $('#downloadQrBtn').on('click', function () {
+        var canvas = document.querySelector('#qrCodeContainer canvas');
+        if (canvas) {
+            var docId = $('#qrDocId').text();
+            var link  = document.createElement('a');
+            link.download = 'QR_' + docId + '.png';
+            link.href     = canvas.toDataURL('image/png');
+            link.click();
+        }
+    });
+
+    $('#printQrBtn').on('click', function () {
+        var docId    = $('#qrDocId').text();
+        var docTitle = $('#qrDocTitle').text();
+        var docUrl   = $('#qrDocUrl').val();
+
+        document.getElementById('qrPrintDocId').textContent    = docId;
+        document.getElementById('qrPrintDocTitle').textContent = docTitle;
+        document.getElementById('qrPrintDate').textContent     = new Date().toLocaleString();
+
+        var printQrContainer = document.getElementById('qrPrintCode');
+        printQrContainer.innerHTML = '';
+        new QRCode(printQrContainer, {
+            text: docUrl,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        setTimeout(function () {
+            var printContents = document.getElementById('qrPrintTemplate').innerHTML;
+            var originalBody  = document.body.innerHTML;
+
+            document.body.innerHTML = printContents;
+            window.print();
+
+            document.body.innerHTML = originalBody;
+            location.reload();
+        }, 500);
+    });
 });
 </script>
 @endsection
