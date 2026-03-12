@@ -10,6 +10,7 @@ use App\CopyRequest;
 use App\DocumentType;
 use App\Company;
 use App\Office;
+use App\PrivateDocsVisitor;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -120,12 +121,14 @@ class HomeController extends Controller
         $privateRaw = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
-        $privateQuery = Document::with('attachments', 'department', 'visitor')->where('public', null);
+        $privateQuery = ChangeRequest::with(['department.office', 'user', 'visitors'])
+            ->where('category', 'Private')
+            ->whereNull('is_draft');
 
         if ($privateRaw) {
             $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
                 $q->where('title', 'like', '%' . $privateRaw . '%')
-                ->orWhere('control_code', 'like', '%' . $privateRaw . '%')
+                ->orWhere('file', 'like', '%' . $privateRaw . '%')
                 ->orWhereHas('department', function ($dq) use ($privateRaw) {
                     $dq->where('code', 'like', '%' . $privateRaw . '%')
                         ->orWhere('name', 'like', '%' . $privateRaw . '%');
@@ -134,7 +137,11 @@ class HomeController extends Controller
             });
         }
 
-        $private_documents = $privateQuery->orderBy('created_at', 'desc')->get();
+        $private_documents = $privateQuery
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // dd($private_documents->toArray());
 
         if (auth()->user()->role != "Administrator")
         {
@@ -327,5 +334,21 @@ class HomeController extends Controller
             // 'comp' => $comp,
             'dept' => $dept
         ));
+    }
+
+    public function recordChangeRequestView(Request $request)
+    {
+        PrivateDocsVisitor::create([
+            'change_request_id' => $request->change_request_id,
+            'user_id' => auth()->user()->id,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function changeRequestVisitors($id)
+    {
+        $changeRequest = ChangeRequest::with(['visitors.user.department'])->findOrFail($id);
+        return view('change_request.visitors', compact('changeRequest'));
     }
 }
