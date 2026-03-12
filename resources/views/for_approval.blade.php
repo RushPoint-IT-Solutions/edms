@@ -8,12 +8,12 @@
     </div>
 </div>
 
-{{-- <div class="row g-3 mb-4 h-100">
+<div class="row g-3 mb-4 h-100">
     <div class="col-xl-4 col-md-4">
         <div class="dashboard-card pending">
             <div class="icon-circle"><i class="fa fa-clock-o"></i></div>
             <h2 class="mb-0 font-weight-bold">
-                {{ count($copy_for_approvals->where('status','Pending')) + count($change_for_approvals->where('status','Pending')) }}
+                {{ count($change_for_approvals->where('status','Pending')) }}
             </h2>
             <p>For Approval</p>
         </div>
@@ -22,7 +22,7 @@
         <div class="dashboard-card approved">
             <div class="icon-circle"><i class="fa fa-check-circle"></i></div>
             <h2 class="mb-0 font-weight-bold">
-                {{ count($copy_for_approvals->where('status','Approved')) + count($change_for_approvals->where('status','Approved')) }}
+                {{ count($change_for_approvals->where('status','Approved')) }}
             </h2>
             <p>Approved</p>
         </div>
@@ -31,12 +31,12 @@
         <div class="dashboard-card declined">
             <div class="icon-circle"><i class="fa fa-times-circle"></i></div>
             <h2 class="mb-0 font-weight-bold">
-                {{ count($copy_for_approvals->where('status','Declined')) + count($change_for_approvals->where('status','Declined')) }}
+                {{ count($change_for_approvals->where('status','Declined')) }}
             </h2>
             <p>Declined</p>
         </div>
     </div>
-</div> --}}
+</div>
 
 <div class="row">
     <div class="col-md-12 mb-4">
@@ -113,10 +113,10 @@
     </div>
 </div> --}}
 
-@foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
+{{-- @foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
 @php $request = $copy_approval->copy_request; @endphp
 @include('copy_request.view_approval_copy')
-@endforeach
+@endforeach --}}
 
 @endsection
 
