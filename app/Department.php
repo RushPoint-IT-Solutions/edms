@@ -49,6 +49,6 @@ class Department extends Model  implements Auditable
     }
     public function approvers()
     {
-        return $this->hasMany(DepartmentApprover::class);
+        return $this->hasMany(RequestApprover::class, 'change_request_id');
     }
 }
