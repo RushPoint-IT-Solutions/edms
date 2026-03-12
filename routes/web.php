@@ -17,6 +17,11 @@ Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 Route::get('auth/google', 'GoogleController@redirectToGoogle');
 Route::get('auth/google/callback','GoogleController@handleGoogleCallback');
 
+// 404 error
+Route::fallback(function() {
+    return view("pages.404-error");
+});
+
 Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
     Route::group(['middleware' => 'deactivate'], function() {
