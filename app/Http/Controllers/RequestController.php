@@ -475,16 +475,10 @@ class RequestController extends Controller
 
             $myApprover = $cr->approvers->firstWhere('user_id', auth()->user()->id);
             $myStatus   = $myApprover ? $myApprover->status : null;
+            $isMyTurn   = $myStatus === 'Pending';
 
-            $isMyTurn = $myStatus === 'Pending';
-
-            $actionLink = $isMyTurn
-                ? '<a class="dropdown-item" href="' . url('change-request/for_approval/' . $cr->id) . '">
-                    <i class="ri-edit-line me-2"></i>Review & Act
-                </a>'
-                : '<a class="dropdown-item" href="' . url('change-request/view-change-request/' . $cr->id) . '">
-                    <i class="ri-eye-line me-2"></i>View Only
-                </a>';
+            $disabledAttr  = $isMyTurn ? '' : 'disabled';
+            $disabledClass = $isMyTurn ? '' : 'text-muted pe-none opacity-50';
 
             $data[] = [
                 'action' => '
@@ -493,7 +487,30 @@ class RequestController extends Controller
                             <i class="ri-more-2-fill"></i>
                         </button>
                         <ul class="dropdown-menu">
-                            <li>' . $actionLink . '</li>
+                            <li>
+                                <a class="dropdown-item" href="' . url('change-request/for_approval/' . $cr->id) . '">
+                                    <i class="ri-eye-line me-2"></i>View Request
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item ' . $disabledClass . '" 
+                                    href="#"
+                                    ' . ($isMyTurn ? 'onclick="openSignModal(' . $cr->id . ')"' : '') . '
+                                    ' . $disabledAttr . '
+                                    title="' . (!$isMyTurn ? 'Not your turn yet' : 'Sign this document') . '">
+                                    <i class="ri-quill-pen-line me-2"></i>Sign Document
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item ' . $disabledClass . '"
+                                    href="#"
+                                    ' . ($isMyTurn ? 'onclick="openReturnModal(' . $cr->id . ')"' : '') . '
+                                    ' . $disabledAttr . '
+                                    title="' . (!$isMyTurn ? 'Not your turn yet' : 'Return this document') . '">
+                                    <i class="ri-arrow-go-back-line me-2 text-danger"></i>Return Document
+                                </a>
+                            </li>
                         </ul>
                     </div>',
 
