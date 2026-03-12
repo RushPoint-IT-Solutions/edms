@@ -116,7 +116,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/add-permission/{id}', 'RoleController@addPermission')->name('roles.addPermission');
         });
 
-        Route::get('/access-control', 'AccessControlController@index')->name('access-control');
+        Route::get('/access-control', 'AccessControlController@index')->name('settings');
         Route::post('/access-control/update', 'AccessControlController@update')->name('access-control.update');
         
         Route::prefix('permission')->group(function() {
