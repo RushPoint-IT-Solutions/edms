@@ -28,6 +28,7 @@ Route::group(['middleware' => 'auth'], function () {
         
         // Documents
         Route::get('/dashboard/stats', 'HomeController@stats')->name('dashboard.stats');
+        Route::post('change-request/confirm-password', 'RequestController@confirmPasswordAjax')->name('change-request.confirm-password-ajax');
         Route::get('/documents', 'DocumentController@index')->name('documents');
         Route::prefix('documents')->group(function() {
             Route::get('create/{id?}', 'DocumentController@create')->name('documents.create');
@@ -78,12 +79,14 @@ Route::group(['middleware' => 'auth'], function () {
         });    
 
         //ChangeRequest
+        Route::post('change-request/record-view', 'HomeController@recordChangeRequestView')->name('change-request.record-view');
+        Route::get('change-request/visitors/{id}', 'HomeController@changeRequestVisitors')->name('change-request.visitors');
         Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::prefix('change-request')->group(function() {
             Route::get('/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
             Route::get('for_approval/{id}', 'RequestController@show');
             Route::get('view-change-request/{id}','RequestController@viewChangeRequest');
-            
+
             Route::post('store','RequestController@store');
             Route::post('comments', 'RequestController@comments');
             Route::post('change-request-action/{id}','RequestController@action');

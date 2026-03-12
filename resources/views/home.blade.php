@@ -1,19 +1,195 @@
 @extends('layouts.header')
 
 @section('css')
-{{-- <link href="{{ asset('login_css/css/plugins/c3/c3.min.css') }}" rel="stylesheet">
-<link href="{{ asset('login_css/css/plugins/morris/morris-0.4.3.min.css') }}" rel="stylesheet"> --}}
 <style>
-.file-card {
+.qms-kpi-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 100%;
+    padding: 18px 16px;
+
+    border: 1px solid transparent;
+    border-radius: 12px;
+
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.qms-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.qms-kpi-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 46px;
+
+    border-radius: 12px;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.qms-kpi-total {
+    background: #fff8f8;
+    border-color: #f5d0d0;
+}
+
+.qms-kpi-total .qms-kpi-icon {
+    background: #8b0000;
+    color: #ffffff;
+}
+
+.qms-kpi-pending {
+    background: #fffbf0;
+    border-color: #fde8b0;
+}
+
+.qms-kpi-pending .qms-kpi-icon {
+    background: #e67e22;
+    color: #ffffff;
+}
+
+.qms-kpi-approved {
+    background: #f0faf4;
+    border-color: #b7e4c7;
+}
+
+.qms-kpi-approved .qms-kpi-icon {
+    background: #27ae60;
+    color: #ffffff;
+}
+
+.qms-kpi-declined {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.qms-kpi-declined .qms-kpi-icon {
+    background: #6c757d;
+    color: #ffffff;
+}
+
+.qms-kpi-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+
+    color: #1a1a2e;
+    font-variant-numeric: tabular-nums;
+}
+
+.qms-kpi-label {
+    margin-top: 3px;
+
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.qms-kpi-trend {
+    margin-top: 5px;
+
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.qms-kpi-trend.up {
+    color: #27ae60;
+}
+
+.qms-kpi-trend.down {
+    color: #c0392b;
+}
+
+.qms-kpi-trend.neutral {
+    color: #95a5a6;
+}
+
+.qms-chart-card {
+    border: 1px solid #f0f0f0 !important;
+    border-radius: 7px !important;
+}
+
+.qms-chart-wrap {
     position: relative;
-    z-index: 1;
-    transition: all 0.3s ease;
     width: 100%;
 }
 
+.qms-chart-wrap canvas {
+    width: 100% !important;
+}
+
+.qms-legend-dot {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.qms-legend-dot::before {
+    content: "";
+
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+    background: var(--dot);
+    display: inline-block;
+}
+
+.qms-donut-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.qms-donut-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    flex: 1 1 calc(50% - 4px);
+
+    font-size: 0.75rem;
+    color: #495057;
+}
+
+.qms-donut-item span {
+    width: 10px;
+    height: 10px;
+
+    border-radius: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.qms-donut-item strong {
+    margin-left: auto;
+    color: #1a1a2e;
+}
+
+.qms-weekly-stats {
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.file-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+
+    transition: all 0.3s ease;
+}
+
 .file-card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
     transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
 .file-card .more-btn {
@@ -27,31 +203,37 @@
 }
 
 .file-more-btn {
+    background-color: #ffffff !important;
+
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
-    background-color: white !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .file-more-btn:hover {
     background-color: #f8f9fa !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .file-more-btn:active {
     background-color: #e9ecef !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+
     transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .file-dropdown-menu {
     position: fixed;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
     min-width: 200px;
-    z-index: 1025;
     display: none;
+
+    background: #ffffff;
+    border-radius: 12px;
     overflow: hidden;
+
+    z-index: 1025;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
     animation: dropdownFadeIn 0.15s ease-out;
 }
 
@@ -60,32 +242,39 @@
 }
 
 @keyframes dropdownFadeIn {
+
     from {
         opacity: 0;
         transform: translateY(-5px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
+
 }
 
 .file-dropdown-item {
-    padding: 12px 16px;
     display: flex;
     align-items: center;
     gap: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+
+    width: 100%;
+    padding: 12px 16px;
+
     border: none;
     background: none;
-    width: 100%;
-    text-align: left;
-    font-size: 0.875rem;
-    color: #212529;
-    position: relative;
-    font-weight: 500;
+
+    cursor: pointer;
     user-select: none;
+
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: left;
+    color: #212529;
+
+    transition: all 0.2s ease;
 }
 
 .file-dropdown-item:hover {
@@ -107,20 +296,10 @@
     transform: scale(1.1);
 }
 
-.file-dropdown-item .shortcut {
-    margin-left: auto;
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-
 .file-dropdown-divider {
     height: 1px;
-    background-color: #dee2e6;
     margin: 4px 0;
-}
-
-.file-dropdown-item.submenu {
-    justify-content: space-between;
+    background-color: #dee2e6;
 }
 
 .file-dropdown-item.danger {
@@ -131,103 +310,43 @@
     background-color: #fee;
 }
 
-.file-submenu {
-    position: absolute;
-    left: 100%;
-    top: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    min-width: 200px;
-    z-index: 1026;
-    display: none;
-    margin-left: 5px;
-    overflow: hidden;
-}
-
-.file-submenu.show {
-    display: block;
-}
-
-.file-dropdown-item.submenu:hover .file-submenu {
-    display: block;
-}
-
-.file-preview-menu {
-    position: absolute;
-    top: 100%;
-    left: 20%;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    min-width: 200px;
-    z-index: 9999;
-    display: none;
-    margin-top: 5px;
-    overflow: hidden;
-}
-
-.file-preview-menu.show {
-    display: block;
-}
-
-.file-share-menu {
-    position: absolute;
-    top: 100%;
-    left: 20%;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    min-width: 200px;
-    z-index: 1025;
-    display: none;
-    margin-top: 5px;
-    overflow: hidden;
-}
-
-.file-share-menu.show {
-    display: block;
-}
-
 .drive-list-container {
-    background: white;
+    background: #ffffff;
     border-radius: 8px;
     overflow: hidden;
 }
 
 .drive-list-header {
+    padding: 8px 16px;
+
     background: #f8f9fa;
     border-bottom: 1px solid #e0e0e0;
-    padding: 8px 16px;
+
     font-size: 0.75rem;
     font-weight: 600;
+
     color: #5f6368;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 
-.drive-list-body {
-    background: white;
-}
-
 .drive-list-row {
     display: flex;
     align-items: center;
-    width: 100%;
     gap: 16px;
-}
 
-.drive-list-header .drive-list-row {
-    align-items: center;
-    height: 40px;
+    width: 100%;
 }
 
 .drive-list-item {
-    border-bottom: 1px solid #f0f0f0;
     padding: 8px 16px;
-    transition: background-color 0.2s ease;
+
+    border-bottom: 1px solid #f0f0f0;
+
     cursor: pointer;
     position: relative;
+
+    transition: background-color 0.2s ease;
 }
 
 .drive-list-item:hover {
@@ -261,280 +380,38 @@
 
 .drive-col-size {
     width: 80px;
-    flex-shrink: 0;
     text-align: right;
+    flex-shrink: 0;
 }
 
 .drive-col-actions {
     width: 48px;
-    flex-shrink: 0;
+
     display: flex;
     justify-content: center;
     align-items: center;
-}
 
-.drive-col-dept span,
-.drive-col-owner span {
-    font-size: 0.8125rem;
-    color: #5f6368;
-}
-
-@media (max-width: 992px) {
-    .drive-col-dept { display: none; }
-    .drive-col-owner { display: none; }
-    .drive-col-size { display: none; }
-}
-
-.file-icon-wrapper {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     flex-shrink: 0;
-}
-
-.file-icon-wrapper i {
-    font-size: 24px;
-}
-
-.file-info {
-    min-width: 0;
-    flex: 1;
 }
 
 .file-name {
     font-size: 0.875rem;
     font-weight: 500;
+
     color: #202124;
+
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.4;
 }
 
 .file-subtitle {
     font-size: 0.75rem;
     color: #5f6368;
+
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.3;
-}
-
-.drive-col-owner span,
-.drive-col-modified span,
-.drive-col-size span {
-    font-size: 0.8125rem;
-    color: #5f6368;
-}
-
-.drive-more-btn {
-    opacity: 0;
-    transition: opacity 0.2s ease, background-color 0.2s ease;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-}
-
-.drive-list-item:hover .drive-more-btn {
-    opacity: 1;
-}
-
-.drive-more-btn:hover {
-    background-color: #e8eaed !important;
-}
-
-.drive-more-btn:active {
-    background-color: #dadce0 !important;
-}
-
-.drive-more-btn i {
-    font-size: 18px;
-    color: #5f6368;
-}
-
-#listView .file-card.dropdown-open {
-    background-color: #e8f0fe;
-}
-
-.view-toggle {
-    transition: all 0.2s ease;
-    border-radius: 4px;
-}
-
-.view-toggle.active {
-    background-color: #0d6efd;
-    color: white;
-    border-color: #0d6efd;
-}
-
-.view-toggle:hover:not(.active) {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
-}
-
-.view-toggle i {
-    font-size: 1rem;
-}
-
-@media (max-width: 1200px) {
-    .drive-col-owner {
-        width: 90px;
-    }
-    
-    .drive-col-dept {
-        width: 130px;
-    }
-    
-    .drive-col-modified {
-        width: 100px;
-    }
-    
-    .drive-col-size {
-        width: 70px;
-    }
-}
-
-@media (max-width: 992px) {
-    .drive-col-owner {
-        display: none;
-    }
-    
-    .drive-col-size {
-        display: none;
-    }
-    
-    .drive-list-header .drive-col-owner,
-    .drive-list-header .drive-col-size {
-        display: none;
-    }
-    
-    .drive-col-modified {
-        width: 100px;
-    }
-}
-
-@media (max-width: 768px) {
-    .drive-list-header {
-        display: none;
-    }
-    
-    .drive-list-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .drive-list-item {
-        padding: 12px 16px;
-    }
-    
-    .drive-col-name,
-    .drive-col-owner,
-    .drive-col-modified,
-    .drive-col-size {
-        width: 100%;
-        text-align: left;
-        padding-right: 0;
-    }
-    
-    .drive-col-actions {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: auto;
-    }
-    
-    .drive-more-btn {
-        opacity: 1;
-    }
-    
-    #listView .file-dropdown-menu {
-        right: 0;
-        top: 100%;
-        transform: none;
-        margin-top: 4px;
-        margin-right: 0;
-    }
-    
-    .file-info {
-        padding-right: 40px;
-    }
-}
-
-.drive-list-item .drive-list-row {
-    border-radius: 4px;
-}
-
-.drive-list-item.selected {
-    background-color: #e8f0fe;
-}
-
-.drive-list-item.loading {
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-.drive-list-empty {
-    padding: 48px 24px;
-    text-align: center;
-    color: #5f6368;
-}
-
-.drive-list-empty i {
-    font-size: 48px;
-    color: #dadce0;
-    margin-bottom: 16px;
-}
-
-.drive-list-empty p {
-    font-size: 0.875rem;
-    margin: 0;
-}
-
-#gridView,
-#listView {
-    animation: fadeIn 0.2s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.hover-effect {
-    transition: all 0.2s ease;
-}
-
-.hover-effect:hover {
-    transform: translateX(5px);
-}
-
-.hover-effect:hover span {
-    color: #0d6efd !important;
-    text-decoration: underline;
-}
-
-.table-container {
-    overflow: visible;
-}
-
-@media (max-width: 991px) {
-    .table-container {
-        overflow-x: auto;
-        overflow-y: visible;
-    }
 }
 
 .modern-table {
@@ -544,110 +421,107 @@
 }
 
 .modern-table thead th {
-    background: #f8f9fa;
-    color: #495057;
-    font-weight: 600;
-    font-size: 13px;
-    text-transform: uppercase;
     padding: 15px 12px;
-    border-bottom: 2px solid #8B0000;
-    white-space: nowrap;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    color: #495057;
+    background: #f8f9fa;
+
+    border-bottom: 2px solid #8b0000;
 }
 
 .modern-table tbody td {
     padding: 12px;
-    border-bottom: 1px solid #e9ecef;
-    vertical-align: middle;
+
     font-size: 14px;
+    vertical-align: middle;
+
+    border-bottom: 1px solid #e9ecef;
 }
 
 .modern-table tbody tr:hover {
     background: #f8f9fa;
 }
 
-.document-preview-iframe {
-    height: 200px;
-    border: none;
-    pointer-events: none;
-    background: #f8f9fa;
-    object-fit: cover;
-}
-
-body.modal-open {
-    overflow: hidden !important;
-}
-
-#qrCodeModal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    z-index: 1055 !important;
-}
-
-.modal-backdrop {
-    position: fixed !important;
-    z-index: 1050 !important;
-}
-
-@media (max-width: 768px) {
-    .file-dropdown-menu {
-        left: auto;
-        right: 0;
-        top: 100%;
-        margin-left: 0;
-        margin-top: 5px;
-    }
-    
-    .file-preview-menu,
-    .file-share-menu {
-        left: auto;
-        right: 0;
-        min-width: 180px;
-    }
-    
-    .file-submenu {
-        left: auto;
-        right: 100%;
-        margin-left: 0;
-        margin-right: 5px;
-    }
-    
-    .document-preview-iframe {
-        height: 150px;
-    }
-    
-}
-
-@media print {
-    body {
-        margin: 0;
-        padding: 20px;
-    }
-    
-    #qrPrintTemplate {
-        display: block !important;
-    }
-    
-    @page {
-        margin: 1cm;
-    }
-}
-
 .meta-tag {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 0.65rem;
-    background: #f1f3f5;
-    color: #495057;
-    border-radius: 4px;
+
     padding: 1px 5px;
+
+    font-size: 0.65rem;
+
+    color: #495057;
+    background: #f1f3f5;
+
+    border-radius: 4px;
+
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+}
+
+#gridView,
+#listView {
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+
+}
+
+@media (max-width: 992px) {
+
+    .drive-col-dept,
+    .drive-col-owner,
+    .drive-col-size {
+        display: none;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .drive-list-header {
+        display: none;
+    }
+
+    .drive-list-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+}
+
+@media print {
+
+    body {
+        margin: 0;
+        padding: 20px;
+    }
+
+    #qrPrintTemplate {
+        display: block !important;
+    }
+
+    @page {
+        margin: 1cm;
+    }
+
 }
 
 .empty-state {
@@ -680,83 +554,163 @@ body.modal-open {
 @endsection
 
 @section('content')
+
 <div class="mb-4">
     <h4 class="fs-2 fw-semibold mb-1">Dashboard</h4>
     <p class="text-muted">Overview of your documents</p>
 </div>
 
-{{-- <div class="row g-3 mb-4">
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
+<div class="row g-3 mb-4 h-100">
+    <div class="col-xl-3 col-md-4">
+        <div class="dashboard-card pending">
+            <div class="icon-circle">
+                <i class="ri-file-list-3-line"></i>
+            </div>
+            <h2 class="mb-0 font-weight-bold">{{ $forApprovalCount ?? 0 }}</h2>
+            <p>Total Documents</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-4">
+        <div class="dashboard-card declined">
+            <div class="icon-circle">
+                <i class="ri-time-line"></i>
+            </div>
+            <h2 class="mb-0 font-weight-bold">{{ $declinedCount ?? 0 }}</h2>
+            <p>Pending Approval</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-4">
+        <div class="dashboard-card approved">
+            <div class="icon-circle">
+                <i class="ri-checkbox-circle-line"></i>
+            </div>
+            <h2 class="mb-0 font-weight-bold">{{ $approvedCount ?? 0 }}</h2>
+            <p>Approved</p>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-4">
+        <div class="dashboard-card returned">
+            <div class="icon-circle">
+                <i class="ri-close-circle-line"></i>
+            </div>
+            <h2 class="mb-0 font-weight-bold">{{ $returnedCount ?? 0 }}</h2>
+            <p>Declined</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm h-100 qms-chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title text-muted fw-semibold mb-0" style="font-size: 0.875rem;">Total Documents</h5>
-                    <span class="badge bg-success" style="font-size: 0.75rem;">as of Today</span>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="fw-semibold mb-0 text-dark">Monthly Document Submissions</h6>
+                        <small class="text-muted">Jan – Dec {{ date('Y') }}</small>
+                    </div>
+                    <div class="d-flex gap-3 flex-wrap justify-content-end">
+                        <span class="qms-legend-dot" style="--dot:#8B0000;">Submitted</span>
+                        <span class="qms-legend-dot" style="--dot:#c0392b;">Approved</span>
+                        <span class="qms-legend-dot" style="--dot:#e0b0b0;">Declined</span>
+                    </div>
                 </div>
-                <h1 class="display-4 fw-bold text-dark">{{ count($documents) }}</h1>
-                <div class="text-muted" style="font-size: 0.75rem;">&nbsp;</div>
+                <div class="qms-chart-wrap" style="height:240px;">
+                    <canvas id="chartMonthly"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title text-muted fw-semibold mb-0" style="font-size: 0.875rem;">New Requests</h5>
-                    <span class="badge bg-success" style="font-size: 0.75rem;">as of Today</span>
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm h-100 qms-chart-card">
+            <div class="card-body d-flex flex-column">
+                <div class="mb-3">
+                    <h6 class="fw-semibold mb-0 text-dark">Document Status</h6>
+                    <small class="text-muted">Current breakdown</small>
                 </div>
-                <h1 class="display-4 fw-bold text-dark">
-                    {{ count($change_requests->where('created_at','>=',date('Y-m-d'))) + count($copy_requests->where('created_at','>=',date('Y-m-d'))) }}
-                </h1>
-                <div class="text-muted" style="font-size: 0.75rem;">&nbsp;</div>
+                <div class="qms-chart-wrap flex-grow-1 d-flex align-items-center justify-content-center" style="height:200px;">
+                    <canvas id="chartStatus"></canvas>
+                </div>
+                <div class="qms-donut-legend mt-3">
+                    <div class="qms-donut-item"><span style="background:#8B0000"></span>Approved <strong>81%</strong></div>
+                    <div class="qms-donut-item"><span style="background:#e67e22"></span>Pending <strong>6%</strong></div>
+                    <div class="qms-donut-item"><span style="background:#c0392b"></span>Declined <strong>12%</strong></div>
+                    <div class="qms-donut-item"><span style="background:#bdc3c7"></span>Draft <strong>1%</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100 qms-chart-card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="fw-semibold mb-0 text-dark">Documents by Department</h6>
+                    <small class="text-muted">Top 8 departments</small>
+                </div>
+                <div class="qms-chart-wrap" style="height:240px;">
+                    <canvas id="chartDept"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title text-muted fw-semibold mb-0" style="font-size: 0.875rem;">Pending</h5>
-                    <span class="badge bg-success" style="font-size: 0.75rem;">as of Today</span>
+    <div class="col-12 col-lg-3">
+        <div class="card shadow-sm h-100 qms-chart-card">
+            <div class="card-body d-flex flex-column">
+                <div class="mb-3">
+                    <h6 class="fw-semibold mb-0 text-dark">Document Types</h6>
+                    <small class="text-muted">By category</small>
                 </div>
-                <h1 class="display-4 fw-bold text-dark">
-                    {{ count($change_requests->where('status','Pending')) + count($copy_requests->where('status','Pending')) }}
-                </h1>
-                <div class="text-muted" style="font-size: 0.75rem;">&nbsp;</div>
+                <div class="qms-chart-wrap flex-grow-1" style="height:220px;">
+                    <canvas id="chartTypes"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title text-muted fw-semibold mb-0" style="font-size: 0.875rem;">Approved</h5>
-                    <span class="badge bg-success" style="font-size: 0.75rem;">as of {{ date('M. Y') }}</span>
+    <div class="col-12 col-lg-3">
+        <div class="card shadow-sm h-100 qms-chart-card">
+            <div class="card-body d-flex flex-column">
+                <div class="mb-3">
+                    <h6 class="fw-semibold mb-0 text-dark">This Week's Activity</h6>
+                    <small class="text-muted">Uploads vs Approvals</small>
                 </div>
-                <h1 class="display-4 fw-bold text-dark">
-                    {{ count($change_requests->where('status','Approved')) + count($copy_requests->where('status','Approved')) }}
-                </h1>
-                <div class="text-muted" style="font-size: 0.75rem;">&nbsp;</div>
+                <div class="qms-chart-wrap flex-grow-1" style="height:140px;">
+                    <canvas id="chartWeekly"></canvas>
+                </div>
+                <div class="qms-weekly-stats mt-3 d-flex justify-content-around text-center">
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size:1.4rem;">24</div>
+                        <small class="text-muted">Uploaded</small>
+                    </div>
+                    <div style="border-left:1px solid #eee;"></div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size:1.4rem;">17</div>
+                        <small class="text-muted">Approved</small>
+                    </div>
+                    <div style="border-left:1px solid #eee;"></div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size:1.4rem;">3</div>
+                        <small class="text-muted">Declined</small>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div> --}}
+</div>
 
 <div class="row g-4 align-items-stretch">
     <div class="col-12 col-lg-12 d-flex flex-column">
-        <div class="card shadow-sm w-100">
+        <div class="card shadow-sm w-100 qms-chart-card">
             <div class="card-body d-flex flex-column">
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-semibold text-dark mb-0">For Approval</h5>
                         <div class="d-flex align-items-center gap-2">
-                            {{-- <a href="{{ route('documents.create') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
-                                <i class="ri-file-add-line"></i>
-                                <span class="d-none d-md-inline">New Document</span>
-                            </a> --}}
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-outline-secondary btn-sm view-toggle active" data-view="grid">
                                     <i class="ri-grid-line"></i>
@@ -772,30 +726,27 @@ body.modal-open {
                         @foreach(request()->except(['pending_search','pending_date','pending_dept','pending_office','pending_page']) as $key => $val)
                             <input type="hidden" name="{{ $key }}" value="{{ $val }}">
                         @endforeach
-
                         <div class="d-flex gap-2 align-items-center">
                             <div class="position-relative flex-grow-1">
                                 <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
-                                <input type="text" 
-                                    name="pending_search" 
+                                <input type="text"
+                                    name="pending_search"
                                     id="pendingSearchInput"
                                     value="{{ request('pending_search') }}"
                                     placeholder="Search title, department, or date (e.g. Jan 2025)..."
                                     class="form-control form-control-sm ps-5 pe-5"
                                     autocomplete="off">
                                 @if(request('pending_search'))
-                                <a href="{{ route('home') }}" 
-                                class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
-                                style="z-index:2;">
+                                <a href="{{ route('home') }}"
+                                   class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
+                                   style="z-index:2;">
                                     <i class="ri-close-circle-fill"></i>
                                 </a>
                                 @endif
                             </div>
-
                             <input type="hidden" name="pending_date" value="">
                             <input type="hidden" name="pending_dept" value="">
                             <input type="hidden" name="pending_office" value="">
-
                             <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
                                 <i class="ri-search-line"></i>
                             </button>
@@ -823,27 +774,50 @@ body.modal-open {
                                     <span>View</span>
                                 </button>
                                 <div class="file-dropdown-divider"></div>
-                                <button class="file-dropdown-item" data-action="approve" data-id="{{ $change_request->id }}">
+                                @php
+                                    $Approver = $change_request->approvers->firstWhere('user_id', auth()->user()->id);
+                                    $Status   = $Approver ? $Approver->status : 'Waiting';
+                                @endphp
+                                <button class="file-dropdown-item" data-action="approve" 
+                                    data-id="{{ $change_request->id }}"
+                                    data-my-status="{{ $Status }}">
                                     <i class="ri-checkbox-circle-line"></i>
-                                    <span>Approve</span>
+                                    <span>Sign & Approve</span>
                                 </button>
                             </div>
 
                             <a href='#' class="text-decoration-none" onclick="return false;">
-                                <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($change_request->file)) }}&embedded=true" 
-                                        loading="lazy" 
-                                        class="card-img-top document-preview-iframe" 
-                                        scrolling="no" 
+                                <iframe src="https://docs.google.com/gview?url={{ urlencode(asset($change_request->file)) }}&embedded=true"
+                                        loading="lazy"
+                                        class="card-img-top document-preview-iframe"
+                                        scrolling="no"
                                         frameborder="0"></iframe>
                                 <div class="card-body p-2 text-start">
+                                    @php
+                                        $myApprover = $change_request->approvers->firstWhere('user_id', auth()->user()->id);
+                                        $myStatus   = $myApprover ? $myApprover->status : null;
+                                    @endphp
                                     <div class="docu d-flex align-items-center gap-2">
                                         <i class="ri-file-pdf-line text-danger" style="font-size: 1rem;"></i>
                                         @php
                                             $file = $change_request->file;
                                             $filename = explode('/',$file);
-                                        @endphp 
+                                        @endphp
                                         <div class="fw-semibold text-dark text-truncate" style="font-size: 0.75rem;">{{ $filename[2] }}</div>
                                     </div>
+                                    @if($myStatus === 'Pending')
+                                        <div class="mt-1">
+                                            <span class="badge bg-warning text-dark" style="font-size:0.65rem;">
+                                                <i class="ri-quill-pen-line me-1"></i>Your Turn to Sign
+                                            </span>
+                                        </div>
+                                    @elseif($myStatus === 'Waiting')
+                                        <div class="mt-1">
+                                            <span class="badge bg-secondary" style="font-size:0.65rem;">
+                                                <i class="ri-hourglass-line me-1"></i>Waiting for the first Approver to sign
+                                            </span>
+                                        </div>
+                                    @endif
                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                         @if($change_request->department)
                                             <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->code }}</span>
@@ -872,7 +846,7 @@ body.modal-open {
 
                 <div id="listView" class="d-none">
                     <div class="overflow-auto">
-                        <div class="drive-list-container"  style="min-width: 700px;">
+                        <div class="drive-list-container" style="min-width: 700px;">
                             <div class="drive-list-header">
                                 <div class="drive-list-row">
                                     <div class="drive-col-name"><span>Name</span></div>
@@ -883,7 +857,7 @@ body.modal-open {
                                     <div class="drive-col-actions"></div>
                                 </div>
                             </div>
-                            
+
                             <div class="drive-list-body">
                                 @foreach ($pending_cards as $approvers)
                                 @php
@@ -905,6 +879,19 @@ body.modal-open {
                                                 <div class="file-info">
                                                     <div class="file-name">{{ $filename[count($filename)-1] }}</div>
                                                     <div class="file-subtitle text-muted">{{ $change_request->title }}</div>
+                                                    @php
+                                                        $myApproverList = $change_request->approvers->firstWhere('user_id', auth()->user()->id);
+                                                        $myStatusList   = $myApproverList ? $myApproverList->status : null;
+                                                    @endphp
+                                                    @if($myStatusList === 'Pending')
+                                                        <span class="badge bg-warning text-dark mt-1" style="font-size:0.62rem;">
+                                                            <i class="ri-quill-pen-line me-1"></i>Your Turn to Sign
+                                                        </span>
+                                                    @elseif($myStatusList === 'Waiting')
+                                                        <span class="badge bg-secondary mt-1" style="font-size:0.62rem;">
+                                                            <i class="ri-hourglass-line me-1"></i>Waiting for the first Approver to sign
+                                                        </span>
+                                                    @endif
                                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                                         @if($change_request->department && $change_request->department->office)
                                                             <div class="d-flex flex-wrap gap-1 mt-1">
@@ -1004,6 +991,7 @@ body.modal-open {
                     </nav>
                 </div>
                 @endif
+
             </div>
         </div>
     </div>
@@ -1011,25 +999,24 @@ body.modal-open {
 
 <div class="row">
     <div class="col-12 col-lg-6">
-        <div class="card shadow-sm w-100" style="max-height: 450px; overflow: hidden;">
+        <div class="card shadow-sm w-100 qms-chart-card" style="max-height: 450px; overflow: hidden;">
             <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
                 <h5 class="fw-semibold text-dark mb-3">Private Documents</h5>
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
                         <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
                     @endif
-
                     <div class="d-flex gap-2 align-items-center mt-1">
                         <div class="position-relative flex-grow-1">
                             <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
-                            <input type="text" 
+                            <input type="text"
                                 name="private_search"
                                 value="{{ request('private_search') }}"
                                 placeholder="Search title, dept, office, date..."
                                 class="form-control form-control-sm ps-5 pe-5"
                                 autocomplete="off">
                             @if(request('private_search'))
-                            <a href="{{ route('home') }}" 
+                            <a href="{{ route('home') }}"
                                 class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
                                 style="z-index:2;">
                                 <i class="ri-close-circle-fill"></i>
@@ -1048,97 +1035,78 @@ body.modal-open {
                 <div style="overflow-y: scroll; flex-grow: 1; min-height: 0;">
                     <ul class="list-group">
                         @forelse ($private_documents as $private_document)
-                        <li class="list-group-item px-2 py-2 @if(count($private_document->document_request_access->where("status", 0)->where("requestor_id", auth()->id())) > 0) bg-warning @endif" >
-                            <div class="d-flex align-items-start gap-2">
-                                <div class="flex-shrink-0 pt-1">
-                                    @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
-                                        @foreach($private_document->attachments->where('type','pdf_copy') as $attachment)
-                                        <a href="{{ url($attachment->attachment) }}" target="_blank">
+                            @php
+                                $pvFile = $private_document->file;
+                                $pvFilename = $pvFile ? explode('/', $pvFile) : [];
+                                $pvName = count($pvFilename) ? end($pvFilename) : '—';
+                            @endphp
+                            <li class="list-group-item px-2 py-2">
+                                <div class="d-flex align-items-start gap-2">
+                                    <div class="flex-shrink-0 pt-1">
+                                        <a href="{{ url($pvFile) }}" target="_blank" onclick="recordCRView({{ $private_document->id }})">
                                             <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                                <i class="ri-file-text-line"></i>
+                                                <i class="ri-file-pdf-line"></i>
                                             </div>
                                         </a>
-                                        <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
-                                            @csrf
-                                            <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                        </form>
-                                        @endforeach
-                                    @else 
-                                        <a href="javascript:void(0)">
-                                            <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                                <i class="ri-git-repository-private-line"></i>
-                                            </div>
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $pvName }}</h6>
+                                        <small class="text-muted text-truncate d-block" title="{{ $private_document->title }}">{{ $private_document->title }}</small>
+                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                            @if($private_document->department)
+                                                <span class="meta-tag"><i class="ri-building-line"></i> {{ $private_document->department->code }}</span>
+                                            @endif
+                                            @if($private_document->department && $private_document->department->office)
+                                                <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $private_document->department->office->name ?? $private_document->department->office->code }}</span>
+                                            @endif
+                                            @if($private_document->user)
+                                                <span class="meta-tag"><i class="ri-user-line"></i> {{ $private_document->user->name }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
+                                        <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
+                                            <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($private_document->created_at)) }}
+                                        </small>
+                                        <span class="badge" style="font-size: 0.6rem; background:#fdecea; color:#c0392b;">
+                                            {{ $private_document->status ?? 'Pending' }}
+                                        </span>
+                                        <a href="{{ route('change-request.visitors', $private_document->id) }}" target="_blank" class="text-decoration-none">
+                                            <span class="badge bg-danger-subtle text-danger" style="font-size: 0.6rem;">
+                                                <i class="ri-eye-line"></i> {{ $private_document->visitors ? $private_document->visitors->count() : 0 }}
+                                            </span>
                                         </a>
-                                    @endif
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
-                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted">
-                                        <i class="ri-file-text-line"></i>
-                                        {{ $private_document->title }}
-                                    </h6>
-                                    @else
-                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted" style="font-style:italic;">
-                                        <i class="ri-git-repository-private-line"></i>
-                                        {{ $private_document->title }}
-                                    </h6>
-                                    @endif
-                                    <small class="text-muted text-truncate d-block" title="{{ $private_document->control_code }}">{{ $private_document->control_code }}</small>
-                                    <small class="text-muted text-truncate d-block">Owner: {{ $private_document->owner->name }}</small>
-                                    <div class="d-flex flex-wrap gap-1 mt-1">
-                                        @if($private_document->department)
-                                            <span class="meta-tag"><i class="ri-building-line"></i> {{ $private_document->department->code }}</span>
-                                        @endif
-                                        @if($private_document->department && $private_document->department->office)
-                                            <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $private_document->department->office->name ?? $private_document->department->office->code }}</span>
-                                        @endif
                                     </div>
                                 </div>
-                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
-                                    <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
-                                        <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($private_document->created_at)) }}
-                                    </small>
-                                    @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) == 0)
-                                    <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#requestAccess{{ $private_document->id }}">
-                                        <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
-                                            <i class="ri-more-2-fill"></i>
-                                        </span>
-                                    </a>
-                                    @endif
-                                </div>
-                            </div>
-                        </li>
-                        @empty
-                            <li class="list-group-item text-center text-muted">No documents found.</li>
-                        @endforelse
+                            </li>
+                            @empty
+                                <li class="list-group-item text-center text-muted">No documents found.</li>
+                            @endforelse
                     </ul>
                 </div>
-
             </div>
         </div>
     </div>
 
     <div class="col-12 col-lg-6">
-        <div class="card shadow-sm w-100" style="max-height: 450px; overflow: hidden;">
+        <div class="card shadow-sm w-100 qms-chart-card" style="max-height: 450px; overflow: hidden;">
             <div class="card-body" style="display: flex; flex-direction: column; height: 450px;">
                 <h5 class="fw-semibold text-dark mb-3">Public Documents</h5>
-
                 <form action="{{ route('home') }}" method="GET" class="mb-3">
                     @if(request('pending_search'))
                         <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
                     @endif
-
                     <div class="d-flex gap-2 align-items-center mt-1">
                         <div class="position-relative flex-grow-1">
                             <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
-                            <input type="text" 
+                            <input type="text"
                                 name="public_search"
                                 value="{{ request('public_search') }}"
                                 placeholder="Search title, dept, office, date..."
                                 class="form-control form-control-sm ps-5 pe-5"
                                 autocomplete="off">
                             @if(request('public_search'))
-                            <a href="{{ route('home') }}" 
+                            <a href="{{ route('home') }}"
                                 class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
                                 style="z-index:2;">
                                 <i class="ri-close-circle-fill"></i>
@@ -1197,345 +1165,40 @@ body.modal-open {
                         @endforelse
                     </ul>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 
-<!-- Documents Section -->
-<!-- <div class="card shadow-sm mb-5" style="overflow: visible;">
-    <div class="card-body" style="overflow: visible;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-semibold text-dark mb-0">My Documents</h5>
-        </div>
-
-        <form action="{{ route('home') }}" method="GET">
-            @if(request('pending_search'))
-                <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
-            @endif
-            <div class="row g-3 mb-4">
-                <div class="col-12 col-lg-auto flex-lg-grow-1">
-                    <div class="position-relative">
-                        <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                        <input type="text" name="doc_search" value="{{ request('doc_search') }}" placeholder="Search Document" class="form-control form-control-sm ps-5" style="min-width: 250px;">
-                    </div>
-                </div>
-                <div class="col-auto d-flex align-items-center gap-2">
-                    <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Sort by</label>
-                    <select name="doc_sort" class="form-select form-select-sm" style="min-width: 120px;" onchange="this.form.submit()">
-                        <option value="creation" {{ request('doc_sort', 'creation') == 'creation' ? 'selected' : '' }}>Creation</option>
-                        <option value="name" {{ request('doc_sort') == 'name' ? 'selected' : '' }}>Name</option>
-                        <option value="date" {{ request('doc_sort') == 'date' ? 'selected' : '' }}>Date</option>
-                    </select>
-                </div>
-                <div class="col-auto d-flex align-items-center gap-2">
-                    <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Status</label>
-                    <select name="doc_status" class="form-select form-select-sm" style="min-width: 120px;" onchange="this.form.submit()">
-                        <option value="Default" {{ request('doc_status', 'Default') == 'Default' ? 'selected' : '' }}>Default</option>
-                        <option value="Approved" {{ request('doc_status') == 'Approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="Pending" {{ request('doc_status') == 'Pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="Declined" {{ request('doc_status') == 'Declined' ? 'selected' : '' }}>Declined</option>
-                    </select>
-                </div>
-                <div class="col-auto d-flex align-items-center gap-2">
-                    <label class="mb-0 text-nowrap" style="font-size: 0.875rem;">Show entries</label>
-                    <select name="doc_per_page" class="form-select form-select-sm" style="min-width: 120px;" onchange="this.form.submit()">
-                        <option value="10" {{ request('doc_per_page', '10') == '10' ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ request('doc_per_page') == '25' ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ request('doc_per_page') == '50' ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ request('doc_per_page') == '100' ? 'selected' : '' }}>100</option>
-                    </select>
-                </div>
-                <div class="col-auto d-flex align-items-center gap-2">
-                    <button type="submit" class="btn btn-sm btn-primary"><i class="ri-search-line"></i> Search</button>
-                    @if(request()->hasAny(['doc_search','doc_sort','doc_status','doc_per_page']))
-                    <a href="{{ route('home') }}" class="btn btn-sm btn-outline-danger"><i class="ri-close-line"></i> Reset</a>
-                    @endif
-                </div>
-            </div>
-        </form>
-
-        <div class="table-container">
-            <table class="modern-table tables">
-                <thead class="table-light">
-                    <tr>
-                        <th style="font-size: 0.875rem; font-weight: 600;">Title</th>
-                        <th style="font-size: 0.875rem; font-weight: 600;">Attachment</th>
-                        <th style="font-size: 0.875rem; font-weight: 600;">Created By</th>
-                        <th style="font-size: 0.875rem; font-weight: 600;">Status</th>
-                        <th style="font-size: 0.875rem; font-weight: 600;">QR Code</th>
-                        {{-- <th style="font-size: 0.875rem; font-weight: 600;" class="text-center">Actions</th> --}}
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($change_requests as $change_request)
-                    @php
-                        $code = "DOC-".date('Y', strtotime($change_request->created_at)).'-'.str_pad($change_request->id,3,'0',STR_PAD_LEFT);
-                        $file = $change_request->file;
-                        $filename = explode('/',$file);
-                    @endphp
-                    <tr>
-                        <td>
-                            <div class="fw-semibold text-dark" style="font-size: 0.875rem;">{{ $change_request->title }}</div>
-                            <small class="text-muted">{{ $code }}</small>
-                        </td>
-                        <td>
-                            <a href="{{ url($change_request->file) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 hover-effect">
-                                <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
-                                <span style="font-size: 0.875rem;" class="text-dark">{{ $filename[count($filename)-1] }}</span>
-                            </a>
-                        </td>
-                        <td>
-                            <div style="font-size: 0.875rem;">{{ $change_request->user->name }}</div>
-                            <small class="text-muted">{{ date('M d Y', strtotime($change_request->created_at)) }}</small>
-                        </td>
-                        <td>
-                            @if($change_request->status == 'Approved')
-                                <span class="badge bg-success" style="font-size: 0.75rem;">{{$change_request->status}}</span>
-                            @elseif($change_request->status == 'Pending')
-                                <span class="badge bg-warning" style="font-size: 0.75rem;">{{$change_request->status}}</span>
-                            @elseif($change_request->status == 'Declined')
-                                <span class="badge bg-danger" style="font-size: 0.75rem;">{{$change_request->status}}</span>
-                            @else
-                                <span class="badge bg-secondary" style="font-size: 0.75rem;">{{$change_request->status}}</span>
-                            @endif
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary view-qr-btn" 
-                                    data-doc-id="{{ $code }}" 
-                                    data-doc-title="{{ $change_request->title }}"
-                                    data-change-request-id="{{ $change_request->id }}">
-                                <i class="ri-qr-code-line"></i> View QR
-                            </button>
-                        </td>
-                        {{-- <td class="text-center">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="ri-more-2-fill"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <a href="{{ url($change_request->file) }}" class="dropdown-item" target="_blank">
-                                            <i class="ri-eye-line me-2"></i>View Document
-                                        </a>
-                                    </li>
-                                    @if($change_request->status == 'Pending')
-                                    <li>
-                                        <a href="{{ route('documents.signature', $change_request->id) }}" class="dropdown-item">
-                                            <i class="ri-checkbox-circle-line me-2"></i>Approve
-                                        </a>
-                                    </li>
-                                    @endif
-                                    <li>
-                                        <button class="dropdown-item print-doc-btn">
-                                            <i class="ri-printer-line me-2"></i>Print
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td> --}}
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No documents found.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($change_requests->hasPages())
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="text-muted" style="font-size: 0.875rem;">
-                Showing <strong>{{ $change_requests->firstItem() }}</strong> to <strong>{{ $change_requests->lastItem() }}</strong> of <strong>{{ $change_requests->total() }}</strong> entries
-            </div>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    @if($change_requests->onFirstPage())
-                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
-                    @else
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $change_requests->appends(request()->except('table_page'))->previousPageUrl() }}">Previous</a>
-                        </li>
-                    @endif
-
-                    @foreach($change_requests->getUrlRange(1, $change_requests->lastPage()) as $page => $url)
-                        @if($page == $change_requests->currentPage())
-                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
-                        @else
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $change_requests->appends(request()->except('table_page'))->url($page) }}">{{ $page }}</a>
-                            </li>
-                        @endif
-                    @endforeach
-
-                    @if($change_requests->hasMorePages())
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $change_requests->appends(request()->except('table_page'))->nextPageUrl() }}">Next</a>
-                        </li>
-                    @else
-                        <li class="page-item disabled"><span class="page-link">Next</span></li>
-                    @endif
-                </ul>
-            </nav>
-        </div>
-        @endif
-    </div>
-</div> -->
-
-<!-- @if($change_requests->count() > 0)
-<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="dashboardSignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="qrCodeModalLabel">Document QR Code</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="ri-lock-line me-2"></i>Confirm Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center">
-                <div class="card border-0 bg-light p-4 mb-3">
-                    <div id="qrCodeContainer" class="d-flex justify-content-center">
-                    </div>
-                </div>
-                <div class="mb-2">
-                    <svg class="barcode-display"
-                        jsbarcode-format="Code39"
-                        jsbarcode-textmargin="0"
-                        jsbarcode-fontoptions="bold"
-                        jsbarcode-displayvalue="true">
-                    </svg>
-                </div>
-                <div class="alert alert-info mb-3" role="alert">
-                    <i class="ri-information-line"></i> Scan this QR code to access document details
-                </div>
-                <div class="mb-2">
-                    <strong>Document ID:</strong> <span id="qrDocId" class="text-primary"></span>
-                </div>
-                <div class="mb-2">
-                    <strong>Document Title:</strong> <span id="qrDocTitle"></span>
-                </div>
-                {{-- <div class="mb-2">
-                    <strong>Category:</strong> <span id="qrDocCategory"></span>
-                </div>
-                <div class="mb-2">
-                    <strong>Status:</strong> <span id="qrDocStatus"></span>
-                </div> --}}
-                <div>
-                    <strong>URL:</strong> 
-                    <div class="input-group input-group-sm mt-1">
-                        <input type="text" class="form-control" id="qrDocUrl" readonly>
-                        <button class="btn btn-outline-secondary" type="button" id="copyUrlBtn">
-                            <i class="ri-file-copy-line"></i> Copy
-                        </button>
-                    </div>
-                </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Enter your password to proceed to the signing page.</p>
+                <input type="password" id="dashboardSignPassword" class="form-control" placeholder="Password" />
+                <div id="dashboardSignError" class="text-danger small mt-2 d-none">Incorrect password. Please try again.</div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="printQrBtn">
-                    <i class="ri-printer-line"></i> Print QR
-                </button>
-                <button type="button" class="btn btn-success" id="downloadQrBtn">
-                    <i class="ri-download-line"></i> Download QR
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="dashboardSignConfirm">
+                    <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
                 </button>
             </div>
         </div>
     </div>
 </div>
-@endif -->
 
-<!-- <div id="qrPrintTemplate" style="display: none;">
-    <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-        <h2 style="margin-bottom: 30px; color: #333;">Document QR Code</h2>
-        
-        <div style="display: flex; justify-content: center; margin: 30px auto;">
-            <div id="qrPrintCode" style="display: inline-block;"></div>
-        </div>
-        
-        <div style="display: flex; justify-content: center; margin: 30px auto;">
-            <svg class="barcode-print"
-                jsbarcode-format="CODE39"
-                jsbarcode-textmargin="0"
-                jsbarcode-fontoptions="bold"
-                jsbarcode-displayvalue="true"
-                style="max-width: 100%;">
-            </svg>
-        </div>
-        
-        <div style="margin-top: 40px; text-align: center;">
-            <p style="font-size: 18px; margin: 15px 0;"><strong>Document ID:</strong> <span id="qrPrintDocId"></span></p>
-            <p style="font-size: 18px; margin: 15px 0;"><strong>Title:</strong> <span id="qrPrintDocTitle"></span></p>
-            {{-- <p style="font-size: 14px; margin: 20px 0; color: #666; word-break: break-all;"><strong>URL:</strong> <span id="qrPrintDocUrl"></span></p> --}}
-        </div>
-        
-        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #ddd;">
-            <p style="font-size: 12px; color: #999; margin: 10px 0;">Scan this QR code or barcode to access document details</p>
-            <p style="font-size: 12px; color: #999; margin: 10px 0;">Generated on: <span id="qrPrintDate"></span></p>
-        </div>
-    </div>
-</div> -->
-
-{{-- Documents Library Chart --}}
-{{-- <div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Documents Library</h4>
-                <div id="stocked"></div>
-            </div>
-        </div>
-    </div>
-</div> --}}
-
-{{-- Requests Bar Chart --}}
-{{-- @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Management Representative") || (auth()->user()->role == "Business Process Manager"))
-<div class="row mt-3">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Requests</h4>
-                <div id="morris-bar-chart"></div>
-            </div>
-        </div>
-    </div>
-</div>
-@endif --}}
-
-{{-- Permits and Licenses Donut Chart --}}
-{{-- @if(count($permits) != 0)
-<div class="row mt-3">
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Permits and licenses ({{ count($permits) }})</h4>
-                <div id="morris-donut-chart"></div>
-            </div>
-        </div>
-    </div>
-</div>
-@endif --}}
-
-{{-- Document Requests Status Pie Chart --}}
-{{-- @if((auth()->user()->role == "Administrator") || (auth()->user()->role == "Management Representative") || (auth()->user()->role == "Business Process Manager"))
-<div class="row mt-3">
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Document Requests Status this {{ date('Y') }}</h4>
-                <div id="pie"></div>
-            </div>
-        </div>
-    </div>
-</div>
-@endif --}}
-@foreach ($private_documents as $private_document)
-@include("dashboard.request_access")
-@endforeach
 @endsection
 
 @section('js')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="{{ asset('barcode/JsBarcode.all.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     function userView(documentId) {
@@ -1549,17 +1212,7 @@ body.modal-open {
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-
-        const qrModalEl = document.getElementById('qrCodeModal');
-        if (qrModalEl) {
-            document.body.appendChild(qrModalEl);
-        }
-
-        const qrPrintEl = document.getElementById('qrPrintTemplate');
-        if (qrPrintEl) {
-            document.body.appendChild(qrPrintEl);
-        }
+    document.addEventListener('DOMContentLoaded', function () {
 
         JsBarcode(".barcode").init();
 
@@ -1571,7 +1224,7 @@ body.modal-open {
         setActiveView(savedView);
 
         viewToggles.forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const view = this.getAttribute('data-view');
                 setActiveView(view);
                 localStorage.setItem('pendingDocsView', view);
@@ -1582,7 +1235,6 @@ body.modal-open {
             viewToggles.forEach(btn => {
                 btn.classList.toggle('active', btn.getAttribute('data-view') === view);
             });
-
             if (view === 'grid') {
                 listView.classList.add('d-none');
                 setTimeout(() => gridView.classList.remove('d-none'), 50);
@@ -1602,12 +1254,12 @@ body.modal-open {
         }
 
         document.querySelectorAll('.file-more-btn').forEach(button => {
-            button.addEventListener('click', function(e) {
+            button.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
 
                 const fileCard = this.closest('.file-card');
-                const cardId = fileCard.dataset.cardId;
+                const cardId   = fileCard.dataset.cardId;
                 const dropdown = document.querySelector(`.file-dropdown-menu[data-card-id="${cardId}"]`);
 
                 document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
@@ -1617,9 +1269,8 @@ body.modal-open {
 
                 const rect = this.getBoundingClientRect();
                 const dropdownWidth = 200;
-
                 let left = rect.right - dropdownWidth;
-                let top = rect.bottom + 4;
+                let top  = rect.bottom + 4;
 
                 if (left < 8) left = 8;
                 if (left + dropdownWidth > window.innerWidth - 8) left = window.innerWidth - dropdownWidth - 8;
@@ -1636,24 +1287,20 @@ body.modal-open {
             });
         });
 
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const item = e.target.closest('.file-dropdown-item');
             if (!item) return;
 
             e.preventDefault();
             e.stopPropagation();
 
-            const action = item.getAttribute('data-action');
+            const action   = item.getAttribute('data-action');
             const filePath = item.querySelector('.file-path')?.value;
-            const menu = item.closest('.file-dropdown-menu');
 
             switch (action) {
                 case 'display':
-                    if (filePath) {
-                        window.open("{{ url('') }}/" + filePath, '_blank');
-                    }
+                    if (filePath) window.open("{{ url('') }}/" + filePath, '_blank');
                     break;
-
                 case 'download':
                     if (filePath) {
                         const link = document.createElement('a');
@@ -1664,19 +1311,62 @@ body.modal-open {
                         document.body.removeChild(link);
                     }
                     break;
-
                 case 'approve':
-                    const changeRequestId = item.getAttribute('data-id');
-                    if (changeRequestId) {
-                        window.location.href = "{{ route('documents.signature', '') }}/" + changeRequestId;
-                    }
-                    break;
-            }
+                const changeRequestId = item.getAttribute('data-id');
+                const Status = item.getAttribute('data-my-status');
 
+                if (!changeRequestId) break;
+
+                if (Status === 'Waiting') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Not Your Turn Yet',
+                        html: 'The previous approver must sign the document first before you can proceed.',
+                        confirmButtonColor: '#8B0000',
+                        confirmButtonText: 'Got it',
+                    });
+                    break;
+                }
+
+                document.getElementById('dashboardSignPassword').value = '';
+                document.getElementById('dashboardSignError').classList.add('d-none');
+
+                var signModal = new bootstrap.Modal(document.getElementById('dashboardSignModal'));
+                signModal.show();
+
+                document.getElementById('dashboardSignConfirm').onclick = function () {
+                    const password = document.getElementById('dashboardSignPassword').value;
+                    if (!password) {
+                        document.getElementById('dashboardSignError').textContent = 'Please enter your password.';
+                        document.getElementById('dashboardSignError').classList.remove('d-none');
+                        return;
+                    }
+
+                    fetch("{{ url('change-request/confirm-password') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ password: password, change_request_id: changeRequestId })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            signModal.hide();
+                            window.location.href = "{{ route('documents.signature', '') }}/" + changeRequestId;
+                        } else {
+                            document.getElementById('dashboardSignError').textContent = 'Incorrect password. Please try again.';
+                            document.getElementById('dashboardSignError').classList.remove('d-none');
+                        }
+                    });
+                };
+                break;
+            }
             closeAllDropdowns();
         });
 
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (!e.target.closest('.file-more-btn') && !e.target.closest('.file-dropdown-menu')) {
                 closeAllDropdowns();
             }
@@ -1684,276 +1374,222 @@ body.modal-open {
 
         document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
             menu.addEventListener('click', e => {
-                if (!e.target.closest('.file-dropdown-item')) {
-                    e.stopPropagation();
-                }
+                if (!e.target.closest('.file-dropdown-item')) e.stopPropagation();
             });
         });
 
-        window.addEventListener('scroll', function() {
-            closeAllDropdowns();
-        }, { passive: true });
-
-        window.addEventListener('resize', function() {
-            closeAllDropdowns();
-        }, { passive: true });
+        window.addEventListener('scroll', closeAllDropdowns, { passive: true });
+        window.addEventListener('resize', closeAllDropdowns, { passive: true });
 
         const listItems = document.querySelectorAll('#listView .drive-list-item');
-
         listItems.forEach(item => {
-            item.addEventListener('click', function(e) {
+            item.addEventListener('click', function (e) {
                 if (e.target.closest('.file-more-btn') || e.target.closest('.file-dropdown-menu')) return;
                 listItems.forEach(i => i.classList.remove('selected'));
                 this.classList.add('selected');
             });
-        });
-
-        listItems.forEach(item => {
-            item.addEventListener('dblclick', function(e) {
+            item.addEventListener('dblclick', function (e) {
                 if (e.target.closest('.file-more-btn')) return;
                 const filePath = this.querySelector('.file-path')?.value;
-                if (filePath) {
-                    window.open("{{ url('') }}/" + filePath, '_blank');
-                }
+                if (filePath) window.open("{{ url('') }}/" + filePath, '_blank');
             });
         });
 
-        const qrModalElement = document.getElementById('qrCodeModal');
-        if (qrModalElement) {
-            const qrModal = new bootstrap.Modal(qrModalElement);
+        const MAROON = '#8B0000';
+        const MAROON_L = 'rgba(139,0,0,0.08)';
+        const RED2 = '#c0392b';
+        const ORANGE = '#e67e22';
+        const GREEN = '#27ae60';
+        const GRAY = '#bdc3c7';
 
-            document.querySelectorAll('.view-qr-btn').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
+        Chart.defaults.font.family = "'Helvetica Neue', Arial, sans-serif";
+        Chart.defaults.color       = '#6c757d';
 
-                    const docId = this.getAttribute('data-doc-id');
-                    const docTitle = this.getAttribute('data-doc-title');
-                    const changeRequestId = this.getAttribute('data-change-request-id');
-                    const docUrl = window.location.origin + '/change-request/' + changeRequestId;
-
-                    document.getElementById('qrDocId').textContent = docId;
-                    document.getElementById('qrDocTitle').textContent = docTitle;
-                    document.getElementById('qrDocUrl').value = docUrl;
-
-                    const qrContainer = document.getElementById('qrCodeContainer');
-                    qrContainer.innerHTML = '';
-                    new QRCode(qrContainer, {
-                        text: docUrl,
-                        width: 256,
-                        height: 256,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-
-                    JsBarcode(".barcode-display", docId, {
-                        format: "CODE39",
-                        textMargin: 0,
-                        fontOptions: "bold",
-                        displayValue: true
-                    });
-
-                    qrModal.show();
-                });
-            });
-
-            document.getElementById('copyUrlBtn').addEventListener('click', function() {
-                const urlInput = document.getElementById('qrDocUrl');
-                urlInput.select();
-                document.execCommand('copy');
-                const originalText = this.innerHTML;
-                this.innerHTML = '<i class="ri-check-line"></i> Copied!';
-                setTimeout(() => { this.innerHTML = originalText; }, 2000);
-            });
-
-            document.getElementById('printQrBtn').addEventListener('click', function() {
-                const docId = document.getElementById('qrDocId').textContent;
-                const docTitle = document.getElementById('qrDocTitle').textContent;
-                const docUrl = document.getElementById('qrDocUrl').value;
-
-                document.getElementById('qrPrintDocId').textContent = docId;
-                document.getElementById('qrPrintDocTitle').textContent = docTitle;
-                document.getElementById('qrPrintDate').textContent = new Date().toLocaleString();
-
-                const printQrContainer = document.getElementById('qrPrintCode');
-                printQrContainer.innerHTML = '';
-                new QRCode(printQrContainer, {
-                    text: docUrl,
-                    width: 256,
-                    height: 256,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-
-                JsBarcode(".barcode-print", docId, {
-                    format: "CODE39",
-                    width: 2,
-                    height: 80,
-                    textMargin: 0,
-                    fontOptions: "bold",
-                    displayValue: true,
-                    fontSize: 14
-                });
-
-                setTimeout(() => {
-                    const printContents = document.getElementById('qrPrintTemplate').innerHTML;
-                    document.body.innerHTML = printContents;
-                    document.body.style.display = 'flex';
-                    document.body.style.justifyContent = 'center';
-                    document.body.style.alignItems = 'center';
-                    window.print();
-                    document.body.innerHTML = '';
-                    location.reload();
-                }, 500);
-            });
-
-            document.getElementById('downloadQrBtn').addEventListener('click', function() {
-                const qrCanvas = document.querySelector('#qrCodeContainer canvas');
-                if (qrCanvas) {
-                    const docId = document.getElementById('qrDocId').textContent;
-                    const url = qrCanvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.download = `QR_${docId}.png`;
-                    link.href = url;
-                    link.click();
-                }
-            });
-        }
-
-    });
-</script>
-
-{{-- Chart Scripts (COMMENTED OUT) --}}
-{{-- 
-<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
-<script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/chartJs/Chart.min.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/morris/raphael-2.1.0.min.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/morris/morris.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/d3/d3.min.js') }}"></script>
-<script src="{{ asset('login_css/js/plugins/c3/c3.min.js') }}"></script>
-
-<script>
-    var departments = {!! json_encode(($departments)->toArray()) !!};
-    var for_renewal = {!! json_encode((count($permits->where('expiration_date','!=',null)->where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))))) !!};
-    var over_due = {!! json_encode((count($permits->where('expiration_date','!=',null)->where('expiration_date','<',date('Y-m-d'))))) !!};
-    var active = {!! json_encode((count($permits->where('expiration_date','!=',null)->where('expiration_date','>=',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))))) !!};
-    var no_expiration = {!! json_encode((count($permits->where('expiration_date','==',null)))) !!};
-    var types = {!! json_encode(($categories->pluck('name'))->toArray()) !!};
-    var obsoletes = {!! json_encode(($departments->pluck('obsoletes_count'))->toArray()) !!};
-    var months = {!! json_encode(($months)) !!};
-
-    var pending = {!!json_encode(($yearChangeRequests->where('status','Pending')->count()))!!}
-    var approved = {!!json_encode(($yearChangeRequests->where('status','Approved')->count()))!!}
-    var declined = {!!json_encode(($yearChangeRequests->where('status','Declined')->count()))!!}
-    
-    $(function() {
-        // Morris Donut Chart
-        Morris.Donut({
-            element: 'morris-donut-chart',
-            data: [
-                { label: "For Renewal", value: for_renewal-over_due },
-                { label: "Overdue", value: over_due },
-                { label: "Active", value: active },
-                { label: "No Expiration", value: no_expiration }
-            ],
-            resize: true,
-            colors: ['#FFA500','#f44336', '#54cdb4','#1ab394'],
-        });
-
-        // Morris Bar Chart
-        var aaa = months;
-        Morris.Bar({
-            element: 'morris-bar-chart',
-            data: aaa,
-            xkey: 'y',
-            ykeys: ['a', 'b'],
-            labels: ['Change Requests', 'Copy Requests'],
-            hideHover: 'auto',
-            resize: true,
-            barColors: ['#1ab394', '#cacaca'],
-        });
-    });
-
-    $(document).ready(function(){
-        var types_names = {!! json_encode(($categories)->toArray()) !!};
-        var colors ={};
-        var column = ['x'];
- 
-        for(y=0;y<departments.length;y++) {
-            column.push(departments[y].code+"("+departments[y].documents_count+")");
-        }
-        
-        var types = [];
-        var columns = [column];
-        
-        for(i = 0; i < types_names.length; i++) {
-            type_column = [types_names[i].code];
-            for(z = 0; z < departments.length; z++) {
-                var doc = departments[z].documents;
-                var count = doc.filter(o => o.category === types_names[i].name);
-                type_column.push(count.length)
-            }
-            columns.push(type_column);
-            colors[types_names[i].code] = types_names[i].color;
-            types.push(types_names[i].code);
-        }
-        
-        final_types = [types];
-        
-        // C3 Stacked Bar Chart
-        c3.generate({
-            bindto: '#stocked',
-            data:{
-                x : 'x',
-                columns: columns,
-                colors: colors,
-                type: 'bar',
-                groups: final_types,
+        new Chart(document.getElementById('chartMonthly'), {
+            type: 'bar',
+            data: {
+                labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                datasets: [
+                    {
+                        label: 'Submitted',
+                        data: [22,18,30,25,28,35,20,24,31,19,27,45],
+                        backgroundColor: MAROON,
+                        borderRadius: 4, borderSkipped: false,
+                    },
+                    {
+                        label: 'Approved',
+                        data: [18,15,26,21,24,30,17,20,27,16,22,38],
+                        backgroundColor: RED2,
+                        borderRadius: 4, borderSkipped: false,
+                    },
+                    {
+                        label: 'Declined',
+                        data: [2,2,3,3,2,4,2,3,3,2,3,5],
+                        backgroundColor: '#e0b0b0',
+                        borderRadius: 4, borderSkipped: false,
+                    }
+                ]
             },
-            axis: {
-                x: {
-                    show: true,
-                    type: 'categorized',
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
                 },
-                y2: {
-                    show: true,
-                    label: 'Counts'
-                },
-                y: {
-                    show: true,
-                    label: 'Counts'
-                },
+                scales: {
+                    x: { grid: { display: false }, border: { display: false } },
+                    y: {
+                        grid: { color: '#f0f0f0' },
+                        border: { display: false, dash: [4,4] },
+                        ticks: { stepSize: 10 }
+                    }
+                }
             }
         });
 
-        // C3 Pie Chart
-        c3.generate({
-            bindto: '#pie',
-            data:{
-                columns: [
-                    ['Approved', approved],
-                    ['Declined', declined],
-                    ['Pending', pending]
-                ],
-                colors:{
-                    Approved: '#54cdb4',
-                    Declined: '#f44336',
-                    Pending: '#BABABA',
-                },
-                type : 'pie'
+        new Chart(document.getElementById('chartStatus'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Approved','Pending','Declined','Draft'],
+                datasets: [{
+                    data: [231, 18, 35, 3],
+                    backgroundColor: [MAROON, ORANGE, RED2, GRAY],
+                    borderWidth: 2, borderColor: '#fff', hoverOffset: 8,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} docs` } }
+                }
             }
         });
 
-        $('.locations').chosen({width: "100%"});
-        $('.tables').DataTable({
-            pageLength: 10,
-            responsive: true,
-            dom: '<"html5buttons"B>lTfgitp',
-            buttons: []
+        new Chart(document.getElementById('chartDept'), {
+            type: 'bar',
+            data: {
+                labels: ['ADMIN','FINANCE','HR','IT','LEGAL','OPERATIONS','PROCUREMENT','QMO'],
+                datasets: [{
+                    label: 'Documents',
+                    data: [45, 38, 52, 29, 34, 61, 41, 47],
+                    backgroundColor: [
+                        '#8B0000','#9a1010','#a92020','#8B0000',
+                        '#9a1010','#a92020','#b83030','#8B0000'
+                    ],
+                    borderRadius: 4, borderSkipped: false,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => ` ${c.parsed.x} documents` } }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#f0f0f0' },
+                        border: { display: false, dash: [4,4] },
+                        ticks: { stepSize: 15 }
+                    },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
         });
+
+        new Chart(document.getElementById('chartTypes'), {
+            type: 'polarArea',
+            data: {
+                labels: ['Memo','Policy','SOP','Manual','Form','Report'],
+                datasets: [{
+                    data: [42, 28, 65, 19, 83, 37],
+                    backgroundColor: [
+                        'rgba(139,0,0,.75)','rgba(192,57,43,.75)',
+                        'rgba(230,126,34,.75)','rgba(39,174,96,.75)',
+                        'rgba(52,152,219,.75)','rgba(149,165,166,.75)'
+                    ],
+                    borderColor: '#fff', borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } }
+                },
+                scales: { r: { ticks: { display: false }, grid: { color: '#eee' } } }
+            }
+        });
+
+        new Chart(document.getElementById('chartWeekly'), {
+            type: 'line',
+            data: {
+                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                datasets: [
+                    {
+                        label: 'Uploaded',
+                        data: [4,6,5,3,4,1,1],
+                        borderColor: MAROON, backgroundColor: MAROON_L,
+                        fill: true, tension: .4, pointRadius: 3,
+                        pointBackgroundColor: MAROON, borderWidth: 2,
+                    },
+                    {
+                        label: 'Approved',
+                        data: [3,4,4,2,3,1,0],
+                        borderColor: GREEN, backgroundColor: 'rgba(39,174,96,0.07)',
+                        fill: true, tension: .4, pointRadius: 3,
+                        pointBackgroundColor: GREEN, borderWidth: 2,
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { display: false }
+                }
+            }
+        });
+
+        const counters = document.querySelectorAll('.qms-kpi-value[data-target]');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const el     = entry.target;
+                const target = +el.dataset.target;
+                let start    = 0;
+                const step   = target / (1200 / 16);
+                const tick   = () => {
+                    start = Math.min(start + step, target);
+                    el.textContent = Math.floor(start).toLocaleString();
+                    if (start < target) requestAnimationFrame(tick);
+                };
+                tick();
+                observer.unobserve(el);
+            });
+        }, { threshold: 0.2 });
+        counters.forEach(c => observer.observe(c));
+
     });
+
+    function recordCRView(changeRequestId) {
+        fetch("{{ url('change-request/record-view') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ change_request_id: changeRequestId })
+        });
+    }
 </script>
---}}
 @endsection
