@@ -12,6 +12,7 @@ use App\DocumentAttachment;
 use App\CopyApprover;
 // use App\DateApprovedLog;
 use App\DepartmentDco;
+use App\DocumentRequestAccess;
 use App\DocumentSignaturePosition;
 use App\Notifications\NewPreAssessment;
 use App\RequestApprover;
@@ -195,7 +196,7 @@ class RequestController extends Controller
             'forApprovalCount' => $forApprovalCount,
             'declinedCount'    => $declinedCount,
             'approvedCount'    => $approvedCount,
-            'returnedCount'    => $returnedCount,
+            'returnedCount'    => $returnedCount
         ]);
     }
 
@@ -360,20 +361,22 @@ class RequestController extends Controller
     {
         //
         $document_types = DocumentType::get();
-        $copy_for_approvals = CopyApprover::with('copy_request.document.attachments')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
+        // $copy_for_approvals = CopyApprover::with('copy_request.document.attachments')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
         $change_for_approvals = RequestApprover::with('change_request.document_type')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
         if(auth()->user()->role == "Administrator")
         {
-            $copy_for_approvals = CopyApprover::with('copy_request.document.attachments')->orderBy('id','desc')->get();
+            // $copy_for_approvals = CopyApprover::with('copy_request.document.attachments')->orderBy('id','desc')->get();
             $change_for_approvals = RequestApprover::with('change_request.document_type')->orderBy('id','desc')->get();
         }
        
+        $document_request_access = DocumentRequestAccess::where("status", 0)->where("user_id", auth()->id())->get();
 
         return view('for_approval',
         array(
-           'copy_for_approvals' => $copy_for_approvals,
+        //    'copy_for_approvals' => $copy_for_approvals,
            'change_for_approvals' => $change_for_approvals,
            'document_types' => $document_types,
+           'document_request_access' => $document_request_access,
         ));
     }
 

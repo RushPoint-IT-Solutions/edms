@@ -17,6 +17,11 @@ Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 Route::get('auth/google', 'GoogleController@redirectToGoogle');
 Route::get('auth/google/callback','GoogleController@handleGoogleCallback');
 
+// 404 error
+Route::fallback(function() {
+    return view("pages.404-error");
+});
+
 Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
     Route::group(['middleware' => 'deactivate'], function() {
@@ -166,6 +171,9 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/search', 'HomeController@search')->name('search');
+        Route::post("/request_access/{id}","DocumentController@requestAccess");
+        Route::post("/request_access_approved/{id}","DocumentController@requestAccessApproved");
+        Route::post("/request_access_declined/{id}","DocumentController@requestAccessDeclined");
     
         Route::get('/request', 'RequestController@index')->name('requests');
         Route::post('change-request-edit/{id}','RequestController@editRequest')->name('change-requests');
@@ -183,6 +191,7 @@ Route::group(['middleware' => 'auth'], function () {
         // Route::post('deactivate-company', 'CompanyController@deactivate')->name('settings');
         // Route::post('activate-company', 'CompanyController@activate')->name('settings');
     
+        // Departments
         Route::get('/departments', 'DepartmentController@index')->name('settings');
         Route::post('/new-department', 'DepartmentController@store')->name('settings');
         Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');

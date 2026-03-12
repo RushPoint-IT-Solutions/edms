@@ -523,6 +523,33 @@
     }
 
 }
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* padding: 6rem 2rem; */
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+}
+
+.empty-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.empty-text {
+    color: #6b7280;
+    margin-bottom: 1.3rem;
+}
 </style>
 @endsection
 
@@ -728,7 +755,10 @@
                 </div>
 
                 <div id="gridView" class="row row-cols-1 row-cols-sm-4 g-2">
-                    @foreach ($pending_cards as $change_request)
+                    @foreach ($pending_cards as $approvers)
+                    @php
+                        $change_request = $approvers->change_request;
+                    @endphp
                     <div class="col">
                         <div class="card border file-card position-relative" data-card-id="{{ $change_request->id }}">
                             <div class="position-absolute top-0 end-0 m-2 more-btn">
@@ -829,7 +859,10 @@
                             </div>
 
                             <div class="drive-list-body">
-                                @foreach ($pending_cards as $change_request)
+                                @foreach ($pending_cards as $approvers)
+                                @php
+                                    $change_request = $approvers->change_request;
+                                @endphp
                                 @php
                                     $file = $change_request->file;
                                     $filename = explode('/',$file);
@@ -911,6 +944,16 @@
                         </div>
                     </div>
                 </div>
+
+                @if($pending_cards->isEmpty())
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-icon">
+                            <i class="ri-file-line"></i>
+                        </div>
+                        <h3 class="empty-title">No for approval in here</h3>
+                        <p class="empty-text">No items are currently waiting for approval.</p>
+                    </div>
+                @endif
 
                 @if($pending_cards->hasPages())
                 <div class="d-flex justify-content-between align-items-center pt-3 border-top">
@@ -1094,8 +1137,8 @@
                                     @endforeach
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
-                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $document->control_code }}</h6>
-                                    <small class="text-muted text-truncate d-block" title="{{ $document->title }}">{{ $document->title }}</small>
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $document->title }}</h6>
+                                    <small class="text-muted text-truncate d-block" title="{{ $document->control_code }}">{{ $document->control_code }}</small>
                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                         @if($document->department)
                                             <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>

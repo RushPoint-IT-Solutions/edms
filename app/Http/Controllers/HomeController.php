@@ -11,6 +11,7 @@ use App\DocumentType;
 use App\Company;
 use App\Office;
 use App\PrivateDocsVisitor;
+use App\RequestApprover;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -162,8 +163,8 @@ class HomeController extends Controller
         }
         else
         {
-            $pending_query = ChangeRequest::where('status', 'For Approval')
-                                        ->where('request_status', 'Pending');
+            $pending_query = RequestApprover::where('status', 'Pending');
+
             $table_query = ChangeRequest::query();
         }
 

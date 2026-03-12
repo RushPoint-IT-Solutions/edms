@@ -82,8 +82,8 @@ class UserController extends Controller
         $data = [];
         foreach ($users as $user) {
             $statusBadge = $user->status 
-                ? '<span class="badge-status inactive">Inactive</span>' 
-                : '<span class="badge-status active">Active</span>';
+                ? '<span class="badge-status inactive badge bg-danger">Inactive</span>' 
+                : '<span class="badge-status active badge bg-success">Active</span>';
 
             // $shareDepartments = '';
             // foreach($user->departments as $department) {

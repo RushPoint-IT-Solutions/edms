@@ -24,12 +24,12 @@
     </div>
 </div>
 
-{{-- <div class="row g-3 mb-4 h-100">
+<div class="row g-3 mb-4 h-100">
     <div class="col-xl-4 col-md-4">
         <div class="dashboard-card pending">
             <div class="icon-circle"><i class="fa fa-clock-o"></i></div>
             <h2 class="mb-0 font-weight-bold">
-                {{ count($copy_for_approvals->where('status','Pending')) + count($change_for_approvals->where('status','Pending')) }}
+                {{ count($change_for_approvals->where('status','Pending')) }}
             </h2>
             <p>For Approval</p>
         </div>
@@ -38,7 +38,7 @@
         <div class="dashboard-card approved">
             <div class="icon-circle"><i class="fa fa-check-circle"></i></div>
             <h2 class="mb-0 font-weight-bold">
-                {{ count($copy_for_approvals->where('status','Approved')) + count($change_for_approvals->where('status','Approved')) }}
+                {{ count($change_for_approvals->where('status','Approved')) }}
             </h2>
             <p>Approved</p>
         </div>
@@ -47,15 +47,15 @@
         <div class="dashboard-card declined">
             <div class="icon-circle"><i class="fa fa-times-circle"></i></div>
             <h2 class="mb-0 font-weight-bold">
-                {{ count($copy_for_approvals->where('status','Declined')) + count($change_for_approvals->where('status','Declined')) }}
+                {{ count($change_for_approvals->where('status','Declined')) }}
             </h2>
             <p>Declined</p>
         </div>
     </div>
-</div> --}}
+</div>
 
 <div class="row">
-    <div class="col-md-12 mb-4">
+    <div class="col-md-6 mb-4">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">For Approval</h5>
@@ -83,6 +83,75 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
+                    </table>
+                </div>
+                <div class="bottom-controls-container">
+                    <div id="change-info-control"></div>
+                    <div id="change-pagination-control"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">For request access</h5>
+            </div>
+            <div class="card-body">
+                <div class="top-controls-container">
+                    <div class="left-controls"><div id="change-length-control"></div></div>
+                    <div class="right-controls">
+                        <div class="search-wrapper"><div id="change-filter-control"></div></div>
+                        <div class="buttons-wrapper"><div id="change-buttons-control"></div></div>
+                    </div>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table tables table-hover table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Actions</th>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($document_request_access as $access)
+                                <tr>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                <i class="ri-more-2-fill"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <form action="{{ url("request_access_approved/".$access->id) }}" method="post">
+                                                        @csrf
+                                                        <input type="hidden" name="status" value="1">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="ri-information-line me-2"></i> Approved
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ url("request_access_declined/".$access->id) }}" method="post">
+                                                        @csrf
+                                                        <input type="hidden" name="status" value="3">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="ri-eye-line me-2"></i> Declined
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                    <td>{{$access->reason}}</td>
+                                    <td>{{date("M d Y", strtotime($access->date))}}</td>
+                                    <td>{{$access->reason}}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
                     </table>
                 </div>
                 <div class="bottom-controls-container">
@@ -187,10 +256,10 @@
     </div>
 </div> --}}
 
-@foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
+{{-- @foreach($copy_for_approvals->where('status','Pending') as $copy_approval)
 @php $request = $copy_approval->copy_request; @endphp
 @include('copy_request.view_approval_copy')
-@endforeach
+@endforeach --}}
 
 @endsection
 
@@ -252,32 +321,7 @@ $(document).ready(function () {
         }
     }));
 
-    // var copyTable = $('#copyApprovalTable').DataTable($.extend(true, {}, dtConfig, {
-    //     ajax: {
-    //         url: '{{ route("for-approval.copy.data") }}',
-    //         type: 'GET',
-    //         error: function (xhr) { console.error(xhr.status, xhr.responseText); }
-    //     },
-    //     columns: [
-    //         { data: 'action', orderable: false, searchable: false },
-    //         { data: 'reference', orderable: false, searchable: false },
-    //         { data: 'date', name: 'created_at' },
-    //         { data: 'document', name: 'document' },
-    //         { data: 'requested_by', orderable: false, searchable: false },
-    //     ],
-    //     order: [[2, 'desc']],
-    //     drawCallback: function () { moveControls('copyApprovalTable', 'copy'); },
-    //     initComplete: function () {
-    //         var inp = $('#copyApprovalTable_filter input');
-    //         inp.unbind();
-    //         var t;
-    //         inp.on('input', function () {
-    //             var v = $(this).val();
-    //             clearTimeout(t);
-    //             t = setTimeout(function () { copyTable.search(v).draw(); }, 500);
-    //         });
-    //     }
-    // }));
+    var copyTable = $('.tables').DataTable();
 
     function moveControls(tableId, prefix) {
         var wrapper = $('#' + tableId + '_wrapper');

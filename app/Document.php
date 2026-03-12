@@ -1,6 +1,8 @@
 <?php
 
 namespace App;
+
+use Dom\Document as DomDocument;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,9 +38,9 @@ class Document extends Model implements Auditable
     {
         return $this->hasMany(Obsolete::class);
     }
-    public function processOwner()
+    public function owner()
     {
-        return $this->belongsTo(User::class,'process_owner');
+        return $this->belongsTo(User::class,'user_id');
     }
     // public function memo_document()
     // {
@@ -51,5 +53,9 @@ class Document extends Model implements Auditable
     public function visitor()
     {
         return $this->hasMany(DocumentVisitor::class);
+    }
+    public function document_request_access()
+    {
+        return $this->hasMany(DocumentRequestAccess::class);
     }
 }
