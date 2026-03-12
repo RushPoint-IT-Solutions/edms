@@ -138,9 +138,19 @@ class HomeController extends Controller
 
         if (auth()->user()->role != "Administrator")
         {
-            $pending_query = ChangeRequest::where('user_id', auth()->user()->id)
-                                        ->where('status', 'For Approval')
-                                        ->where('request_status', 'Pending');
+            $pending_query = ChangeRequest::where(function($q) {
+                                $q->where('user_id', auth()->user()->id)
+                                ->where('status', 'For Approval')
+                                ->where('request_status', 'Pending');
+                            })->orWhere(function($q) {
+                                $q->whereHas('approvers', function($aq) {
+                                    $aq->where('user_id', auth()->user()->id)
+                                    ->whereIn('status', ['Pending', 'Waiting']);
+                                })
+                                ->whereNotIn('status', ['Approved', 'Declined'])
+                                ->whereNull('is_draft');
+                            });
+
             $table_query = ChangeRequest::where('user_id', auth()->user()->id);
         }
         else
@@ -191,7 +201,7 @@ class HomeController extends Controller
             $table_query->orderBy('created_at', 'desc');
         }
 
-        $pending_cards = $pending_query->with(['department.office', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
+        $pending_cards = $pending_query->with(['department.office', 'user', 'approvers'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
         $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
@@ -263,6 +273,16 @@ class HomeController extends Controller
             'private_documents' => $private_documents
 
         ));
+    }
+    public function confirmPasswordAjax(Request $request)
+    {
+        $password = auth()->user()->password;
+
+        if (Hash::check($request->password, $password)) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false]);
     }
     public function search(Request $request)
     {
