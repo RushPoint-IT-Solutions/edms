@@ -858,7 +858,7 @@
                         </li>
 
                         {{-- SSO Default Access --}}
-                        @if(auth()->user()->google_id != null)
+                        {{-- @if(auth()->user()->google_id != null)
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
@@ -889,7 +889,7 @@
                                 <span data-key="t-memorandum">Approver Stamp</span>
                             </a>
                         </li>
-                        @endif
+                        @endif --}}
 
                     </ul>
                 </div>
