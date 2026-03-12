@@ -131,10 +131,15 @@ class DocumentController extends Controller
         $document_folders = DocumentFolder::with('document','childrenFolder')->get();
         $obsoletes = Obsolete::get();
 
-        $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
-        if (auth()->user()->role != "Administrator")
-        {
-            $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
+        $documents = Document::with('change_requests', 'attachments')
+            ->orderBy('control_code', 'desc')
+            ->get();
+
+        if (auth()->user()->role != "Administrator") {
+            $documents = Document::with('change_requests', 'attachments')
+                ->where('user_id', auth()->user()->id)
+                ->orderBy('control_code', 'desc')
+                ->get();
         }
 
         $existingDocuments = Document::selectRaw('
@@ -147,8 +152,8 @@ class DocumentController extends Controller
                 MAX(version) AS latest_revision,
                 COUNT(*) AS upload_count
             ')
-            ->groupBy('control_code','title','category','folder_id','other_category','type_of_request')
-            ->orderBy('control_code','asc')
+            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request')
+            ->orderBy('control_code', 'asc')
             ->get();
 
         $document_folders = $document_folders->map(function($folder) {
@@ -178,39 +183,544 @@ class DocumentController extends Controller
         $hasOthers = $documents->where('folder_id', null)->count() > 0;
         $totalFolders = $allFolders->count() + ($hasOthers ? 1 : 0);
 
-        $folderTreeHtml = $this->renderFolderTreeView($document_folders, $documents, null, 0, null);
-
-        return view('documents.documents',
-            array(
-                'documents' => $documents,
-                'obsoletes' => $obsoletes,
-                'document_types' => $document_types,
-                'search' => $search,
-                'dep' => $department,
-                'document_folders' => $document_folders,
-                'totalFolders' => $totalFolders,
-                'allFolders' => $allFolders,
-                'hasOthers' => $hasOthers,
-                'folderTreeHtml' => $folderTreeHtml,
-                'existingDocuments' => $existingDocuments,
-            )
-        );
+        return view('documents.documents', [
+            'documents' => $documents,
+            'obsoletes' => $obsoletes,
+            'document_types' => $document_types,
+            'search' => $search,
+            'dep' => $department,
+            'document_folders' => $document_folders,
+            'totalFolders' => $totalFolders,
+            'allFolders' => $allFolders,
+            'hasOthers' => $hasOthers,
+            'existingDocuments' => $existingDocuments,
+        ]);
     }
 
-    private function renderFolderTreeView($allFolders, $documents, $currentFolderId, $level = 0, $parentId = null) {
+    public function getFolderTree(Request $request)
+    {
+        $document_folders = DocumentFolder::with('document', 'childrenFolder')->get();
+
+        $documents = Document::with('change_requests', 'attachments')
+            ->orderBy('control_code', 'desc')
+            ->get();
+
+        if (auth()->user()->role != "Administrator") {
+            $documents = Document::with('change_requests', 'attachments')
+                ->where('user_id', auth()->user()->id)
+                ->orderBy('control_code', 'desc')
+                ->get();
+        }
+
+        $documents = $documents->map(function ($doc) {
+            $fileInfo = $this->getDocumentFileInfo($doc);
+            $doc->fileType = $fileInfo['fileType'];
+            $doc->previewClass = $fileInfo['previewClass'];
+            $doc->iconClass = $fileInfo['iconClass'];
+            $doc->badgeClass = $fileInfo['badgeClass'];
+            return $doc;
+        });
+
+        $allFolders = $document_folders->where('parent_id', null);
+        $hasOthers = $documents->where('folder_id', null)->count() > 0;
+        $totalFolders = $allFolders->count() + ($hasOthers ? 1 : 0);
+
+        $listHtml = $this->renderFolderTreeView($document_folders, $documents, null, 0, null);
+
+        if ($hasOthers) {
+            $othersDocuments = $documents->where('folder_id', null);
+            $hasOthersChildren = count($othersDocuments) > 0;
+
+            $canDelete = canDelete('documents');
+
+            $listHtml .= '<tr class="folder-tree-row ' . ($hasOthersChildren ? 'has-children' : '') . '"
+                data-folder-name="others"
+                data-folder-id="others"
+                data-level="0">
+                <td class="checkbox-cell" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="item-checkbox form-check-input"
+                        data-type="others" data-id="others" data-name="Others"
+                        disabled title="System folder — cannot be deleted"
+                        style="opacity: 0.35; cursor: not-allowed;">
+                </td>
+                <td class="folder-name-cell"
+                    data-folder-url="' . url('documents/folder/others') . '"
+                    onclick="handleFolderClick(this, ' . ($hasOthersChildren ? 'true' : 'false') . ')">
+                    <div class="name-cell">
+                        ' . ($hasOthersChildren
+                            ? '<span class="folder-toggle"><i class="ri-arrow-right-s-line"></i></span>'
+                            : '<span style="width:20px;display:inline-block;"></span>') . '
+                        <i class="ri-folder-2-fill item-icon" style="color:#9ca3af;"></i>
+                        <span class="item-name" style="color:#9ca3af;font-style:italic;">Others</span>
+                    </div>
+                </td>
+                <td>Folder</td>
+                <td>—</td>
+                <td>—</td>
+                <td class="actions-cell" onclick="event.stopPropagation()">
+                    <button class="action-btn"><i class="ri-more-2-fill"></i></button>
+                </td>
+            </tr>';
+
+            foreach ($othersDocuments as $doc) {
+                $listHtml .= '<tr class="child-row"
+                    data-parent-id="others"
+                    data-level="1"
+                    data-document-id="' . $doc->id . '"
+                    onclick="window.open(\'' . url('documents/view-document/' . $doc->id) . '\', \'_blank\')">
+                    <td class="checkbox-cell" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="item-checkbox form-check-input"
+                            data-type="document"
+                            data-id="' . $doc->id . '"
+                            data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                            onchange="handleFolderCheckbox(this)">
+                    </td>
+                    <td>
+                        <div class="name-cell">
+                            <span class="folder-indent" style="width:24px;"></span>
+                            <span style="width:20px;display:inline-block;"></span>
+                            <i class="ri-file-text-line item-icon" style="color:#6b7280;"></i>
+                            <span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>
+                        </div>
+                    </td>
+                    <td>Document</td>
+                    <td>—</td>
+                    <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
+                    <td class="actions-cell" onclick="event.stopPropagation()">';
+
+                if ($canDelete) {
+                    $listHtml .= '<div class="dropdown">
+                        <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES)) . '\')">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete document
+                                </a>
+                            </li>
+                        </ul>
+                    </div>';
+                } else {
+                    $listHtml .= '<button class="action-btn"><i class="ri-more-2-fill"></i></button>';
+                }
+
+                $listHtml .= '</td></tr>';
+            }
+        }
+
+        $canEdit = canEdit('documents');
+        $canDelete = canDelete('documents');
+
+        $gridHtml = '';
+        foreach ($allFolders as $folder) {
+            $dropdownItems = '';
+            if ($canEdit) {
+                $dropdownItems .= '<li>
+                    <a class="dropdown-item" href="javascript:void(0)"
+                        data-bs-toggle="modal"
+                        data-bs-target="#renameFolderModal' . $folder->id . '"
+                        onclick="event.stopPropagation()">
+                        <i class="ri-pencil-line me-2"></i>Rename folder
+                    </a>
+                </li>';
+            }
+            if ($canDelete) {
+                $dropdownItems .= '<li>
+                    <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
+                        data-id="' . $folder->id . '"
+                        data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                        <i class="ri-delete-bin-line me-2"></i>Delete folder
+                    </a>
+                </li>';
+            }
+
+            $gridHtml .= '<div class="grid-item"
+                data-folder-id="' . $folder->id . '"
+                data-folder-name="' . strtolower(htmlspecialchars($folder->name, ENT_QUOTES)) . '"
+                data-type="folder"
+                data-id="' . $folder->id . '"
+                onclick="handleGridItemClick(event, this, \'' . url('documents/folder/' . $folder->id) . '\')">
+                <div class="grid-item-header">
+                    <input type="checkbox"
+                        class="grid-item-checkbox item-checkbox form-check-input"
+                        data-type="folder"
+                        data-id="' . $folder->id . '"
+                        data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '"
+                        onclick="event.stopPropagation(); handleGridCheckbox(this)">
+                    <button class="grid-item-menu" onclick="event.stopPropagation()"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">' . $dropdownItems . '</ul>
+                </div>
+                <div class="grid-item-icon">
+                    <i class="ri-folder-2-fill"></i>
+                </div>
+                <div class="grid-item-name">' . htmlspecialchars($folder->name) . '</div>
+                <div class="grid-item-meta">' . date('M d, Y', strtotime($folder->updated_at)) . '</div>
+            </div>';
+        }
+
+        if ($hasOthers) {
+            $gridHtml .= '<div class="grid-item"
+                data-folder-name="others"
+                data-type="others"
+                data-id="others"
+                onclick="handleGridItemClick(event, this, \'' . url('documents/folder/others') . '\')">
+                <div class="grid-item-header">
+                    <input type="checkbox"
+                        class="grid-item-checkbox item-checkbox form-check-input"
+                        data-type="others"
+                        data-id="others"
+                        data-name="Others"
+                        disabled
+                        title="System folder — cannot be deleted"
+                        style="opacity:0.35;cursor:not-allowed;"
+                        onclick="event.stopPropagation()">
+                    <button class="grid-item-menu" onclick="event.stopPropagation()">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                </div>
+                <div class="grid-item-icon">
+                    <i class="ri-folder-2-fill" style="color:#9ca3af;"></i>
+                </div>
+                <div class="grid-item-name" style="color:#9ca3af;font-style:italic;">Others</div>
+                <div class="grid-item-meta">—</div>
+            </div>';
+        }
+
+        return response()->json([
+            'listHtml' => $listHtml,
+            'gridHtml' => $gridHtml,
+            'totalFolders' => $totalFolders,
+        ]);
+    }
+
+    public function getFolderViewTree(Request $request, $id)
+    {
+        $canEdit = canEdit('documents');
+        $canDelete = canDelete('documents');
+        $search = $request->input('search');
+
+        if ($id === 'others') {
+            $documentsQuery = Document::with('change_requests', 'attachments')->whereNull('folder_id');
+
+            if (auth()->user()->role != "Administrator") {
+                $documentsQuery->where('user_id', auth()->user()->id);
+            }
+
+            if ($search) {
+                $documentsQuery->where(function ($q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                      ->orWhere('control_code', 'like', '%' . $search . '%');
+                });
+            }
+
+            $documents = $documentsQuery->orderBy('control_code', 'desc')->get()->map(function ($doc) {
+                $info = $this->getDocumentFileInfo($doc);
+                $doc->fileType = $info['fileType'];
+                $doc->previewClass = $info['previewClass'];
+                $doc->iconClass = $info['iconClass'];
+                $doc->badgeClass = $info['badgeClass'];
+                return $doc;
+            });
+
+            $listHtml = '';
+            $gridHtml = '';
+
+            foreach ($documents as $doc) {
+                $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
+                $docUrl = url('/documents/view-document/' . $doc->id);
+
+                $actionHtml = $canDelete
+                    ? '<div class="dropdown">
+                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                                        <i class="ri-delete-bin-line me-2"></i>Delete document
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>'
+                    : '<button class="action-btn"><i class="ri-more-2-fill"></i></button>';
+
+                $listHtml .= '
+                <tr class="document-row"
+                    data-type="' . $doc->fileType . '"
+                    data-modified="' . $doc->updated_at . '"
+                    data-document-id="' . $doc->id . '"
+                    onclick="window.open(\'' . $docUrl . '\', \'_blank\')">
+                    <td class="checkbox-cell" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="item-checkbox form-check-input"
+                            data-type="document"
+                            data-id="' . $doc->id . '"
+                            data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                    </td>
+                    <td>
+                        <div class="name-cell">
+                            <i class="' . $doc->iconClass . ' item-icon" style="color:#6b7280;"></i>
+                            <span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>
+                        </div>
+                    </td>
+                    <td>' . strtoupper($doc->fileType) . '</td>
+                    <td>—</td>
+                    <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
+                    <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
+                </tr>';
+
+                $gridDropdown = $canDelete
+                    ? '<ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete document
+                                </a>
+                            </li>
+                        </ul>'
+                    : '';
+
+                $gridHtml .= '
+                <div class="grid-item file-item"
+                    data-type="' . $doc->fileType . '"
+                    data-modified="' . $doc->updated_at . '"
+                    data-document-id="' . $doc->id . '"
+                    onclick="window.open(\'' . $docUrl . '\', \'_blank\')">
+                    <div class="grid-item-header">
+                        <input type="checkbox" class="form-check-input grid-item-checkbox item-checkbox"
+                            data-type="document"
+                            data-id="' . $doc->id . '"
+                            data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                            onclick="event.stopPropagation(); handleGridCheckbox(this)">
+                        <button class="grid-item-menu" onclick="event.stopPropagation()"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        ' . $gridDropdown . '
+                    </div>
+                    <div class="grid-item-preview ' . $doc->previewClass . '">
+                        <i class="' . $doc->iconClass . ' grid-item-icon"></i>
+                    </div>
+                    <div class="grid-item-info">
+                        <div class="grid-item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</div>
+                        <div class="grid-item-meta">
+                            <span class="file-type-badge ' . $doc->badgeClass . '">' . strtoupper($doc->fileType) . '</span>
+                            <span>' . date('M d', strtotime($doc->updated_at)) . '</span>
+                        </div>
+                    </div>
+                </div>';
+            }
+
+            return response()->json([
+                'listHtml' => $listHtml,
+                'gridHtml' => $gridHtml,
+                'totalFolders' => 0,
+                'totalDocuments' => $documents->count(),
+                'totalItems' => $documents->count(),
+            ]);
+        }
+
+        $all_document_folders = DocumentFolder::with('document', 'childrenFolder')->get();
+
+        $foldersQuery = DocumentFolder::where('parent_id', $id);
+        $documentsQuery = Document::where('folder_id', $id);
+
+        if ($search) {
+            $foldersQuery->where('name', 'like', '%' . $search . '%');
+            $documentsQuery->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('control_code', 'like', '%' . $search . '%');
+            });
+        }
+
+        $childFolders   = $foldersQuery->orderBy('name', 'asc')->get();
+        $childDocuments = $documentsQuery->orderBy('control_code', 'desc')->get()->map(function ($doc) {
+            $info = $this->getDocumentFileInfo($doc);
+            $doc->fileType = $info['fileType'];
+            $doc->previewClass = $info['previewClass'];
+            $doc->iconClass = $info['iconClass'];
+            $doc->badgeClass = $info['badgeClass'];
+            return $doc;
+        });
+
+        $allDocuments = Document::all();
+        $listHtml = $this->renderFolderTreeView($all_document_folders, $allDocuments, $id, 0, $id);
+
+        foreach ($childDocuments as $doc) {
+            $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
+            $docUrl = url('/documents/view-document/' . $doc->id);
+
+            $actionHtml = $canDelete
+                ? '<div class="dropdown">
+                        <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete document
+                                </a>
+                            </li>
+                        </ul>
+                    </div>'
+                : '<button class="action-btn"><i class="ri-more-2-fill"></i></button>';
+
+            $listHtml .= '
+            <tr class="document-row"
+                data-type="' . $doc->fileType . '"
+                data-modified="' . $doc->updated_at . '"
+                data-document-id="' . $doc->id . '"
+                onclick="window.open(\'' . $docUrl . '\', \'_blank\')">
+                <td class="checkbox-cell" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="item-checkbox form-check-input"
+                        data-type="document"
+                        data-id="' . $doc->id . '"
+                        data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                </td>
+                <td>
+                    <div class="name-cell">
+                        <i class="' . $doc->iconClass . ' item-icon" style="color:#6b7280;"></i>
+                        <span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>
+                    </div>
+                </td>
+                <td>' . strtoupper($doc->fileType) . '</td>
+                <td>—</td>
+                <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
+                <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
+            </tr>';
+        }
+
+        $gridHtml = '';
+
+        foreach ($childFolders as $folder) {
+            $dropdownItems = '';
+            if ($canEdit) {
+                $dropdownItems .= '
+                <li>
+                    <a class="dropdown-item" href="javascript:void(0)"
+                        data-bs-toggle="modal"
+                        data-bs-target="#renameFolderModal' . $folder->id . '"
+                        onclick="event.stopPropagation()">
+                        <i class="ri-pencil-line me-2"></i>Rename folder
+                    </a>
+                </li>';
+            }
+            if ($canDelete) {
+                $dropdownItems .= '
+                <li>
+                    <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
+                        data-id="' . $folder->id . '"
+                        data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
+                        <i class="ri-delete-bin-line me-2"></i>Delete folder
+                    </a>
+                </li>';
+            }
+
+            $gridHtml .= '
+            <div class="grid-item folder-item"
+                data-folder-id="' . $folder->id . '"
+                data-type="folder"
+                data-modified="' . $folder->updated_at . '"
+                onclick="window.location=\'' . url('documents/folder/' . $folder->id) . '\'">
+                <div class="grid-item-header">
+                    <input type="checkbox" class="form-check-input grid-item-checkbox item-checkbox"
+                        data-type="folder"
+                        data-id="' . $folder->id . '"
+                        data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '"
+                        onclick="event.stopPropagation(); handleGridCheckbox(this)">
+                    <button class="grid-item-menu" onclick="event.stopPropagation()"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">' . $dropdownItems . '</ul>
+                </div>
+                <div class="grid-item-icon">
+                    <i class="ri-folder-2-fill"></i>
+                </div>
+                <div class="grid-item-name">' . htmlspecialchars($folder->name) . '</div>
+                <div class="grid-item-meta">' . date('M d, Y', strtotime($folder->updated_at)) . '</div>
+            </div>';
+        }
+
+        foreach ($childDocuments as $doc) {
+            $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
+            $docUrl = url('/documents/view-document/' . $doc->id);
+
+            $gridDropdown = $canDelete
+                ? '<ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                                <i class="ri-delete-bin-line me-2"></i>Delete document
+                            </a>
+                        </li>
+                    </ul>'
+                : '';
+
+            $gridHtml .= '
+            <div class="grid-item file-item"
+                data-type="' . $doc->fileType . '"
+                data-modified="' . $doc->updated_at . '"
+                data-document-id="' . $doc->id . '"
+                onclick="window.open(\'' . $docUrl . '\', \'_blank\')">
+                <div class="grid-item-header">
+                    <input type="checkbox" class="form-check-input grid-item-checkbox item-checkbox"
+                        data-type="document"
+                        data-id="' . $doc->id . '"
+                        data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                        onclick="event.stopPropagation(); handleGridCheckbox(this)">
+                    <button class="grid-item-menu" onclick="event.stopPropagation()"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    ' . $gridDropdown . '
+                </div>
+                <div class="grid-item-preview ' . $doc->previewClass . '">
+                    <i class="' . $doc->iconClass . ' grid-item-icon"></i>
+                </div>
+                <div class="grid-item-info">
+                    <div class="grid-item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</div>
+                    <div class="grid-item-meta">
+                        <span class="file-type-badge ' . $doc->badgeClass . '">' . strtoupper($doc->fileType) . '</span>
+                        <span>' . date('M d', strtotime($doc->updated_at)) . '</span>
+                    </div>
+                </div>
+            </div>';
+        }
+
+        return response()->json([
+            'listHtml' => $listHtml,
+            'gridHtml' => $gridHtml,
+            'totalFolders' => $childFolders->count(),
+            'totalDocuments' => $childDocuments->count(),
+            'totalItems' => $childFolders->count() + $childDocuments->count(),
+        ]);
+    }
+
+    private function renderFolderTreeView($allFolders, $documents, $currentFolderId, $level = 0, $parentId = null)
+    {
         $html = '';
+        $canEdit = canEdit('documents');
+        $canDelete = canDelete('documents');
+
         $filteredFolders = $allFolders->where('parent_id', $parentId);
-        
+
         foreach ($filteredFolders as $folder) {
             $childFolders = $allFolders->where('parent_id', $folder->id);
             $folderDocuments = $documents->where('folder_id', $folder->id);
             $hasChildren = count($folderDocuments) > 0 || count($childFolders) > 0;
-            
+
             $rowClass = 'folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
             if ($level > 0) {
                 $rowClass = 'child-row folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
             }
-            
+
             $html .= '<tr class="' . $rowClass . '" ';
             if ($level > 0) {
                 $html .= 'data-parent-id="' . $parentId . '" ';
@@ -220,7 +730,7 @@ class DocumentController extends Controller
                         data-type="folder"
                         data-modified="' . $folder->updated_at . '"
                         data-level="' . $level . '">';
-            
+
             $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
                         <input type="checkbox" 
                             class="item-checkbox form-check-input" 
@@ -229,8 +739,8 @@ class DocumentController extends Controller
                             data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '"
                             onchange="handleFolderCheckbox(this)">
                       </td>';
-            
-            $html .= '<td class="folder-name-cell" data-folder-url="' . url('documents/folder/'.$folder->id) . '" onclick="handleFolderClick(this, ' . ($hasChildren ? 'true' : 'false') . ')">';
+
+            $html .= '<td class="folder-name-cell" data-folder-url="' . url('documents/folder/' . $folder->id) . '" onclick="handleFolderClick(this, ' . ($hasChildren ? 'true' : 'false') . ')">';
             $html .= '<div class="name-cell">';
             if ($level > 0) {
                 $html .= '<span class="folder-indent" style="width: ' . ($level * 24) . 'px;"></span>';
@@ -241,54 +751,63 @@ class DocumentController extends Controller
                 $html .= '<span style="width: 20px; display: inline-block;"></span>';
             }
             $html .= '<i class="ri-folder-2-fill item-icon"></i>';
-            $html .= '<span class="item-name">' . $folder->name . '</span>';
+            $html .= '<span class="item-name">' . htmlspecialchars($folder->name) . '</span>';
             $html .= '</div></td>';
             $html .= '<td>Folder</td>';
             $html .= '<td>—</td>';
             $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
             $html .= '<td class="actions-cell">
-                <div class="dropdown">
-                    <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()"><i class="ri-more-2-fill"></i></button>
-                    <ul class="dropdown-menu">
-                        <li>
+                        <div class="dropdown">
+                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu">';
+
+            if ($canEdit) {
+                $html .= '<li>
                             <a class="dropdown-item" href="javascript:void(0)"
                                 data-bs-toggle="modal"
                                 data-bs-target="#renameFolderModal' . $folder->id . '">
                                 <i class="ri-pencil-line me-2"></i>Rename folder
                             </a>
-                        </li>
-                        <li>
+                        </li>';
+            }
+
+            if ($canDelete) {
+                $html .= '<li>
                             <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
                                 data-id="' . $folder->id . '"
                                 data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
                                 <i class="ri-delete-bin-line me-2"></i>Delete folder
                             </a>
-                        </li>
-                    </ul>
-                </div>
-            </td>';
+                        </li>';
+            }
+
+            $html .= '      </ul>
+                        </div>
+                    </td>';
             $html .= '</tr>';
-            
+
             if (count($childFolders) > 0) {
                 $html .= $this->renderFolderTreeView($allFolders, $documents, $currentFolderId, $level + 1, $folder->id);
             }
-            
+
             if (count($folderDocuments) > 0) {
                 foreach ($folderDocuments as $doc) {
                     $fileInfo = $this->getDocumentFileInfo($doc);
-                    
+
                     $html .= '<tr class="child-row document-row"
                                 data-parent-id="' . $folder->id . '"
                                 data-document-id="' . $doc->id . '"
                                 data-level="' . ($level + 1) . '"
                                 data-type="' . $fileInfo['fileType'] . '"
                                 data-modified="' . $doc->updated_at . '"
-                                onclick="window.open(\'' . url('/documents/view-document/'.$doc->id) . '\', \'_blank\')">';
+                                onclick="window.open(\'' . url('/documents/view-document/' . $doc->id) . '\', \'_blank\')">';
                     $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
-                                <input type="checkbox" 
-                                    class="item-checkbox form-check-input" 
-                                    data-type="document" 
-                                    data-id="' . $doc->id . '" 
+                                <input type="checkbox"
+                                    class="item-checkbox form-check-input"
+                                    data-type="document"
+                                    data-id="' . $doc->id . '"
                                     data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
                                     onchange="handleFolderCheckbox(this)">
                               </td>';
@@ -296,34 +815,44 @@ class DocumentController extends Controller
                     $html .= '<span class="folder-indent" style="width: ' . (($level + 1) * 24) . 'px;"></span>';
                     $html .= '<span style="width: 20px; display: inline-block;"></span>';
                     $html .= '<i class="' . $fileInfo['iconClass'] . ' item-icon" style="color: #6b7280;"></i>';
-                    $html .= '<span class="item-name">' . $doc->control_code . ' - ' . $doc->title . '</span>';
+                    $html .= '<span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>';
                     $html .= '</div></td>';
                     $html .= '<td>' . strtoupper($fileInfo['fileType']) . '</td>';
                     $html .= '<td>—</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
                         <div class="dropdown">
-                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()"><i class="ri-more-2-fill"></i></button>
-                            <ul class="dropdown-menu">
-                                <li>
+                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                                <i class="ri-more-2-fill"></i>
+                            </button>
+                            <ul class="dropdown-menu">';
+
+                    if ($canDelete) {
+                        $html .= '<li>
                                     <a class="dropdown-item text-danger" href="javascript:void(0)"
                                         onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES)) . '\')">
                                         <i class="ri-delete-bin-line me-2"></i>Delete document
                                     </a>
-                                </li>
-                            </ul>
+                                </li>';
+                    }
+
+                    $html .= '</ul>
                         </div>
                     </td>';
                     $html .= '</tr>';
                 }
             }
         }
-        
+
         return $html;
     }
 
     public function bulkDelete(Request $request)
     {
+        if (!canDelete('documents')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $folderIds   = array_filter(explode(',', $request->folder_ids ?? ''));
         $documentIds = array_filter(explode(',', $request->document_ids ?? ''));
 
@@ -363,8 +892,6 @@ class DocumentController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
    public function create($id = null)
     {
@@ -378,7 +905,7 @@ class DocumentController extends Controller
         {
             $change_request = ChangeRequest::with('supporting_documents','approvers.user')->findOrFail($id);
         }
-        
+
         return view('documents.create', compact('approvers', 'document_types', 'departments', 'teams', 'change_request'));
     }
 
@@ -397,22 +924,21 @@ class DocumentController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        //
-        // dd($request->all());
+        if (!canCreate('documents')) {
+            abort(403, 'Unauthorized');
+        }
 
+        // dd($request->all());
         $controlCode = $request->filled('control_code_existing')
             ? trim($request->control_code_existing)
             : trim($request->control_code);
 
         $isRevision = $request->input('is_revision', '0') === '1';
 
-        if (! $isRevision) {
+        if (!$isRevision) {
             $request->validate([
                 'control_code' => 'unique:documents,control_code'
             ]);
@@ -421,8 +947,6 @@ class DocumentController extends Controller
         $document = new Document;
         $document->control_code = $controlCode;
         $document->title = $request->title;
-        // $document->company_id = $request->company;
-        // $document->department_id = $request->department;
         $document->category = $request->document_type;
         $document->other_category = $request->other;
         $document->effective_date = $request->effective_date;
@@ -444,7 +968,6 @@ class DocumentController extends Controller
             $doc_attachment->attachment = $file_name;
             $doc_attachment->type = $key;
             $doc_attachment->save();
-            
         }
 
         foreach($request->tags as $tag)
@@ -453,22 +976,18 @@ class DocumentController extends Controller
             $document_tag->document_id = $document->id;
             $document_tag->name = $tag;
             $document_tag->save();
-        }   
+        }
 
         Alert::success('Successfully Uploaded')->persistent('Dismiss');
         return back();
-        
     }
 
     /**
      * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        $document = Document::findOrfail($id);
+        $document = Document::findOrFail($id);
 
         return view('documents.view_document',
             array(
@@ -479,26 +998,17 @@ class DocumentController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function edit(Request $request,$id)
+    public function edit(Request $request, $id)
     {
-        //
-
         $document = Document::findOrFail($id);
         $document->title = $request->title;
         $document->version = $request->revision;
-        
-        // Temporarily disable timestamps
         $document->timestamps = false;
         $document->save();
 
         Alert::success('Successfully Updated')->persistent('Dismiss');
         return back();
-      
-        
     }
 
     /**
@@ -513,17 +1023,9 @@ class DocumentController extends Controller
         //
     }
 
-
     /**
      * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        //
-    }
     // public function showPDF($id)
     // {
     //     ini_set('memory_limit', '-1');
@@ -570,9 +1072,10 @@ class DocumentController extends Controller
     //             }
               
            
-        
-      
-    // }
+    public function destroy($id)
+    {
+        //
+    }
 
     public function showPDF($id)
     {
@@ -673,6 +1176,7 @@ class DocumentController extends Controller
         Alert::success('Successfully Uploaded')->persistent('Dismiss');
         return back();
     }
+
     public function audit(Request $request)
     {
         $departments = Department::get();
@@ -711,13 +1215,17 @@ class DocumentController extends Controller
                 )
             );
     }
+
     public function addFolder(Request $request)
     {
+        if (!canCreate('documents')) {
+            abort(403, 'Unauthorized');
+        }
+
         // dd($request->all());
         $folder = new DocumentFolder;
         $folder->name = $request->name;
-        if($request->has('folder_id'))
-        {
+        if ($request->has('folder_id')) {
             $folder->parent_id = $request->folder_id;
         }
         $folder->save();
@@ -775,12 +1283,12 @@ class DocumentController extends Controller
                     break;
             }
         }
-        
+
         return [
             'fileType' => $fileType,
             'previewClass' => $previewClass,
             'iconClass' => $iconClass,
-            'badgeClass' => $badgeClass
+            'badgeClass' => $badgeClass,
         ];
     }
 
@@ -788,11 +1296,9 @@ class DocumentController extends Controller
     {
         $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
-        
-        $document_types = DocumentType::orderBy('name','desc')->get();
-        $all_document_folders = DocumentFolder::get();
 
-        $is_others_folder = ($id === 'others');
+        $document_types = DocumentType::orderBy('name', 'desc')->get();
+        $all_document_folders = DocumentFolder::get();
 
         $breadcrumbs = [];
 
@@ -879,13 +1385,13 @@ class DocumentController extends Controller
             'parent.parent.parent',
             'parent.parent.parent.parent'
         ])->findOrFail($id);
-        
+
         $current = $folder_data;
-        while($current) {
+        while ($current) {
             array_unshift($breadcrumbs, $current);
             $current = $current->parent ?? null;
         }
-        
+
         $foldersQuery = DocumentFolder::where('parent_id', $id);
         $documentsQuery = Document::where('folder_id', $id);
 
@@ -919,7 +1425,6 @@ class DocumentController extends Controller
         });
 
         $items = collect();
-        
         foreach ($childFolders as $folder) {
             $items->push((object)[
                 'id' => $folder->id,
@@ -928,7 +1433,6 @@ class DocumentController extends Controller
                 'updated_at' => $folder->updated_at,
             ]);
         }
-        
         foreach ($documentsWithFileInfo as $doc) {
             $items->push((object)[
                 'id' => $doc->id,
@@ -955,7 +1459,6 @@ class DocumentController extends Controller
         );
 
         $documents = Document::all();
-        
         $totalFolders = $childFolders->count();
         $totalDocuments = $childDocuments->count();
         $totalItems = $totalFolders + $totalDocuments;
@@ -979,9 +1482,13 @@ class DocumentController extends Controller
         );
     }
 
-    public function renameFolder(Request $request,$id)
+    public function renameFolder(Request $request, $id)
     {
-        $folder = DocumentFolder::findOrFail($id);
+        if (!canEdit('documents')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $folder       = DocumentFolder::findOrFail($id);
         $folder->name = $request->name;
         $folder->save();
 
@@ -991,6 +1498,10 @@ class DocumentController extends Controller
 
     public function deleteFolder(Request $request, $id)
     {
+        if (!canDelete('documents')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $folder = DocumentFolder::with('document', 'childrenFolder')->findOrFail($id);
 
         if (count($folder->document) > 0 || count($folder->childrenFolder) > 0) {
@@ -1011,10 +1522,11 @@ class DocumentController extends Controller
             ->where('user_id', $request->user_id)
             ->where('change_request_id', $request->change_request_id)
             ->get();
-        
+
         return response()->json($document_signature_position);
     }
-    public function editDateApproved(Request $request,$id)
+
+    public function editDateApproved(Request $request, $id)
     {
         // dd($request->all());
         $approver = RequestApprover::findOrFail($id);
@@ -1048,6 +1560,7 @@ class DocumentController extends Controller
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
     }
+
     public function uploadDocumentFolder(Request $request)
     {
         $documents = Document::whereIn('id',$request->documents)->get();
@@ -1060,8 +1573,8 @@ class DocumentController extends Controller
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();
     }
-    
-    public function publicDocument(Request $request,$id)
+
+    public function publicDocument(Request $request, $id)
     {
         $document = Document::with('user', 'document_tags', 'attachments')->findOrFail($id);
 
@@ -1075,7 +1588,7 @@ class DocumentController extends Controller
     public function viewChangeRequest($id)
     {
         $change_request = ChangeRequest::with('user', 'approvers.user', 'supporting_documents')->findOrFail($id);
-        
+
         return view('public.change-request', compact('change_request'));
     }
 
@@ -1120,27 +1633,26 @@ class DocumentController extends Controller
     public function getDocumentByControlCode(Request $request)
     {
         $code = $request->input('control_code');
-
         $latest = Document::where('control_code', $code)
             ->orderBy('version', 'desc')
             ->first();
 
-        if (! $latest) {
+        if (!$latest) {
             return response()->json(['found' => false]);
         }
 
         $nextRevision = ($latest->version ?? 0) + 1;
 
         return response()->json([
-            'found'            => true,
-            'control_code'     => $latest->control_code,
-            'title'            => $latest->title,
-            'category'         => $latest->category,
-            'folder_id'        => $latest->folder_id,
-            'other'            => $latest->other_category,
-            'type_of_request'  => $latest->type_of_request,
-            'latest_revision'  => $latest->version,
-            'next_revision'    => $nextRevision,
+            'found' => true,
+            'control_code' => $latest->control_code,
+            'title' => $latest->title,
+            'category' => $latest->category,
+            'folder_id' => $latest->folder_id,
+            'other' => $latest->other_category,
+            'type_of_request' => $latest->type_of_request,
+            'latest_revision' => $latest->version,
+            'next_revision' => $nextRevision,
         ]);
     }
 }
