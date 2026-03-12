@@ -566,7 +566,7 @@
             <div class="icon-circle">
                 <i class="ri-file-list-3-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $forApprovalCount ?? 0 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $forApprovalCount ?? 55 }}</h2>
             <p>Total Documents</p>
         </div>
     </div>
@@ -575,7 +575,7 @@
             <div class="icon-circle">
                 <i class="ri-time-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $declinedCount ?? 0 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $declinedCount ?? 12 }}</h2>
             <p>Pending Approval</p>
         </div>
     </div>
@@ -584,7 +584,7 @@
             <div class="icon-circle">
                 <i class="ri-checkbox-circle-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $approvedCount ?? 0 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $approvedCount ?? 20 }}</h2>
             <p>Approved</p>
         </div>
     </div>
@@ -594,7 +594,7 @@
             <div class="icon-circle">
                 <i class="ri-close-circle-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $returnedCount ?? 0 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $returnedCount ?? 2 }}</h2>
             <p>Declined</p>
         </div>
     </div>
@@ -1155,14 +1155,40 @@
                                         <small class="text-muted text-truncate d-block">Owner: {{ $private_document->owner->name }}</small>
                                     </div>
                                     <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
-                                        @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) == 0)
-                                            <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#requestAccess{{ $private_document->id }}">
-                                                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
-                                                    {{-- <i class="ri-eye-line"></i> {{ count($private_document->visitor) }} --}}
+
+                                        <div class="dropdown">
+                                            <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.6rem;">
                                                     <i class="ri-more-2-fill"></i>
                                                 </span>
                                             </a>
-                                        @endif
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                @if(count($private_document->document_request_access->where('status', 1)->where('requestor_id', auth()->id())) == 0)
+                                                    <li>
+                                                        <a href="javascript:void(0)" class="dropdown-item"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#requestAccess{{ $private_document->id }}">
+                                                            <i class="ri-lock-unlock-line me-2"></i> Request Access
+                                                        </a>
+                                                    </li>
+                                                @else
+                                                    <li>
+                                                        <span class="dropdown-item text-success disabled">
+                                                            <i class="ri-checkbox-circle-line me-2"></i> Access Granted
+                                                        </span>
+                                                    </li>
+                                                @endif
+                                                <li>
+                                                    <a href="{{ url('/documents/visitors/' . $private_document->id) }}" target="_blank" class="dropdown-item">
+                                                        <i class="ri-eye-line me-2"></i> View Visitors
+                                                        <span class="badge bg-primary-subtle text-primary ms-1">
+                                                            {{ $private_document->visitor->count() }}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+
                                     </div>
                                 </div>
                             </li>

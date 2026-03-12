@@ -28,7 +28,7 @@ Route::group(['middleware' => 'auth'], function () {
         
         // Documents
         Route::get('/dashboard/stats', 'HomeController@stats')->name('dashboard.stats');
-        Route::post('change-request/confirm-password', 'RequestController@confirmPasswordAjax')->name('change-request.confirm-password-ajax');
+        Route::post('change-request/confirm-password', 'RequestController@confirmPassword')->name('change-request.confirm-password');
         Route::get('/documents', 'DocumentController@index')->name('documents');
         Route::prefix('documents')->group(function() {
             Route::get('create/{id?}', 'DocumentController@create')->name('documents.create');
@@ -174,6 +174,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post("/request_access/{id}","DocumentController@requestAccess");
         Route::post("/request_access_approved/{id}","DocumentController@requestAccessApproved");
         Route::post("/request_access_declined/{id}","DocumentController@requestAccessDeclined");
+        Route::get('/for-request-access', 'DocumentController@forRequestAccess')->name('for-request-access');
     
         Route::get('/request', 'RequestController@index')->name('requests');
         Route::post('change-request-edit/{id}','RequestController@editRequest')->name('change-requests');

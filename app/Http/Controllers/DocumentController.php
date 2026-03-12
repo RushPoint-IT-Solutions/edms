@@ -1685,6 +1685,20 @@ class DocumentController extends Controller
         return back();
     }
 
+    public function forRequestAccess()
+    {
+        $document_request_access = DocumentRequestAccess::with([
+            'document',
+            'requestor.department',
+        ])
+            ->where('user_id', auth()->id())
+            ->get();
+
+        return view('for_request_access', [
+            'document_request_access' => $document_request_access,
+        ]);
+    }
+
     public function requestAccessApproved(Request $request,$id) {
         // dd($request->all());
         $document_request_access = DocumentRequestAccess::findOrFail($id);

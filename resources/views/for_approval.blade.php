@@ -55,18 +55,18 @@
 </div>
 
 <div class="row">
-    <div class="col-md-6 mb-4">
+    <div class="col-md-12 mb-4">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">For Approval</h5>
             </div>
             <div class="card-body">
-                <div class="top-controls-container">
-                    <div class="left-controls"><div id="change-length-control"></div></div>
-                    <div class="right-controls">
-                        <div class="search-wrapper"><div id="change-filter-control"></div></div>
-                        <div class="buttons-wrapper"><div id="change-buttons-control"></div></div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div id="change-filter-control"></div>
+                        <div id="change-length-control"></div>
                     </div>
+                    <div id="change-buttons-control"></div>
                 </div>
                 <div class="table-scroll-container">
                     <table class="table table-hover table-bordered" id="changeApprovalTable">
@@ -83,75 +83,6 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
-                    </table>
-                </div>
-                <div class="bottom-controls-container">
-                    <div id="change-info-control"></div>
-                    <div id="change-pagination-control"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h5 class="mb-0">For request access</h5>
-            </div>
-            <div class="card-body">
-                <div class="top-controls-container">
-                    <div class="left-controls"><div id="change-length-control"></div></div>
-                    <div class="right-controls">
-                        <div class="search-wrapper"><div id="change-filter-control"></div></div>
-                        <div class="buttons-wrapper"><div id="change-buttons-control"></div></div>
-                    </div>
-                </div>
-                <div class="table-scroll-container">
-                    <table class="table tables table-hover table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Actions</th>
-                                <th>Title</th>
-                                <th>Date</th>
-                                <th>Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($document_request_access as $access)
-                                <tr>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                                <i class="ri-more-2-fill"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <form action="{{ url("request_access_approved/".$access->id) }}" method="post">
-                                                        @csrf
-                                                        <input type="hidden" name="status" value="1">
-                                                        <button type="submit" class="dropdown-item">
-                                                            <i class="ri-information-line me-2"></i> Approved
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                                <li>
-                                                    <form action="{{ url("request_access_declined/".$access->id) }}" method="post">
-                                                        @csrf
-                                                        <input type="hidden" name="status" value="3">
-                                                        <button type="submit" class="dropdown-item">
-                                                            <i class="ri-eye-line me-2"></i> Declined
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                    <td>{{$access->reason}}</td>
-                                    <td>{{date("M d Y", strtotime($access->date))}}</td>
-                                    <td>{{$access->reason}}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
                     </table>
                 </div>
                 <div class="bottom-controls-container">
