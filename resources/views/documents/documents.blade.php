@@ -1,6 +1,8 @@
 @extends('layouts.header')
 
 @section('css')
+<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
+<link href="{{ asset('login_css/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
 <link href="{{ asset('/assets/css/docs_style.css') }}" rel="stylesheet">
 @endsection
 
@@ -39,16 +41,17 @@
     </div>
     <div class="card-body">
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <div style="font-size:0.875rem;color:#6b7280;">
                 <span id="visibleCount">0</span> folders
             </div>
-            <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px;">
                 <div style="position:relative;">
-                    <i class="ri-search-line" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#6b7280;font-size:1rem;"></i>
+                    <i class="ri-search-line" style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); color:#6b7280; font-size:1rem;"></i>
                     <input type="text" id="folderSearch" placeholder="Search folders..." autocomplete="off"
                         style="padding:0.375rem 2.5rem 0.375rem 2.25rem;border:1px solid #dee2e6;border-radius:4px;font-size:0.875rem;width:250px;">
-                    <button id="clearSearch" style="display:none;position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:#f3f4f6;border:none;border-radius:4px;padding:0.15rem 0.4rem;color:#6b7280;cursor:pointer;">
+                    <button id="clearSearch" style="display:none; position:absolute; right:0.5rem; top:50%; 
+                            transform:translateY(-50%); background:#f3f4f6; border:none; border-radius:4px; padding:0.15rem 0.4rem; color:#6b7280; cursor:pointer;">
                         <i class="ri-close-line"></i>
                     </button>
                 </div>
@@ -184,7 +187,9 @@
 @endsection
 
 @section('js')
+<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js')}}"></script>
 <script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
+<script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
 <script src="{{ asset('js/BootstrapMenu.min.js') }}"></script>
 
 <script>
