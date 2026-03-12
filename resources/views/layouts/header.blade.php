@@ -28,8 +28,6 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
-
 
     <style>
         .helpdesk-link-wrapper {
@@ -852,14 +850,12 @@
                         </li> --}}
 
                         <!-- Approver Stamp -->
-                        @if(canView('approver stamp'))
                         <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
                             <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
                                 <i class="mdi mdi-stamper"></i>
                                 <span data-key="t-memorandum">Approver Stamp</span>
                             </a>
                         </li>
-                        @endif
 
                         {{-- SSO Default Access --}}
                         @if(auth()->user()->google_id != null)
