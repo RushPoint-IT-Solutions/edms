@@ -42,18 +42,17 @@
                 </button>
             </div>
             <div class="card-body">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <select id="roleFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
-                        <option value="">All Roles</option>
-                        @foreach($roles as $role)
-                            <option value="{{ $role->name }}">{{ $role->name }}</option>
-                        @endforeach
-                    </select>
-                    <div id="table-filter-control"></div>
-                </div>
-
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                    <div id="table-length-control"></div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div id="table-filter-control"></div>
+                        <select id="roleFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
+                            <option value="">All Roles</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->name }}">{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                        <div id="table-length-control"></div>
+                    </div>
                     <div id="table-buttons-control"></div>
                 </div>
 

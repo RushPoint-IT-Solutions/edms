@@ -3,8 +3,8 @@
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
-        <h4 class="mb-0">Roles & Permissions</h4>
-        <p class="text-muted mb-0">Manage roles and permissions</p>
+        <h4 class="mb-0">Roles</h4>
+        <p class="text-muted mb-0">Manage roles</p>
     </div>
 </div>
 
@@ -35,12 +35,11 @@
                 </button>
             </div>
             <div class="card-body">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <div></div>
-                    <div id="roles-filter-control"></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                    <div id="roles-length-control"></div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div id="roles-filter-control"></div>
+                        <div id="roles-length-control"></div>
+                    </div>
                     <div id="roles-buttons-control"></div>
                 </div>
                 <div class="table-scroll-container">
