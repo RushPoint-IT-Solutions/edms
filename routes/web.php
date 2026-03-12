@@ -107,7 +107,7 @@ Route::group(['middleware' => 'auth'], function () {
         });
 
         // Roles & Permissions
-        Route::get('/roles', 'RoleController@index')->name('roles.index');
+        Route::get('/roles', 'RoleController@index')->name('settings');
         Route::prefix('roles')->group(function() {
             Route::get('/data', 'RoleController@getData')->name('roles.data');
             Route::get('/permissions/data', 'RoleController@getPermissionsData')->name('permissions.data');

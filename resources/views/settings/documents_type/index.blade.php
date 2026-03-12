@@ -28,12 +28,12 @@
                 </button>
             </div>
             <div class="card-body">
-                <div class="top-controls-container">
-                    <div class="left-controls"><div id="table-length-control"></div></div>
-                    <div class="right-controls">
-                        <div class="search-wrapper"><div id="table-filter-control"></div></div>
-                        <div class="buttons-wrapper"><div id="table-buttons-control"></div></div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div id="table-filter-control"></div>
+                        <div id="table-length-control"></div>
                     </div>
+                    <div id="table-buttons-control"></div>
                 </div>
 
                 <div class="table-scroll-container">
