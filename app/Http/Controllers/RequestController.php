@@ -309,6 +309,14 @@ class RequestController extends Controller
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'created_at' => $cr->created_at ? $cr->created_at->format('Y-m-d') : '-',
                 'status' => $statusBadge,
+                'qr_code' => '
+                    <button class="btn btn-sm btn-outline-primary view-qr-btn"
+                        data-doc-id="' . $docId . '"
+                        data-doc-title="' . e($cr->title) . '"
+                        data-change-request-id="' . $cr->id . '">
+                        <i class="ri-qr-code-line"></i> View QR
+                    </button>
+                ',
             ];
         }
 
