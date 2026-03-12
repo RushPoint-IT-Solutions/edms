@@ -31,6 +31,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::prefix('documents')->group(function() {
             Route::get('create/{id?}', 'DocumentController@create')->name('documents.create');
             Route::get('signature/{id}', 'DocumentController@signature')->name('documents.signature');
+            Route::get('/folder-tree', 'DocumentController@getFolderTree');
+            Route::get('/folder-view-tree/{id}', 'DocumentController@getFolderViewTree');
             Route::get('folder/{id}','DocumentController@folderView');
             Route::get('view-document/{id}','DocumentController@show');
             Route::get('/view-pdf/{id}','DocumentController@showPDF')->name('documents');
