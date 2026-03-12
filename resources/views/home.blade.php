@@ -777,7 +777,10 @@ body.modal-open {
                 </div>
 
                 <div id="gridView" class="row row-cols-1 row-cols-sm-4 g-2">
-                    @foreach ($pending_cards as $change_request)
+                    @foreach ($pending_cards as $approvers)
+                    @php
+                        $change_request = $approvers->change_request;
+                    @endphp
                     <div class="col">
                         <div class="card border file-card position-relative" data-card-id="{{ $change_request->id }}">
                             <div class="position-absolute top-0 end-0 m-2 more-btn">
@@ -855,7 +858,10 @@ body.modal-open {
                             </div>
                             
                             <div class="drive-list-body">
-                                @foreach ($pending_cards as $change_request)
+                                @foreach ($pending_cards as $approvers)
+                                @php
+                                    $change_request = $approvers->change_request;
+                                @endphp
                                 @php
                                     $file = $change_request->file;
                                     $filename = explode('/',$file);

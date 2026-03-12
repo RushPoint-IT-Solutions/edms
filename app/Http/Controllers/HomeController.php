@@ -10,6 +10,7 @@ use App\CopyRequest;
 use App\DocumentType;
 use App\Company;
 use App\Office;
+use App\RequestApprover;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -138,15 +139,14 @@ class HomeController extends Controller
 
         if (auth()->user()->role != "Administrator")
         {
-            $pending_query = ChangeRequest::where('user_id', auth()->user()->id)
-                                        ->where('status', 'For Approval')
-                                        ->where('request_status', 'Pending');
+            $pending_query = RequestApprover::where('user_id', auth()->user()->id)->where('status', 'Pending');
+
             $table_query = ChangeRequest::where('user_id', auth()->user()->id);
         }
         else
         {
-            $pending_query = ChangeRequest::where('status', 'For Approval')
-                                        ->where('request_status', 'Pending');
+            $pending_query = RequestApprover::where('status', 'Pending');
+
             $table_query = ChangeRequest::query();
         }
 
@@ -191,7 +191,7 @@ class HomeController extends Controller
             $table_query->orderBy('created_at', 'desc');
         }
 
-        $pending_cards = $pending_query->with(['department.office', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
+        $pending_cards = $pending_query->with(['change_request', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
         $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
