@@ -379,24 +379,29 @@ class RequestController extends Controller
 
     public function getChangeApprovalsData(Request $request)
     {
-        $draw = $request->get('draw');
-        $start = $request->get('start');
+        $draw   = $request->get('draw');
+        $start  = $request->get('start');
         $length = $request->get('length');
         $search = $request->get('search')['value'] ?? '';
 
-        $query = RequestApprover::with('change_request.document_type', 'change_request.user')
-            ->where('status', 'Pending')
-            ->whereHas('change_request', function ($q) {
-                $q->whereNull('is_draft');
+        $query = ChangeRequest::with(['approvers.user', 'user', 'document_type'])
+            ->whereNull('is_draft')
+            ->whereHas('approvers', function ($q) {
+                $q->where('status', 'Pending')
+                ->orWhere('status', 'Waiting');
             })
+            ->whereNotIn('status', ['Approved', 'Declined'])
             ->when(auth()->user()->role !== 'Administrator', function ($q) {
-                $q->where('user_id', auth()->user()->id);
+                $q->whereHas('approvers', function ($aq) {
+                    $aq->where('user_id', auth()->user()->id)
+                    ->whereIn('status', ['Pending', 'Waiting']);
+                });
             });
 
         $totalRecords = (clone $query)->count();
 
         if (!empty($search)) {
-            $query->whereHas('change_request', function ($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                 ->orWhere('status', 'like', "%{$search}%");
             });
@@ -404,14 +409,82 @@ class RequestController extends Controller
 
         $totalFiltered = $query->count();
 
-        $approvals = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+        $changeRequests = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
 
         $data = [];
-        foreach ($approvals as $approval) {
-            $cr = $approval->change_request;
-            if (!$cr) continue;
-
+        foreach ($changeRequests as $cr) {
             $docId = 'DOC-' . date('Y', strtotime($cr->created_at)) . '-' . str_pad($cr->id, 3, '0', STR_PAD_LEFT);
+
+            $approvers = '<div class="approvers-chain">';
+            foreach ($cr->approvers->sortBy('level') as $approver) {
+                $user = $approver->user;
+                if (!$user) continue;
+
+                switch ($approver->status) {
+                    case 'Approved':
+                        $icon       = 'ri-checkbox-circle-fill';
+                        $color      = '#198754';
+                        $badgeClass = 'bg-success';
+                        break;
+                    case 'Pending':
+                        $icon       = 'ri-time-line';
+                        $color      = '#e67e22';
+                        $badgeClass = 'bg-warning text-dark';
+                        break;
+                    case 'Returned':
+                        $icon       = 'ri-arrow-go-back-fill';
+                        $color      = '#dc3545';
+                        $badgeClass = 'bg-danger';
+                        break;
+                    case 'Declined':
+                        $icon       = 'ri-close-circle-fill';
+                        $color      = '#dc3545';
+                        $badgeClass = 'bg-danger';
+                        break;
+                    case 'Waiting':
+                        $icon       = 'ri-checkbox-blank-circle-line';
+                        $color      = '#6c757d';
+                        $badgeClass = 'bg-secondary';
+                        break;
+                    default:
+                        $icon       = 'ri-question-line';
+                        $color      = '#adb5bd';
+                        $badgeClass = 'bg-light text-dark';
+                        break;
+                }
+
+                $approvers .= '
+                <div class="approver-step mb-1" style="white-space:nowrap;">
+                    <div class="d-flex align-items-center gap-1" style="flex-wrap:nowrap;">
+                        <i class="' . $icon . '" style="color:' . $color . '; font-size:0.9rem; flex-shrink:0;"></i>
+                        <span style="font-size:0.78rem; font-weight:600; color:#212529; flex-shrink:0;">'
+                            . e($user->name) .
+                        '</span> -
+                        <span class="badge ' . $badgeClass . '" style="font-size:0.65rem; flex-shrink:0;">'
+                            . e($approver->status) .
+                        '</span>
+                        ' . '
+                    </div>
+                </div>';
+
+                if (!$cr->approvers->sortBy('level')->last()->is($approver)) {
+                    $approvers .= '<div style="margin-left:8px; color:#adb5bd; font-size:0.7rem; margin-bottom:3px;">&#8595;</div>';
+                }
+            }
+            $approvers .= '</div>';
+
+            $myApprover = $cr->approvers->firstWhere('user_id', auth()->user()->id);
+            $myStatus   = $myApprover ? $myApprover->status : null;
+
+            $isMyTurn = $myStatus === 'Pending';
+
+            $actionLink = $isMyTurn
+                ? '<a class="dropdown-item" href="' . url('change-request/for_approval/' . $cr->id) . '">
+                    <i class="ri-edit-line me-2"></i>Review & Act
+                </a>'
+                : '<a class="dropdown-item" href="' . url('change-request/view-change-request/' . $cr->id) . '">
+                    <i class="ri-eye-line me-2"></i>View Only
+                </a>';
 
             $data[] = [
                 'action' => '
@@ -420,96 +493,16 @@ class RequestController extends Controller
                             <i class="ri-more-2-fill"></i>
                         </button>
                         <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="' . url('change-request/for_approval/' . $cr->id) . '">
-                                    <i class="ri-eye-line me-2"></i>View Request
-                                </a>
-                            </li>
-                            <!-- <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-success approve-btn" href="#"
-                                    data-id="' . $cr->id . '"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#approveModal' . $cr->id . '">
-                                    <i class="ri-check-line me-2"></i>Approve
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item text-warning return-btn" href="#"
-                                    data-id="' . $cr->id . '"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#returnModal' . $cr->id . '">
-                                    <i class="ri-arrow-go-back-line me-2"></i>Return
-                                </a>
-                            </li> -->
+                            <li>' . $actionLink . '</li>
                         </ul>
-                    </div>
+                    </div>',
 
-                    <!-- <div class="modal fade" id="approveModal' . $cr->id . '" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Approve Request</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <form action="' . url('change-request/change-request-action/' . $cr->id) . '" method="POST" enctype="multipart/form-data">
-                                    ' . csrf_field() . '
-                                    <input type="hidden" name="action" value="Approved">
-                                    <input type="hidden" name="old_status" value="' . e($cr->status) . '">
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Remarks</label>
-                                            <textarea name="remarks" class="form-control" rows="3" placeholder="Enter remarks..."></textarea>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Upload File <small class="text-muted">(optional)</small></label>
-                                            <input type="file" name="file" class="form-control" accept=".pdf">
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-success">
-                                            <i class="ri-check-line me-1"></i>Confirm Approve
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal fade" id="returnModal' . $cr->id . '" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Return Request</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <form action="' . url('change-request/change-request-action/' . $cr->id) . '" method="POST">
-                                    ' . csrf_field() . '
-                                    <input type="hidden" name="action" value="Returned">
-                                    <input type="hidden" name="old_status" value="' . e($cr->status) . '">
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Reason for Return <span class="text-danger">*</span></label>
-                                            <textarea name="remarks" class="form-control" rows="3" placeholder="Enter reason..." required></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-warning">
-                                            <i class="ri-arrow-go-back-line me-1"></i>Confirm Return
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div> -->
-                ',
                 'reference' => '<span class="ref-badge">' . $docId . '</span>',
                 'date' => $cr->created_at ? $cr->created_at->format('M d, Y') : '-',
                 'title' => e($cr->title),
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'type' => optional($cr->document_type)->name ?? '-',
+                'approvers' => $approvers,
                 'status' => e($cr->status),
             ];
         }

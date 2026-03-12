@@ -1,5 +1,21 @@
 @extends('layouts.header')
 
+@section('css')
+<style>
+.approvers-chain {
+    min-width: 160px;
+}
+
+.approver-step {
+    padding: 2px 0;
+}
+
+#changeApprovalTable td:last-child {
+    min-width: 180px;
+}
+</style>
+@endsection
+
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
@@ -62,6 +78,7 @@
                                 <th>Title</th>
                                 <th>Requested&nbsp;By</th>
                                 <th>Type</th>
+                                <th>Approvers</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -162,6 +179,7 @@ $(document).ready(function () {
             { data: 'title', name: 'title' },
             { data: 'requested_by', orderable: false, searchable: false },
             { data: 'type', orderable: false, searchable: false },
+            { data: 'approvers', orderable: false, searchable: false },
             { data: 'status', orderable: false, searchable: false },
         ],
         order: [[2, 'desc']],
