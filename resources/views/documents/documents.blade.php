@@ -41,28 +41,26 @@
     </div>
     <div class="card-body">
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="font-size:0.875rem;color:#6b7280;">
-                <span id="visibleCount">0</span> folders
-            </div>
-            <div style="display:flex; align-items:center; gap:10px;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div style="position:relative;">
                     <i class="ri-search-line" style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); color:#6b7280; font-size:1rem;"></i>
                     <input type="text" id="folderSearch" placeholder="Search folders..." autocomplete="off"
                         style="padding:0.375rem 2.5rem 0.375rem 2.25rem;border:1px solid #dee2e6;border-radius:4px;font-size:0.875rem;width:250px;">
-                    <button id="clearSearch" style="display:none; position:absolute; right:0.5rem; top:50%; 
+                    <button id="clearSearch" style="display:none; position:absolute; right:0.5rem; top:50%;
                             transform:translateY(-50%); background:#f3f4f6; border:none; border-radius:4px; padding:0.15rem 0.4rem; color:#6b7280; cursor:pointer;">
                         <i class="ri-close-line"></i>
                     </button>
+                    {{-- &nbsp;&nbsp;<span id="visibleCount" style="font-size:0.875rem;color:#6b7280;">0</span> folders --}}
                 </div>
-                <div class="view-toggle">
-                    <button class="view-toggle-btn active" id="listViewBtn" title="List view">
-                        <i class="ri-list-check"></i>
-                    </button>
-                    <button class="view-toggle-btn" id="gridViewBtn" title="Grid view">
-                        <i class="ri-grid-fill"></i>
-                    </button>
-                </div>
+            </div>
+            <div class="view-toggle">
+                <button class="view-toggle-btn active" id="listViewBtn" title="List view">
+                    <i class="ri-list-check"></i>
+                </button>
+                <button class="view-toggle-btn" id="gridViewBtn" title="Grid view">
+                    <i class="ri-grid-fill"></i>
+                </button>
             </div>
         </div>
 

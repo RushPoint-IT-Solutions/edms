@@ -75,21 +75,22 @@
                 </button>
             </div>
             <div class="card-body">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
-                        <option value="">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="For Renewal">For Renewal</option>
-                        <option value="Overdue">Overdue</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                    <div id="table-filter-control"></div>
-                </div>
-
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                    <div id="table-length-control"></div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div id="table-filter-control"></div>
+                        <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
+                            <option value="">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="For Renewal">For Renewal</option>
+                            <option value="Overdue">Overdue</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                        <div id="table-length-control"></div>
+                    </div>
                     <div id="table-buttons-control"></div>
                 </div>
+
+        
 
                 <div class="table-scroll-container">
                     <table class="table table-hover table-bordered" id="permitsTable">
