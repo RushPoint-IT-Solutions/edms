@@ -12,6 +12,7 @@ use App\Company;
 use App\Office;
 use App\PrivateDocsVisitor;
 use App\RequestApprover;
+use App\ChangeRequestAccess;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -122,9 +123,11 @@ class HomeController extends Controller
         $privateRaw = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
-        $privateQuery = ChangeRequest::with(['department.office', 'user', 'visitors'])
-            ->where('category', 'Private')
-            ->whereNull('is_draft');
+        $privateQuery = Document::with('attachments', 'department', 'visitor')->where('public', null);
+        
+        // $privateQuery = ChangeRequest::with(['department.office', 'user', 'visitors', 'accesses'])
+        //     ->where('category', 'Private')
+        //     ->whereNull('is_draft');
 
         if ($privateRaw) {
             $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
@@ -282,7 +285,7 @@ class HomeController extends Controller
 
         ));
     }
-    public function confirmPasswordAjax(Request $request)
+    public function confirmPassword(Request $request)
     {
         $password = auth()->user()->password;
 
@@ -336,6 +339,29 @@ class HomeController extends Controller
             'dept' => $dept
         ));
     }
+
+    // public function requestChangeRequestAccess(Request $request)
+    // {
+    //     $existing = \App\ChangeRequestAccess::where('change_request_id', $request->change_request_id)
+    //         ->where('user_id', auth()->user()->id)
+    //         ->first();
+
+    //     if ($existing) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'status'  => $existing->status,
+    //             'message' => 'You already have a ' . $existing->status . ' request for this document.'
+    //         ]);
+    //     }
+
+    //    ChangeRequestAccess::create([
+    //         'change_request_id' => $request->change_request_id,
+    //         'user_id'           => auth()->user()->id,
+    //         'status'            => 'Pending',
+    //     ]);
+
+    //     return response()->json(['success' => true, 'message' => 'Access request submitted successfully.']);
+    // }
 
     public function recordChangeRequestView(Request $request)
     {
