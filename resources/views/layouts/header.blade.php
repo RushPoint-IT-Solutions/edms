@@ -701,15 +701,38 @@
                         </li>
                         @endif
 
-                        <!-- For Approval -->
-                        @if(canView('for approval'))
-                        <li class="nav-item {{ Route::current()->getName() == 'for-approval' ? 'active' : '' }}">
-                            <a class="nav-link menu-link" href="{{url('/for-approval')}}">
+                        @php
+                            $forApprovalActive = Request::is('for-approval*') || Request::is('for-request-access*');
+                        @endphp
+                        <li class="nav-item {{ $forApprovalActive ? 'active' : '' }}">
+                            <a class="nav-link menu-link {{ $forApprovalActive ? '' : 'collapsed' }}"
+                            href="#sidebarForApproval" data-bs-toggle="collapse" role="button"
+                            aria-expanded="{{ $forApprovalActive ? 'true' : 'false' }}"
+                            aria-controls="sidebarForApproval">
                                 <i class="ri-checkbox-line"></i>
                                 <span data-key="t-for-approval">For Approval</span>
                             </a>
+                            <div class="menu-dropdown collapse {{ $forApprovalActive ? 'show' : '' }}" id="sidebarForApproval">
+                                <ul class="nav nav-sm flex-column">
+                                    @if(canView('for approval'))
+                                    <li class="nav-item">
+                                        <a href="{{ url('/for-approval') }}"
+                                        class="nav-link {{ Request::is('for-approval*') ? 'active' : '' }}"
+                                        data-key="t-approval-documents">
+                                        Document Approvals
+                                        </a>
+                                    </li>
+                                    @endif
+                                    <li class="nav-item">
+                                        <a href="{{ url('/for-request-access') }}"
+                                        class="nav-link {{ Request::is('for-request-access*') ? 'active' : '' }}"
+                                        data-key="t-for-request-access">
+                                        Access Requests
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
-                        @endif
 
                         <!-- Documents -->
                         @if(canView('documents'))
