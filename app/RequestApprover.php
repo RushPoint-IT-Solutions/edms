@@ -17,4 +17,8 @@ class RequestApprover extends Model  implements Auditable
     {
         return $this->belongsTo(ChangeRequest::class);
     }
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
 }

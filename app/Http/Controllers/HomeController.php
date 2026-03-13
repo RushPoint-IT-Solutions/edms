@@ -10,6 +10,7 @@ use App\CopyRequest;
 use App\DocumentType;
 use App\Company;
 use App\Office;
+use App\PrivateDocsVisitor;
 use App\RequestApprover;
 use Illuminate\Http\Request;
 
@@ -121,12 +122,14 @@ class HomeController extends Controller
         $privateRaw = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
-        $privateQuery = Document::with('attachments', 'department', 'visitor')->where('public', null);
+        $privateQuery = ChangeRequest::with(['department.office', 'user', 'visitors'])
+            ->where('category', 'Private')
+            ->whereNull('is_draft');
 
         if ($privateRaw) {
             $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
                 $q->where('title', 'like', '%' . $privateRaw . '%')
-                ->orWhere('control_code', 'like', '%' . $privateRaw . '%')
+                ->orWhere('file', 'like', '%' . $privateRaw . '%')
                 ->orWhereHas('department', function ($dq) use ($privateRaw) {
                     $dq->where('code', 'like', '%' . $privateRaw . '%')
                         ->orWhere('name', 'like', '%' . $privateRaw . '%');
@@ -135,11 +138,26 @@ class HomeController extends Controller
             });
         }
 
-        $private_documents = $privateQuery->orderBy('created_at', 'desc')->get();
+        $private_documents = $privateQuery
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // dd($private_documents->toArray());
 
         if (auth()->user()->role != "Administrator")
         {
-            $pending_query = RequestApprover::where('user_id', auth()->user()->id)->where('status', 'Pending');
+            $pending_query = ChangeRequest::where(function($q) {
+                                $q->where('user_id', auth()->user()->id)
+                                ->where('status', 'For Approval')
+                                ->where('request_status', 'Pending');
+                            })->orWhere(function($q) {
+                                $q->whereHas('approvers', function($aq) {
+                                    $aq->where('user_id', auth()->user()->id)
+                                    ->whereIn('status', ['Pending', 'Waiting']);
+                                })
+                                ->whereNotIn('status', ['Approved', 'Declined'])
+                                ->whereNull('is_draft');
+                            });
 
             $table_query = ChangeRequest::where('user_id', auth()->user()->id);
         }
@@ -191,7 +209,7 @@ class HomeController extends Controller
             $table_query->orderBy('created_at', 'desc');
         }
 
-        $pending_cards = $pending_query->with(['change_request', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
+        $pending_cards = $pending_query->with(['department.office', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
         $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
@@ -264,6 +282,16 @@ class HomeController extends Controller
 
         ));
     }
+    public function confirmPasswordAjax(Request $request)
+    {
+        $password = auth()->user()->password;
+
+        if (Hash::check($request->password, $password)) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false]);
+    }
     public function search(Request $request)
     {
         $documents = [];
@@ -307,5 +335,21 @@ class HomeController extends Controller
             // 'comp' => $comp,
             'dept' => $dept
         ));
+    }
+
+    public function recordChangeRequestView(Request $request)
+    {
+        PrivateDocsVisitor::create([
+            'change_request_id' => $request->change_request_id,
+            'user_id' => auth()->user()->id,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function changeRequestVisitors($id)
+    {
+        $changeRequest = ChangeRequest::with(['visitors.user.department'])->findOrFail($id);
+        return view('change_request.visitors', compact('changeRequest'));
     }
 }
