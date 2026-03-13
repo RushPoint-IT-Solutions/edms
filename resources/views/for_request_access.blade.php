@@ -24,7 +24,7 @@
             <h2 class="mb-0 font-weight-bold">
                 {{ $document_request_access->where('status', 1)->count() }}
             </h2>
-            <p>Approved</p>
+            <p>Approve</p>
         </div>
     </div>
     <div class="col-xl-4 col-md-4">
@@ -33,7 +33,7 @@
             <h2 class="mb-0 font-weight-bold">
                 {{ $document_request_access->where('status', 3)->count() }}
             </h2>
-            <p>Declined</p>
+            <p>Decline</p>
         </div>
     </div>
 </div>
