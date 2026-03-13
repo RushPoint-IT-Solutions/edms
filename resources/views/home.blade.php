@@ -1076,9 +1076,11 @@
                                                 <i class="ri-eye-line"></i> {{ $private_document->visitors ? $private_document->visitors->count() : 0 }}
                                             </span>
                                         </a>
-                                    @endif
+                                    </div>
+                                    {{-- @endif --}}
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
+                                    @dd($private_document)
                                     @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
                                     <h6 class="fs-14 mb-0 text-truncate fw-semibold">
                                         <i class="ri-file-text-line"></i>
