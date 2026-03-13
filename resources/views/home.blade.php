@@ -1073,7 +1073,7 @@ body.modal-open {
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
                                     @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
-                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted">
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">
                                         <i class="ri-file-text-line"></i>
                                         {{ $private_document->title }}
                                     </h6>
