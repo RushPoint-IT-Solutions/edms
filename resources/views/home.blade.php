@@ -649,6 +649,33 @@ body.modal-open {
     text-overflow: ellipsis;
     max-width: 100%;
 }
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* padding: 6rem 2rem; */
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+}
+
+.empty-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.empty-text {
+    color: #6b7280;
+    margin-bottom: 1.3rem;
+}
 </style>
 @endsection
 
@@ -931,6 +958,16 @@ body.modal-open {
                     </div>
                 </div>
 
+                @if($pending_cards->isEmpty())
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-icon">
+                            <i class="ri-file-line"></i>
+                        </div>
+                        <h3 class="empty-title">No for approval in here</h3>
+                        <p class="empty-text">No items are currently waiting for approval.</p>
+                    </div>
+                @endif
+
                 @if($pending_cards->hasPages())
                 <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                     <div class="text-muted" style="font-size: 0.875rem;">
@@ -1011,24 +1048,43 @@ body.modal-open {
                 <div style="overflow-y: scroll; flex-grow: 1; min-height: 0;">
                     <ul class="list-group">
                         @forelse ($private_documents as $private_document)
-                        <li class="list-group-item px-2 py-2">
+                        <li class="list-group-item px-2 py-2 @if(count($private_document->document_request_access->where("status", 0)->where("requestor_id", auth()->id())) > 0) bg-warning @endif" >
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-shrink-0 pt-1">
-                                    @foreach($private_document->attachments->where('type','pdf_copy') as $attachment)
-                                    <a href="{{ url($attachment->attachment) }}" target="_blank">
-                                        <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                            <i class="ri-file-text-line"></i>
-                                        </div>
-                                    </a>
-                                    <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
-                                        @csrf
-                                        <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                    </form>
-                                    @endforeach
+                                    @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
+                                        @foreach($private_document->attachments->where('type','pdf_copy') as $attachment)
+                                        <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                            <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                                <i class="ri-file-text-line"></i>
+                                            </div>
+                                        </a>
+                                        <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
+                                            @csrf
+                                            <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
+                                        </form>
+                                        @endforeach
+                                    @else 
+                                        <a href="javascript:void(0)">
+                                            <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                                <i class="ri-git-repository-private-line"></i>
+                                            </div>
+                                        </a>
+                                    @endif
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
-                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $private_document->control_code }}</h6>
-                                    <small class="text-muted text-truncate d-block" title="{{ $private_document->title }}">{{ $private_document->title }}</small>
+                                    @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted">
+                                        <i class="ri-file-text-line"></i>
+                                        {{ $private_document->title }}
+                                    </h6>
+                                    @else
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted" style="font-style:italic;">
+                                        <i class="ri-git-repository-private-line"></i>
+                                        {{ $private_document->title }}
+                                    </h6>
+                                    @endif
+                                    <small class="text-muted text-truncate d-block" title="{{ $private_document->control_code }}">{{ $private_document->control_code }}</small>
+                                    <small class="text-muted text-truncate d-block">Owner: {{ $private_document->owner->name }}</small>
                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                         @if($private_document->department)
                                             <span class="meta-tag"><i class="ri-building-line"></i> {{ $private_document->department->code }}</span>
@@ -1042,11 +1098,13 @@ body.modal-open {
                                     <small class="text-muted" style="font-size: 0.65rem; white-space: nowrap;">
                                         <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($private_document->created_at)) }}
                                     </small>
-                                    {{-- <a href="{{ url("/documents/visitors/".$private_document->id) }}" target="_blank" class="text-decoration-none">
+                                    @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) == 0)
+                                    <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#requestAccess{{ $private_document->id }}">
                                         <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
-                                            <i class="ri-eye-line"></i> {{ count($private_document->visitor) }}
+                                            <i class="ri-more-2-fill"></i>
                                         </span>
-                                    </a> --}}
+                                    </a>
+                                    @endif
                                 </div>
                             </div>
                         </li>
@@ -1111,8 +1169,8 @@ body.modal-open {
                                     @endforeach
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
-                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $document->control_code }}</h6>
-                                    <small class="text-muted text-truncate d-block" title="{{ $document->title }}">{{ $document->title }}</small>
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $document->title }}</h6>
+                                    <small class="text-muted text-truncate d-block" title="{{ $document->control_code }}">{{ $document->control_code }}</small>
                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                         @if($document->department)
                                             <span class="meta-tag"><i class="ri-building-line"></i> {{ $document->department->code }}</span>
@@ -1470,7 +1528,9 @@ body.modal-open {
     </div>
 </div>
 @endif --}}
-
+@foreach ($private_documents as $private_document)
+@include("dashboard.request_access")
+@endforeach
 @endsection
 
 @section('js')
