@@ -1034,7 +1034,7 @@
 
                 <div style="overflow-y: scroll; flex-grow: 1; min-height: 0;">
                     <ul class="list-group">
-                        @forelse ($private_documents as $private_document)
+                        {{-- @forelse ($private_documents as $private_document)
                             @php
                                 $pvFile = $private_document->file;
                                 $pvFilename = $pvFile ? explode('/', $pvFile) : [];
@@ -1043,11 +1043,13 @@
                             <li class="list-group-item px-2 py-2">
                                 <div class="d-flex align-items-start gap-2">
                                     <div class="flex-shrink-0 pt-1">
+                                        @if($pvFile)
                                         <a href="{{ url($pvFile) }}" target="_blank" onclick="recordCRView({{ $private_document->id }})">
                                             <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
                                                 <i class="ri-file-pdf-line"></i>
                                             </div>
                                         </a>
+                                        @endif
                                     </div>
                                     <div class="flex-grow-1 overflow-hidden">
                                         <h6 class="fs-14 mb-0 text-truncate fw-semibold">{{ $pvName }}</h6>
@@ -1077,10 +1079,8 @@
                                             </span>
                                         </a>
                                     </div>
-                                    {{-- @endif --}}
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
-                                    {{-- @dd($private_document) --}}
                                     @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
                                     <h6 class="fs-14 mb-0 text-truncate fw-semibold">
                                         <i class="ri-file-text-line"></i>
@@ -1104,9 +1104,71 @@
                                     </div>
                                 </div>
                             </li>
-                            @empty
-                                <li class="list-group-item text-center text-muted">No documents found.</li>
-                            @endforelse
+                        @empty
+                            <li class="list-group-item text-center text-muted">No documents found.</li>
+                        @endforelse --}}
+
+                        @forelse ($private_documents as $private_document)
+                            <li class="list-group-item px-2 py-2 @if(count($private_document->document_request_access->where("status", 0)->where("requestor_id", auth()->id())) > 0) bg-warning @endif">
+                                <div class="d-flex align-items-start gap-2">
+                                    <div class="flex-shrink-0 pt-1">
+                                        {{-- @if($pvFile)
+                                        <a href="{{ url($pvFile) }}" target="_blank" onclick="recordCRView({{ $private_document->id }})">
+                                            <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                                <i class="ri-file-pdf-line"></i>
+                                            </div>
+                                        </a>
+                                        @endif --}}
+                                        @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
+                                            @foreach($private_document->attachments->where('type','pdf_copy') as $attachment)
+                                            <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                                <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                                    <i class="ri-file-text-line"></i>
+                                                </div>
+                                            </a>
+                                            <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
+                                                @csrf
+                                                <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
+                                            </form>
+                                            @endforeach
+                                        @else 
+                                            <a href="javascript:void(0)">
+                                                <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                                    <i class="ri-git-repository-private-line"></i>
+                                                </div>
+                                            </a>
+                                        @endif
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
+                                        <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted">
+                                            <i class="ri-file-text-line"></i>
+                                            {{ $private_document->title }}
+                                        </h6>
+                                        @else
+                                        <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted" style="font-style:italic;">
+                                            <i class="ri-git-repository-private-line"></i>
+                                            {{ $private_document->title }}
+                                        </h6>
+                                        @endif
+                                        <small class="text-muted text-truncate d-block" title="{{ $private_document->control_code }}">{{ $private_document->control_code }}</small>
+                                        <small class="text-muted text-truncate d-block">Owner: {{ $private_document->owner->name }}</small>
+                                    </div>
+                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
+                                        @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) == 0)
+                                            <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#requestAccess{{ $private_document->id }}">
+                                                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem;">
+                                                    {{-- <i class="ri-eye-line"></i> {{ count($private_document->visitor) }} --}}
+                                                    <i class="ri-more-2-fill"></i>
+                                                </span>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-center text-muted">No documents found.</li>
+                        @endforelse
                     </ul>
                 </div>
             </div>
@@ -1217,6 +1279,9 @@
     </div>
 </div>
 
+@foreach ($private_documents as $private_document)
+@include("dashboard.request_access")
+@endforeach
 @endsection
 
 @section('js')

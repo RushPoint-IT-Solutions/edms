@@ -149,18 +149,20 @@ class HomeController extends Controller
 
         if (auth()->user()->role != "Administrator")
         {
-            $pending_query = ChangeRequest::where(function($q) {
-                                $q->where('user_id', auth()->user()->id)
-                                ->where('status', 'For Approval')
-                                ->where('request_status', 'Pending');
-                            })->orWhere(function($q) {
-                                $q->whereHas('approvers', function($aq) {
-                                    $aq->where('user_id', auth()->user()->id)
-                                    ->whereIn('status', ['Pending', 'Waiting']);
-                                })
-                                ->whereNotIn('status', ['Approved', 'Declined'])
-                                ->whereNull('is_draft');
-                            });
+            // $pending_query = ChangeRequest::where(function($q) {
+            //                     $q->where('user_id', auth()->user()->id)
+            //                     ->where('status', 'For Approval')
+            //                     ->where('request_status', 'Pending');
+            //                 })->orWhere(function($q) {
+            //                     $q->whereHas('approvers', function($aq) {
+            //                         $aq->where('user_id', auth()->user()->id)
+            //                         ->whereIn('status', ['Pending', 'Waiting']);
+            //                     })
+            //                     ->whereNotIn('status', ['Approved', 'Declined'])
+            //                     ->whereNull('is_draft');
+            //                 });
+            
+            $pending_query = RequestApprover::where("user_id", auth()->id())->where("status","Pending");
 
             $table_query = ChangeRequest::where('user_id', auth()->user()->id);
         }
@@ -212,7 +214,7 @@ class HomeController extends Controller
             $table_query->orderBy('created_at', 'desc');
         }
 
-        $pending_cards = $pending_query->with(['department.office', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
+        $pending_cards = $pending_query->with(['change_request', 'user'])->orderBy('created_at', 'desc')->paginate(4, ['*'], 'pending_page');
         $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
         // $copy_requests = CopyRequest::get();
 
