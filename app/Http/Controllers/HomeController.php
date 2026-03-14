@@ -15,6 +15,7 @@ use App\RequestApprover;
 use App\ChangeRequestAccess;
 use App\DocumentRequestAccess;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class HomeController extends Controller
 {
@@ -93,6 +94,8 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
+        $today = now()->startOfDay();
+
         $departments = Department::where('status', 'active')
             ->orderBy('code')
             ->get();
@@ -124,7 +127,7 @@ class HomeController extends Controller
         $privateRaw = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
-        $privateQuery = Document::with('attachments', 'department', 'visitor')->where('public', null);
+        $privateQuery = Document::with('attachments', 'department', 'visitor', 'owner', 'document_request_access')->where('public', null);
         
         // $privateQuery = ChangeRequest::with(['department.office', 'user', 'visitors', 'accesses'])
         //     ->where('category', 'Private')
@@ -144,7 +147,41 @@ class HomeController extends Controller
 
         $private_documents = $privateQuery
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($document) use ($today) {
+
+                $approvedAccess = $document->document_request_access
+                    ->where('requestor_id', auth()->id())
+                    ->where('status', 1)
+                    ->first();
+
+                $document->has_valid_access = false;
+                $document->access_expiry    = null;
+
+                if ($approvedAccess) {
+                    if (!is_null($approvedAccess->access_until)) {
+                        $expiry = \Carbon\Carbon::parse($approvedAccess->access_until)->startOfDay();
+                        $document->has_valid_access = $today->lte($expiry);
+                        $document->access_expiry    = $approvedAccess->access_until;
+                    }
+                    elseif (!is_null($approvedAccess->request_date)) {
+                        $expiry = \Carbon\Carbon::parse($approvedAccess->request_date)->startOfDay();
+                        $document->has_valid_access = $today->lte($expiry);
+                        $document->access_expiry    = $approvedAccess->request_date;
+                    }
+                    else {
+                        $document->has_valid_access = true;
+                        $document->access_expiry    = null;
+                    }
+                }
+
+                $document->has_pending_request = $document->document_request_access
+                    ->where('requestor_id', auth()->id())
+                    ->where('status', 0)
+                    ->isNotEmpty();
+
+                return $document;
+            });
 
         // dd($private_documents->toArray());
 
@@ -396,7 +433,7 @@ class HomeController extends Controller
             $document_request_access->document_id = $id;
             $document_request_access->reason = $request->reason;
             $document_request_access->user_id = $request->user_id;
-            $document_request_access->date = $request->date;
+            $document_request_access->request_date = $request->date;
             $document_request_access->status = 0;
             $document_request_access->requestor_id = auth()->user()->id;
             $document_request_access->save();
@@ -412,33 +449,197 @@ class HomeController extends Controller
 
     public function forRequestAccess()
     {
-        $document_request_access = DocumentRequestAccess::with([
-            'document',
-            'requestor.department',
-        ])
-            ->where('user_id', auth()->id())
-            ->get();
+        $base = DocumentRequestAccess::where('user_id', auth()->id());
 
-        return view('for_request_access', [
-            'document_request_access' => $document_request_access,
+        $forApproval = (clone $base)->where('status', 0)->count();
+        $approved    = (clone $base)->where('status', 1)->count();
+        $declined    = (clone $base)->where('status', 3)->count();
+
+        return view('for_request_access', compact('forApproval', 'approved', 'declined'));
+    }
+
+    public function getRequestAccessData(Request $request)
+    {
+        $draw         = $request->get('draw');
+        $start        = $request->get('start');
+        $length       = $request->get('length');
+        $search       = $request->get('search')['value'] ?? '';
+        $statusFilter = $request->get('status_filter');
+
+        $query = DocumentRequestAccess::with(['document', 'requestor.department'])
+            ->where('user_id', auth()->id());
+
+        $totalRecords = (clone $query)->count();
+
+        if ($statusFilter !== null && $statusFilter !== '') {
+            $query->where('status', (int) $statusFilter);
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('requestor', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%$search%");
+                })
+                ->orWhereHas('document', function ($q3) use ($search) {
+                    $q3->where('title', 'like', "%$search%");
+                })
+                ->orWhere('reason', 'like', "%$search%");
+            });
+        }
+
+        $totalFiltered = $query->count();
+        $items = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+
+        $data = [];
+        foreach ($items as $access) {
+
+            if ($access->status == 0) {
+                $statusBadge = '<span class="badge bg-warning text-dark">For Approval</span>';
+            } elseif ($access->status == 1) {
+                $statusBadge = '<span class="badge bg-success">Approved</span>';
+            } else {
+                $statusBadge = '<span class="badge bg-danger">Declined</span>';
+            }
+
+            $dept = optional(optional($access->requestor)->department)->name;
+            $department = $dept
+                ? '<span class="badge bg-info-subtle text-info"><i class="ri-building-line me-1"></i>' . e($dept) . '</span>'
+                : '<span class="text-muted">—</span>';
+
+            if ($access->status == 0) {
+                $action = '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#approveModal' . $access->id . '">
+                                    <i class="ri-check-line me-2"></i>Approve
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#declineModal' . $access->id . '">
+                                    <i class="ri-close-line me-2"></i>Decline
+                                </button>
+                            </li>
+                        </ul>
+                    </div>';
+            } else {
+                $action = '<span class="text-muted small">—</span>';
+            }
+
+            $modalHtml = '';
+            if ($access->status == 0) {
+                $requestorName = e(optional($access->requestor)->name ?? '—');
+                $docTitle      = e(optional($access->document)->title ?? '—');
+                $approveUrl    = url('request_access_approved/' . $access->id);
+                $declineUrl    = url('request_access_declined/' . $access->id);
+                $csrfToken     = csrf_token();
+                $today         = date('Y-m-d');
+
+                $modalHtml = '
+                <div class="modal fade" id="approveModal' . $access->id . '" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form action="' . $approveUrl . '" method="POST">
+                                <input type="hidden" name="_token" value="' . $csrfToken . '">
+                                <input type="hidden" name="status" value="1">
+                                <div class="modal-header border-0 border-bottom pb-0">
+                                    <div class="mb-2">
+                                        <h5 class="modal-title">Approve Request</h5>
+                                        <small class="text-muted">' . $requestorName . ' &mdash; ' . $docTitle . '</small>
+                                    </div>
+                                    <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body pt-3">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Access Until <span class="text-muted fw-normal">(optional)</span></label>
+                                        <input type="date" name="access_until" class="form-control" min="' . $today . '">
+                                        <div class="form-text">Leave blank to grant indefinite access.</div>
+                                    </div>
+                                    <div class="mb-1">
+                                        <label class="form-label fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                                        <textarea name="approve_notes" class="form-control" rows="3" placeholder="Add any notes for this approval..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 border-top pt-0">
+                                    <button type="button" class="btn btn-light mt-2" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success mt-2 px-4"><i class="ri-check-line me-1"></i> Confirm Approve</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="declineModal' . $access->id . '" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form action="' . $declineUrl . '" method="POST">
+                                <input type="hidden" name="_token" value="' . $csrfToken . '">
+                                <input type="hidden" name="status" value="3">
+                                <div class="modal-header border-0 border-bottom pb-0">
+                                    <div class="mb-2">
+                                        <h5 class="modal-title mb-0">Decline Request</h5>
+                                        <small class="text-muted">' . $requestorName . ' &mdash; ' . $docTitle . '</small>
+                                    </div>
+                                    <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body pt-3">
+                                    <div class="mb-1">
+                                        <label class="form-label fw-semibold">Reason for Declining <span class="text-muted fw-normal">(optional)</span></label>
+                                        <textarea name="decline_reason" class="form-control" rows="3" placeholder="Provide a reason for declining this request..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 border-top pt-0">
+                                    <button type="button" class="btn btn-light mt-2" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger mt-2 px-4"><i class="ri-close-line me-1"></i> Confirm Decline</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>';
+            }
+
+            $data[] = [
+                'action'       => $action,
+                'requested_by' => e(optional($access->requestor)->name ?? '—'),
+                'department'   => $department,
+                'title'        => e(optional($access->document)->title ?? '—'),
+                'date'         => $access->request_date
+                                    ? \Carbon\Carbon::parse($access->request_date)->format('M d, Y')
+                                    : '—',
+                'reason'       => e($access->reason),
+                'status'       => $statusBadge,
+                'modal_html'   => $modalHtml,
+            ];
+        }
+
+        return response()->json([
+            'draw'            => intval($draw),
+            'recordsTotal'    => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data'            => $data,
         ]);
     }
 
-    public function requestAccessApproved(Request $request,$id) {
+    public function requestAccessApproved(Request $request, $id) 
+    {
         // dd($request->all());
         $document_request_access = DocumentRequestAccess::findOrFail($id);
         $document_request_access->status = $request->status;
+        $document_request_access->approve_notes = $request->approve_notes ?? null;
+        $document_request_access->access_until  = $request->access_until ?? null;
         $document_request_access->save();
-
+ 
         Alert::success("Successfully Approved")->persistent("Dismiss");
         return back();
     }
 
-    public function requestAccessDeclined(Request $request,$id) {
+    public function requestAccessDeclined(Request $request, $id) 
+    {
         $document_request_access = DocumentRequestAccess::findOrFail($id);
         $document_request_access->status = $request->status;
+        $document_request_access->decline_reason = $request->decline_reason ?? null;
         $document_request_access->save();
-
+ 
         Alert::success("Successfully Declined")->persistent("Dismiss");
         return back();
     }

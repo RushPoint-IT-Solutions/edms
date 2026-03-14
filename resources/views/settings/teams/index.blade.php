@@ -44,13 +44,13 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <div id="table-length-control"></div>
+                        <div id="table-filter-control"></div>
                         <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
                             <option value="">All Status</option>
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
                         </select>
-                        <div id="table-filter-control"></div>
+                        <div id="table-length-control"></div>
                     </div>
                     <div id="table-buttons-control"></div>
                 </div>
