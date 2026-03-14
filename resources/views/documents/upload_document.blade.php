@@ -86,10 +86,10 @@
                         </div> --}}
                         <div class='col-md-4'>
                             <label class="form-label">Type of Document *</label>
-                            <select id="documentTypeField" name='document_type' class='form-control cat' required>
+                            <select id="documentTypeField" name='document_type[]' class='form-control cat' multiple required>
                                 <option value=""></option>
                                 @foreach($document_types as $types)
-                                    <option value='{{$types->name}}' @if(old('document_type') == $types->name) selected @endif>
+                                    <option value='{{$types->id}}' @if(old('document_type') == $types->name) selected @endif>
                                         {{$types->code}} - {{$types->name}}
                                     </option>
                                 @endforeach

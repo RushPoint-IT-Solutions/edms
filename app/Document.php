@@ -58,4 +58,8 @@ class Document extends Model implements Auditable
     {
         return $this->hasMany(DocumentRequestAccess::class);
     }
+    public function document_type_list()
+    {
+        return $this->hasMany(DocumentTypeList::class);
+    }
 }

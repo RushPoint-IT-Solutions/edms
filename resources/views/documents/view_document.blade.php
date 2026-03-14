@@ -428,7 +428,15 @@
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Type of Document</span>
-                    <span class="detail-value">{{$document->category}}</span>
+                    @if(count($document->document_type_list) > 0)
+                        <ol>
+                            @foreach ($document->document_type_list as $list)
+                            <li>
+                                <span class="detail-value">{{$list->document_type->name}}</span>
+                            </li>
+                            @endforeach
+                        </ol>
+                    @endif
                 </div>
                 {{-- <div class="detail-item">
                     <span class="detail-label">Company</span>

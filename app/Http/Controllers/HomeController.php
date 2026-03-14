@@ -13,6 +13,7 @@ use App\Office;
 use App\PrivateDocsVisitor;
 use App\RequestApprover;
 use App\ChangeRequestAccess;
+use App\DocumentRequestAccess;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -379,5 +380,66 @@ class HomeController extends Controller
     {
         $changeRequest = ChangeRequest::with(['visitors.user.department'])->findOrFail($id);
         return view('change_request.visitors', compact('changeRequest'));
+    }
+
+    public function requestAccess(Request $request,$id){
+        // dd($request->all(),$id);
+        $request->validate([
+            'user_id' => 'numeric',
+            'reason' => 'string|required',
+            'date' => 'required|date'
+        ]);
+
+        $document_request_access = DocumentRequestAccess::where("document_id", $id)->where("status", 0)->first();
+        if (empty($document_request_access)) {
+            $document_request_access = new DocumentRequestAccess;
+            $document_request_access->document_id = $id;
+            $document_request_access->reason = $request->reason;
+            $document_request_access->user_id = $request->user_id;
+            $document_request_access->date = $request->date;
+            $document_request_access->status = 0;
+            $document_request_access->requestor_id = auth()->user()->id;
+            $document_request_access->save();
+
+            Alert::success("Successfully Saved")->persistent("Dismiss");
+        }
+        else {
+            Alert::warning("You have a pending permission in this document")->persistent("Dismiss");
+        }
+
+        return back();
+    }
+
+    public function forRequestAccess()
+    {
+        $document_request_access = DocumentRequestAccess::with([
+            'document',
+            'requestor.department',
+        ])
+            ->where('user_id', auth()->id())
+            ->get();
+
+        return view('for_request_access', [
+            'document_request_access' => $document_request_access,
+        ]);
+    }
+
+    public function requestAccessApproved(Request $request,$id) {
+        // dd($request->all());
+        $document_request_access = DocumentRequestAccess::findOrFail($id);
+        $document_request_access->status = $request->status;
+        $document_request_access->save();
+
+        Alert::success("Successfully Approved")->persistent("Dismiss");
+        return back();
+    }
+
+    public function requestAccessDeclined(Request $request,$id) {
+        $document_request_access = DocumentRequestAccess::findOrFail($id);
+        $document_request_access->status = $request->status;
+        $document_request_access->save();
+
+        Alert::success("Successfully Declined")->persistent("Dismiss");
+        return back();
     }
 }

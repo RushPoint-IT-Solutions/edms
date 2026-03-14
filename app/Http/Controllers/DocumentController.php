@@ -15,6 +15,7 @@ use App\DocumentFolder;
 use App\DocumentRequestAccess;
 use App\DocumentSignaturePosition;
 use App\DocumentTag;
+use App\DocumentTypeList;
 use App\DocumentVisitor;
 use App\History;
 use App\Mail\ApprovedDateEmail;
@@ -24,7 +25,10 @@ use App\Team;
 use chillerlan\QRCode\Output\QRGdImagePNG;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use \setasign\Fpdi\PdfParser\StreamReader;
 use \setasign\Fpdi\PdfParser\CrossReference;
@@ -945,38 +949,66 @@ class DocumentController extends Controller
             ]);
         }
 
-        $document = new Document;
-        $document->control_code = $controlCode;
-        $document->title = $request->title;
-        $document->category = $request->document_type;
-        $document->other_category = $request->other;
-        $document->effective_date = $request->effective_date;
-        $document->user_id = auth()->user()->id;
-        $document->version = $request->version;
-        $document->public = $request->public;
-        $document->folder_id = $request->folder;
-        $document->type_of_request = $request->type_of_request;
-        $document->save();
+        try {
+            DB::beginTransaction();
+            
+            $document = new Document;
+            $document->control_code = $controlCode;
+            $document->title = $request->title;
+            // $document->category = $request->document_type;
+            $document->other_category = $request->other;
+            $document->effective_date = $request->effective_date;
+            $document->user_id = auth()->user()->id;
+            $document->version = $request->version;
+            if ($request->has("public")) {
+                $document->public = 1;
+            }
+            else {
+                $document->public = null;
+            }
+            $document->folder_id = $request->folder;
+            $document->type_of_request = $request->type_of_request;
+            $document->save();
 
-        foreach($request->file('attachment') as $key => $file)
-        {
-            $name = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path() . '/document_attachments/', $name);
-            $file_name = '/document_attachments/' . $name;
+            foreach($request->document_type as $type) {
+                // dd($type);
+                if(is_null($type)) {
+                    continue;
+                }
+                else {
+                    $document_type = new DocumentTypeList;
+                    $document_type->document_id = $document->id;
+                    $document_type->type = $type;
+                    $document_type->save();
+                }
+            }
 
-            $doc_attachment = new DocumentAttachment;
-            $doc_attachment->document_id = $document->id;
-            $doc_attachment->attachment = $file_name;
-            $doc_attachment->type = $key;
-            $doc_attachment->save();
-        }
+            foreach($request->file('attachment') as $key => $file)
+            {
+                $name = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path() . '/document_attachments/', $name);
+                $file_name = '/document_attachments/' . $name;
 
-        foreach($request->tags as $tag)
-        {
-            $document_tag = new DocumentTag;
-            $document_tag->document_id = $document->id;
-            $document_tag->name = $tag;
-            $document_tag->save();
+                $doc_attachment = new DocumentAttachment;
+                $doc_attachment->document_id = $document->id;
+                $doc_attachment->attachment = $file_name;
+                $doc_attachment->type = $key;
+                $doc_attachment->save();
+            }
+
+            foreach($request->tags as $tag)
+            {
+                $document_tag = new DocumentTag;
+                $document_tag->document_id = $document->id;
+                $document_tag->name = $tag;
+                $document_tag->save();
+            }
+
+            DB::commit();
+
+        } catch (Exception $e) {
+            DB::rollback();
+            Log::error($e->getMessage());
         }
 
         Alert::success('Successfully Uploaded')->persistent('Dismiss');
@@ -1022,56 +1054,7 @@ class DocumentController extends Controller
     public function update(Request $request, $id)
     {
         //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    // public function showPDF($id)
-    // {
-    //     ini_set('memory_limit', '-1');
-    //     $attachment = DocumentAttachment::with('document')->findOrFail($id);
-    //         $pdf = new \setasign\Fpdi\Fpdi();
-    //         $newFile = str_replace(' ', '%20', $attachment->attachment);
-          
-    //             $fileContentData = file_get_contents(url($newFile));
-    //             try {
-                    
-    //                 $pageCount = $pdf->setSourceFile(StreamReader::createByString($fileContentData));
-    //                 for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-    //                         // $pdf->AddPage();
-    //                         $pdf->setSourceFile(StreamReader::createByString($fileContentData));
-    //                         $tplIdx = $pdf->importPage($pageNo);
-    //                         $size = $pdf->getTemplateSize($tplIdx);
-    //                         if($size[0] > $size[1])
-    //                         {
-    //                             $pdf->AddPage('L', array($size[1],$size[0]));
-    //                         }
-    //                         else
-    //                         {
-    //                             $pdf->AddPage('P', array($size[1],$size[0]));
-    //                         }
-                           
-    //                         // dd($size);
-    //                         $pdf->useTemplate($tplIdx);
-    //                         $pdf->SetFont('Arial');
-    //                         $pdf->SetTextColor(1, 0, 0);
-    //                         $pdf->SetXY(160, 5);
-    //                         $pdf->SetFontSize(8);
-    //                         if($pageNo == 1)
-    //                         {
-    //                             $pdf->Write(1, "Effective Date: ".date("m/d/Y",strtotime($attachment->document->updated_at))); 
-    //                         }
-                           
-    //                         $pdf->Image('images/uncontrolled.png', 15, 100, 200, '', '', '', '', false, 300);
-    //                 }
-    //                 $pdf->Output();
-    //             }
-    //             catch ( \Exception $e )
-    //             {
-    //                 return Redirect::to(url($newFile));
-    //             }
-              
+    }         
            
     public function destroy($id)
     {
@@ -1655,66 +1638,5 @@ class DocumentController extends Controller
             'latest_revision' => $latest->version,
             'next_revision' => $nextRevision,
         ]);
-    }
-
-    public function requestAccess(Request $request,$id){
-        // dd($request->all(),$id);
-        $request->validate([
-            'user_id' => 'numeric',
-            'reason' => 'string|required',
-            'date' => 'required|date'
-        ]);
-
-        $document_request_access = DocumentRequestAccess::where("document_id", $id)->where("status", 0)->first();
-        if (empty($document_request_access)) {
-            $document_request_access = new DocumentRequestAccess;
-            $document_request_access->document_id = $id;
-            $document_request_access->reason = $request->reason;
-            $document_request_access->user_id = $request->user_id;
-            $document_request_access->date = $request->date;
-            $document_request_access->status = 0;
-            $document_request_access->requestor_id = auth()->user()->id;
-            $document_request_access->save();
-
-            Alert::success("Successfully Saved")->persistent("Dismiss");
-        }
-        else {
-            Alert::warning("You have a pending permission in this document")->persistent("Dismiss");
-        }
-
-        return back();
-    }
-
-    public function forRequestAccess()
-    {
-        $document_request_access = DocumentRequestAccess::with([
-            'document',
-            'requestor.department',
-        ])
-            ->where('user_id', auth()->id())
-            ->get();
-
-        return view('for_request_access', [
-            'document_request_access' => $document_request_access,
-        ]);
-    }
-
-    public function requestAccessApproved(Request $request,$id) {
-        // dd($request->all());
-        $document_request_access = DocumentRequestAccess::findOrFail($id);
-        $document_request_access->status = $request->status;
-        $document_request_access->save();
-
-        Alert::success("Successfully Approved")->persistent("Dismiss");
-        return back();
-    }
-
-    public function requestAccessDeclined(Request $request,$id) {
-        $document_request_access = DocumentRequestAccess::findOrFail($id);
-        $document_request_access->status = $request->status;
-        $document_request_access->save();
-
-        Alert::success("Successfully Declined")->persistent("Dismiss");
-        return back();
     }
 }

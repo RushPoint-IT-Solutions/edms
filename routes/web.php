@@ -171,10 +171,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/home', 'HomeController@index')->name('home')->middleware('role');
         Route::get('/search', 'HomeController@search')->name('search');
-        Route::post("/request_access/{id}","DocumentController@requestAccess");
-        Route::post("/request_access_approved/{id}","DocumentController@requestAccessApproved");
-        Route::post("/request_access_declined/{id}","DocumentController@requestAccessDeclined");
-        Route::get('/for-request-access', 'DocumentController@forRequestAccess')->name('for-request-access');
+        Route::post("/request_access/{id}","HomeController@requestAccess");
+        Route::post("/request_access_approved/{id}","HomeController@requestAccessApproved");
+        Route::post("/request_access_declined/{id}","HomeController@requestAccessDeclined");
+        Route::get('/for-request-access', 'HomeController@forRequestAccess')->name('for-request-access');
     
         Route::get('/request', 'RequestController@index')->name('requests');
         Route::post('change-request-edit/{id}','RequestController@editRequest')->name('change-requests');
