@@ -176,6 +176,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post("/request_access_declined/{id}","HomeController@requestAccessDeclined");
         Route::get('/for-request-access', 'HomeController@forRequestAccess')->name('for-request-access');
         Route::get('/request_access/data', 'HomeController@getRequestAccessData')->name('request_access.data');
+
+        Route::get('/monitoring', 'MonitoringController@index')->name('monitoring');
     
         Route::get('/request', 'RequestController@index')->name('requests');
         Route::post('change-request-edit/{id}','RequestController@editRequest')->name('change-requests');
