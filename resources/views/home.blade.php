@@ -1109,61 +1109,73 @@
                         @endforelse --}}
 
                         @forelse ($private_documents as $private_document)
-                            <li class="list-group-item px-2 py-2 @if(count($private_document->document_request_access->where("status", 0)->where("requestor_id", auth()->id())) > 0) bg-warning @endif">
+                            <li class="list-group-item px-2 py-2 @if($private_document->has_pending_request) bg-warning @endif">
                                 <div class="d-flex align-items-start gap-2">
+
                                     <div class="flex-shrink-0 pt-1">
-                                        {{-- @if($pvFile)
-                                        <a href="{{ url($pvFile) }}" target="_blank" onclick="recordCRView({{ $private_document->id }})">
-                                            <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                                <i class="ri-file-pdf-line"></i>
-                                            </div>
-                                        </a>
-                                        @endif --}}
-                                        @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
-                                            @foreach($private_document->attachments->where('type','pdf_copy') as $attachment)
-                                            <a href="{{ url($attachment->attachment) }}" target="_blank">
-                                                <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-                                                    <i class="ri-file-text-line"></i>
-                                                </div>
-                                            </a>
-                                            <form action="{{ url("/documents/user-view") }}" method="post" id="userView{{ $attachment->id }}" onsubmit="userView({{ $attachment->id }})">
-                                                @csrf
-                                                <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                            </form>
+                                        @if($private_document->has_valid_access)
+                                            @foreach($private_document->attachments->where('type', 'pdf_copy') as $attachment)
+                                                <a href="{{ url($attachment->attachment) }}" target="_blank">
+                                                    <div class="avatar-title bg-danger-subtle text-danger rounded"
+                                                        style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                                        <i class="ri-file-text-line"></i>
+                                                    </div>
+                                                </a>
+                                                <form action="{{ url('/documents/user-view') }}" method="post"
+                                                    id="userView{{ $attachment->id }}"
+                                                    onsubmit="userView({{ $attachment->id }})">
+                                                    @csrf
+                                                    <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
+                                                </form>
                                             @endforeach
-                                        @else 
+                                        @else
                                             <a href="javascript:void(0)">
-                                                <div class="avatar-title bg-danger-subtle text-danger rounded" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                                                <div class="avatar-title bg-danger-subtle text-danger rounded"
+                                                    style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
                                                     <i class="ri-git-repository-private-line"></i>
                                                 </div>
                                             </a>
                                         @endif
                                     </div>
+
                                     <div class="flex-grow-1 overflow-hidden">
-                                        @if(count($private_document->document_request_access->where("status", 1)->where("requestor_id", auth()->id())) > 0)
-                                        <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted">
-                                            <i class="ri-file-text-line"></i>
-                                            {{ $private_document->title }}
-                                        </h6>
+                                        @if($private_document->has_valid_access)
+                                            <h6 class="fs-14 mb-0 text-truncate fw-semibold">
+                                                <i class="ri-file-text-line"></i>
+                                                {{ $private_document->title }}
+                                            </h6>
+                                            @if($private_document->access_expiry)
+                                                <small class="text-success" style="font-size:0.65rem;">
+                                                    <i class="ri-calendar-check-line"></i>
+                                                    Access until: {{ \Carbon\Carbon::parse($private_document->access_expiry)->format('M d, Y') }}
+                                                </small>
+                                            @else
+                                                <small class="text-success" style="font-size:0.65rem;">
+                                                    <i class="ri-infinity-line"></i> Indefinite access
+                                                </small>
+                                            @endif
                                         @else
-                                        <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted" style="font-style:italic;">
-                                            <i class="ri-git-repository-private-line"></i>
-                                            {{ $private_document->title }}
-                                        </h6>
+                                            <h6 class="fs-14 mb-0 text-truncate fw-semibold text-muted" style="font-style:italic;">
+                                                <i class="ri-git-repository-private-line"></i>
+                                                {{ $private_document->title }}
+                                            </h6>
                                         @endif
-                                        <small class="text-muted text-truncate d-block" title="{{ $private_document->control_code }}">{{ $private_document->control_code }}</small>
+
+                                        <small class="text-muted text-truncate d-block"
+                                            title="{{ $private_document->control_code }}">{{ $private_document->control_code }}</small>
                                         <small class="text-muted text-truncate d-block">Owner: {{ $private_document->owner->name }}</small>
                                     </div>
-                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
 
+                                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width: 70px;">
                                         <div class="dropdown">
-                                            <a href="javascript:void(0)" class="text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <a href="javascript:void(0)" class="text-decoration-none"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
                                                 <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.6rem;">
                                                     <i class="ri-more-2-fill"></i>
                                                 </span>
                                             </a>
                                             <ul class="dropdown-menu dropdown-menu-end">
-                                                @if(count($private_document->document_request_access->where('status', 1)->where('requestor_id', auth()->id())) == 0)
+                                                @if(!$private_document->has_valid_access)
                                                     <li>
                                                         <a href="javascript:void(0)" class="dropdown-item"
                                                             data-bs-toggle="modal"
@@ -1179,7 +1191,8 @@
                                                     </li>
                                                 @endif
                                                 <li>
-                                                    <a href="{{ url('/documents/visitors/' . $private_document->id) }}" target="_blank" class="dropdown-item">
+                                                    <a href="{{ url('/documents/visitors/' . $private_document->id) }}"
+                                                        target="_blank" class="dropdown-item">
                                                         <i class="ri-eye-line me-2"></i> View Visitors
                                                         <span class="badge bg-primary-subtle text-primary ms-1">
                                                             {{ $private_document->visitor->count() }}
@@ -1188,10 +1201,11 @@
                                                 </li>
                                             </ul>
                                         </div>
-
                                     </div>
+
                                 </div>
                             </li>
+
                         @empty
                             <li class="list-group-item text-center text-muted">No documents found.</li>
                         @endforelse
