@@ -1,8 +1,9 @@
 <div class="modal" id="requestAccess{{ $private_document->id }}">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title">Request access</h6>
+            <div class="modal-header border-bottom">
+                <h6 class="modal-title mb-2">Request access</h6>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url("request_access/".$private_document->id) }}" method="post" onsubmit="show()">
                 @csrf
@@ -21,9 +22,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-success">Save</button>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-danger mt-2" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success mt-2">Save</button>
                 </div>
             </form>
         </div>
