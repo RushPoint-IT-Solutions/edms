@@ -18,8 +18,7 @@
 </div>
 
 <div class="card">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0">Documents</h5>
+    <div class="card-header bg-white d-flex justify-content-end align-items-center py-3 gap-1">
         @if(canCreate('documents'))
         <div class="dropdown">
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="dropdown">
@@ -34,6 +33,16 @@
                 </a>
                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#createFolderModal">
                     <i class="ri-folder-add-line me-2"></i>New folder
+                </a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="dropdown">
+                <i class="ri-more-2-line"></i>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end">
+                <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#share">
+                    <i class="ri-user-add-line"></i> Share with others
                 </a>
             </div>
         </div>
@@ -181,7 +190,7 @@
 @foreach ($document_folders as $folder)
     @include('documents.rename_folder')
 @endforeach
-
+@include("documents.share-documents")
 @endsection
 
 @section('js')

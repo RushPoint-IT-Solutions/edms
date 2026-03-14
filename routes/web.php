@@ -53,6 +53,7 @@ Route::group(['middleware' => 'auth'], function () {
 
             Route::post('bulk-delete', 'DocumentController@bulkDelete');
             Route::post("user-view", "DocumentController@userView");
+            Route::post('share','DocumentController@share');
         });
 
         Route::post('test-bulk', function() {

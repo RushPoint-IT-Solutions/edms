@@ -20,6 +20,7 @@ use App\DocumentVisitor;
 use App\History;
 use App\Mail\ApprovedDateEmail;
 use App\RequestApprover;
+use App\ShareDocument;
 use App\User;
 use App\Team;
 use chillerlan\QRCode\Output\QRGdImagePNG;
@@ -44,89 +45,6 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    // public function index(Request $request)
-    // {
-    //     $search = $request->search;
-    //     $department = $request->department;
-
-    //     $document_types = DocumentType::orderBy('name','desc')->get();
-    //     $document_folders = DocumentFolder::with('document','childrenFolder')->where('parent_id',null)->get();
-    //     $obsoletes = Obsolete::get();
-
-    //     $documents = Document::with('change_requests','attachments')->orderBy('control_code','desc')->get();
-    //     if (auth()->user()->role != "Administrator")
-    //     {
-    //         $documents = Document::with('change_requests','attachments')->where('user_id', auth()->user()->id)->orderBy('control_code','desc')->get();
-    //     }
-
-    //     // $documents_filter = Document::query();
-     
-    //     // if($request->department != null)
-    //     // {
-    //     //     $documents_filter = $documents_filter->where('department_id',$request->department);
-            
-    //     // }
-    //     // if($request->search != null)
-    //     // {
-    //     //     $documents_filter = $documents_filter->where('control_code','like','%'.$request->search.'%')->orWhere('title','like','%'.$request->search.'%')->orWhere('old_control_code','like','%'.$request->search.'%');
-           
-    //     // }
-
-    //     // if(auth()->user()->role == "Document Control Officer")
-    //     // { 
-    //     //     $documents = Document::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-    //     //     $departments = $departments->whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray());
-                   
-    //     // }
-    //     // if(auth()->user()->role == "Documents and Records Controller")
-    //     // { 
-   
-    //     //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
-    //     //     $departments = $departments->where('id',auth()->user()->department_id);
-                   
-    //     // }
-        
-    //     // if((auth()->user()->role == "Department Head"))
-    //     // {
-    //     //     $documents = Document::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
-    //     //     $departments = $departments->whereIn('id',(auth()->user()->department_head)->pluck('id')->toArray());
-           
-          
-    //     // }
-    //     // if((auth()->user()->role == "User"))
-    //     // {
-    //     //     $documents = Document::where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray())->get();
-    //     //     $documents_filter = $documents_filter->where('department_id',auth()->user()->department_id)->orWhereIn('department_id',(auth()->user()->departments)->pluck('department_id')->toArray());
-    //     //     $obsoletes = Obsolete::where('department_id',auth()->user()->department_id)->get();
-    //     //     $departments = $departments->where('id',auth()->user()->department_id);
-       
-    //     // }
-
-    //     // $documents_na = $documents_filter->orderBy('control_code', 'asc')->get();
-    //         // ->paginate(10);
-        
- 
-    //     return view('documents.documents',
-    //     array(
-    //         'documents' => $documents,
-    //         // 'documents_na' => $documents_na,
-    //         'obsoletes' => $obsoletes,
-    //         // 'departments' => $departments,
-    //         // 'companies' => $companies,
-    //         'document_types' => $document_types,
-    //         'search' => $search,
-    //         'dep' => $department,
-    //         'document_folders' => $document_folders
-    //         )
-    //     );
-    // }
-
     public function index(Request $request)
     {
         $search = $request->search;
@@ -135,14 +53,20 @@ class DocumentController extends Controller
         $document_types = DocumentType::orderBy('name','desc')->get();
         $document_folders = DocumentFolder::with('document','childrenFolder')->get();
         $obsoletes = Obsolete::get();
+        $users = User::whereNull("status")->get();
 
-        $documents = Document::with('change_requests', 'attachments')
+        $documents = Document::with('change_requests', 'attachments', 'share_document')
             ->orderBy('control_code', 'desc')
             ->get();
 
         if (auth()->user()->role != "Administrator") {
-            $documents = Document::with('change_requests', 'attachments')
-                ->where('user_id', auth()->user()->id)
+            $documents = Document::with('change_requests', 'attachments', 'share_document')
+                ->where(function($q) {
+                    $q->where('user_id', auth()->user()->id)
+                        ->orWhereHas("share_document", function($q) {
+                            $q->where("user_id", auth()->id());
+                        });
+                })
                 ->orderBy('control_code', 'desc')
                 ->get();
         }
@@ -199,6 +123,7 @@ class DocumentController extends Controller
             'allFolders' => $allFolders,
             'hasOthers' => $hasOthers,
             'existingDocuments' => $existingDocuments,
+            'users' => $users
         ]);
     }
 
@@ -212,7 +137,12 @@ class DocumentController extends Controller
 
         if (auth()->user()->role != "Administrator") {
             $documents = Document::with('change_requests', 'attachments')
-                ->where('user_id', auth()->user()->id)
+                ->where(function($q) {
+                    $q->where('user_id', auth()->user()->id)
+                        ->orWhereHas("share_document", function($q) {
+                            $q->where("user_id", auth()->id());
+                        });
+                })
                 ->orderBy('control_code', 'desc')
                 ->get();
         }
@@ -1638,5 +1568,30 @@ class DocumentController extends Controller
             'latest_revision' => $latest->version,
             'next_revision' => $nextRevision,
         ]);
+    }
+
+    public function share(Request $request)
+    {
+        // dd($request->all());
+        $request->validate([
+            'users' => 'required|exists:users,id',
+            'documents' => 'required|exists:documents,id'
+        ]);
+
+        $share_documents = ShareDocument::whereIn("user_id", $request->users)->where("document_id", $request->documents)->first();
+        if($share_documents) {
+            Alert::error("There is an user have already access in this documents ". $share_documents->user->name)->persistent("Dismiss");
+            return back();
+        }
+
+        foreach($request->users as $user) {
+            $share_document = new ShareDocument;
+            $share_document->user_id = $user;
+            $share_document->document_id = $request->documents;
+            $share_document->save();
+        }
+
+        Alert::success("Successfully Saved")->persistent("Dismiss");
+        return back();
     }
 }

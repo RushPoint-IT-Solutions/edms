@@ -150,32 +150,32 @@ class RequestController extends Controller
       
     //     info("END DCO");
     // }
-    public function index()
-    {
-        //
+    // public function index()
+    // {
+    //     //
        
-        $requests = CopyRequest::with('document')->orderBy('id','desc')->get();
-        if(auth()->user()->role == "User")
-        {
-            $requests = CopyRequest::with('document')->where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
-        }
-        else if(auth()->user()->role == "Document Control Officer")
-        {
-            $requests = CopyRequest::with('document')->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orderBy('id','desc')->get();
-        }
-        else if(auth()->user()->role == "Department Head")
-        {
-            $requests = CopyRequest::with('document')->whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orderBy('id','desc')->get();
-        }
-        else if(auth()->user()->role == "Documents and Records Controller")
-        {
-            $requests = CopyRequest::with('document')->where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
-        }
-        return view('requests',
-        array(
-            'requests' =>  $requests,
-        ));
-    }
+    //     $requests = CopyRequest::with('document')->orderBy('id','desc')->get();
+    //     if(auth()->user()->role == "User")
+    //     {
+    //         $requests = CopyRequest::with('document')->where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
+    //     }
+    //     else if(auth()->user()->role == "Document Control Officer")
+    //     {
+    //         $requests = CopyRequest::with('document')->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->orderBy('id','desc')->get();
+    //     }
+    //     else if(auth()->user()->role == "Department Head")
+    //     {
+    //         $requests = CopyRequest::with('document')->whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->orderBy('id','desc')->get();
+    //     }
+    //     else if(auth()->user()->role == "Documents and Records Controller")
+    //     {
+    //         $requests = CopyRequest::with('document')->where('user_id',auth()->user()->id)->orderBy('id','desc')->get();
+    //     }
+    //     return view('requests',
+    //     array(
+    //         'requests' =>  $requests,
+    //     ));
+    // }
 
     public function changeRequests(Request $request)
     {
@@ -330,33 +330,33 @@ class RequestController extends Controller
     }
     
 
-    public function removeApprover()
-    {
-        //
+    // public function removeApprover()
+    // {
+    //     //
        
-        $change_for_approvals = RequestApprover::orderBy('id','desc')->get();
+    //     $change_for_approvals = RequestApprover::orderBy('id','desc')->get();
        
 
-        return view('for_removals',
-        array(
-           'change_for_approvals' => $change_for_approvals,
-        ));
-    }
-    public function removeApp(Request $request,$id)
-    {
-        if($request->approver == null)
-        {
-            $appro = [];
-        }
-        else
-        {
-            $appro = $request->approver;
-        }
-        $approvers = RequestApprover::orderBy('id','desc')->where('change_request_id',$id)->whereNotIn('id', $appro)->where('status','Waiting')->delete();
-        Alert::success('Successfully Updated')->persistent('Dismiss');
-        return back();
+    //     return view('for_removals',
+    //     array(
+    //        'change_for_approvals' => $change_for_approvals,
+    //     ));
+    // }
+    // public function removeApp(Request $request,$id)
+    // {
+    //     if($request->approver == null)
+    //     {
+    //         $appro = [];
+    //     }
+    //     else
+    //     {
+    //         $appro = $request->approver;
+    //     }
+    //     $approvers = RequestApprover::orderBy('id','desc')->where('change_request_id',$id)->whereNotIn('id', $appro)->where('status','Waiting')->delete();
+    //     Alert::success('Successfully Updated')->persistent('Dismiss');
+    //     return back();
         
-    }
+    // }
     public function forApproval()
     {
         //

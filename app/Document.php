@@ -62,4 +62,8 @@ class Document extends Model implements Auditable
     {
         return $this->hasMany(DocumentTypeList::class);
     }
+    public function share_document()
+    {
+        return $this->hasMany(ShareDocument::class);
+    }
 }
