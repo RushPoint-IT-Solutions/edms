@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Permit;
 use App\Department;
 use App\Document;
+use App\Office;
+use App\PrivateDocsVisitor;
+use App\RequestApprover;
 use App\ChangeRequest;
 use App\CopyRequest;
 use App\DocumentType;
 use App\Company;
-use App\Office;
-use App\PrivateDocsVisitor;
-use App\RequestApprover;
 use App\ChangeRequestAccess;
 use App\DocumentRequestAccess;
 use Illuminate\Http\Request;
@@ -20,11 +19,6 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('auth');
@@ -88,40 +82,32 @@ class HomeController extends Controller
         }
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
     public function index(Request $request)
     {
-        if (auth()->user()->role != "Administrator")
-        {
-            // $pending_query = ChangeRequest::where(function($q) {
-            //                     $q->where('user_id', auth()->user()->id)
-            //                     ->where('status', 'For Approval')
-            //                     ->where('request_status', 'Pending');
-            //                 })->orWhere(function($q) {
-            //                     $q->whereHas('approvers', function($aq) {
-            //                         $aq->where('user_id', auth()->user()->id)
-            //                         ->whereIn('status', ['Pending', 'Waiting']);
-            //                     })
-            //                     ->whereNotIn('status', ['Approved', 'Declined'])
-            //                     ->whereNull('is_draft');
-            //                 });
+        $isAdmin = auth()->user()->role === 'Administrator';
 
-            $table_query = ChangeRequest::where('user_id', auth()->user()->id);
-        }
-        else
-        {
-            $table_query = ChangeRequest::query();
-        }
+        $baseQuery = $isAdmin
+            ? ChangeRequest::query()
+            : ChangeRequest::where('user_id', auth()->id());
+
+        $totalCount = (clone $baseQuery)->count();
+        $pendingCount  = (clone $baseQuery)->where('status', 'For Approval')->count();
+        $approvedCount = (clone $baseQuery)->where('status', 'Approved')->count();
+        $declinedCount = (clone $baseQuery)->where('status', 'Declined')->count();
+
+        $donutTotal  = $totalCount ?: 1;
+        $approvedPct = round(($approvedCount / $donutTotal) * 100);
+        $pendingPct  = round(($pendingCount  / $donutTotal) * 100);
+        $declinedPct = round(($declinedCount / $donutTotal) * 100);
+        $otherPct    = max(0, 100 - $approvedPct - $pendingPct - $declinedPct);
+
+        $table_query = clone $baseQuery;
 
         if ($request->filled('doc_search')) {
             $search = $request->doc_search;
             $table_query->where(function($q) use ($search) {
                 $q->where('title', 'like', '%' . $search . '%')
-                ->orWhere('file', 'like', '%' . $search . '%');
+                  ->orWhere('file', 'like', '%' . $search . '%');
             });
         }
 
@@ -134,80 +120,90 @@ class HomeController extends Controller
             ? (int) $request->get('doc_per_page')
             : 10;
 
-        if ($sortBy == 'name') {
+        if ($sortBy === 'name') {
             $table_query->orderBy('title', 'asc');
-        } elseif ($sortBy == 'date') {
+        } elseif ($sortBy === 'date') {
             $table_query->orderBy('updated_at', 'desc');
         } else {
             $table_query->orderBy('created_at', 'desc');
         }
 
-        // $copy_requests = CopyRequest::get();
-
-        // $yearChangeRequests = ChangeRequest::whereYear('created_at',date('Y'))->get();
-        // $yearCopyRequests = CopyRequest::whereYear('created_at',date('Y'))->get();
-        // $documents = Document::where('status',null)->get();
-        // $departments = Department::whereHas('documents')->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-        // $permits = Permit::with('company', 'department')->get();
-        // $months = [];
-       
-        // for ($m=1; $m<=12; $m++) {
-        //     $object = new \stdClass();
-        //     $object->y =date('M-Y', mktime(0,0,0,$m, 1, date('Y')));
-        //     $change_requests_count = ChangeRequest::whereYear('created_at',date('Y'))->whereMonth('created_at',date('m',mktime(0,0,0,$m, 1, date('Y'))))->count();
-        //     $copy_requests_count = CopyRequest::whereYear('created_at',date('Y'))->whereMonth('created_at',date('m',mktime(0,0,0,$m, 1, date('Y'))))->count();
-        //     $object->a =$change_requests_count;
-        //     $object->b =$copy_requests_count;
-        //     $months[$m-1]=  $object;
-        // }
-        // dd($months);
-        // if((auth()->user()->role != "Administrator") || (auth()->user()->role != "Management Representative") || (auth()->user()->role != "Business Process Manager"))
-        // {
-        //     if((auth()->user()->role == "Department Head"))
-        //     {
-        //         $departments = Department::whereIn('id',(auth()->user()->department_head)->pluck('id')->toArray())->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-        //         $change_requests = ChangeRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
-        //         $copy_requests = CopyRequest::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->toArray())->get();
-        //         $documents = Document::whereIn('department_id',(auth()->user()->department_head)->pluck('id')->where('status',null)->toArray())->get();
-        //         $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
-           
-        //     }
-        //     elseif((auth()->user()->role == "Documents and Records Controller"))
-        //     {
-        //         $departments = Department::where('id',auth()->user()->department_id)->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-        //         $change_requests = ChangeRequest::where('user_id',auth()->user()->id)->get();
-        //         $copy_requests = CopyRequest::where('user_id',auth()->user()->id)->get();
-        //         $documents = Document::where('department_id',auth()->user()->department_id)->where('status',null)->get();
-        //         $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->accountable_persons)->pluck('department_id')->toArray())->get();
-           
-
-        //     }
-        //     elseif((auth()->user()->role == "Document Control Officer"))
-        //     {
-        //     }
-            
-        // }
-        // $departments = Department::whereIn('id',(auth()->user()->dco)->pluck('department_id')->toArray())->with('documents','obsoletes')->withCount('documents','obsoletes')->get();
-        // // $change_requests = ChangeRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-        // $change_requests = ChangeRequest::with('user')->get();
-        // $copy_requests = CopyRequest::whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-        // $documents = Document::with('change_requests')->where('user_id', auth()->user()->id)->get();
-        // $permits = Permit::with('company', 'department')->whereIn('department_id',(auth()->user()->dco)->pluck('department_id')->toArray())->get();
-
-        // $categories = DocumentType::get();
-
         $change_requests = $table_query->paginate($perPage, ['*'], 'table_page');
 
-        return view('home',
-        array(
-            // 'permits' =>  $permits,
-            'change_requests' =>  $change_requests,
-            // 'categories' =>  $categories,
-            // 'copy_requests' =>  $copy_requests,
-            // 'months' =>  $months,
-            // 'yearChangeRequests' =>  $yearChangeRequests,
-            // 'yearCopyRequests' =>  $yearCopyRequests,
-        ));
+        $year = date('Y');
+
+        $monthlySubmitted = [];
+        $monthlyApproved  = [];
+        $monthlyDeclined  = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $monthlySubmitted[] = (clone $baseQuery)->whereYear('created_at', $year)->whereMonth('created_at', $m)->count();
+            $monthlyApproved[]  = (clone $baseQuery)->where('status', 'Approved')->whereYear('updated_at', $year)->whereMonth('updated_at', $m)->count();
+            $monthlyDeclined[]  = (clone $baseQuery)->where('status', 'Declined')->whereYear('updated_at', $year)->whereMonth('updated_at', $m)->count();
+        }
+
+        $allDepts = Department::where('status', '1')->orderBy('code')->get();
+
+        $submittedByDept = (clone $baseQuery)
+            ->selectRaw('department_id, count(*) as total')
+            ->whereNotNull('department_id')
+            ->groupBy('department_id')
+            ->pluck('total', 'department_id');
+
+        $deptLabels = $allDepts->pluck('code')->toArray();
+        $deptCounts = $allDepts->map(fn($d) => $submittedByDept->get($d->id, 0))->values()->toArray();
+
+        $typeData = (clone $baseQuery)
+            ->selectRaw('type, count(*) as total')
+            ->whereNotNull('type')
+            ->groupBy('type')
+            ->orderByDesc('total')
+            ->with('document_type')
+            ->limit(6)
+            ->get();
+
+        $typeLabels = $typeData->map(fn($r) => optional($r->document_type)->name ?? 'Unknown')->values()->toArray();
+        $typeCounts = $typeData->pluck('total')->values()->toArray();
+
+        $weekStart = now()->startOfWeek();
+        $weekEnd   = now()->endOfWeek();
+
+        $weeklyUploaded = (clone $baseQuery)->whereBetween('created_at', [$weekStart, $weekEnd])->count();
+        $weeklyApproved = (clone $baseQuery)->where('status', 'Approved')->whereBetween('updated_at', [$weekStart, $weekEnd])->count();
+        $weeklyDeclined = (clone $baseQuery)->where('status', 'Declined')->whereBetween('updated_at', [$weekStart, $weekEnd])->count();
+
+        $weeklyUploadedByDay = [];
+        $weeklyApprovedByDay = [];
+
+        for ($d = 0; $d < 7; $d++) {
+            $day = $weekStart->copy()->addDays($d);
+            $weeklyUploadedByDay[] = (clone $baseQuery)->whereDate('created_at', $day)->count();
+            $weeklyApprovedByDay[] = (clone $baseQuery)->where('status', 'Approved')->whereDate('updated_at', $day)->count();
+        }
+
+        return view('home', [
+            'change_requests' => $change_requests,
+            'totalCount' => $totalCount,
+            'pendingCount' => $pendingCount,
+            'approvedCount' => $approvedCount,
+            'declinedCount' => $declinedCount,
+            'monthlySubmitted' => $monthlySubmitted,
+            'monthlyApproved' => $monthlyApproved,
+            'monthlyDeclined' => $monthlyDeclined,
+            'deptLabels' => $deptLabels,
+            'deptCounts' => $deptCounts,
+            'typeLabels' => $typeLabels,
+            'typeCounts' => $typeCounts,
+            'weeklyUploaded' => $weeklyUploaded,
+            'weeklyApproved' => $weeklyApproved,
+            'weeklyDeclined' => $weeklyDeclined,
+            'weeklyUploadedByDay' => $weeklyUploadedByDay,
+            'weeklyApprovedByDay' => $weeklyApprovedByDay,
+            'approvedPct' => $approvedPct,
+            'pendingPct'  => $pendingPct,
+            'declinedPct' => $declinedPct,
+            'otherPct'    => $otherPct,
+        ]);
     }
 
     public function confirmPassword(Request $request)
@@ -265,29 +261,6 @@ class HomeController extends Controller
             'dept' => $dept
         ));
     }
-
-    // public function requestChangeRequestAccess(Request $request)
-    // {
-    //     $existing = \App\ChangeRequestAccess::where('change_request_id', $request->change_request_id)
-    //         ->where('user_id', auth()->user()->id)
-    //         ->first();
-
-    //     if ($existing) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'status'  => $existing->status,
-    //             'message' => 'You already have a ' . $existing->status . ' request for this document.'
-    //         ]);
-    //     }
-
-    //    ChangeRequestAccess::create([
-    //         'change_request_id' => $request->change_request_id,
-    //         'user_id'           => auth()->user()->id,
-    //         'status'            => 'Pending',
-    //     ]);
-
-    //     return response()->json(['success' => true, 'message' => 'Access request submitted successfully.']);
-    // }
 
     public function recordChangeRequestView(Request $request)
     {
