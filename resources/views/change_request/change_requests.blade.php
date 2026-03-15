@@ -106,6 +106,7 @@
                                 <th>Revision</th>
                                 <th>Requested&nbsp;By</th>
                                 <th>Date&nbsp;Requested</th>
+                                <th>Approvers</th>
                                 <th>QR Code</th>
                                 <th>Status</th>
                             </tr>
@@ -222,6 +223,7 @@ $(document).ready(function () {
             { data: 'revision', name: 'revision' },
             { data: 'requested_by', name: 'requested_by', orderable: false, searchable: false },
             { data: 'created_at', name: 'created_at' },
+            { data: 'approvers', name: 'approvers', orderable: false, searchable: false },
             { data: 'qr_code', name: 'qr_code', orderable: false, searchable: false },
             { data: 'status', name: 'status' },
         ],

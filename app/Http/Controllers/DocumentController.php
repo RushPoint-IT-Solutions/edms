@@ -1573,7 +1573,21 @@ class DocumentController extends Controller
     {
         $change_request = ChangeRequest::with('user', 'approvers.user', 'supporting_documents')->findOrFail($id);
 
-        return view('public.change-request', compact('change_request'));
+        $code = 'DOC-' . date('Y', strtotime($change_request->created_at)) . '-' . str_pad($change_request->id, 3, '0', STR_PAD_LEFT);
+        $currentApprover = $change_request->approvers->sortBy('level')->firstWhere('status', 'Pending');
+        $filename = $change_request->file ? basename($change_request->file) : null;
+
+        $totalApprovers = $change_request->approvers->count();
+        $signedApprovers = $change_request->approvers->where('status', 'Approved')->count();
+
+        return view('public.change-request', compact(
+            'change_request',
+            'code',
+            'currentApprover',
+            'filename',
+            'totalApprovers',
+            'signedApprovers'
+        ));
     }
 
     public function refreshTeam(Request $request)

@@ -159,25 +159,53 @@
                     </div>
 
                     @if($change_request->file)
-                    <div class="col-12">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="text-primary" style="font-size: 1.5rem;">
-                                <i class="ri-attachment-line"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="text-muted small mb-2">ATTACHMENT</div>
-                                <a href="{{ url($change_request->file) }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 p-3 border rounded hover-effect">
-                                    <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
-                                    @php
-                                        $file = $change_request->file;
-                                        $filename = explode('/',$file);
-                                    @endphp 
-                                    <span class="text-dark fw-medium" style="font-size: 0.875rem;">{{ $filename[count($filename)-1] }}</span>
-                                </a>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="text-primary" style="font-size: 1.5rem;">
+                                    <i class="ri-attachment-line"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="text-muted small mb-2">ATTACHMENT</div>
+
+                                    <a href="{{ url($change_request->file) }}" target="_blank"
+                                    class="text-decoration-none d-flex align-items-center gap-2 p-3 border rounded hover-effect">
+                                        <i class="ri-file-pdf-line text-danger" style="font-size: 1.25rem;"></i>
+                                        <span class="text-dark fw-medium" style="font-size: 0.875rem;">{{ $filename }}</span>
+
+                                        @if($signedApprovers === 0)
+                                            <span class="badge bg-secondary ms-auto">
+                                                <i class="ri-edit-line me-1"></i>Unsigned
+                                            </span>
+                                        @elseif($signedApprovers < $totalApprovers)
+                                            <span class="badge bg-warning text-dark ms-auto">
+                                                <i class="ri-quill-pen-line me-1"></i>Partially Signed ({{ $signedApprovers }}/{{ $totalApprovers }})
+                                            </span>
+                                        @else
+                                            <span class="badge bg-success ms-auto">
+                                                <i class="ri-checkbox-circle-line me-1"></i>Fully Signed
+                                            </span>
+                                        @endif
+                                    </a>
+
+                                    <div class="mt-2 ps-1">
+                                        @foreach($change_request->approvers->sortBy('level') as $approver)
+                                            <div class="d-flex align-items-center gap-2 py-1" style="font-size: 0.8rem;">
+                                                @if($approver->status === 'Approved')
+                                                    <i class="ri-checkbox-circle-fill text-success"></i>
+                                                    <span class="text-dark fw-medium">{{ $approver->user->name }}</span>
+                                                    <span class="text-muted">— Signed on {{ \Carbon\Carbon::parse($approver->updated_at)->format('M d, Y h:i A') }}</span>
+                                                @else
+                                                    <i class="ri-checkbox-blank-circle-line text-muted"></i>
+                                                    <span class="text-muted">{{ $approver->user->name }} — Not yet signed</span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    @endif
+                        @endif
 
                     @if($change_request->supporting_documents && count($change_request->supporting_documents) > 0)
                     <div class="col-12">

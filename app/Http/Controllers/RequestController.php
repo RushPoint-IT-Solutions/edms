@@ -214,7 +214,7 @@ class RequestController extends Controller
 
         $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
 
-        $query = ChangeRequest::with('user')
+        $query = ChangeRequest::with(['user', 'approvers.user'])
             ->whereNull('is_draft')
             ->when(!$isAdmin, function ($q) {
                 $q->where('user_id', auth()->user()->id);
@@ -251,32 +251,51 @@ class RequestController extends Controller
         foreach ($changeRequests as $cr) {
 
             switch ($cr->status) {
-                case 'Approved':
-                    $badgeClass = 'bg-success';
-                    break;
-                case 'For Approval':
-                    $badgeClass = 'bg-primary';
-                    break;
-                case 'Declined':
-                    $badgeClass = 'bg-danger';
-                    break;
-                case 'Returned':
-                    $badgeClass = 'bg-warning text-dark';
-                    break;
-                case 'Draft':
-                    $badgeClass = 'bg-secondary';
-                    break;
-                default:
-                    $badgeClass = 'bg-secondary';
-                    break;
+                case 'Approved': $badgeClass = 'bg-success'; break;
+                case 'For Approval': $badgeClass = 'bg-primary'; break;
+                case 'Declined': $badgeClass = 'bg-danger'; break;
+                case 'Returned': $badgeClass = 'bg-warning text-dark'; break;
+                case 'Draft': $badgeClass = 'bg-secondary'; break;
+                default: $badgeClass = 'bg-secondary'; break;
             }
             $statusBadge = '<span class="badge ' . $badgeClass . '">' . e($cr->status) . '</span>';
 
             $docId = 'DOC-' . date('Y', strtotime($cr->created_at)) . '-' . str_pad($cr->id, 3, '0', STR_PAD_LEFT);
 
-            $viewDoc = $cr->file
-                ? '<li><a class="dropdown-item" href="' . url($cr->file) . '" target="_blank"><i class="ri-file-text-line me-2"></i> View Document</a></li>'
-                : '';
+            $approversChain = '<div class="approvers-chain">';
+            foreach ($cr->approvers->sortBy('level') as $approver) {
+                $user = $approver->user;
+                if (!$user) continue;
+
+                switch ($approver->status) {
+                    case 'Approved':
+                        $icon = 'ri-checkbox-circle-fill'; $color = '#198754'; $badgeClass = 'bg-success'; break;
+                    case 'Pending':
+                        $icon = 'ri-time-line'; $color = '#e67e22'; $badgeClass = 'bg-warning text-dark'; break;
+                    case 'Returned':
+                        $icon = 'ri-arrow-go-back-fill'; $color = '#dc3545'; $badgeClass = 'bg-danger'; break;
+                    case 'Declined':
+                        $icon = 'ri-close-circle-fill'; $color = '#dc3545'; $badgeClass = 'bg-danger'; break;
+                    case 'Waiting':
+                        $icon = 'ri-checkbox-blank-circle-line'; $color = '#6c757d'; $badgeClass = 'bg-secondary'; break;
+                    default:
+                        $icon = 'ri-question-line'; $color = '#adb5bd'; $badgeClass = 'bg-light text-dark'; break;
+                }
+
+                $approversChain .= '
+                <div class="approver-step mb-1" style="white-space:nowrap;">
+                    <div class="d-flex align-items-center gap-1" style="flex-wrap:nowrap;">
+                        <i class="' . $icon . '" style="color:' . $color . '; font-size:0.9rem; flex-shrink:0;"></i>
+                        <span style="font-size:0.78rem; font-weight:600; color:#212529; flex-shrink:0;">' . e($user->name) . '</span>
+                        <span class="badge ' . $badgeClass . '" style="font-size:0.65rem; flex-shrink:0;">' . e($approver->status) . '</span>
+                    </div>
+                </div>';
+
+                if (!$cr->approvers->sortBy('level')->last()->is($approver)) {
+                    $approversChain .= '<div style="margin-left:8px; color:#adb5bd; font-size:0.7rem; margin-bottom:3px;">&#8595;</div>';
+                }
+            }
+            $approversChain .= '</div>';
 
             $actions = '
                 <div class="dropdown">
@@ -294,7 +313,6 @@ class RequestController extends Controller
                                 <i class="ri-eye-line me-2"></i> View Request
                             </a>
                         </li>
-                        ' . $viewDoc . '
                     </ul>
                 </div>
             ';
@@ -309,6 +327,7 @@ class RequestController extends Controller
                 'revision' => e($cr->revision),
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'created_at' => $cr->created_at ? $cr->created_at->format('Y-m-d') : '-',
+                'approvers'  => $approversChain,
                 'status' => $statusBadge,
                 'qr_code' => '
                     <button class="btn btn-sm btn-outline-primary view-qr-btn"
