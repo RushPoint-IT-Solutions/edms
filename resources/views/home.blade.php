@@ -13,7 +13,7 @@
             <div class="icon-circle">
                 <i class="ri-file-list-3-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $forApprovalCount ?? 55 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $totalCount }}</h2>
             <p>Total Documents</p>
         </div>
     </div>
@@ -22,7 +22,7 @@
             <div class="icon-circle">
                 <i class="ri-time-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $declinedCount ?? 12 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $pendingCount }}</h2>
             <p>Pending Approval</p>
         </div>
     </div>
@@ -31,7 +31,7 @@
             <div class="icon-circle">
                 <i class="ri-checkbox-circle-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $approvedCount ?? 20 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $approvedCount }}</h2>
             <p>Approved</p>
         </div>
     </div>
@@ -40,7 +40,7 @@
             <div class="icon-circle">
                 <i class="ri-close-circle-line"></i>
             </div>
-            <h2 class="mb-0 font-weight-bold">{{ $returnedCount ?? 2 }}</h2>
+            <h2 class="mb-0 font-weight-bold">{{ $declinedCount }}</h2>
             <p>Declined</p>
         </div>
     </div>
@@ -79,10 +79,10 @@
                     <canvas id="chartStatus"></canvas>
                 </div>
                 <div class="donut-legend mt-3">
-                    <div class="donut-item"><span style="background:#8B0000"></span>Approved <strong>81%</strong></div>
-                    <div class="donut-item"><span style="background:#e67e22"></span>Pending <strong>6%</strong></div>
-                    <div class="donut-item"><span style="background:#c0392b"></span>Declined <strong>12%</strong></div>
-                    <div class="donut-item"><span style="background:#bdc3c7"></span>Draft <strong>1%</strong></div>
+                    <div class="donut-item"><span style="background:#8B0000"></span>Approved <strong>{{ $approvedPct }}%</strong></div>
+                    <div class="donut-item"><span style="background:#e67e22"></span>Pending <strong>{{ $pendingPct }}%</strong></div>
+                    <div class="donut-item"><span style="background:#c0392b"></span>Declined <strong>{{ $declinedPct }}%</strong></div>
+                    <div class="donut-item"><span style="background:#bdc3c7"></span>Other <strong>{{ $otherPct }}%</strong></div>
                 </div>
             </div>
         </div>
@@ -95,7 +95,7 @@
             <div class="card-body">
                 <div class="mb-3">
                     <h6 class="fw-semibold mb-0 text-dark">Documents by Department</h6>
-                    <small class="text-muted">Top 8 departments</small>
+                    <small class="text-muted">All departments</small>
                 </div>
                 <div class="chart-wrap" style="height:240px;">
                     <canvas id="chartDept"></canvas>
@@ -130,17 +130,17 @@
                 </div>
                 <div class="weekly-stats mt-3 d-flex justify-content-around text-center">
                     <div>
-                        <div class="fw-bold text-dark" style="font-size:1.4rem;">24</div>
+                        <div class="fw-bold text-dark" style="font-size:1.4rem;">{{ $weeklyUploaded }}</div>
                         <small class="text-muted">Uploaded</small>
                     </div>
                     <div style="border-left:1px solid #eee;"></div>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size:1.4rem;">17</div>
+                        <div class="fw-bold text-dark" style="font-size:1.4rem;">{{ $weeklyApproved }}</div>
                         <small class="text-muted">Approved</small>
                     </div>
                     <div style="border-left:1px solid #eee;"></div>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size:1.4rem;">3</div>
+                        <div class="fw-bold text-dark" style="font-size:1.4rem;">{{ $weeklyDeclined }}</div>
                         <small class="text-muted">Declined</small>
                     </div>
                 </div>
@@ -162,12 +162,12 @@
 
         JsBarcode(".barcode").init();
 
-        const MAROON = '#8B0000';
+        const MAROON   = '#8B0000';
         const MAROON_L = 'rgba(139,0,0,0.08)';
-        const RED2 = '#c0392b';
-        const ORANGE = '#e67e22';
-        const GREEN = '#27ae60';
-        const GRAY = '#bdc3c7';
+        const RED2     = '#c0392b';
+        const ORANGE   = '#e67e22';
+        const GREEN    = '#27ae60';
+        const GRAY     = '#bdc3c7';
 
         Chart.defaults.font.family = "'Helvetica Neue', Arial, sans-serif";
         Chart.defaults.color       = '#6c757d';
@@ -179,19 +179,19 @@
                 datasets: [
                     {
                         label: 'Submitted',
-                        data: [22,18,30,25,28,35,20,24,31,19,27,45],
+                        data: @json($monthlySubmitted),
                         backgroundColor: MAROON,
                         borderRadius: 4, borderSkipped: false,
                     },
                     {
                         label: 'Approved',
-                        data: [18,15,26,21,24,30,17,20,27,16,22,38],
+                        data: @json($monthlyApproved),
                         backgroundColor: RED2,
                         borderRadius: 4, borderSkipped: false,
                     },
                     {
                         label: 'Declined',
-                        data: [2,2,3,3,2,4,2,3,3,2,3,5],
+                        data: @json($monthlyDeclined),
                         backgroundColor: '#e0b0b0',
                         borderRadius: 4, borderSkipped: false,
                     }
@@ -217,9 +217,9 @@
         new Chart(document.getElementById('chartStatus'), {
             type: 'doughnut',
             data: {
-                labels: ['Approved','Pending','Declined','Draft'],
+                labels: ['Approved','Pending','Declined','Other'],
                 datasets: [{
-                    data: [231, 18, 35, 3],
+                    data: [{{ $approvedCount }}, {{ $pendingCount }}, {{ $declinedCount }}, {{ max(0, $totalCount - $approvedCount - $pendingCount - $declinedCount) }}],
                     backgroundColor: [MAROON, ORANGE, RED2, GRAY],
                     borderWidth: 2, borderColor: '#fff', hoverOffset: 8,
                 }]
@@ -237,10 +237,10 @@
         new Chart(document.getElementById('chartDept'), {
             type: 'bar',
             data: {
-                labels: ['ADMIN','FINANCE','HR','IT','LEGAL','OPERATIONS','PROCUREMENT','QMO'],
+                labels: @json($deptLabels),
                 datasets: [{
                     label: 'Documents',
-                    data: [45, 38, 52, 29, 34, 61, 41, 47],
+                    data: @json($deptCounts),
                     backgroundColor: [
                         '#8B0000','#9a1010','#a92020','#8B0000',
                         '#9a1010','#a92020','#b83030','#8B0000'
@@ -273,9 +273,9 @@
         new Chart(document.getElementById('chartTypes'), {
             type: 'polarArea',
             data: {
-                labels: ['Memo','Policy','SOP','Manual','Form','Report'],
+                labels: @json($typeLabels),
                 datasets: [{
-                    data: [42, 28, 65, 19, 83, 37],
+                    data: @json($typeCounts),
                     backgroundColor: [
                         'rgba(139,0,0,.75)','rgba(192,57,43,.75)',
                         'rgba(230,126,34,.75)','rgba(39,174,96,.75)',
@@ -300,14 +300,14 @@
                 datasets: [
                     {
                         label: 'Uploaded',
-                        data: [4,6,5,3,4,1,1],
+                        data: @json($weeklyUploadedByDay),
                         borderColor: MAROON, backgroundColor: MAROON_L,
                         fill: true, tension: .4, pointRadius: 3,
                         pointBackgroundColor: MAROON, borderWidth: 2,
                     },
                     {
                         label: 'Approved',
-                        data: [3,4,4,2,3,1,0],
+                        data: @json($weeklyApprovedByDay),
                         borderColor: GREEN, backgroundColor: 'rgba(39,174,96,0.07)',
                         fill: true, tension: .4, pointRadius: 3,
                         pointBackgroundColor: GREEN, borderWidth: 2,
@@ -326,25 +326,6 @@
                 }
             }
         });
-
-        const counters = document.querySelectorAll('.kpi-value[data-target]');
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                const el     = entry.target;
-                const target = +el.dataset.target;
-                let start    = 0;
-                const step   = target / (1200 / 16);
-                const tick   = () => {
-                    start = Math.min(start + step, target);
-                    el.textContent = Math.floor(start).toLocaleString();
-                    if (start < target) requestAnimationFrame(tick);
-                };
-                tick();
-                observer.unobserve(el);
-            });
-        }, { threshold: 0.2 });
-        counters.forEach(c => observer.observe(c));
 
     });
 </script>
