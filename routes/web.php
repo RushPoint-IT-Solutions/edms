@@ -248,6 +248,15 @@ Route::group(['middleware' => 'auth'], function () {
         // Route::post('delete_memo', 'MemorandumController@destroy');
     });
 
+    Route::get('/reports', 'ReportController@index')->name('reports');
+    Route::prefix('reports')->group(function () {
+        Route::get('/summary-stats',      'ReportController@getSummaryStats')->name('reports.summary-stats');
+        Route::get('/change-requests',    'ReportController@getChangeRequestsReport')->name('reports.change-requests');
+        Route::get('/documents',          'ReportController@getDocumentsReport')->name('reports.documents');
+        Route::get('/approver-activity',  'ReportController@getApproverActivityReport')->name('reports.approver-activity');
+        Route::get('/department-summary', 'ReportController@getDepartmentSummaryReport')->name('reports.department-summary');
+        Route::get('/export-csv',         'ReportController@exportCsv')->name('reports.export-csv');
+    });
 });
 
 Route::get('document/{id}', 'DocumentController@publicDocument');
