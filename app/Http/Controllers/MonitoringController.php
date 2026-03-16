@@ -11,11 +11,6 @@ use Illuminate\Http\Request;
 
 class MonitoringController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     private function parseDateFromSearch(?string $raw): array
     {
         $raw = $raw ?? '';

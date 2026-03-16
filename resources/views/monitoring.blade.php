@@ -363,10 +363,12 @@
                         @endphp
                         <li class="list-group-item px-2 py-2 priv-item {{ $stateClass }} priv-row-clickable"
                             style="border-left: 4px solid {{ $borderColor }}; border-radius: 6px; margin-bottom: 4px; cursor: pointer;"
-                            @if($private_document->has_valid_access && $pdfUrl)
+                           @if($private_document->has_valid_access && $pdfUrl)
                                 data-action="open-pdf"
                                 data-url="{{ $pdfUrl }}"
                                 data-doc-id="{{ $private_document->id }}"
+                            @elseif($private_document->has_pending_request)
+                                data-action="pending"
                             @elseif(!$private_document->has_valid_access)
                                 data-action="request-access"
                                 data-modal="#requestAccess{{ $private_document->id }}"
@@ -826,9 +828,14 @@
                 if (action === 'open-pdf' && url) {
                     userView(docId);
                     window.open(url, '_blank');
-                } else if (action === 'request-access' && modal) {
-                    const modalEl = document.querySelector(modal);
-                    if (modalEl) new bootstrap.Modal(modalEl).show();
+                } else if (action === 'pending') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Request Pending',
+                        html: 'Your access request is currently awaiting approval. Please wait for the document owner to review it.',
+                        confirmButtonColor: '#8B0000',
+                        confirmButtonText: 'Got it',
+                    });
                 }
             });
         });
