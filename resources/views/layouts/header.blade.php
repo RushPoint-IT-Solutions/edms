@@ -47,6 +47,50 @@
             opacity: .8;
             background-size: 120px 120px;
         }   
+
+        .navbar-brand-box {
+            background: #420906 !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .app-menu .nav-item > .nav-link .nav-link-text,
+        .twocolumn-menu-item .nav-link-text,
+        .vertical-overlay ~ #layout-wrapper .navbar-menu .nav-item > .collapse-item {
+            background: #420906 !important;
+            color: #fff !important;
+        }
+
+        [data-sidebar-size="sm"] .menu-title,
+        [data-sidebar-size="sm"] .menu-title span:not(.dms-full):not(.dms-short) {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            font-size: 8px !important;
+            letter-spacing: 0.5px;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 8px 0 4px;
+        }
+
+        [data-sidebar-size="sm"] .menu-title span[data-key="t-menu"] {
+            font-size: 7px !important;
+        }
+
+        [data-sidebar-size="sm"] li.menu-title {
+            display: block !important;
+            min-height: auto !important;
+            padding: 0 !important;
+        }
+
+        .dms-full  { display: inline; }
+        .dms-short { display: none;   }
+
+        li.menu-title {
+            overflow: hidden !important;
+            white-space: nowrap !important;
+        }
+
         .menu-title, .navbar-menu .navbar-nav .nav-link {
             color: #FFF !important;
         }
@@ -1199,7 +1243,10 @@
                 <div class="container-fluid">
                     <div id="two-column-menu"></div>
                     <ul class="navbar-nav" id="navbar-nav">
-                        <li class="menu-title"><span data-key="t-menu">DOCUMENT MANAGEMENT SYSTEM</span></li>
+                        <li class="menu-title mt-2">
+                            <span data-key="t-menu" class="dms-full">DOCUMENT MANAGEMENT SYSTEM</span>
+                            <span class="dms-short">DMS</span>
+                        </li>
                         <li class="menu-title"><span data-key="t-menu">Menu</span></li>
                         
                         <!-- Dashboard -->
@@ -1342,6 +1389,47 @@
                             </a>
                         </li> --}}
 
+                        <!-- Reports Submenu -->
+                        {{-- <li class="nav-item {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'active' : '' }}">
+                            <a class="nav-link menu-link {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? '' : 'collapsed' }}" 
+                            href="#sidebarReports" data-bs-toggle="collapse" role="button" 
+                            aria-expanded="{{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'true' : 'false' }}" 
+                            aria-controls="sidebarReports">
+                                <i class="ri-file-chart-line"></i> 
+                                <span data-key="t-reports">Reports</span>
+                            </a>
+                            <div class="menu-dropdown collapse {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'show' : '' }}" id="sidebarReports">
+                                <ul class="nav nav-sm flex-column">
+                                    @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Management Representative'))
+                                        <li class="nav-item">
+                                            <a href="{{url('/logs')}}" class="nav-link {{ Route::current()->getName() == 'logs' ? 'active' : '' }}" data-key="t-logs">Logs</a>
+                                        </li>
+                                    @endif
+                                    <li class="nav-item">
+                                        <a href="{{url('/dicr-reports')}}" class="nav-link {{ Route::current()->getName() == 'dicr-reports' ? 'active' : '' }}" data-key="t-change-reports">Change Requests</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{url('/copy-reports')}}" class="nav-link {{ Route::current()->getName() == 'copy-reports' ? 'active' : '' }}" data-key="t-copy-reports">Copy Requests</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{url('/dco-reports')}}" class="nav-link {{ Route::current()->getName() == 'dco-reports' ? 'active' : '' }}" data-key="t-dco-reports">DCO</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li> --}}
+
+                        <!-- Approver Stamp -->
+                        <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
+                            <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
+                                <i class="mdi mdi-stamper"></i>
+                                <span data-key="t-memorandum">Approver Stamp</span>
+                            </a>
+                        </li>
+
+                        @if((auth()->user()->role == 'Administrator'))
+                            <li class="menu-title"><span data-key="t-menu">ADMIN</span></li>
+                        @endif
+
                         <!-- Settings Submenu -->
                         @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control'))
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
@@ -1406,42 +1494,16 @@
                         </li>
                         @endif
 
-                        <!-- Reports Submenu -->
-                        {{-- <li class="nav-item {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'active' : '' }}">
-                            <a class="nav-link menu-link {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? '' : 'collapsed' }}" 
-                            href="#sidebarReports" data-bs-toggle="collapse" role="button" 
-                            aria-expanded="{{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'true' : 'false' }}" 
-                            aria-controls="sidebarReports">
-                                <i class="ri-file-chart-line"></i> 
-                                <span data-key="t-reports">Reports</span>
-                            </a>
-                            <div class="menu-dropdown collapse {{ Route::current()->getName() == 'reports' || Route::current()->getName() == 'logs' || Route::current()->getName() == 'dicr-reports' || Route::current()->getName() == 'copy-reports' || Route::current()->getName() == 'dco-reports' ? 'show' : '' }}" id="sidebarReports">
-                                <ul class="nav nav-sm flex-column">
-                                    @if((auth()->user()->role == 'Administrator') || (auth()->user()->role == 'Management Representative'))
-                                        <li class="nav-item">
-                                            <a href="{{url('/logs')}}" class="nav-link {{ Route::current()->getName() == 'logs' ? 'active' : '' }}" data-key="t-logs">Logs</a>
-                                        </li>
-                                    @endif
-                                    <li class="nav-item">
-                                        <a href="{{url('/dicr-reports')}}" class="nav-link {{ Route::current()->getName() == 'dicr-reports' ? 'active' : '' }}" data-key="t-change-reports">Change Requests</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{url('/copy-reports')}}" class="nav-link {{ Route::current()->getName() == 'copy-reports' ? 'active' : '' }}" data-key="t-copy-reports">Copy Requests</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{url('/dco-reports')}}" class="nav-link {{ Route::current()->getName() == 'dco-reports' ? 'active' : '' }}" data-key="t-dco-reports">DCO</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li> --}}
-
-                        <!-- Approver Stamp -->
-                        <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
-                            <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
-                                <i class="mdi mdi-stamper"></i>
-                                <span data-key="t-memorandum">Approver Stamp</span>
-                            </a>
-                        </li>
+                        @if((auth()->user()->role == 'Administrator'))
+                        <div>
+                            <li class="nav-item @if(Request::is('reports')) active @endif">
+                                <a class="nav-link menu-link" href="{{url('reports')}}">
+                                    <i class="mdi mdi-file-chart"></i>
+                                    <span data-key="t-reports">Reports</span>
+                                </a>
+                            </li>
+                        </div>
+                        @endif
 
                         {{-- SSO Default Access --}}
                         {{-- @if(auth()->user()->google_id != null)
@@ -1554,6 +1616,56 @@
     <script>
         window.addEventListener('load', function() {
             document.getElementById('preloaderMarsu').style.display = 'none';
+        });
+    </script>
+
+    <script>
+        function updateDmsLabel() {
+            const full  = document.querySelector('.dms-full');
+            const short = document.querySelector('.dms-short');
+            if (!full || !short) return;
+
+            const sidebarWidth = document.querySelector('.app-menu')?.offsetWidth || 999;
+            const isNarrow = sidebarWidth < 200;
+
+            if (isNarrow) {
+                full.style.display  = 'none';
+                short.style.display = 'inline';
+            } else {
+                full.style.display  = 'inline';
+                short.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('load', function () {
+            updateDmsLabel();
+
+            new MutationObserver(updateDmsLabel).observe(document.documentElement, {
+                attributes: true
+            });
+
+            new MutationObserver(updateDmsLabel).observe(document.body, {
+                attributes: true
+            });
+
+            const appMenu = document.querySelector('.app-menu');
+            if (appMenu) {
+                new MutationObserver(updateDmsLabel).observe(appMenu, {
+                    attributes: true,
+                    attributeFilter: ['style', 'class']
+                });
+            }
+
+            const sidebar = document.querySelector('.app-menu');
+            if (sidebar && window.ResizeObserver) {
+                new ResizeObserver(updateDmsLabel).observe(sidebar);
+            }
+
+            let count = 0;
+            const poll = setInterval(function () {
+                updateDmsLabel();
+                if (++count >= 10) clearInterval(poll);
+            }, 300);
         });
     </script>
     
