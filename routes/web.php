@@ -16,6 +16,8 @@
 Route::get('email_notif','PermitController@email_notif')->name('email-notif');
 Route::get('auth/google', 'GoogleController@redirectToGoogle');
 Route::get('auth/google/callback','GoogleController@handleGoogleCallback');
+Route::post('/notifications/mark-read', 'NotificationController@markRead')->name('notifications.markRead');
+Route::post('/notifications/mark-all-read', 'NotificationController@markAllRead')->name('notifications.markAllRead');
 
 // 404 error
 Route::fallback(function() {
