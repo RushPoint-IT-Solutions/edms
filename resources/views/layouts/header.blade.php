@@ -944,6 +944,31 @@
             flex-shrink: 0;
         }
 
+        .report-section { 
+            display: none; 
+        }
+
+        .report-section.active { 
+            display: block; 
+        }
+
+        .report-tab-btn.active {
+            background: #8B0000;
+            color: #fff;
+            border-color: #8B0000;
+        }
+
+        @media print {
+            .filter-bar, .report-tabs, .export-actions,
+            #preloaderMarsu, .navbar-menu, #page-topbar,
+            .vertical-overlay {
+            display: none !important; 
+            }
+            .report-section {
+            display: block !important; 
+            }
+        }
+
         @media (max-width: 992px) {
             .drive-col-dept,
             .drive-col-owner,
