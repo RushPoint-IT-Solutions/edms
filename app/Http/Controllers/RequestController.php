@@ -34,6 +34,7 @@ use App\Notifications\PendingRequest;
 use App\PreAssessment;
 use App\PreAssessmentApprover;
 use App\SupportingDocument;
+use App\UserNotification;
 use Carbon\Carbon;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Http\Request;
@@ -1225,6 +1226,20 @@ class RequestController extends Controller
         $comments->comment = $request->comment;
         $comments->user_id = auth()->user()->id;
         $comments->save();
+
+        $changeRequest = ChangeRequest::with('approvers')->findOrFail($request->change_request_id);
+
+        $recipients = collect([$changeRequest->user_id])
+            ->merge($changeRequest->approvers->pluck('user_id'))
+            ->unique()
+            ->filter(fn($id) => $id != auth()->id());
+
+        foreach ($recipients as $userId) {
+            UserNotification::updateOrCreate(
+                ['user_id' => $userId, 'type' => 'comment', 'change_request_id' => $request->change_request_id],
+                ['read_at' => null]
+            );
+        }
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
         return back();

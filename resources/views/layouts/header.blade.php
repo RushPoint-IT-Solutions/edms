@@ -1040,182 +1040,290 @@
                     </div>
 
                     @php
-                        $draft_requests  = getDraftRequest();
-                        $dueDateAlerts   = getDueDateAlerts();
-                        $totalNotifCount = count($draft_requests) + $dueDateAlerts->count();
+                        $unreadDueDateAlerts   = getUnreadDueDateAlerts();
+                        $unreadDraftRequests   = getUnreadDraftRequests();
+                        $unreadPendingApproval = getUnreadPendingApproval();
+                        $unreadCommentNotifications = getUnreadCommentNotifications();
+                        $totalNotifCount = $unreadDueDateAlerts->count() + $unreadDraftRequests->count() + $unreadPendingApproval->count() + $unreadCommentNotifications->count();
                     @endphp
 
-                    <div class="d-flex align-items-center">
+                    <div class="dropdown topbar-head-dropdown ms-1 header-item" id="notificationDropdown">
+                        <button type="button"
+                                class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle"
+                                id="page-header-notifications-dropdown"
+                                data-bs-toggle="dropdown"
+                                data-bs-auto-close="outside"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <i class='bx bx-bell fs-22'></i>
+                            <span class="position-absolute topbar-badge fs-11 translate-right badge rounded-pill bg-danger"
+                                {{ $totalNotifCount === 0 ? 'style=display:none' : '' }}>
+                                {{ $totalNotifCount }}
+                                <span class="visually-hidden">notifications</span>
+                            </span>
+                        </button>
 
-                        <div class="dropdown topbar-head-dropdown ms-1 header-item" id="notificationDropdown">
-                            <button type="button" 
-                                    class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" 
-                                    id="page-header-notifications-dropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    data-bs-auto-close="outside" 
-                                    aria-haspopup="true" 
-                                    aria-expanded="false">
-                                <i class='bx bx-bell fs-22'></i>
-                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
-                                    {{ $totalNotifCount }}
-                                    <span class="visually-hidden">notifications</span>
-                                </span>
-                            </button>
+                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 shadow-lg"
+                            aria-labelledby="page-header-notifications-dropdown"
+                            style="border-radius: 12px; overflow: hidden; min-width: 340px; border: none;">
 
-                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown">
-                                <div class="dropdown-head bg-pattern rounded-top" style="background-color: #800000;">
-                                    <div class="p-3">
-                                        <div class="row align-items-center">
-                                            <div class="col">
-                                                <h6 class="m-0 fs-16 fw-semibold text-white">Notifications</h6>
-                                            </div>
-                                            <div class="col-auto dropdown-tabs">
-                                                <span class="badge bg-light text-body fs-13">{{ $totalNotifCount }}</span>
-                                            </div>
+                            <div style="background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%); padding: 14px 16px;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width:32px; height:32px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                                            <i class="bx bx-bell text-white" style="font-size:1rem;"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="m-0 fw-semibold text-white" style="font-size:0.875rem;">Notifications</h6>
+                                            <p class="m-0 text-white-50" style="font-size:0.65rem;">
+                                                {{ $totalNotifCount }} unread notification{{ $totalNotifCount !== 1 ? 's' : '' }}
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="tab-content position-relative" id="notificationItemsTabContent">
-                                    <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
-                                        <div data-simplebar style="max-height: 300px;" class="pe-2">
-
-                                            @foreach ($dueDateAlerts as $alert)
-                                            @php
-                                                $isOverdue = $alert->is_overdue;
-                                                $dueDate   = \Carbon\Carbon::parse($alert->due_date);
-                                            @endphp
-                                            <div class="text-reset notification-item d-block dropdown-item position-relative">
-                                                <div class="d-flex">
-                                                    <div class="avatar-xs me-3 flex-shrink-0">
-                                                        <span class="avatar-title rounded-circle fs-16 {{ $isOverdue ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning' }}">
-                                                            <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}"></i>
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <a href="{{ url('change-request/' . $alert->id) }}" class="stretched-link">
-                                                            <h6 class="mt-0 mb-1 lh-base">
-                                                                DOC-{{ date('Y', strtotime($alert->created_at)) }}-{{ str_pad($alert->id, 3, '0', STR_PAD_LEFT) }}
-                                                            </h6>
-                                                        </a>
-                                                        <p class="mb-1 fs-11 text-truncate" style="max-width: 220px;">
-                                                            {{ $alert->title }}
-                                                        </p>
-                                                        <p class="mb-0 fs-11 fw-medium text-uppercase {{ $isOverdue ? 'text-danger' : 'text-warning' }}">
-                                                            <i class="mdi mdi-calendar-clock"></i>
-                                                            @if($isOverdue)
-                                                                Overdue since {{ $dueDate->format('M d, Y') }}
-                                                            @else
-                                                                Due {{ $dueDate->diffForHumans() }}
-                                                            @endif
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            @endforeach
-
-                                            @if($dueDateAlerts->count() > 0 && count($draft_requests) > 0)
-                                            <div class="dropdown-divider my-1"></div>
-                                            @endif
-
-                                            @foreach ($draft_requests as $draft_request)
-                                            <div class="text-reset notification-item d-block dropdown-item position-relative">
-                                                <div class="d-flex">
-                                                    <div class="avatar-xs me-3 flex-shrink-0">
-                                                        <span class="avatar-title bg-info-subtle text-info rounded-circle fs-16">
-                                                            <i class="bx bx-file"></i>
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <a href="{{ url('documents/create/'. $draft_request->id) }}" class="stretched-link">
-                                                            <h6 class="mt-0 mb-2 lh-base">
-                                                                DOC-{{ date('Y', strtotime($draft_request->created_at)) }}-{{ str_pad($draft_request->id,'3',0,STR_PAD_LEFT) }}
-                                                            </h6>
-                                                        </a>
-                                                        <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                            <span><i class="mdi mdi-pencil"></i> {{ $draft_request->title }}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            @endforeach
-
-                                            @if($totalNotifCount === 0)
-                                            <div class="text-center p-4 text-muted">
-                                                <i class="bx bx-bell-off fs-24 mb-2 d-block"></i>
-                                                <small>No notifications</small>
-                                            </div>
-                                            @endif
-
-                                        </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($totalNotifCount > 0)
+                                        <button type="button"
+                                                class="btn mark-all-read-btn"
+                                                style="font-size:0.62rem; padding:2px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:20px; color:#fff; background:rgba(255,255,255,0.1); white-space:nowrap; line-height:1.5; transition: all 0.2s;"
+                                                onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+                                                onmouseout="this.style.background='rgba(255,255,255,0.1)'"
+                                                data-type="all"
+                                                data-target="#notificationDropdown">
+                                            <i class="bx bx-check-double me-1"></i>Mark all read
+                                        </button>
+                                        @endif
+                                        <span style="background:rgba(255,255,255,0.2); color:#fff; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px;">
+                                            {{ $totalNotifCount }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        @php $pendingApproval = getPendingApproval(); @endphp
-                        <div class="dropdown topbar-head-dropdown ms-1 header-item" id="messagesDropdown">
-                            <button type="button" 
-                                    class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" 
-                                    id="page-header-messages-dropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    data-bs-auto-close="outside" 
-                                    aria-haspopup="true" 
-                                    aria-expanded="false">
-                                <i class='bx bx-message-square-dots fs-22'></i>
-                                <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-success">
-                                    {{ count($pendingApproval) }}
-                                    <span class="visually-hidden">pending approvals</span>
-                                </span>
-                            </button>
+                            <div style="background:#fff;">
+                                <div data-simplebar style="max-height: 380px;">
 
-                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-messages-dropdown">
-                                <div class="dropdown-head bg-pattern rounded-top" style="background-color: #800000;">
-                                    <div class="p-3">
-                                        <div class="row align-items-center">
-                                            <div class="col">
-                                                <h6 class="m-0 fs-16 fw-semibold text-white">Pending Approval</h6>
-                                            </div>
-                                            <div class="col-auto dropdown-tabs">
-                                                <span class="badge bg-light text-body fs-13">{{ count($pendingApproval) }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+    {{-- Due Dates --}}
+    @if($unreadDueDateAlerts->count() > 0)
+    <div style="padding: 6px 14px 4px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Due Dates</span>
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+        </div>
+    </div>
+    @endif
 
-                                <div class="tab-content position-relative" id="messageItemsTabContent">
-                                    <div class="tab-pane fade show active py-2 ps-2" id="all-messages-tab" role="tabpanel">
-                                        <div data-simplebar style="max-height: 300px;" class="pe-2">
-                                            @foreach ($pendingApproval as $request)
-                                            @php $req = $request->change_request; @endphp
-                                            <div class="text-reset notification-item d-block dropdown-item">
-                                                <div class="d-flex">
-                                                    <img src="{{asset('assets/images/marsu-logo.png')}}" class="me-3 rounded-circle avatar-xs flex-shrink-0" alt="user-pic">
-                                                    <div class="flex-grow-1">
-                                                        <a href="{{ url('change-request/for_approval/'.$req->id) }}" class="stretched-link">
-                                                            <h6 class="mt-0 mb-1 fs-13 fw-semibold">DOC-{{ str_pad($req->id,3,'0',STR_PAD_LEFT) }}</h6>
-                                                        </a>
-                                                        <div class="fs-13 text-muted">
-                                                            <p class="mb-1">{{ $req->title }}</p>
-                                                        </div>
-                                                        <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
-                                                            <span><i class="mdi mdi-clock-outline"></i> {{ $request->created_at->diffForHumans() }}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            @endforeach
+    @foreach ($unreadDueDateAlerts as $alert)
+    @php
+        $isOverdue = $alert->is_overdue;
+        $dueDate   = \Carbon\Carbon::parse($alert->due_date);
+    @endphp
+    <div class="notification-item"
+        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+        onmouseover="this.style.background='#fafafa'"
+        onmouseout="this.style.background='#fff'">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+                        background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};">
+                <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}"
+                style="font-size:1rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }};"></i>
+            </div>
+            <div class="flex-grow-1" style="min-width:0;">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                    <a href="{{ url('change-request/for_approval/' . $alert->id) }}"
+                    class="notification-link stretched-link text-decoration-none"
+                    data-type="due_date"
+                    data-id="{{ $alert->id }}"
+                    style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                        DOC-{{ date('Y', strtotime($alert->created_at)) }}-{{ str_pad($alert->id, 3, '0', STR_PAD_LEFT) }}
+                    </a>
+                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; white-space:nowrap; flex-shrink:0;
+                                background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};
+                                color: {{ $isOverdue ? '#dc2626' : '#d97706' }};">
+                        <i class="mdi mdi-calendar-clock"></i>
+                        {{ $isOverdue ? 'Overdue' : 'Due soon' }}
+                    </span>
+                </div>
+                <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                    {{ $alert->title }}
+                </p>
+                <p class="mb-0" style="font-size:0.68rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }}; font-weight:500;">
+                    <i class="mdi mdi-calendar-clock"></i>
+                    {{ $isOverdue ? 'Overdue since ' . $dueDate->format('M d, Y') : 'Due ' . $dueDate->diffForHumans() }}
+                </p>
+            </div>
+            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+            </div>
+        </div>
+    </div>
+    @endforeach
 
-                                            @if(count($pendingApproval) === 0)
-                                            <div class="text-center p-4 text-muted">
-                                                <i class="bx bx-check-circle fs-24 mb-2 d-block"></i>
-                                                <small>No pending approvals</small>
-                                            </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
+    {{-- Drafts --}}
+    @if($unreadDraftRequests->count() > 0)
+    <div style="padding: 6px 14px 4px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Drafts</span>
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+        </div>
+    </div>
+    @endif
+
+    @foreach ($unreadDraftRequests as $draft_request)
+    <div class="notification-item"
+        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+        onmouseover="this.style.background='#fafafa'"
+        onmouseout="this.style.background='#fff'">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:36px; height:36px; border-radius:50%; background:#e0f2fe; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="bx bx-file" style="font-size:1rem; color:#0284c7;"></i>
+            </div>
+            <div class="flex-grow-1" style="min-width:0;">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                    <a href="{{ url('documents/create/' . $draft_request->id) }}"
+                    class="notification-link stretched-link text-decoration-none"
+                    data-type="draft"
+                    data-id="{{ $draft_request->id }}"
+                    style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                        DOC-{{ date('Y', strtotime($draft_request->created_at)) }}-{{ str_pad($draft_request->id, '3', 0, STR_PAD_LEFT) }}
+                    </a>
+                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#e0f2fe; color:#0284c7; white-space:nowrap; flex-shrink:0;">
+                        <i class="mdi mdi-pencil"></i> Draft
+                    </span>
+                </div>
+                <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                    {{ $draft_request->title }}
+                </p>
+            </div>
+            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    {{-- Pending Approval --}}
+    @if($unreadPendingApproval->count() > 0)
+    <div style="padding: 6px 14px 4px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Pending Approval</span>
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+        </div>
+    </div>
+    @endif
+
+    @foreach ($unreadPendingApproval as $request)
+    @php $req = $request->change_request; @endphp
+    <div class="notification-item"
+        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+        onmouseover="this.style.background='#fafafa'"
+        onmouseout="this.style.background='#fff'">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0; border:2px solid #f0f0f0;">
+                <img src="{{ asset('assets/images/marsu-logo.png') }}"
+                    alt="pic"
+                    style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <div class="flex-grow-1" style="min-width:0;">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                    <a href="{{ url('change-request/for_approval/' . $req->id) }}"
+                    class="notification-link stretched-link text-decoration-none"
+                    data-type="pending_approval"
+                    data-id="{{ $req->id }}"
+                    style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                        DOC-{{ str_pad($req->id, 3, '0', STR_PAD_LEFT) }}
+                    </a>
+                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#dcfce7; color:#16a34a; white-space:nowrap; flex-shrink:0;">
+                        <i class="mdi mdi-clock-check-outline"></i> For Approval
+                    </span>
+                </div>
+                <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                    {{ $req->title }}
+                </p>
+                <p class="mb-0" style="font-size:0.68rem; color:#9ca3af;">
+                    <i class="mdi mdi-clock-outline"></i>
+                    {{ $request->created_at->diffForHumans() }}
+                </p>
+            </div>
+            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    {{-- Comments --}}
+    @if($unreadCommentNotifications->count() > 0)
+    <div style="padding: 6px 14px 4px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Comments</span>
+            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+        </div>
+    </div>
+    @endif
+
+    @foreach ($unreadCommentNotifications as $notif)
+    @php $cr = $notif->change_request; @endphp
+    @if(!$cr) @continue @endif
+    <div class="notification-item"
+        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+        onmouseover="this.style.background='#fafafa'"
+        onmouseout="this.style.background='#fff'">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:36px; height:36px; border-radius:50%; background:#f3e8ff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="bx bx-comment-detail" style="font-size:1rem; color:#7c3aed;"></i>
+            </div>
+            <div class="flex-grow-1" style="min-width:0;">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                    <a href="{{ url('change-request/for_approval/' . $cr->id) }}"
+                       class="notification-link stretched-link text-decoration-none"
+                       data-type="comment"
+                       data-id="{{ $cr->id }}"
+                       style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                        DOC-{{ date('Y', strtotime($cr->created_at)) }}-{{ str_pad($cr->id, 3, '0', STR_PAD_LEFT) }}
+                    </a>
+                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#f3e8ff; color:#7c3aed; white-space:nowrap; flex-shrink:0;">
+                        <i class="mdi mdi-comment-text-outline"></i> New Comment
+                    </span>
+                </div>
+                <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                    {{ $cr->title }}
+                </p>
+            </div>
+            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    {{-- Empty state --}}
+    @if($totalNotifCount === 0)
+    <div class="text-center py-5 px-3">
+        <div style="width:52px; height:52px; background:#fef2f2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+            <i class="bx bx-bell-off" style="font-size:1.5rem; color:#8b0000;"></i>
+        </div>
+        <p class="mb-0 fw-semibold" style="font-size:0.8rem; color:#374151;">You're all caught up!</p>
+        <p class="mb-0" style="font-size:0.72rem; color:#9ca3af;">No new notifications</p>
+    </div>
+    @endif
+
+</div> {{-- end simplebar --}}
                             </div>
+
+                            @if($totalNotifCount > 0)
+                            <div style="padding:10px 14px; background:#fafafa; border-top:1px solid #f0f0f0; text-align:center;">
+                                <a href="{{ url('/change-requests') }}"
+                                style="font-size:0.75rem; color:#8b0000; font-weight:600; text-decoration:none;"
+                                onmouseover="this.style.textDecoration='underline'"
+                                onmouseout="this.style.textDecoration='none'">
+                                    View all notifications <i class="bx bx-right-arrow-alt"></i>
+                                </a>
+                            </div>
+                            @endif
                         </div>
 
                         <div class="dropdown ms-sm-3 header-item topbar-user">
@@ -1643,6 +1751,147 @@
             document.getElementById('preloaderMarsu').style.display = 'none';
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            function updateBadge(badge, delta) {
+                if (!badge) return;
+                let current = parseInt(badge.textContent.trim()) || 0;
+                let updated = Math.max(0, current + delta);
+                badge.textContent = updated;
+                badge.style.display = updated === 0 ? 'none' : '';
+            }
+
+            function setBadge(badge, value) {
+                if (!badge) return;
+                badge.textContent = value;
+                badge.style.display = value === 0 ? 'none' : '';
+            }
+
+            function fadeOutItem(item) {
+                if (!item) return;
+                item.style.transition = 'opacity 0.3s ease';
+                item.style.opacity = '0';
+                item.style.overflow = 'hidden';
+                setTimeout(function () {
+                    item.style.maxHeight = '0';
+                    item.style.padding = '0';
+                    item.style.margin = '0';
+                }, 300);
+            }
+
+            function showEmptyState(dropdownEl, type) {
+                var container = dropdownEl
+                    ? dropdownEl.querySelector('.tab-pane [data-simplebar]')
+                    : null;
+                if (!container) return;
+
+                setTimeout(function () {
+                    container.innerHTML = type === 'pending_approval'
+                        ? '<div class="text-center p-4 text-muted"><i class="bx bx-check-circle fs-24 mb-2 d-block"></i><small>No pending approvals</small></div>'
+                        : '<div class="text-center p-4 text-muted"><i class="bx bx-bell-off fs-24 mb-2 d-block"></i><small>No notifications</small></div>';
+                }, 400);
+            }
+
+            function hideMarkAllBtn(dropdownEl) {
+                var btn = dropdownEl ? dropdownEl.querySelector('.mark-all-read-btn') : null;
+                if (btn) btn.style.display = 'none';
+            }
+
+            document.querySelectorAll('.notification-link').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    var clickedLink     = this;
+                    var href            = clickedLink.getAttribute('href');
+                    var changeRequestId = clickedLink.dataset.id;
+                    var type            = clickedLink.dataset.type;
+
+                    var dropdownEl  = clickedLink.closest('.dropdown');
+                    var iconBadge   = dropdownEl ? dropdownEl.querySelector('button.btn-topbar .topbar-badge') : null;
+                    var headerBadge = dropdownEl ? dropdownEl.querySelector('.dropdown-head .badge') : null;
+                    var item        = clickedLink.closest('.notification-item');
+
+                    fetch('{{ route("notifications.markRead") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            type:              type,
+                            change_request_id: changeRequestId,
+                        }),
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.success && data.is_new_read) {
+                            updateBadge(iconBadge, -1);
+                            updateBadge(headerBadge, -1);
+                            fadeOutItem(item);
+                        }
+                    })
+                    .catch(function () {
+                    })
+                    .finally(function () {
+                        setTimeout(function () {
+                            window.location.href = href;
+                        }, 400);
+                    });
+                });
+            });
+
+            document.querySelectorAll('.mark-all-read-btn').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    var type       = this.dataset.type;
+                    var targetSel  = this.dataset.target;
+                    var dropdownEl = document.querySelector(targetSel);
+                    var iconBadge  = dropdownEl ? dropdownEl.querySelector('button.btn-topbar .topbar-badge') : null;
+                    var headerBadge= dropdownEl ? dropdownEl.querySelector('.dropdown-head .badge') : null;
+                    var clickedBtn = this;
+
+                    clickedBtn.disabled    = true;
+                    clickedBtn.textContent = 'Marking...';
+
+                    fetch('{{ route("notifications.markAllRead") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({ type: type }),
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.success) {
+                            setBadge(iconBadge, 0);
+                            setBadge(headerBadge, 0);
+
+                            var items = dropdownEl ? dropdownEl.querySelectorAll('.notification-item') : [];
+                            items.forEach(function (item) { fadeOutItem(item); });
+
+                            showEmptyState(dropdownEl, type);
+                            hideMarkAllBtn(dropdownEl);
+
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 500);
+                        }
+                    })
+                    .catch(function () {
+                        clickedBtn.disabled    = false;
+                        clickedBtn.textContent = 'Mark all as read';
+                    });
+                });
+            });
+
+        });
+        </script>
 
     <script>
         function updateDmsLabel() {
