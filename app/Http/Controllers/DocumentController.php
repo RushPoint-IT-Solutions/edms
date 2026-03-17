@@ -936,13 +936,16 @@ class DocumentController extends Controller
 
             DB::commit();
 
+            Alert::success('Successfully Uploaded')->persistent('Dismiss');
+            return back();
+
         } catch (Exception $e) {
             DB::rollback();
-            Log::error($e->getMessage());
+            Log::error("Cannot upload documents", $e->getMessage());
+            
+            Alert::error('Error')->persistent('Dismiss');
+            return back();
         }
-
-        Alert::success('Successfully Uploaded')->persistent('Dismiss');
-        return back();
     }
 
     /**
@@ -1443,36 +1446,42 @@ class DocumentController extends Controller
     public function editDateApproved(Request $request, $id)
     {
         // dd($request->all());
-        $approver = RequestApprover::findOrFail($id);
+        try {
+            DB::beginTransaction();
+            $approver = RequestApprover::findOrFail($id);
 
-        // $logs = new DateApprovedLog;
-        // $logs->user_id = auth()->id();
-        // $logs->date_approved = $request->date_approved." ".date('H:i:s');
-        // $logs->change_request_id = $approver->change_request_id;
-        // $logs->save();
+            $history = new History;
+            $history->change_request_id = $approver->change_request_id;
+            if ($approver->date_approved) {
+                $history->comment = "From: ".$approver->date_approved. "<br>" . "To: " . $request->date_approved;
+            } else {
+                $history->comment = "From: ".date("Y-m-d", strtotime($approver->updated_at)). "<br>" . "To: " . $request->date_approved;
+            }
+            $history->user_id = auth()->user()->id;
+            $history->save();
 
-        $history = new History;
-        $history->change_request_id = $approver->change_request_id;
-        if ($approver->date_approved) {
-            $history->comment = "From: ".$approver->date_approved. "<br>" . "To: " . $request->date_approved;
-        } else {
-            $history->comment = "From: ".date("Y-m-d", strtotime($approver->updated_at)). "<br>" . "To: " . $request->date_approved;
+            $approver->date_approved = $request->date_approved;
+            $approver->save();
+
+            $documents = Document::findOrFail($request->document_id);
+            $request = $documents->change_requests->sortByDesc('id')->first();
+            $approver = $request->approvers->first();
+            
+            $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
+            Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
+
+            DB::commit();
+
+            Alert::success('Successfully Saved')->persistent('Dismiss');
+            return back();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Cannot edit approved date", $e->getMessage());
+
+            Alert::error('Error')->persistent('Dismiss');
+            return back();
         }
-        $history->user_id = auth()->user()->id;
-        $history->save();
-
-        $approver->date_approved = $request->date_approved;
-        $approver->save();
-
-        $documents = Document::findOrFail($request->document_id);
-        $request = $documents->change_requests->sortByDesc('id')->first();
-        $approver = $request->approvers->first();
         
-        $users = User::whereIn('id',[$request->user_id, $approver->user_id])->get();
-        Mail::to($users)->send(new ApprovedDateEmail($documents,$approver));
-
-        Alert::success('Successfully Saved')->persistent('Dismiss');
-        return back();
     }
 
     public function uploadDocumentFolder(Request $request)
