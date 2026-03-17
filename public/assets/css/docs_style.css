@@ -155,9 +155,13 @@
         display: none;
     }
 
+    .list-view {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .document-table {
-        width: 100%;
-        border-collapse: collapse;
+        min-width: 480px;
     }
 
     .document-table thead {
