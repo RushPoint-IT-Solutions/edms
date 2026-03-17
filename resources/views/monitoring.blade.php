@@ -293,7 +293,7 @@
 </div>
 
 <div id="private-public-documents" class="row g-4">
-    <div id="private-documents" class="col-12 col-lg-6">
+    <div id="private-documents" class="col-12 col-lg-4">
         <div class="card shadow-sm w-100 qms-chart-card" style="max-height:450px;overflow:hidden;">
             <div class="card-body d-flex flex-column" style="height:450px;">
                 <h5 class="fw-semibold text-dark mb-3">Private Documents</h5>
@@ -492,7 +492,7 @@
         </div>
     </div>
 
-    <div id="public-documents" class="col-12 col-lg-6">
+    <div id="public-documents" class="col-12 col-lg-4">
         <div class="card shadow-sm w-100 qms-chart-card" style="max-height:450px;overflow:hidden;">
             <div class="card-body d-flex flex-column" style="height:450px;">
                 <h5 class="fw-semibold text-dark mb-3">Public Documents</h5>
@@ -603,6 +603,104 @@
         </div>
     </div>
 
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm w-100 qms-chart-card" style="max-height:450px;overflow:hidden;">
+            <div class="card-body d-flex flex-column" style="height:450px;">
+                <h5 class="fw-semibold text-dark mb-3">Document Tracking</h5>
+    
+                <form action="{{ route('monitoring') }}" method="GET" class="mb-3">
+                    @if(request('pending_search'))
+                        <input type="hidden" name="pending_search" value="{{ request('pending_search') }}">
+                    @endif
+                    <div class="d-flex gap-2 align-items-center mt-1">
+                        <div class="position-relative flex-grow-1">
+                            <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
+                            <input type="text"
+                                name="public_search"
+                                value="{{ request('public_search') }}"
+                                placeholder="Search title, dept, office, date..."
+                                class="form-control form-control-sm ps-5 pe-5"
+                                autocomplete="off">
+                            @if(request('public_search'))
+                            <a href="{{ route('monitoring') }}"
+                                class="position-absolute top-50 translate-middle-y end-0 me-2 text-muted text-decoration-none"
+                                style="z-index:2;">
+                                <i class="ri-close-circle-fill"></i>
+                            </a>
+                            @endif
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                            <i class="ri-search-line"></i>
+                        </button>
+                    </div>
+                </form>
+    
+                <div class="mb-2" style="height:22px;">
+                    <span class="priv-legend" style="--lc:#e0f0e3;">
+                        <span></span> Track your documents here
+                    </span>
+                </div>
+    
+                <div style="overflow-y:scroll;flex-grow:1;min-height:0;">
+                    <ul class="list-group list-group-flush">
+                        @forelse ($change_requests as $change_request)
+                        <li class="list-group-item px-2 py-2 priv-item pub-item" style="border-left: 4px solid #e0f0e3; border-radius: 6px; margin-bottom: 4px;" data-bs-toggle="modal" data-bs-target="#viewApprovers{{ $change_request->id }}">
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="flex-shrink-0 pt-1">
+                                    <div class="avatar-title rounded"
+                                        style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:#e0f0e3;color:#559E83;">
+                                        <i class="ri-file-text-line"></i>
+                                    </div>
+                                </div>
+    
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <h6 class="fs-14 mb-0 text-truncate fw-semibold text-dark">{{$change_request->title}}</h6>
+                                    <div class="mt-1">
+                                        <span class="priv-status-badge" style="--bc:#e0f0e3;--tc:#559E83;">
+                                            <i class="ri-global-line"></i> {{ $change_request->status }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted d-block text-truncate mt-1">
+                                        DOC-{{ str_pad($change_request->id,3,"0",STR_PAD_LEFT) }}
+                                    </small>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        @if($change_request->department)
+                                            <span class="meta-tag"><i class="ri-building-line"></i> {{ $change_request->department->name }}</span>
+                                        @endif
+                                        @if($change_request->office)
+                                            <span class="meta-tag"><i class="ri-home-office-line"></i> {{ $change_request->office->name }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+    
+                                <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width:70px;">
+                                    <small class="text-muted" style="font-size:0.65rem;white-space:nowrap;">
+                                        <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($change_request->created_at)) }}
+                                    </small>
+                                    {{-- <a href="{{ url('/documents/visitors/'.$document->id) }}"
+                                        target="_blank"
+                                        class="text-decoration-none"
+                                        onclick="event.stopPropagation();">
+                                        <span class="badge bg-primary-subtle text-primary" style="font-size:0.6rem;">
+                                            <i class="ri-eye-line"></i> {{ $document->visitor->count() }}
+                                        </span>
+                                    </a> --}}
+                                </div>
+                            </div>
+                        </li>
+
+                        @include("monitoring.view_approvers")
+                        @empty
+                        <li class="list-group-item text-center text-muted py-4">
+                            <i class="ri-folder-open-line d-block mb-1" style="font-size:1.5rem;"></i>
+                            No documents found.
+                        </li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="dashboardSignModal" tabindex="-1" aria-hidden="true">

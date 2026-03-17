@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\ChangeRequest;
 use App\Department;
 use App\Document;
 use App\Office;
@@ -180,12 +181,15 @@ class MonitoringController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(8, ['*'], 'pending_page');
 
+        $change_requests = ChangeRequest::with("approvers.user")->where("user_id", auth()->id())->get();
+
         return view('monitoring', [
             'documents'         => $documents,
             'private_documents' => $private_documents,
             'pending_cards'     => $pending_cards,
             'departments'       => $departments,
             'offices'           => $offices,
+            'change_requests'   => $change_requests,
         ]);
     }
 }

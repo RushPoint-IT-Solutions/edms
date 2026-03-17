@@ -37,7 +37,9 @@ use App\SupportingDocument;
 use Carbon\Carbon;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class RequestController extends Controller
@@ -648,117 +650,41 @@ class RequestController extends Controller
             'file' => 'mimes:pdf'
         ]);
 
-        if ($request->has('id'))
-        {
-            $change_request = ChangeRequest::findOrFail($request->id);
-            $change_request->department_id = $request->department_id;
-            $change_request->title = $request->title;
-            $change_request->type = $request->type;
-            $change_request->description = $request->description;
-            $change_request->category = $request->category;
-            $change_request->status = $request->status;
-            $change_request->privacy = $team ? $team->name : null;
-            $change_request->user_id = auth()->user()->id;
-            $change_request->revision = 0;
-            $change_request->request_status = "Pending";
-            $change_request->due_date = $request->due_date ?: null;
-            if($request->has('save_as_draft'))
+        try {
+            DB::beginTransaction();
+            
+            if ($request->has('id'))
             {
-                $change_request->is_draft = 1;
-            }
-            else
-            {
-                $change_request->is_draft = null;
-            }
-            if ($request->hasFile('file'))
-            {
-                $file = $request->file('file');
-                $name = time().'_'.$file->getClientOriginalName();
-                $file->move(public_path('attachment'),$name);
-                $change_request->file = '/attachment/'.$name;
-            }
-            $change_request->save();
-
-            $approvers = RequestApprover::where('change_request_id', $change_request->id)->delete();
-            foreach($request->approvers as $key=>$approver)
-            {
-                $approvers = new RequestApprover;
-                $approvers->change_request_id = $change_request->id;
-                $approvers->user_id = $approver;
-                $approvers->level = $key+1;
-                if($key == 0)
+                $change_request = ChangeRequest::findOrFail($request->id);
+                $change_request->department_id = $request->department_id;
+                $change_request->title = $request->title;
+                $change_request->type = $request->type;
+                $change_request->description = $request->description;
+                $change_request->category = $request->category;
+                $change_request->status = $request->status;
+                $change_request->privacy = $team ? $team->name : null;
+                $change_request->user_id = auth()->user()->id;
+                $change_request->revision = 0;
+                $change_request->request_status = "Pending";
+                $change_request->due_date = $request->due_date ?: null;
+                if($request->has('save_as_draft'))
                 {
-                    $approvers->status = "Pending";
-                    $approvers->start_date = date('Y-m-d');
+                    $change_request->is_draft = 1;
                 }
                 else
                 {
-                    $approvers->status = "Waiting";
+                    $change_request->is_draft = null;
                 }
-                $approvers->save();
-            }
-
-            if ($request->has('supporting_documents'))
-            {
-                $supporting_documents = SupportingDocument::where('change_request_id', $change_request->id)->delete();
-                if ($request->hasFile('supporting_documents'))
+                if ($request->hasFile('file'))
                 {
-                    $documents = $request->file('supporting_documents');
-                    foreach($documents as $document)
-                    {
-                        $name = time().'_'.$document->getClientOriginalName();
-                        $document->move(public_path('supporting_documents'),$name);
-            
-                        $supporting_documents = new SupportingDocument;
-                        $supporting_documents->change_request_id = $change_request->id;
-                        $supporting_documents->file = '/supporting_documents/'.$name;
-                        $supporting_documents->save();
-                    }
+                    $file = $request->file('file');
+                    $name = time().'_'.$file->getClientOriginalName();
+                    $file->move(public_path('attachment'),$name);
+                    $change_request->file = '/attachment/'.$name;
                 }
-            }
+                $change_request->save();
 
-            foreach(json_decode($request->signature_positions) as $signature_position)
-            {
-                $document_signature_position = new DocumentSignaturePosition;
-                $document_signature_position->change_request_id = $change_request->id;
-                $document_signature_position->user_id = $signature_position->user_id;
-                $document_signature_position->page_number = $signature_position->page_number;
-                $document_signature_position->x_position = $signature_position->x_position;
-                $document_signature_position->y_position = $signature_position->y_position;
-                $document_signature_position->width = $signature_position->width;
-                $document_signature_position->height = $signature_position->height;
-                $document_signature_position->save();
-            }
-        }
-        else 
-        {
-            $change_request = new ChangeRequest;
-            $change_request->title = $request->title;
-            $change_request->type = $request->type;
-            $change_request->department_id = $request->department_id;
-            $change_request->description = $request->description;
-            $change_request->category = $request->category;
-            $change_request->status = $request->status;
-            $change_request->privacy = $team ? $team->name : null;
-            $change_request->user_id = auth()->user()->id;
-            $change_request->revision = 0;
-            $change_request->request_status = "Pending";
-            $change_request->due_date = $request->due_date ?: null;
-            if($request->has('save_as_draft'))
-            {
-                $change_request->is_draft = 1;
-            }
-            if ($request->hasFile('file'))
-            {
-                $file = $request->file('file');
-                $name = time().'_'.$file->getClientOriginalName();
-                $file->move(public_path('attachment'),$name);
-                $change_request->file = '/attachment/'.$name;
-            }
-            $change_request->save();
-    
-            if ($request->has('approvers'))
-            {
+                $approvers = RequestApprover::where('change_request_id', $change_request->id)->delete();
                 foreach($request->approvers as $key=>$approver)
                 {
                     $approvers = new RequestApprover;
@@ -776,45 +702,133 @@ class RequestController extends Controller
                     }
                     $approvers->save();
                 }
-            }
-    
-            if ($request->hasFile('supporting_documents'))
-            {
-                $documents = $request->file('supporting_documents');
-                foreach($documents as $document)
+
+                if ($request->has('supporting_documents'))
                 {
-                    $name = time().'_'.$document->getClientOriginalName();
-                    $document->move(public_path('supporting_documents'),$name);
-        
-                    $supporting_documents = new SupportingDocument;
-                    $supporting_documents->change_request_id = $change_request->id;
-                    $supporting_documents->file = '/supporting_documents/'.$name;
-                    $supporting_documents->save();
+                    $supporting_documents = SupportingDocument::where('change_request_id', $change_request->id)->delete();
+                    if ($request->hasFile('supporting_documents'))
+                    {
+                        $documents = $request->file('supporting_documents');
+                        foreach($documents as $document)
+                        {
+                            $name = time().'_'.$document->getClientOriginalName();
+                            $document->move(public_path('supporting_documents'),$name);
+                
+                            $supporting_documents = new SupportingDocument;
+                            $supporting_documents->change_request_id = $change_request->id;
+                            $supporting_documents->file = '/supporting_documents/'.$name;
+                            $supporting_documents->save();
+                        }
+                    }
+                }
+
+                foreach(json_decode($request->signature_positions) as $signature_position)
+                {
+                    $document_signature_position = new DocumentSignaturePosition;
+                    $document_signature_position->change_request_id = $change_request->id;
+                    $document_signature_position->user_id = $signature_position->user_id;
+                    $document_signature_position->page_number = $signature_position->page_number;
+                    $document_signature_position->x_position = $signature_position->x_position;
+                    $document_signature_position->y_position = $signature_position->y_position;
+                    $document_signature_position->width = $signature_position->width;
+                    $document_signature_position->height = $signature_position->height;
+                    $document_signature_position->save();
                 }
             }
-        }
-
-        if ($request->has('signature_positions'))
-        {
-            foreach(json_decode($request->signature_positions) as $signature_position)
+            else 
             {
-                $document_signature_position = new DocumentSignaturePosition;
-                $document_signature_position->change_request_id = $change_request->id;
-                $document_signature_position->user_id = $signature_position->user_id;
-                $document_signature_position->page_number = $signature_position->page_number;
-                $document_signature_position->x_position = $signature_position->x_position;
-                $document_signature_position->y_position = $signature_position->y_position;
-                $document_signature_position->width = $signature_position->width;
-                $document_signature_position->height = $signature_position->height;
-                $document_signature_position->save();
-            }
-        }
+                $change_request = new ChangeRequest;
+                $change_request->title = $request->title;
+                $change_request->type = $request->type;
+                $change_request->department_id = $request->department_id;
+                $change_request->description = $request->description;
+                $change_request->category = $request->category;
+                $change_request->status = $request->status;
+                $change_request->privacy = $team ? $team->name : null;
+                $change_request->user_id = auth()->user()->id;
+                $change_request->revision = 0;
+                $change_request->request_status = "Pending";
+                $change_request->due_date = $request->due_date ?: null;
+                if($request->has('save_as_draft'))
+                {
+                    $change_request->is_draft = 1;
+                }
+                if ($request->hasFile('file'))
+                {
+                    $file = $request->file('file');
+                    $name = time().'_'.$file->getClientOriginalName();
+                    $file->move(public_path('attachment'),$name);
+                    $change_request->file = '/attachment/'.$name;
+                }
+                $change_request->save();
         
-        $users = User::whereIn('id', $request->approvers)->get()->pluck('email')->toArray();
-        Mail::to($users)->send(new RequestDocumentApproval($change_request));
+                if ($request->has('approvers'))
+                {
+                    foreach($request->approvers as $key=>$approver)
+                    {
+                        $approvers = new RequestApprover;
+                        $approvers->change_request_id = $change_request->id;
+                        $approvers->user_id = $approver;
+                        $approvers->level = $key+1;
+                        if($key == 0)
+                        {
+                            $approvers->status = "Pending";
+                            $approvers->start_date = date('Y-m-d');
+                        }
+                        else
+                        {
+                            $approvers->status = "Waiting";
+                        }
+                        $approvers->save();
+                    }
+                }
+        
+                if ($request->hasFile('supporting_documents'))
+                {
+                    $documents = $request->file('supporting_documents');
+                    foreach($documents as $document)
+                    {
+                        $name = time().'_'.$document->getClientOriginalName();
+                        $document->move(public_path('supporting_documents'),$name);
+            
+                        $supporting_documents = new SupportingDocument;
+                        $supporting_documents->change_request_id = $change_request->id;
+                        $supporting_documents->file = '/supporting_documents/'.$name;
+                        $supporting_documents->save();
+                    }
+                }
+            }
 
-        Alert::success('Successfully Submitted')->persistent('Dismiss');
-        return redirect('/change-requests');
+            if ($request->has('signature_positions'))
+            {
+                foreach(json_decode($request->signature_positions) as $signature_position)
+                {
+                    $document_signature_position = new DocumentSignaturePosition;
+                    $document_signature_position->change_request_id = $change_request->id;
+                    $document_signature_position->user_id = $signature_position->user_id;
+                    $document_signature_position->page_number = $signature_position->page_number;
+                    $document_signature_position->x_position = $signature_position->x_position;
+                    $document_signature_position->y_position = $signature_position->y_position;
+                    $document_signature_position->width = $signature_position->width;
+                    $document_signature_position->height = $signature_position->height;
+                    $document_signature_position->save();
+                }
+            }
+
+            $users = User::whereIn('id', $request->approvers)->get()->pluck('email')->toArray();
+            Mail::to($users)->send(new RequestDocumentApproval($change_request));
+
+            DB::commit();
+
+            Alert::success('Successfully Submitted')->persistent('Dismiss');
+            return redirect('/change-requests');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("There is an error in adding change request: ". $e->getMessage());
+
+            Alert::error('There is an error in creating request')->persistent('Dismiss');
+            return redirect("/change-requests");
+        }
 
     }
 
@@ -989,136 +1003,147 @@ class RequestController extends Controller
     public function action(Request $request,$id)
     {
         // dd($request->all());
-        if ($request->action == "Submit")
-        {
-            $changeRequestApprover = RequestApprover::where('change_request_id', $id)->where('status', 'Returned')->first();
-            $changeRequestApprover->status = "Pending";
+        try {
+            DB::beginTransaction();
+
+            if ($request->action == "Submit")
+            {
+                $changeRequestApprover = RequestApprover::where('change_request_id', $id)->where('status', 'Returned')->first();
+                $changeRequestApprover->status = "Pending";
+                $changeRequestApprover->save();
+
+                Alert::success('Successfully Submitted')->persistent('Dismiss');
+                return redirect('/change-requests');
+            }
+
+            $changeRequestApprover = RequestApprover::where('change_request_id', $id)->where('user_id', auth()->user()->id)->first();
+            $changeRequestApprover->status = $request->action;
             $changeRequestApprover->save();
 
-            Alert::success('Successfully Submitted')->persistent('Dismiss');
-            return redirect('/change-requests');
-        }
-
-        $changeRequestApprover = RequestApprover::where('change_request_id', $id)->where('user_id', auth()->user()->id)->first();
-        $changeRequestApprover->status = $request->action;
-        $changeRequestApprover->save();
-
-        $requestApprover = RequestApprover::where('change_request_id',$changeRequestApprover->change_request_id)
-        ->where(function ($query) {
-            $query->where('status', 'Waiting')
-                ->orWhere('status', 'Returned');
-        })
-        ->orderBy('level','asc')->first();
-        
-        $changeRequest = ChangeRequest::findOrfail($id);
-        if($request->action == "Approved")
-        {
-            if($requestApprover == null)
-            {
-                $new_document = new Document;
-                $new_document->title = $changeRequest->title;
-                $new_document->category = $changeRequest->category;
-                $new_document->effective_date = date('Y-m-d');
-                $new_document->user_id = $changeRequest->user_id;
-                $new_document->version = 0;
-                $new_document->date_approved = date('Y-m-d');
-                $new_document->control_code = "DOC-".date('Y', strtotime($changeRequest->created_at)).'-'.str_pad($changeRequest->id,3,'0',STR_PAD_LEFT);
-                $new_document->save();
-
-                $changeRequest->document_id = $new_document->id;
-                $changeRequest->control_code = $new_document->control_code;
-                $changeRequest->revision = 0;
-                $changeRequest->status = "Approved";
-                if ($request->hasFile('file'))
-                {
-                    $modified_file = $request->file('file');
-                    $name = time().'_'.$modified_file->getClientOriginalName();
-                    $modified_file->move(public_path('attachment'),$name);
-
-                    $attachment = '/attachment/'.$name;
-
-                    $changeRequest->file = $attachment;
-                }
-                $changeRequest->save();
-
-                $document_attachment = new DocumentAttachment;
-                $document_attachment->document_id = $new_document->id;
-                $document_attachment->attachment = $changeRequest->file;
-                $document_attachment->type = "pdf_copy";
-                $document_attachment->save();
-
-                // $approvedRequestsNotif = User::where('id',$copyRequest->user_id)->first();
-                // $approvedRequestsNotif->notify(new ApprovedRequest($copyRequest,"DICR-","Document Information Change Request","request"));
-
-                // $approvers_all = RequestApprover::where('change_request_id',$copyRequestApprover->change_request_id)->orderBy('level','asc')->get();
-                // foreach($approvers_all as $user_approver)
-                // {
-                //     $app = User::where('id',$user_approver->user_id)->first();
-                //     $app->notify(new NewPolicy($copyRequest,"DICR-","Document Information Change Request","request"));
-                // }
-            }
-            else
-            {
-                $requestApprover->start_date = date('Y-m-d');
-                $requestApprover->status = "Pending";
-                $requestApprover->save();
-
-                if ($request->hasFile('file'))
-                {
-                    $modified_file = $request->file('file');
-                    $name = time().'_'.$modified_file->getClientOriginalName();
-                    $modified_file->move(public_path('attachment'),$name);
-
-                    $attachment = '/attachment/'.$name;
-
-                    $changeRequest->file = $attachment;
-                }
-                $changeRequest->level = $changeRequest->level+1;
-                $changeRequest->save();
-            }
+            $requestApprover = RequestApprover::where('change_request_id',$changeRequestApprover->change_request_id)
+            ->where(function ($query) {
+                $query->where('status', 'Waiting')
+                    ->orWhere('status', 'Returned');
+            })
+            ->orderBy('level','asc')->first();
             
-            $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
-            $histories = new History;
-            $histories->change_request_id = $changeRequest->id;
-            $histories->comment = $comment;
-            $histories->user_id = auth()->user()->id;
-            $histories->save();
+            $changeRequest = ChangeRequest::findOrfail($id);
+            if($request->action == "Approved")
+            {
+                if($requestApprover == null)
+                {
+                    $new_document = new Document;
+                    $new_document->title = $changeRequest->title;
+                    $new_document->category = $changeRequest->category;
+                    $new_document->effective_date = date('Y-m-d');
+                    $new_document->user_id = $changeRequest->user_id;
+                    $new_document->version = 0;
+                    $new_document->date_approved = date('Y-m-d');
+                    $new_document->control_code = "DOC-".date('Y', strtotime($changeRequest->created_at)).'-'.str_pad($changeRequest->id,3,'0',STR_PAD_LEFT);
+                    $new_document->save();
 
-            $user = User::where('id',$changeRequest->user_id)->first();
-            Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
-            // Alert::success('Successfully Approved')->persistent('Dismiss');
-            // return redirect('/for-approval');
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Successfully Approved'
-            ]);
+                    $changeRequest->document_id = $new_document->id;
+                    $changeRequest->control_code = $new_document->control_code;
+                    $changeRequest->revision = 0;
+                    $changeRequest->status = "Approved";
+                    if ($request->hasFile('file'))
+                    {
+                        $modified_file = $request->file('file');
+                        $name = time().'_'.$modified_file->getClientOriginalName();
+                        $modified_file->move(public_path('attachment'),$name);
+
+                        $attachment = '/attachment/'.$name;
+
+                        $changeRequest->file = $attachment;
+                    }
+                    $changeRequest->save();
+
+                    $document_attachment = new DocumentAttachment;
+                    $document_attachment->document_id = $new_document->id;
+                    $document_attachment->attachment = $changeRequest->file;
+                    $document_attachment->type = "pdf_copy";
+                    $document_attachment->save();
+
+                    // $approvedRequestsNotif = User::where('id',$copyRequest->user_id)->first();
+                    // $approvedRequestsNotif->notify(new ApprovedRequest($copyRequest,"DICR-","Document Information Change Request","request"));
+
+                    // $approvers_all = RequestApprover::where('change_request_id',$copyRequestApprover->change_request_id)->orderBy('level','asc')->get();
+                    // foreach($approvers_all as $user_approver)
+                    // {
+                    //     $app = User::where('id',$user_approver->user_id)->first();
+                    //     $app->notify(new NewPolicy($copyRequest,"DICR-","Document Information Change Request","request"));
+                    // }
+                }
+                else
+                {
+                    $requestApprover->start_date = date('Y-m-d');
+                    $requestApprover->status = "Pending";
+                    $requestApprover->save();
+
+                    if ($request->hasFile('file'))
+                    {
+                        $modified_file = $request->file('file');
+                        $name = time().'_'.$modified_file->getClientOriginalName();
+                        $modified_file->move(public_path('attachment'),$name);
+
+                        $attachment = '/attachment/'.$name;
+
+                        $changeRequest->file = $attachment;
+                    }
+                    $changeRequest->level = $changeRequest->level+1;
+                    $changeRequest->save();
+                }
+                
+                $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
+                $histories = new History;
+                $histories->change_request_id = $changeRequest->id;
+                $histories->comment = $comment;
+                $histories->user_id = auth()->user()->id;
+                $histories->save();
+
+                $user = User::where('id',$changeRequest->user_id)->first();
+                Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
+                // Alert::success('Successfully Approved')->persistent('Dismiss');
+                // return redirect('/for-approval');
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Successfully Approved'
+                ]);
+            }
+            elseif($request->action == "Returned")
+            {
+                $changeRequest->status = "Returned";
+                $changeRequest->level = 1;
+                $changeRequest->save(); 
+
+                $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
+                $comments = new Comment;
+                $comments->change_request_id = $changeRequest->id;
+                $comments->comment = $comment;
+                $comments->user_id = auth()->user()->id;
+                $comments->save();
+
+                $history = new History;
+                $history->change_request_id = $changeRequest->id;
+                $history->comment = $comment;
+                $history->user_id = auth()->user()->id;
+                $history->save();
+
+                $user = User::where('id',$changeRequest->user_id)->first();
+                Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
+
+                Alert::success('Successfully Returned')->persistent('Dismiss');
+                return redirect('/for-approval');
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("There is an error in action of change request: ". $e->getMessage());
+            
+            Alert::error('There is an error in approval')->persistent('Dismiss');
+            return redirect("/for-approval");
         }
-        elseif($request->action == "Returned")
-        {
-            $changeRequest->status = "Returned";
-            $changeRequest->level = 1;
-            $changeRequest->save(); 
-
-            $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
-            $comments = new Comment;
-            $comments->change_request_id = $changeRequest->id;
-            $comments->comment = $comment;
-            $comments->user_id = auth()->user()->id;
-            $comments->save();
-
-            $history = new History;
-            $history->change_request_id = $changeRequest->id;
-            $history->comment = $comment;
-            $history->user_id = auth()->user()->id;
-            $history->save();
-
-            $user = User::where('id',$changeRequest->user_id)->first();
-            Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
-
-            Alert::success('Successfully Returned')->persistent('Dismiss');
-            return redirect('/for-approval');
-        }
-    
     }
     
     // public function changeReports(Request $request)
