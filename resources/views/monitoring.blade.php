@@ -327,7 +327,7 @@
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     <span class="priv-legend" style="--lc:#27ae60;"><span></span> Access Granted</span>
                     <span class="priv-legend" style="--lc:#e67e22;"><span></span> Pending Request</span>
-                    <span class="priv-legend" style="--lc:#adb5bd;"><span></span> No Access / Not Requested</span>
+                    <span class="priv-legend" style="--lc:#adb5bd;"><span></span> No Access</span>
                 </div>
 
                 <div style="overflow-y:scroll;flex-grow:1;min-height:0;">
