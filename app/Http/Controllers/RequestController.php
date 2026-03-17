@@ -545,7 +545,14 @@ class RequestController extends Controller
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'type' => optional($cr->document_type)->name ?? '-',
                 'approvers' => $approvers,
-                'status' => e($cr->status),
+                'status' => (function() use ($cr) {
+                    switch ($cr->status) {
+                        case 'For Approval': $badgeClass = 'bg-primary'; break;
+                        case 'Draft': $badgeClass = 'bg-secondary'; break;
+                        default: $badgeClass = 'bg-secondary'; break;
+                    }
+                    return '<span class="badge ' . $badgeClass . '">' . e($cr->status) . '</span>';
+                })(),
             ];
         }
 
