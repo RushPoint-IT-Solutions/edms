@@ -40,7 +40,7 @@ class NotificationController extends Controller
     public function markAllRead(Request $request)
     {
         $request->validate([
-            'type' => 'required|string|in:due_date,draft,pending_approval,bell,all',
+            'type' => 'required|string|in:due_date,draft,pending_approval,comment,bell,all',
         ]);
 
         $userId = auth()->id();
@@ -48,10 +48,10 @@ class NotificationController extends Controller
 
         switch ($type) {
             case 'all':
-                $types = ['due_date', 'draft', 'pending_approval'];
+                $types = ['due_date', 'draft', 'pending_approval', 'comment'];
                 break;
             case 'bell':
-                $types = ['due_date', 'draft'];
+                $types = ['due_date', 'draft', 'comment'];
                 break;
             default:
                 $types = [$type];
@@ -81,6 +81,12 @@ class NotificationController extends Controller
                     ->where('status', 'Pending')
                     ->get()
                     ->pluck('change_request.id');
+
+            } elseif ($t === 'comment') {
+                $ids = UserNotification::where('user_id', $userId)
+                    ->where('type', 'comment')
+                    ->whereNull('read_at')
+                    ->pluck('change_request_id');
             }
 
             foreach ($ids as $id) {
