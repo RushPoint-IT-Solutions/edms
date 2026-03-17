@@ -930,7 +930,7 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.72rem;
+            font-size: 0.57rem;
             color: #6c757d;
             font-weight: 500;
         }
@@ -1102,216 +1102,211 @@
                             <div style="background:#fff;">
                                 <div data-simplebar style="max-height: 380px;">
 
-    {{-- Due Dates --}}
-    @if($unreadDueDateAlerts->count() > 0)
-    <div style="padding: 6px 14px 4px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Due Dates</span>
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-        </div>
-    </div>
-    @endif
+                                @if($unreadDueDateAlerts->count() > 0)
+                                <div style="padding: 6px 14px 4px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                        <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Due Dates</span>
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                    </div>
+                                </div>
+                                @endif
 
-    @foreach ($unreadDueDateAlerts as $alert)
-    @php
-        $isOverdue = $alert->is_overdue;
-        $dueDate   = \Carbon\Carbon::parse($alert->due_date);
-    @endphp
-    <div class="notification-item"
-        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-        onmouseover="this.style.background='#fafafa'"
-        onmouseout="this.style.background='#fff'">
-        <div class="d-flex align-items-start gap-3">
-            <div style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-                        background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};">
-                <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}"
-                style="font-size:1rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }};"></i>
-            </div>
-            <div class="flex-grow-1" style="min-width:0;">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                    <a href="{{ url('change-request/for_approval/' . $alert->id) }}"
-                    class="notification-link stretched-link text-decoration-none"
-                    data-type="due_date"
-                    data-id="{{ $alert->id }}"
-                    style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
-                        DOC-{{ date('Y', strtotime($alert->created_at)) }}-{{ str_pad($alert->id, 3, '0', STR_PAD_LEFT) }}
-                    </a>
-                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; white-space:nowrap; flex-shrink:0;
-                                background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};
-                                color: {{ $isOverdue ? '#dc2626' : '#d97706' }};">
-                        <i class="mdi mdi-calendar-clock"></i>
-                        {{ $isOverdue ? 'Overdue' : 'Due soon' }}
-                    </span>
-                </div>
-                <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                    {{ $alert->title }}
-                </p>
-                <p class="mb-0" style="font-size:0.68rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }}; font-weight:500;">
-                    <i class="mdi mdi-calendar-clock"></i>
-                    {{ $isOverdue ? 'Overdue since ' . $dueDate->format('M d, Y') : 'Due ' . $dueDate->diffForHumans() }}
-                </p>
-            </div>
-            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-            </div>
-        </div>
-    </div>
-    @endforeach
+                                @foreach ($unreadDueDateAlerts as $alert)
+                                @php
+                                    $isOverdue = $alert->is_overdue;
+                                    $dueDate   = \Carbon\Carbon::parse($alert->due_date);
+                                @endphp
+                                <div class="notification-item"
+                                    style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+                                    onmouseover="this.style.background='#fafafa'"
+                                    onmouseout="this.style.background='#fff'">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+                                                    background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};">
+                                            <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}"
+                                            style="font-size:1rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }};"></i>
+                                        </div>
+                                        <div class="flex-grow-1" style="min-width:0;">
+                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                                <a href="{{ url('change-request/for_approval/' . $alert->id) }}"
+                                                class="notification-link stretched-link text-decoration-none"
+                                                data-type="due_date"
+                                                data-id="{{ $alert->id }}"
+                                                style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                    DOC-{{ date('Y', strtotime($alert->created_at)) }}-{{ str_pad($alert->id, 3, '0', STR_PAD_LEFT) }}
+                                                </a>
+                                                <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; white-space:nowrap; flex-shrink:0;
+                                                            background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};
+                                                            color: {{ $isOverdue ? '#dc2626' : '#d97706' }};">
+                                                    <i class="mdi mdi-calendar-clock"></i>
+                                                    {{ $isOverdue ? 'Overdue' : 'Due soon' }}
+                                                </span>
+                                            </div>
+                                            <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                                                {{ $alert->title }}
+                                            </p>
+                                            <p class="mb-0" style="font-size:0.68rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }}; font-weight:500;">
+                                                <i class="mdi mdi-calendar-clock"></i>
+                                                {{ $isOverdue ? 'Overdue since ' . $dueDate->format('M d, Y') : 'Due ' . $dueDate->diffForHumans() }}
+                                            </p>
+                                        </div>
+                                        <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                                            <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
 
-    {{-- Drafts --}}
-    @if($unreadDraftRequests->count() > 0)
-    <div style="padding: 6px 14px 4px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Drafts</span>
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-        </div>
-    </div>
-    @endif
+                                @if($unreadDraftRequests->count() > 0)
+                                <div style="padding: 6px 14px 4px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                        <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Drafts</span>
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                    </div>
+                                </div>
+                                @endif
 
-    @foreach ($unreadDraftRequests as $draft_request)
-    <div class="notification-item"
-        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-        onmouseover="this.style.background='#fafafa'"
-        onmouseout="this.style.background='#fff'">
-        <div class="d-flex align-items-start gap-3">
-            <div style="width:36px; height:36px; border-radius:50%; background:#e0f2fe; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="bx bx-file" style="font-size:1rem; color:#0284c7;"></i>
-            </div>
-            <div class="flex-grow-1" style="min-width:0;">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                    <a href="{{ url('documents/create/' . $draft_request->id) }}"
-                    class="notification-link stretched-link text-decoration-none"
-                    data-type="draft"
-                    data-id="{{ $draft_request->id }}"
-                    style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
-                        DOC-{{ date('Y', strtotime($draft_request->created_at)) }}-{{ str_pad($draft_request->id, '3', 0, STR_PAD_LEFT) }}
-                    </a>
-                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#e0f2fe; color:#0284c7; white-space:nowrap; flex-shrink:0;">
-                        <i class="mdi mdi-pencil"></i> Draft
-                    </span>
-                </div>
-                <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                    {{ $draft_request->title }}
-                </p>
-            </div>
-            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-            </div>
-        </div>
-    </div>
-    @endforeach
+                                @foreach ($unreadDraftRequests as $draft_request)
+                                <div class="notification-item"
+                                    style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+                                    onmouseover="this.style.background='#fafafa'"
+                                    onmouseout="this.style.background='#fff'">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div style="width:36px; height:36px; border-radius:50%; background:#e0f2fe; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                            <i class="bx bx-file" style="font-size:1rem; color:#0284c7;"></i>
+                                        </div>
+                                        <div class="flex-grow-1" style="min-width:0;">
+                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                                <a href="{{ url('documents/create/' . $draft_request->id) }}"
+                                                class="notification-link stretched-link text-decoration-none"
+                                                data-type="draft"
+                                                data-id="{{ $draft_request->id }}"
+                                                style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                    DOC-{{ date('Y', strtotime($draft_request->created_at)) }}-{{ str_pad($draft_request->id, '3', 0, STR_PAD_LEFT) }}
+                                                </a>
+                                                <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#e0f2fe; color:#0284c7; white-space:nowrap; flex-shrink:0;">
+                                                    <i class="mdi mdi-pencil"></i> Draft
+                                                </span>
+                                            </div>
+                                            <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                                                {{ $draft_request->title }}
+                                            </p>
+                                        </div>
+                                        <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                                            <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
 
-    {{-- Pending Approval --}}
-    @if($unreadPendingApproval->count() > 0)
-    <div style="padding: 6px 14px 4px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Pending Approval</span>
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-        </div>
-    </div>
-    @endif
+                                @if($unreadPendingApproval->count() > 0)
+                                <div style="padding: 6px 14px 4px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                        <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Pending Approval</span>
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                    </div>
+                                </div>
+                                @endif
 
-    @foreach ($unreadPendingApproval as $request)
-    @php $req = $request->change_request; @endphp
-    <div class="notification-item"
-        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-        onmouseover="this.style.background='#fafafa'"
-        onmouseout="this.style.background='#fff'">
-        <div class="d-flex align-items-start gap-3">
-            <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0; border:2px solid #f0f0f0;">
-                <img src="{{ asset('assets/images/marsu-logo.png') }}"
-                    alt="pic"
-                    style="width:100%; height:100%; object-fit:cover;">
-            </div>
-            <div class="flex-grow-1" style="min-width:0;">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                    <a href="{{ url('change-request/for_approval/' . $req->id) }}"
-                    class="notification-link stretched-link text-decoration-none"
-                    data-type="pending_approval"
-                    data-id="{{ $req->id }}"
-                    style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
-                        DOC-{{ str_pad($req->id, 3, '0', STR_PAD_LEFT) }}
-                    </a>
-                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#dcfce7; color:#16a34a; white-space:nowrap; flex-shrink:0;">
-                        <i class="mdi mdi-clock-check-outline"></i> For Approval
-                    </span>
-                </div>
-                <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                    {{ $req->title }}
-                </p>
-                <p class="mb-0" style="font-size:0.68rem; color:#9ca3af;">
-                    <i class="mdi mdi-clock-outline"></i>
-                    {{ $request->created_at->diffForHumans() }}
-                </p>
-            </div>
-            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-            </div>
-        </div>
-    </div>
-    @endforeach
+                                @foreach ($unreadPendingApproval as $request)
+                                @php $req = $request->change_request; @endphp
+                                <div class="notification-item"
+                                    style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+                                    onmouseover="this.style.background='#fafafa'"
+                                    onmouseout="this.style.background='#fff'">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0; border:2px solid #f0f0f0;">
+                                            <img src="{{ asset('assets/images/marsu-logo.png') }}"
+                                                alt="pic"
+                                                style="width:100%; height:100%; object-fit:cover;">
+                                        </div>
+                                        <div class="flex-grow-1" style="min-width:0;">
+                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                                <a href="{{ url('change-request/for_approval/' . $req->id) }}"
+                                                class="notification-link stretched-link text-decoration-none"
+                                                data-type="pending_approval"
+                                                data-id="{{ $req->id }}"
+                                                style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                    DOC-{{ str_pad($req->id, 3, '0', STR_PAD_LEFT) }}
+                                                </a>
+                                                <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#dcfce7; color:#16a34a; white-space:nowrap; flex-shrink:0;">
+                                                    <i class="mdi mdi-clock-check-outline"></i> For Approval
+                                                </span>
+                                            </div>
+                                            <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                                                {{ $req->title }}
+                                            </p>
+                                            <p class="mb-0" style="font-size:0.68rem; color:#9ca3af;">
+                                                <i class="mdi mdi-clock-outline"></i>
+                                                {{ $request->created_at->diffForHumans() }}
+                                            </p>
+                                        </div>
+                                        <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                                            <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
 
-    {{-- Comments --}}
-    @if($unreadCommentNotifications->count() > 0)
-    <div style="padding: 6px 14px 4px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-            <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Comments</span>
-            <div style="flex:1; height:1px; background:#f0f0f0;"></div>
-        </div>
-    </div>
-    @endif
+                                @if($unreadCommentNotifications->count() > 0)
+                                <div style="padding: 6px 14px 4px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                        <span style="font-size:0.62rem; color:#adb5bd; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Comments</span>
+                                        <div style="flex:1; height:1px; background:#f0f0f0;"></div>
+                                    </div>
+                                </div>
+                                @endif
 
-    @foreach ($unreadCommentNotifications as $notif)
-    @php $cr = $notif->change_request; @endphp
-    @if(!$cr) @continue @endif
-    <div class="notification-item"
-        style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-        onmouseover="this.style.background='#fafafa'"
-        onmouseout="this.style.background='#fff'">
-        <div class="d-flex align-items-start gap-3">
-            <div style="width:36px; height:36px; border-radius:50%; background:#f3e8ff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="bx bx-comment-detail" style="font-size:1rem; color:#7c3aed;"></i>
-            </div>
-            <div class="flex-grow-1" style="min-width:0;">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                    <a href="{{ url('change-request/for_approval/' . $cr->id) }}"
-                       class="notification-link stretched-link text-decoration-none"
-                       data-type="comment"
-                       data-id="{{ $cr->id }}"
-                       style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
-                        DOC-{{ date('Y', strtotime($cr->created_at)) }}-{{ str_pad($cr->id, 3, '0', STR_PAD_LEFT) }}
-                    </a>
-                    <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#f3e8ff; color:#7c3aed; white-space:nowrap; flex-shrink:0;">
-                        <i class="mdi mdi-comment-text-outline"></i> New Comment
-                    </span>
-                </div>
-                <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                    {{ $cr->title }}
-                </p>
-            </div>
-            <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-            </div>
-        </div>
-    </div>
-    @endforeach
+                                @foreach ($unreadCommentNotifications as $notif)
+                                @php $cr = $notif->change_request; @endphp
+                                @if(!$cr) @continue @endif
+                                <div class="notification-item"
+                                    style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
+                                    onmouseover="this.style.background='#fafafa'"
+                                    onmouseout="this.style.background='#fff'">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div style="width:36px; height:36px; border-radius:50%; background:#f3e8ff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                            <i class="bx bx-comment-detail" style="font-size:1rem; color:#7c3aed;"></i>
+                                        </div>
+                                        <div class="flex-grow-1" style="min-width:0;">
+                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                                <a href="{{ url('change-request/for_approval/' . $cr->id) }}"
+                                                class="notification-link stretched-link text-decoration-none"
+                                                data-type="comment"
+                                                data-id="{{ $cr->id }}"
+                                                style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                    DOC-{{ date('Y', strtotime($cr->created_at)) }}-{{ str_pad($cr->id, 3, '0', STR_PAD_LEFT) }}
+                                                </a>
+                                                <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#f3e8ff; color:#7c3aed; white-space:nowrap; flex-shrink:0;">
+                                                    <i class="mdi mdi-comment-text-outline"></i> New Comment
+                                                </span>
+                                            </div>
+                                            <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
+                                                {{ $cr->title }}
+                                            </p>
+                                        </div>
+                                        <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
+                                            <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
 
-    {{-- Empty state --}}
-    @if($totalNotifCount === 0)
-    <div class="text-center py-5 px-3">
-        <div style="width:52px; height:52px; background:#fef2f2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
-            <i class="bx bx-bell-off" style="font-size:1.5rem; color:#8b0000;"></i>
-        </div>
-        <p class="mb-0 fw-semibold" style="font-size:0.8rem; color:#374151;">You're all caught up!</p>
-        <p class="mb-0" style="font-size:0.72rem; color:#9ca3af;">No new notifications</p>
-    </div>
-    @endif
+                                @if($totalNotifCount === 0)
+                                <div class="text-center py-5 px-3">
+                                    <div style="width:52px; height:52px; background:#fef2f2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+                                        <i class="bx bx-bell-off" style="font-size:1.5rem; color:#8b0000;"></i>
+                                    </div>
+                                    <p class="mb-0 fw-semibold" style="font-size:0.8rem; color:#374151;">You're all caught up!</p>
+                                    <p class="mb-0" style="font-size:0.72rem; color:#9ca3af;">No new notifications</p>
+                                </div>
+                                @endif
 
-</div> {{-- end simplebar --}}
+                            </div>
                             </div>
 
                             @if($totalNotifCount > 0)
@@ -1848,14 +1843,14 @@
                     e.preventDefault();
                     e.stopPropagation();
 
-                    var type       = this.dataset.type;
+                    var type = this.dataset.type;
                     var targetSel  = this.dataset.target;
                     var dropdownEl = document.querySelector(targetSel);
-                    var iconBadge  = dropdownEl ? dropdownEl.querySelector('button.btn-topbar .topbar-badge') : null;
+                    var iconBadge = dropdownEl ? dropdownEl.querySelector('button.btn-topbar .topbar-badge') : null;
                     var headerBadge= dropdownEl ? dropdownEl.querySelector('.dropdown-head .badge') : null;
                     var clickedBtn = this;
 
-                    clickedBtn.disabled    = true;
+                    clickedBtn.disabled = true;
                     clickedBtn.textContent = 'Marking...';
 
                     fetch('{{ route("notifications.markAllRead") }}', {
@@ -1884,7 +1879,7 @@
                         }
                     })
                     .catch(function () {
-                        clickedBtn.disabled    = false;
+                        clickedBtn.disabled = false;
                         clickedBtn.textContent = 'Mark all as read';
                     });
                 });
