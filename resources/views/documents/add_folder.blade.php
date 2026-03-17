@@ -1,12 +1,13 @@
 <div class="modal fade" id="createFolderModal" tabindex="-1" aria-labelledby="createFolderModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0">
-            <div class="modal-header p-3">
-                <h5 class="modal-title" id="createFolderModalLabel">Create Folder</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" id="addFolderBtn-close" aria-label="Close"></button>
+            <div class="modal-header border-bottom border-2">
+                <h5 class="modal-title mb-3" id="createFolderModalLabel">Create Folder</h5>
+                <button type="button" class="btn-close mb-3" data-bs-dismiss="modal" id="addFolderBtn-close" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form autocomplete="off" method="POST" action="{{ url('documents/store-folder') }}" id="createfolder-form" onsubmit="show()">
+
+            <form autocomplete="off" method="POST" action="{{ url('documents/store-folder') }}" id="createfolder-form" onsubmit="show()">
+                <div class="modal-body">
                     @csrf
                     {{-- @dd($folder) --}}
                     @if(isset($folder_data))
@@ -17,12 +18,12 @@
                         <label for="foldername-input" class="form-label">Folder Name</label>
                         <input type="text" name="name" class="form-control" id="foldername-input" required placeholder="Enter folder name">
                     </div>
-                    <div class="hstack gap-2 justify-content-end">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal"> Close</button>
-                        <button type="submit" class="btn btn-primary" id="addNewFolder">Add Folder</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer border-top border-2">
+                    <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary mt-3">Add Folder</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
