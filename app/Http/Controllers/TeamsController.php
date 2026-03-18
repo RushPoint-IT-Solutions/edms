@@ -55,49 +55,46 @@ class TeamsController extends Controller
 
         $data = [];
         foreach ($items as $team) {
-            $status = $team->status == 1
-                ? '<span class="badge bg-success">Active</span>'
-                : '<span class="badge bg-danger">Inactive</span>';
-
             $createdBy = $team->creator
                 ? $team->creator->name . '<br><small class="text-muted">' . $team->created_at->format('M d, Y') . '</small>'
                 : 'Unknown';
 
             $department = optional($team->department)->name ?? '<span class="text-muted">-</span>';
 
-            if ($team->status == 0) {
-                $actions = '
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
-                        <ul class="dropdown-menu">
-                            <li><button class="dropdown-item activate-team" data-id="' . $team->id . '"><i class="ri-check-line me-2"></i>Activate</button></li>
-                        </ul>
-                    </div>';
-            } else {
-                $actions = '
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
-                        <ul class="dropdown-menu">
-                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam' . $team->id . '"><i class="ri-pencil-line me-2"></i>Edit</button></li>
-                            <li><button class="dropdown-item deactivate-team" data-id="' . $team->id . '"><i class="ri-close-line me-2"></i>Deactivate</button></li>
-                        </ul>
-                    </div>';
-            }
+            $actions = '
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam' . $team->id . '">
+                                <i class="ri-pencil-line me-2"></i>Edit
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item text-danger delete-team"
+                                data-id="' . $team->id . '"
+                                data-name="' . e($team->name) . '">
+                                <i class="ri-delete-bin-line me-2"></i>Delete
+                            </button>
+                        </li>
+                    </ul>
+                </div>';
 
             $data[] = [
-                'name' => '<strong>' . $team->name . '</strong>',
+                'action'     => $actions,
+                'name'       => '<strong>' . $team->name . '</strong>',
                 'created_by' => $createdBy,
                 'department' => $department,
-                'status' => $status,
-                'action' => $actions,
             ];
         }
 
         return response()->json([
-            'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
+            'draw'            => intval($draw),
+            'recordsTotal'    => $totalRecords,
             'recordsFiltered' => $totalFiltered,
-            'data' => $data,
+            'data'            => $data,
         ]);
     }
 
@@ -185,47 +182,47 @@ class TeamsController extends Controller
         }
     }
 
-    public function deactivate(Request $request)
-    {
-        try {
-            $team = Team::findOrFail($request->id);
-            $team->update(['status' => 0]);
+    // public function deactivate(Request $request)
+    // {
+    //     try {
+    //         $team = Team::findOrFail($request->id);
+    //         $team->update(['status' => 0]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Team deactivated successfully!'
-            ]);
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Team deactivated successfully!'
+    //         ]);
 
-        } catch (\Exception $e) {
-            \Log::error('Team deactivation failed: ' . $e->getMessage());
+    //     } catch (\Exception $e) {
+    //         \Log::error('Team deactivation failed: ' . $e->getMessage());
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to deactivate team: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to deactivate team: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
-    public function activate(Request $request)
-    {
-        try {
-            $team = Team::findOrFail($request->id);
-            $team->update(['status' => 1]);
+    // public function activate(Request $request)
+    // {
+    //     try {
+    //         $team = Team::findOrFail($request->id);
+    //         $team->update(['status' => 1]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Team activated successfully!'
-            ]);
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Team activated successfully!'
+    //         ]);
 
-        } catch (\Exception $e) {
-            \Log::error('Team activation failed: ' . $e->getMessage());
+    //     } catch (\Exception $e) {
+    //         \Log::error('Team activation failed: ' . $e->getMessage());
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to activate team: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to activate team: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     public function destroy($id)
     {

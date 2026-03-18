@@ -119,6 +119,15 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/add-permission/{id}', 'RoleController@addPermission')->name('roles.addPermission');
         });
 
+        Route::prefix('control-codes')->group(function () {
+            Route::get('/data',         'ControlCodeController@getData')->name('control-codes.data');
+            Route::post('/store',       'ControlCodeController@store')->name('control-codes.store');
+            Route::post('/update/{id}', 'ControlCodeController@update')->name('control-codes.update');
+            Route::post('/delete/{id}', 'ControlCodeController@destroy')->name('control-codes.destroy');
+        });
+
+        Route::get('/system-configuration', 'SystemConfigurationController@index')->name('settings');
+
         Route::get('/access-control', 'AccessControlController@index')->name('settings');
         Route::post('/access-control/update', 'AccessControlController@update')->name('access-control.update');
         
@@ -142,8 +151,9 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('/data', 'DepartmentController@getData')->name('departments.data');
             Route::post('/store', 'DepartmentController@store')->name('settings');
             Route::post('/update/{id}', 'DepartmentController@update')->name('settings');
-            Route::post('/deactivate', 'DepartmentController@deactivate')->name('settings');
-            Route::post('/activate', 'DepartmentController@activate')->name('settings');
+            // Route::post('/deactivate', 'DepartmentController@deactivate')->name('settings');
+            // Route::post('/activate', 'DepartmentController@activate')->name('settings');
+            Route::delete('/{id}', 'DepartmentController@destroy')->name('departments.destroy');
         });
 
         // Office
@@ -164,6 +174,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::delete('/{id}', 'TeamsController@destroy')->name('teams.destroy');
             Route::post('/deactivate', 'TeamsController@deactivate');
             Route::post('/activate', 'TeamsController@activate');
+            Route::delete('/{id}', 'TeamsController@destroy')->name('teams.destroy');
         });
 
         // Route::post('/change-department/{id}', 'PermitController@update')->name('permits');
@@ -199,11 +210,11 @@ Route::group(['middleware' => 'auth'], function () {
         // Route::post('activate-company', 'CompanyController@activate')->name('settings');
     
         // Departments
-        Route::get('/departments', 'DepartmentController@index')->name('settings');
-        Route::post('/new-department', 'DepartmentController@store')->name('settings');
-        Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');
-        Route::post('activate-department', 'DepartmentController@activate')->name('settings');
-        Route::post('edit-department/{id}','DepartmentController@update')->name('settings');
+        // Route::get('/departments', 'DepartmentController@index')->name('settings');
+        // Route::post('/new-department', 'DepartmentController@store')->name('settings');
+        // Route::post('deactivate-department', 'DepartmentController@deactivate')->name('settings');
+        // Route::post('activate-department', 'DepartmentController@activate')->name('settings');
+        // Route::post('edit-department/{id}','DepartmentController@update')->name('settings');
     
         // Route::get('remove-approvers','RequestController@removeApprover')->name('remove-approvers');
         // Route::post('update-approvers/{id}','RequestController@removeApp')->name('remove-approvers');
