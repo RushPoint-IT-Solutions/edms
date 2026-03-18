@@ -56,6 +56,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post("user-view", "DocumentController@userView");
             Route::post('share','DocumentController@share');
             Route::post("/share-document", "DocumentController@shareDocument");
+            Route::post('/share-folder', 'DocumentController@shareFolder');
         });
 
         Route::post('test-bulk', function() {

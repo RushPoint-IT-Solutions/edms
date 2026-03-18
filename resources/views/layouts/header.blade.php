@@ -1575,11 +1575,42 @@
 
                         <!-- Documents -->
                         {{-- @if(canView('documents')) --}}
-                        <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
-                            <a class="nav-link menu-link" href="{{url('/documents')}}">
+                        @php
+                            $docsActive = Request::is('documents*') || Request::is('shared-with-me*') || Request::is('shared-with-others*');
+                        @endphp
+                        <li class="nav-item {{ $docsActive ? 'active' : '' }}">
+                            <a class="nav-link menu-link {{ $docsActive ? '' : 'collapsed' }}"
+                            href="#sidebarDocuments" data-bs-toggle="collapse" role="button"
+                            aria-expanded="{{ $docsActive ? 'true' : 'false' }}"
+                            aria-controls="sidebarDocuments">
                                 <i class="ri-folder-2-line"></i>
                                 <span data-key="t-documents">Documents</span>
                             </a>
+                            <div class="menu-dropdown collapse {{ $docsActive ? 'show' : '' }}" id="sidebarDocuments">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a href="{{ url('/documents') }}"
+                                        class="nav-link {{ Request::is('documents*') && !Request::is('shared*') ? 'active' : '' }}"
+                                        data-key="t-all-documents">
+                                            Personal
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ url('/shared-with-me') }}"
+                                        class="nav-link {{ Request::is('shared-with-me*') ? 'active' : '' }}"
+                                        data-key="t-shared-with-me">
+                                            Shared with Me
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ url('/shared-with-others') }}"
+                                        class="nav-link {{ Request::is('shared-with-others*') ? 'active' : '' }}"
+                                        data-key="t-shared-with-others">
+                                            Shared with Others
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                         {{-- @endcan --}}
 
