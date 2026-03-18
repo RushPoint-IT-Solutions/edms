@@ -180,7 +180,7 @@
     
                     <div class="mb-3">
                         <label class="form-label" for="document-type-input">Document Type <span class="text-danger">*</span></label>
-                        <select name="type" class="form-select cat" data-choices data-choices-search-false id="choices-category-input" required>
+                        <select name="type[]" class="form-select cat" data-choices data-choices-search-false id="choices-category-input" multiple required>
                             <option value=""></option>
                             @foreach ($document_types as $type)
                                 <option value="{{ $type->id }}" @if(old('type', $change_request->type ?? '') == $type->id) selected @endif>{{ $type->name }}</option>

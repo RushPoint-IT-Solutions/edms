@@ -93,4 +93,8 @@ class ChangeRequest extends Model implements Auditable
     {
         return $this->hasMany(PrivateDocsVisitor::class, 'change_request_id');
     }
+    public function requestTypeList()
+    {
+        return $this->hasMany(RequestTypeList::class);
+    }
 }

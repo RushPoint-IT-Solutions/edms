@@ -19,6 +19,7 @@ use App\RequestApprover;
 use App\ObsoleteAttachment;
 use App\Obsolete;
 use App\DocumentType;
+use App\DocumentTypeList;
 use App\History;
 use App\Team;
 use App\Mail\ApprovedRequestEmail;
@@ -33,6 +34,7 @@ use App\Notifications\ReturnRequest;
 use App\Notifications\PendingRequest;
 use App\PreAssessment;
 use App\PreAssessmentApprover;
+use App\RequestTypeList;
 use App\SupportingDocument;
 use App\UserNotification;
 use Carbon\Carbon;
@@ -653,7 +655,6 @@ class RequestController extends Controller
     {
         $team = Team::find($request->privacy);
         
-        // dd($request->all(), count(json_decode($request->signature_positions)));
         $request->validate([
             'file' => 'mimes:pdf'
         ]);
@@ -666,7 +667,7 @@ class RequestController extends Controller
                 $change_request = ChangeRequest::findOrFail($request->id);
                 $change_request->department_id = $request->department_id;
                 $change_request->title = $request->title;
-                $change_request->type = $request->type;
+                // $change_request->type = $request->type;
                 $change_request->description = $request->description;
                 $change_request->category = $request->category;
                 $change_request->status = $request->status;
@@ -742,12 +743,19 @@ class RequestController extends Controller
                     $document_signature_position->height = $signature_position->height;
                     $document_signature_position->save();
                 }
+
+                foreach($request->type as $type) {
+                    $request_type_list = new RequestTypeList;
+                    $request_type_list->type = $type;
+                    $request_type_list->change_request_id = $change_request->id;
+                    $request_type_list->save();
+                }
             }
             else 
             {
                 $change_request = new ChangeRequest;
                 $change_request->title = $request->title;
-                $change_request->type = $request->type;
+                // $change_request->type = $request->type;
                 $change_request->department_id = $request->department_id;
                 $change_request->description = $request->description;
                 $change_request->category = $request->category;
@@ -805,6 +813,13 @@ class RequestController extends Controller
                         $supporting_documents->save();
                     }
                 }
+
+                foreach($request->type as $type) {
+                    $request_type_list = new RequestTypeList;
+                    $request_type_list->type = $type;
+                    $request_type_list->change_request_id = $change_request->id;
+                    $request_type_list->save();
+                }
             }
 
             if ($request->has('signature_positions'))
@@ -823,8 +838,8 @@ class RequestController extends Controller
                 }
             }
 
-            $users = User::whereIn('id', $request->approvers)->get()->pluck('email')->toArray();
-            Mail::to($users)->send(new RequestDocumentApproval($change_request));
+            // $users = User::whereIn('id', $request->approvers)->get()->pluck('email')->toArray();
+            // Mail::to($users)->send(new RequestDocumentApproval($change_request));
 
             DB::commit();
 
@@ -834,7 +849,7 @@ class RequestController extends Controller
             DB::rollBack();
             Log::error("There is an error in adding change request: ". $e->getMessage());
 
-            Alert::error('There is an error in creating request')->persistent('Dismiss');
+            Alert::error('There is an error in creating request'. $e->getMessage())->persistent('Dismiss');
             return redirect("/change-requests");
         }
 
@@ -1035,7 +1050,7 @@ class RequestController extends Controller
             })
             ->orderBy('level','asc')->first();
             
-            $changeRequest = ChangeRequest::findOrfail($id);
+            $changeRequest = ChangeRequest::with("requestTypeList")->findOrfail($id);
             if($request->action == "Approved")
             {
                 if($requestApprover == null)
@@ -1071,6 +1086,13 @@ class RequestController extends Controller
                     $document_attachment->attachment = $changeRequest->file;
                     $document_attachment->type = "pdf_copy";
                     $document_attachment->save();
+
+                    foreach($changeRequest->requestTypeList as $requestTypeList) {
+                        $document_type_list = new DocumentTypeList;
+                        $document_type_list->document_id = $new_document->id;
+                        $document_type_list->type = $requestTypeList->type;
+                        $document_type_list->save();
+                    }
 
                     // $approvedRequestsNotif = User::where('id',$copyRequest->user_id)->first();
                     // $approvedRequestsNotif->notify(new ApprovedRequest($copyRequest,"DICR-","Document Information Change Request","request"));
@@ -1109,10 +1131,12 @@ class RequestController extends Controller
                 $histories->user_id = auth()->user()->id;
                 $histories->save();
 
-                $user = User::where('id',$changeRequest->user_id)->first();
-                Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
+                // $user = User::where('id',$changeRequest->user_id)->first();
+                // Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
                 // Alert::success('Successfully Approved')->persistent('Dismiss');
                 // return redirect('/for-approval');
+                DB::commit();
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Successfully Approved'
@@ -1139,12 +1163,11 @@ class RequestController extends Controller
 
                 $user = User::where('id',$changeRequest->user_id)->first();
                 Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
+                DB::commit();
 
                 Alert::success('Successfully Returned')->persistent('Dismiss');
                 return redirect('/for-approval');
             }
-
-            DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("There is an error in action of change request: ". $e->getMessage());
