@@ -132,12 +132,12 @@
 
                         <div class="col-md-4">
                             <label class="form-label">SOFT Copy *</label>
-                            <input type="file" class="form-control" name="attachment[soft_copy]">
+                            <input type="file" class="form-control" name="attachment[soft_copy]" accept=".docx,.doc">
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">PDF Copy *</label>
-                            <input type="file" class="form-control" name="attachment[pdf_copy]" required>
+                            <input type="file" class="form-control" name="attachment[pdf_copy]" accept=".pdf" required>
                         </div>
 
                         <div class="col-md-4">
