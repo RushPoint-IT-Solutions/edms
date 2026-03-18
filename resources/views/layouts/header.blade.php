@@ -1660,7 +1660,7 @@
                         @endif
 
                         <!-- Settings Submenu -->
-                        @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control')) --}}
+                        @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control'))
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                                href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
