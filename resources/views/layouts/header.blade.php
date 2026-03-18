@@ -1660,7 +1660,7 @@
                         @endif
 
                         <!-- Settings Submenu -->
-                        {{-- @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control')) --}}
+                        @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                                href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
@@ -1717,7 +1717,7 @@
                                     <li class="nav-item">
                                         <a href="{{ url('access-control') }}" class="nav-link {{ Request::is('access-control*') ? 'active' : '' }}" data-key="t-access-control">Access Control</a>
                                     </li>
-                                    @endif
+                                    @endif --}}
 
                                     <li class="nav-item">
                                         <a href="{{ url('system-configuration') }}" class="nav-link {{ Request::is('system-configuration*') ? 'active' : '' }}" data-key="t-system-configuration">System Configuration</a>
@@ -1725,7 +1725,7 @@
                                 </ul>
                             </div>
                         </li>
-                        {{-- @endif --}}
+                        @endif
 
                         @if((auth()->user()->role == 'Administrator'))
                         <div>
