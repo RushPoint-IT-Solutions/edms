@@ -1480,15 +1480,14 @@
                         <li class="menu-title"><span data-key="t-menu">Menu</span></li>
                         
                         <!-- Dashboard -->
-                        @if(canView('dashboard'))
-
+                        {{-- @if(canView('dashboard')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'home' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/home')}}">
                                 <i class="ri-dashboard-2-line"></i> 
                                 <span data-key="t-dashboards">Dashboard</span>
                             </a>
                         </li>
-                        @endif
+                        {{-- @endif --}}
 
                         <li class="nav-item {{ Request::is('monitoring*') ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{ url('/monitoring') }}">
@@ -1528,7 +1527,7 @@
                         @endif --}}
 
                         <!-- Change Requests -->
-                        @if(canView('change request'))
+                        {{-- @if(canView('change request')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
@@ -1539,7 +1538,7 @@
                                 @endif
                             </a>
                         </li>
-                        @endif
+                        {{-- @endif --}}
 
                         @php
                             $forApprovalActive = Request::is('for-approval*') || Request::is('for-request-access*');
@@ -1554,7 +1553,7 @@
                             </a>
                             <div class="menu-dropdown collapse {{ $forApprovalActive ? 'show' : '' }}" id="sidebarForApproval">
                                 <ul class="nav nav-sm flex-column">
-                                    @if(canView('for approval'))
+                                    {{-- @if(canView('for approval')) --}}
                                     <li class="nav-item">
                                         <a href="{{ url('/for-approval') }}"
                                         class="nav-link {{ Request::is('for-approval*') ? 'active' : '' }}"
@@ -1562,7 +1561,7 @@
                                         Document Approvals
                                         </a>
                                     </li>
-                                    @endif
+                                    {{-- @endif --}}
                                     <li class="nav-item">
                                         <a href="{{ url('/for-request-access') }}"
                                         class="nav-link {{ Request::is('for-request-access*') ? 'active' : '' }}"
@@ -1575,14 +1574,14 @@
                         </li>
 
                         <!-- Documents -->
-                        @if(canView('documents'))
+                        {{-- @if(canView('documents')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'documents' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/documents')}}">
                                 <i class="ri-folder-2-line"></i>
                                 <span data-key="t-documents">Documents</span>
                             </a>
                         </li>
-                        @endcan
+                        {{-- @endcan --}}
 
                         {{-- <!-- Acknowledgement -->
                         <li class="nav-item {{ Route::current()->getName() == 'acknowledgement' ? 'active' : '' }}">
@@ -1593,14 +1592,14 @@
                         </li> --}}
 
                         <!-- Permits & Licenses -->
-                        @if(canView('permits and license'))
+                        {{-- @if(canView('permits and license')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/permits')}}">
                                 <i class="ri-file-shield-line"></i>
                                 <span data-key="t-permits">Permits & Licenses</span>
                             </a>
                         </li>
-                        @endcan
+                        {{-- @endcan --}}
 
                         <!-- Documents IA (Audit role only) -->
                         {{-- @if(auth()->user()->audit_role != null)
@@ -1661,7 +1660,7 @@
                         @endif
 
                         <!-- Settings Submenu -->
-                        @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control'))
+                        {{-- @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                                href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
@@ -1714,7 +1713,7 @@
                                     </li>
                                     @endcan --}}
 
-                                    @if(canView('access_control'))
+                                    {{-- @if(canView('access_control'))
                                     <li class="nav-item">
                                         <a href="{{ url('access-control') }}" class="nav-link {{ Request::is('access-control*') ? 'active' : '' }}" data-key="t-access-control">Access Control</a>
                                     </li>
@@ -1726,7 +1725,7 @@
                                 </ul>
                             </div>
                         </li>
-                        @endif
+                        {{-- @endif --}}
 
                         @if((auth()->user()->role == 'Administrator'))
                         <div>

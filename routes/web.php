@@ -52,10 +52,10 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('upload-document','DocumentController@store')->name('documents');
             Route::get('by-control-code', 'DocumentController@getDocumentByControlCode');
             Route::post('refresh-team','DocumentController@refreshTeam');
-
             Route::post('bulk-delete', 'DocumentController@bulkDelete');
             Route::post("user-view", "DocumentController@userView");
             Route::post('share','DocumentController@share');
+            Route::post("/share-document", "DocumentController@shareDocument");
         });
 
         Route::post('test-bulk', function() {

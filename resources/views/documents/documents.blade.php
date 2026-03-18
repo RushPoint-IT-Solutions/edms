@@ -509,6 +509,44 @@
     }
 
     $(document).ready(function () {
+        $("#shareDocument").on("change", function() {
+            var document = $(this).val()
+            
+            $.ajax({
+                type:"POST",
+                url:"{{ url('/documents/share-document') }}",
+                dataType: "json",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: {
+                    document: document
+                },
+                success: function(res) {
+                    $("#peopleAccessContainer").find("a").remove();
+                    
+                    if (res.length > 0) {
+                        $("#peopleAccessContainer").show()
+    
+                        res.forEach(shareDocs => {
+                            $("#peopleAccessContainer").append(`
+                                <a href="javascript:void(0);" class="list-group-item list-group-item-action active">
+                                    <div class="d-flex mb-2 align-items-center">
+                                        <div class="flex-shrink-0">
+                                            <img src="/images/no_image.png" class="avatar-sm rounded-circle" />
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h5 class="list-title fs-15 mb-1 text-dark">${shareDocs.user.name}</h5>
+                                            <p class="list-text mb-0 fs-12 text-dark">${shareDocs.user.email}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            `);
+                        });
+                    }
+                }
+            })
+        })
 
         var savedView = localStorage.getItem('documentViewPreference');
         if (savedView === 'grid') { currentView = 'grid'; }

@@ -1617,4 +1617,13 @@ class DocumentController extends Controller
         Alert::success("Successfully Saved")->persistent("Dismiss");
         return back();
     }
+
+    public function shareDocument(Request $request)
+    {
+        // dd($request->all());
+        $share_access = ShareDocument::with("user")->where("document_id", $request->document)->get();
+        
+        return response()->json($share_access);
+        // dd($share_access);
+    }
 }
