@@ -200,7 +200,6 @@
                                 <label for="choices-category-input" class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category" class="form-select" data-choices data-choices-search-false id="choices-category-input" required>
                                     <option value="">-- Select Category --</option>
-                                    <option value="Personal" @if(old('category', $change_request->category ?? '') == "Personal") selected @endif>Personal</option>
                                     <option value="Departmental" @if(old('category', $change_request->category ?? '') == "Departmental") selected @endif>Departmental</option>
                                     <option value="Private" @if(old('category', $change_request->category ?? '') == "Private") selected @endif>Private</option>
                                     {{-- <option value="Public" @if(old('category', $change_request->category ?? '') == "Public") selected @endif>Public</option> --}}
