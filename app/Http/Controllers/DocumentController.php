@@ -112,6 +112,19 @@ class DocumentController extends Controller
         $hasOthers = $documents->where('folder_id', null)->count() > 0;
         $totalFolders = $allFolders->count() + ($hasOthers ? 1 : 0);
 
+        $folderData = $document_folders->map(function($f) {
+            return [
+                'id'   => $f->id,
+                'name' => $f->name,
+                'docs' => $f->document->map(function($d) {
+                    return [
+                        'id' => $d->id,
+                        'title' => $d->control_code . ' - ' . $d->title,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
         return view('documents.documents', [
             'documents' => $documents,
             'obsoletes' => $obsoletes,
@@ -123,7 +136,8 @@ class DocumentController extends Controller
             'allFolders' => $allFolders,
             'hasOthers' => $hasOthers,
             'existingDocuments' => $existingDocuments,
-            'users' => $users
+            'users' => $users,
+            'folderData' => $folderData
         ]);
     }
 
@@ -1597,25 +1611,95 @@ class DocumentController extends Controller
     {
         // dd($request->all());
         $request->validate([
-            'users' => 'required|exists:users,id',
-            'documents' => 'required|exists:documents,id'
+            'share_type' => 'required|in:folder,document',
+            'users' => 'required|array',
+            'users.*' => 'exists:users,id',
         ]);
 
-        $share_documents = ShareDocument::whereIn("user_id", $request->users)->where("document_id", $request->documents)->first();
-        if($share_documents) {
-            Alert::error("There is an user have already access in this documents ". $share_documents->user->name)->persistent("Dismiss");
+        $documentIds = [];
+
+        if ($request->share_type === 'folder') {
+            $request->validate(['folder_id' => 'required|exists:document_folders,id']);
+
+            $documentIds = $this->getAllDocumentIdsInFolder($request->folder_id);
+
+        } else {
+            $request->validate([
+                'documents' => 'required|array',
+                'documents.*' => 'exists:documents,id',
+            ]);
+            $documentIds = $request->documents;
+        }
+
+        if (empty($documentIds)) {
+            Alert::error('No documents found to share.')->persistent('Dismiss');
             return back();
         }
 
-        foreach($request->users as $user) {
-            $share_document = new ShareDocument;
-            $share_document->user_id = $user;
-            $share_document->document_id = $request->documents;
-            $share_document->save();
+        $alreadyShared = [];
+        $newCount = 0;
+
+        foreach ($request->users as $userId) {
+            foreach ($documentIds as $docId) {
+                $exists = ShareDocument::where('user_id', $userId)
+                    ->where('document_id', $docId)
+                    ->exists();
+
+                if ($exists) {
+                    $alreadyShared[] = $docId;
+                    continue;
+                }
+
+                $share = new ShareDocument;
+                $share->user_id = $userId;
+                $share->document_id = $docId;
+                $share->save();
+                $newCount++;
+            }
         }
 
-        Alert::success("Successfully Saved")->persistent("Dismiss");
+        if ($newCount > 0) {
+            $msg = $newCount . ' document' . ($newCount !== 1 ? 's' : '') . ' shared successfully.';
+            if (count($alreadyShared) > 0) {
+                $msg .= ' ' . count($alreadyShared) . ' already shared (skipped).';
+            }
+            Alert::success($msg)->persistent('Dismiss');
+        } else {
+            Alert::warning('All selected documents were already shared with the selected users.')->persistent('Dismiss');
+        }
+
         return back();
+    }
+
+    private function getAllDocumentIdsInFolder(int $folderId): array
+    {
+        $folder = DocumentFolder::with(['document', 'childrenFolder'])->find($folderId);
+        if (!$folder) return [];
+
+        $ids = $folder->document->pluck('id')->toArray();
+
+        foreach ($folder->childrenFolder as $child) {
+            $ids = array_merge($ids, $this->getAllDocumentIdsInFolder($child->id));
+        }
+
+        return array_unique($ids);
+    }
+
+    public function shareFolder(Request $request)
+    {
+        $documentIds = $this->getAllDocumentIdsInFolder((int) $request->folder_id);
+
+        if (empty($documentIds)) {
+            return response()->json([]);
+        }
+
+        $share_access = ShareDocument::with('user')
+            ->whereIn('document_id', $documentIds)
+            ->get()
+            ->unique('user_id')
+            ->values();
+
+        return response()->json($share_access);
     }
 
     public function shareDocument(Request $request)
