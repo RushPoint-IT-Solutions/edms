@@ -1,7 +1,7 @@
 <div class="modal fade" id="share" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-bottom border-2">
+            <div class="modal-header border-bottom">
                 <h5 class="modal-title mb-3">Share with others</h5>
                 <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
@@ -30,7 +30,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top border-2">
+                <div class="modal-footer border-top">
                     <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary mt-3">Submit</button>
                 </div>

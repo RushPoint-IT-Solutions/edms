@@ -958,6 +958,108 @@
             border-color: #8B0000;
         }
 
+        .section-nav-card {
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            user-select: none;
+        }
+        .section-nav-card:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 4px 16px rgba(13,110,253,0.10);
+        }
+        .section-nav-card.active {
+            border-color: #0d6efd;
+            background: #f0f5ff;
+            box-shadow: 0 4px 16px rgba(13,110,253,0.13);
+        }
+        .section-nav-card .nav-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #e8f0fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.6rem;
+            font-size: 1.2rem;
+            color: #0d6efd;
+            transition: background 0.2s;
+        }
+        .section-nav-card.active .nav-icon,
+        .section-nav-card:hover .nav-icon {
+            background: #0d6efd;
+            color: #fff;
+        }
+        .section-nav-card .nav-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #495057;
+            letter-spacing: 0.01em;
+        }
+        .section-nav-card.active .nav-label { color: #0d6efd; }
+        .section-nav-card .nav-count {
+            font-size: 0.72rem;
+            color: #adb5bd;
+            margin-top: 2px;
+        }
+        .nav-card-btn {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+
+        .config-panel { display: none; }
+        .config-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .config-panel.active .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .config-panel.active .table-scroll-container {
+            flex: 1;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .panel-header .panel-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #e8f0fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #0d6efd;
+        }
+        .panel-header h6 { margin: 0; font-weight: 600; font-size: 0.95rem; color: #212529; }
+        .panel-header p  { margin: 0; font-size: 0.75rem; color: #adb5bd; }
+
+        .bottom-controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-top: 0.75rem;
+        }
+
+        .table-scroll-container {
+            min-height: 490px;
+        }
+
         @media print {
             .filter-bar, .report-tabs, .export-actions,
             #preloaderMarsu, .navbar-menu, #page-topbar,
@@ -1570,17 +1672,17 @@
                             </a>
                             <div class="menu-dropdown collapse {{ Route::current()->getName() == 'settings' ? 'show' : '' }}" id="sidebarSettings">
                                 <ul class="nav nav-sm flex-column">
-                                    @if(canView('department'))
+                                    {{-- @if(canView('department'))
                                     <li class="nav-item">
                                         <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                     </li>
-                                    @endif
+                                    @endif --}}
 
-                                    @if(canView('teams'))
+                                    {{-- @if(canView('teams'))
                                     <li class="nav-item">
                                         <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams*') ? 'active' : '' }}" data-key="t-teams">Offices</a>
                                     </li>
-                                    @endif
+                                    @endif --}}
 
                                     @if(canView('users'))
                                     <li class="nav-item">
@@ -1588,11 +1690,11 @@
                                     </li>
                                     @endif
 
-                                    @if(canView('documents_type'))
-                                    <li class="nav-item">
+                                    {{-- @if(canView('documents_type'))
+                                    <li class="nav-item">w
                                         <a href="{{ url('documents_type') }}" class="nav-link {{ Request::is('documents_type*') ? 'active' : '' }}" data-key="t-documents_type">Type of Documents</a>
                                     </li>
-                                    @endif
+                                    @endif --}}
 
                                     {{-- @can('rmo')
                                         <li class="nav-item">
@@ -1617,6 +1719,10 @@
                                         <a href="{{ url('access-control') }}" class="nav-link {{ Request::is('access-control*') ? 'active' : '' }}" data-key="t-access-control">Access Control</a>
                                     </li>
                                     @endif
+
+                                    <li class="nav-item">
+                                        <a href="{{ url('system-configuration') }}" class="nav-link {{ Request::is('system-configuration*') ? 'active' : '' }}" data-key="t-system-configuration">System Configuration</a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
