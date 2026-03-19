@@ -20,12 +20,14 @@ class SystemConfigurationController extends Controller
 
         $teams = Team::with('creator')->get();
         $activeDepartments = Department::where('status', 1)->get();
+        $documentTypes = DocumentType::orderBy('name')->get();
 
         return view('system_configuration.index', compact(
             'departments',
             'employees',
             'teams',
-            'activeDepartments'
+            'activeDepartments',
+            'documentTypes'
         ));
     }
 }
