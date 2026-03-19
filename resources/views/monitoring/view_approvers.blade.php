@@ -5,6 +5,14 @@
                 <h6 class="modal-title">View approvers</h6>
             </div>
             <div class="modal-body">
+                <div class="card" style="border: 1px solid #842029;">
+                    <div class="card-header" style="background-color: #842029;">
+                        <h6 class="card-title" style="color:white;">Description</h6>
+                    </div>
+                    <div class="card-body">
+                        {{ $change_request->description }}
+                    </div>
+                </div>
                 <table class="table table-hover">
                     <thead>
                         <tr>
