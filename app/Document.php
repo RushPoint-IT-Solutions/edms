@@ -66,4 +66,8 @@ class Document extends Model implements Auditable
     {
         return $this->hasMany(ShareDocument::class);
     }
+    public function folder()
+    {
+        return $this->belongsTo(DocumentFolder::class, 'folder_id');
+    }
 }

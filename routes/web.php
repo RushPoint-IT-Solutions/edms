@@ -59,6 +59,15 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/share-folder', 'DocumentController@shareFolder');
         });
 
+        Route::get('/shared-with-me', 'DocumentController@sharedWithMe')->name('shared-with-me');
+        Route::get('/shared-with-others', 'DocumentController@sharedWithOthers')->name('shared-with-others');
+        Route::post('/documents/revoke-access', 'DocumentController@revokeAccess')->name('documents.revoke-access');
+        Route::post('/documents/revoke-folder-access', 'DocumentController@revokeFolderAccess')->name('documents.revoke-folder-access');
+        Route::post('/documents/leave-share', 'DocumentController@leaveShare')->name('documents.leave-share');
+        Route::post('/documents/leave-share-folder', 'DocumentController@leaveShareFolder')->name('documents.leave-share-folder');
+        Route::get('/shared-with-me/folder/{id}', 'DocumentController@sharedWithMeFolderView')->name('shared-with-me.folder');
+        Route::get('/shared-with-others/folder/{id}', 'DocumentController@sharedWithOthersFolderView')->name('shared-with-others.folder');
+
         Route::post('test-bulk', function() {
             return response()->json(['hit' => true]);
         });
