@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\ControlCode;
+use App\Department;
+use App\DocumentType;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -71,17 +73,41 @@ class ControlCodeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'code' => 'required|min:2|max:50|unique:control_codes,code',
-            'description' => 'nullable|max:255',
+            'document_type_id' => 'required|exists:document_types,id',
+            'department_id' => 'required|exists:departments,id',
+            'description' => 'nullable|string|max:255',
         ]);
 
-        ControlCode::create([
-            'code' => strtoupper(trim($request->code)),
-            'description' => $request->description,
-        ]);
+        $code = $this->generateCode($request->document_type_id, $request->department_id);
 
-        Alert::success('Control code created successfully')->persistent('Dismiss');
+        $controlCode = new ControlCode;
+        $controlCode->code = $code;
+        $controlCode->description = $request->description;
+        $controlCode->document_type_id = $request->document_type_id;
+        $controlCode->department_id = $request->department_id;
+        $controlCode->status = 1;
+        $controlCode->save();
+
+        Alert::success('Control Code Generated: ' . $code)->persistent('Dismiss');
         return back();
+    }
+
+    private function generateCode(int $documentTypeId, int $departmentId): string
+    {
+        $docType = DocumentType::findOrFail($documentTypeId);
+        $department = Department::findOrFail($departmentId);
+        $year = now()->year;
+
+        $prefix = "{$docType->name}-{$department->code}-{$year}";
+
+        $count = ControlCode::where('code', 'like', "{$prefix}-%")->count();
+
+        do {
+            $count++;
+            $candidate = $prefix . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        } while (ControlCode::where('code', $candidate)->exists());
+
+        return $candidate;
     }
 
     public function update(Request $request, $id)
