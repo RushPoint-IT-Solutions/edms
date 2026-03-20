@@ -61,12 +61,7 @@ class DocumentController extends Controller
 
         if (auth()->user()->role != "Administrator") {
             $documents = Document::with('change_requests', 'attachments', 'share_document')
-                ->where(function($q) {
-                    $q->where('user_id', auth()->user()->id)
-                        ->orWhereHas("share_document", function($q) {
-                            $q->where("user_id", auth()->id());
-                        });
-                })
+                ->where('user_id', auth()->user()->id)
                 ->orderBy('control_code', 'desc')
                 ->get();
         }
@@ -112,6 +107,19 @@ class DocumentController extends Controller
         $hasOthers = $documents->where('folder_id', null)->count() > 0;
         $totalFolders = $allFolders->count() + ($hasOthers ? 1 : 0);
 
+        $folderData = $document_folders->map(function($f) {
+            return [
+                'id' => $f->id,
+                'name' => $f->name,
+                'docs' => $f->document->map(function($d) {
+                    return [
+                        'id' => $d->id,
+                        'title' => $d->control_code . ' - ' . $d->title,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
         return view('documents.documents', [
             'documents' => $documents,
             'obsoletes' => $obsoletes,
@@ -123,7 +131,8 @@ class DocumentController extends Controller
             'allFolders' => $allFolders,
             'hasOthers' => $hasOthers,
             'existingDocuments' => $existingDocuments,
-            'users' => $users
+            'users' => $users,
+            'folderData' => $folderData
         ]);
     }
 
@@ -137,12 +146,7 @@ class DocumentController extends Controller
 
         if (auth()->user()->role != "Administrator") {
             $documents = Document::with('change_requests', 'attachments')
-                ->where(function($q) {
-                    $q->where('user_id', auth()->user()->id)
-                        ->orWhereHas("share_document", function($q) {
-                            $q->where("user_id", auth()->id());
-                        });
-                })
+                ->where('user_id', auth()->user()->id)
                 ->orderBy('control_code', 'desc')
                 ->get();
         }
@@ -473,7 +477,7 @@ class DocumentController extends Controller
             });
         }
 
-        $childFolders   = $foldersQuery->orderBy('name', 'asc')->get();
+        $childFolders = $foldersQuery->orderBy('name', 'asc')->get();
         $childDocuments = $documentsQuery->orderBy('control_code', 'desc')->get()->map(function ($doc) {
             $info = $this->getDocumentFileInfo($doc);
             $doc->fileType = $info['fileType'];
@@ -788,7 +792,7 @@ class DocumentController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
         }
 
-        $folderIds   = array_filter(explode(',', $request->folder_ids ?? ''));
+        $folderIds = array_filter(explode(',', $request->folder_ids ?? ''));
         $documentIds = array_filter(explode(',', $request->document_ids ?? ''));
 
         foreach ($folderIds as $id) {
@@ -1405,7 +1409,7 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $folder       = DocumentFolder::findOrFail($id);
+        $folder = DocumentFolder::findOrFail($id);
         $folder->name = $request->name;
         $folder->save();
 
@@ -1481,7 +1485,6 @@ class DocumentController extends Controller
             Alert::error('Error')->persistent('Dismiss');
             return back();
         }
-        
     }
 
     public function uploadDocumentFolder(Request $request)
@@ -1597,33 +1600,478 @@ class DocumentController extends Controller
     {
         // dd($request->all());
         $request->validate([
-            'users' => 'required|exists:users,id',
-            'documents' => 'required|exists:documents,id'
+            'share_type' => 'required|in:folder,document',
+            'users' => 'required|array',
+            'users.*' => 'exists:users,id',
         ]);
 
-        $share_documents = ShareDocument::whereIn("user_id", $request->users)->where("document_id", $request->documents)->first();
-        if($share_documents) {
-            Alert::error("There is an user have already access in this documents ". $share_documents->user->name)->persistent("Dismiss");
+        $documentIds = [];
+
+        if ($request->share_type === 'folder') {
+            $request->validate(['folder_id' => 'required|exists:document_folders,id']);
+
+            $documentIds = $this->getAllDocumentIdsInFolder($request->folder_id);
+
+        } else {
+            $request->validate([
+                'documents' => 'required|array',
+                'documents.*' => 'exists:documents,id',
+            ]);
+            $documentIds = $request->documents;
+        }
+
+        if (empty($documentIds)) {
+            Alert::error('No documents found to share.')->persistent('Dismiss');
             return back();
         }
 
-        foreach($request->users as $user) {
-            $share_document = new ShareDocument;
-            $share_document->user_id = $user;
-            $share_document->document_id = $request->documents;
-            $share_document->save();
+        $alreadyShared = [];
+        $newCount = 0;
+
+        foreach ($request->users as $userId) {
+            foreach ($documentIds as $docId) {
+                $exists = ShareDocument::where('user_id', $userId)
+                    ->where('document_id', $docId)
+                    ->exists();
+
+                if ($exists) {
+                    $alreadyShared[] = $docId;
+                    continue;
+                }
+
+                $share = new ShareDocument;
+                $share->user_id = $userId;
+                $share->document_id = $docId;
+                $share->save();
+                $newCount++;
+            }
         }
 
-        Alert::success("Successfully Saved")->persistent("Dismiss");
+        if ($newCount > 0) {
+            $msg = $newCount . ' document' . ($newCount !== 1 ? 's' : '') . ' shared successfully.';
+            if (count($alreadyShared) > 0) {
+                $msg .= ' ' . count($alreadyShared) . ' already shared (skipped).';
+            }
+            Alert::success($msg)->persistent('Dismiss');
+        } else {
+            Alert::warning('All selected documents were already shared with the selected users.')->persistent('Dismiss');
+        }
+
         return back();
+    }
+
+    private function getAllDocumentIdsInFolder(int $folderId): array
+    {
+        $folder = DocumentFolder::with(['document', 'childrenFolder'])->find($folderId);
+        if (!$folder) return [];
+
+        $ids = $folder->document->pluck('id')->toArray();
+
+        foreach ($folder->childrenFolder as $child) {
+            $ids = array_merge($ids, $this->getAllDocumentIdsInFolder($child->id));
+        }
+
+        return array_unique($ids);
+    }
+
+    public function shareFolder(Request $request)
+    {
+        $documentIds = $this->getAllDocumentIdsInFolder((int) $request->folder_id);
+
+        if (empty($documentIds)) {
+            return response()->json([]);
+        }
+
+        $share_access = ShareDocument::with('user')
+            ->whereIn('document_id', $documentIds)
+            ->get()
+            ->unique('user_id')
+            ->values();
+
+        return response()->json($share_access);
     }
 
     public function shareDocument(Request $request)
     {
         // dd($request->all());
         $share_access = ShareDocument::with("user")->where("document_id", $request->document)->get();
-        
+
         return response()->json($share_access);
-        // dd($share_access);
+    }
+
+    public function sharedWithMe()
+    {
+        $userId = auth()->id();
+
+        $sharedRecords = ShareDocument::where('user_id', $userId)
+            ->with(['document.attachments', 'document.user', 'document.folder.parent'])
+            ->get();
+
+        $items = collect();
+        $addedFolderIds = [];
+
+        foreach ($sharedRecords as $record) {
+            $doc = $record->document;
+            if (!$doc) continue;
+
+            $fileInfo = $this->getDocumentFileInfo($doc);
+
+            if ($doc->folder_id) {
+                $topFolder = $doc->folder;
+                $checkedFolder = $topFolder;
+
+                while ($checkedFolder && $checkedFolder->parent_id) {
+                    $parentDocIds = $this->getAllDocumentIdsInFolder($checkedFolder->parent_id);
+                    $parentIsShared = ShareDocument::where('user_id', $userId)
+                        ->whereIn('document_id', $parentDocIds)
+                        ->exists();
+
+                    if ($parentIsShared) {
+                        $checkedFolder = DocumentFolder::find($checkedFolder->parent_id);
+                        $topFolder = $checkedFolder;
+                    } else {
+                        break;
+                    }
+                }
+
+                if ($topFolder && !in_array($topFolder->id, $addedFolderIds)) {
+                    $addedFolderIds[] = $topFolder->id;
+                    $items->push([
+                        'id' => $topFolder->id,
+                        'name' => $topFolder->name,
+                        'type' => 'folder',
+                        'ownerName' => $doc->user->name ?? '—',
+                        'ownerEmail' => $doc->user->email ?? '',
+                        'ownerColor' => $this->avatarColor($doc->user->name ?? ''),
+                        'dateShared' => $record->created_at->format('M d, Y'),
+                        'sortDate' => $record->created_at,
+                        'iconClass' => 'ri-folder-2-fill',
+                        'previewClass' => 'folder-preview',
+                    ]);
+                }
+            } else {
+                $items->push([
+                    'id' => $doc->id,
+                    'name' => $doc->control_code . ' - ' . $doc->title,
+                    'type' => 'document',
+                    'ownerName' => $doc->user->name ?? '—',
+                    'ownerEmail' => $doc->user->email ?? '',
+                    'ownerColor' => $this->avatarColor($doc->user->name ?? ''),
+                    'dateShared' => $record->created_at->format('M d, Y'),
+                    'sortDate' => $record->created_at,
+                    'iconClass' => $fileInfo['iconClass'],
+                    'previewClass' => $fileInfo['previewClass'],
+                ]);
+            }
+        }
+
+        $items = $items->sortByDesc('sortDate')->unique('id')->values();
+
+        $groupedByDate = $items->groupBy(function($item) {
+            $date = $item['sortDate'];
+            $now = now();
+
+            if ($date->isToday()) return 'Today';
+            if ($date->isYesterday()) return 'Yesterday';
+            if ($date->greaterThanOrEqualTo($now->copy()->subDays(7))) return 'Last 7 days';
+            if ($date->greaterThanOrEqualTo($now->copy()->subMonth())) return 'Last month';
+            if ($date->year === $now->year) return 'Earlier this year';
+            return 'Older';
+        });
+
+        return view('documents.shared_with_me', compact('groupedByDate'));
+    }
+
+    public function sharedWithMeFolderView(Request $request, $id)
+    {
+        $userId = auth()->id();
+
+        $documentIdsInThisFolder = $this->getAllDocumentIdsInFolder((int) $id);
+
+        $hasDirectAccess = ShareDocument::where('user_id', $userId)
+            ->whereIn('document_id', $documentIdsInThisFolder)
+            ->exists();
+
+        $hasInheritedAccess = false;
+        $folder = DocumentFolder::with([
+            'document',
+            'childrenFolder',
+            'parent',
+            'parent.parent',
+            'parent.parent.parent',
+            'parent.parent.parent.parent',
+        ])->findOrFail($id);
+
+        $parentCheck = $folder->parent;
+        while ($parentCheck) {
+            $parentDocIds = $this->getAllDocumentIdsInFolder($parentCheck->id);
+            $hasInheritedAccess = ShareDocument::where('user_id', $userId)
+                ->whereIn('document_id', $parentDocIds)
+                ->exists();
+            if ($hasInheritedAccess) break;
+            $parentCheck = $parentCheck->parent ?? null;
+        }
+
+        if (!$hasDirectAccess && !$hasInheritedAccess) {
+            abort(403, 'You do not have access to this folder.');
+        }
+
+        $breadcrumbs = [];
+        $current = $folder;
+        while ($current) {
+            array_unshift($breadcrumbs, $current);
+            $current = $current->parent ?? null;
+        }
+
+        $sharedDocumentIds = ShareDocument::where('user_id', $userId)
+            ->pluck('document_id')
+            ->toArray();
+
+        $childFolders = DocumentFolder::where('parent_id', $id)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $childDocuments = Document::with(['attachments'])
+            ->where('folder_id', $id)
+            ->whereIn('id', $sharedDocumentIds)
+            ->orderBy('control_code', 'desc')
+            ->get()
+            ->map(function($doc) {
+                $fileInfo = $this->getDocumentFileInfo($doc);
+                $doc->fileType = $fileInfo['fileType'];
+                $doc->previewClass = $fileInfo['previewClass'];
+                $doc->iconClass = $fileInfo['iconClass'];
+                $doc->badgeClass = $fileInfo['badgeClass'];
+                return $doc;
+            });
+
+        return view('documents.shared_with_me_folder', compact(
+            'folder',
+            'breadcrumbs',
+            'childFolders',
+            'childDocuments'
+        ));
+    }
+
+    public function leaveShareFolder(Request $request)
+    {
+        $documentIds = $this->getAllDocumentIdsInFolder((int) $request->folder_id);
+
+        ShareDocument::whereIn('document_id', $documentIds)
+            ->where('user_id', auth()->id())
+            ->delete();
+
+        return response()->json(['success' => true, 'message' => 'You have left this shared folder.']);
+    }
+
+    private function avatarColor($name): string
+    {
+        $colors = ['#e74c3c','#3498db','#2ecc71','#9b59b6','#e67e22','#1abc9c','#e91e63','#607d8b'];
+        return $colors[crc32($name) % count($colors)];
+    }
+
+    public function sharedWithOthers()
+    {
+        $userId = auth()->id();
+
+        $sharedDocuments = Document::with(['attachments', 'share_document.user', 'folder.parent'])
+            ->where('user_id', $userId)
+            ->whereHas('share_document')
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function($doc) {
+                $fileInfo = $this->getDocumentFileInfo($doc);
+                $doc->fileType = $fileInfo['fileType'];
+                $doc->previewClass = $fileInfo['previewClass'];
+                $doc->iconClass = $fileInfo['iconClass'];
+                $doc->badgeClass = $fileInfo['badgeClass'];
+                return $doc;
+            });
+
+        $items = collect();
+        $addedFolderIds = [];
+
+        foreach ($sharedDocuments as $doc) {
+            if ($doc->folder_id) {
+                $topFolder = $doc->folder;
+                $checkedFolder = $topFolder;
+
+                while ($checkedFolder && $checkedFolder->parent_id) {
+                    $parent = DocumentFolder::find($checkedFolder->parent_id);
+                    if ($parent) {
+                        $checkedFolder = $parent;
+                        $topFolder = $parent;
+                    } else {
+                        break;
+                    }
+                }
+
+                if ($topFolder && !in_array($topFolder->id, $addedFolderIds)) {
+                    $addedFolderIds[] = $topFolder->id;
+
+                    $folderDocIds = $this->getAllDocumentIdsInFolder($topFolder->id);
+                    $sharedUsers = ShareDocument::with('user')
+                        ->whereIn('document_id', $folderDocIds)
+                        ->get()
+                        ->unique('user_id')
+                        ->values()
+                        ->map(function($share) {
+                            $share->avatarColor = $this->avatarColor($share->user->name ?? '');
+                            return $share;
+                        });
+
+                    $items->push([
+                        'id' => $topFolder->id,
+                        'name' => $topFolder->name,
+                        'type' => 'folder',
+                        'sharedUsers' => $sharedUsers,
+                        'sortDate' => $doc->updated_at,
+                        'dateLabel' => $doc->updated_at->format('M d, Y'),
+                        'iconClass' => 'ri-folder-2-fill',
+                        'previewClass' => 'folder-preview',
+                    ]);
+                }
+            } else {
+                $items->push([
+                    'id' => $doc->id,
+                    'name' => $doc->control_code . ' - ' . $doc->title,
+                    'type' => 'document',
+                    'sharedUsers' => $doc->share_document->map(function($share) {
+                        $share->avatarColor = $this->avatarColor($share->user->name ?? '');
+                        return $share;
+                    }),
+                    'sortDate' => $doc->updated_at,
+                    'dateLabel' => $doc->updated_at->format('M d, Y'),
+                    'iconClass' => $doc->iconClass,
+                    'previewClass' => $doc->previewClass,
+                    'docId' => $doc->id,
+                    'docTitle' => $doc->title,
+                ]);
+            }
+        }
+
+        $items = $items->sortByDesc('sortDate')->unique('id')->values();
+
+        $groupedByDate = $items->groupBy(function($item) {
+            $date = $item['sortDate'];
+            $now = now();
+            if ($date->isToday()) return 'Today';
+            if ($date->isYesterday()) return 'Yesterday';
+            if ($date->greaterThanOrEqualTo($now->copy()->subDays(7))) return 'Last 7 days';
+            if ($date->greaterThanOrEqualTo($now->copy()->subMonth())) return 'Last month';
+            if ($date->year === $now->year) return 'Earlier this year';
+            return 'Older';
+        });
+
+        return view('documents.shared_with_others', compact('groupedByDate'));
+    }
+
+    public function sharedWithOthersFolderView(Request $request, $id)
+    {
+        $userId = auth()->id();
+
+        $folder = DocumentFolder::with([
+            'document',
+            'childrenFolder',
+            'parent',
+            'parent.parent',
+            'parent.parent.parent',
+        ])->findOrFail($id);
+
+        $breadcrumbs = [];
+        $current = $folder;
+        while ($current) {
+            array_unshift($breadcrumbs, $current);
+            $current = $current->parent ?? null;
+        }
+
+        $childFolders = DocumentFolder::where('parent_id', $id)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $childDocuments = Document::with(['attachments', 'share_document.user'])
+            ->where('folder_id', $id)
+            ->where('user_id', $userId)
+            ->orderBy('control_code', 'desc')
+            ->get()
+            ->map(function($doc) {
+                $fileInfo = $this->getDocumentFileInfo($doc);
+                $doc->fileType = $fileInfo['fileType'];
+                $doc->previewClass = $fileInfo['previewClass'];
+                $doc->iconClass = $fileInfo['iconClass'];
+                $doc->badgeClass = $fileInfo['badgeClass'];
+                return $doc;
+            });
+
+        $folderDocIds = $this->getAllDocumentIdsInFolder((int) $id);
+        $sharedUsers = ShareDocument::with('user')
+            ->whereIn('document_id', $folderDocIds)
+            ->get()
+            ->unique('user_id')
+            ->values()
+            ->map(function($share) {
+                $share->avatarColor = $this->avatarColor($share->user->name ?? '');
+                return $share;
+            });
+
+        return view('documents.shared_with_others_folder', compact(
+            'folder',
+            'breadcrumbs',
+            'childFolders',
+            'childDocuments',
+            'sharedUsers'
+        ));
+    }
+
+    public function revokeAccess(Request $request)
+    {
+        $share = ShareDocument::where('document_id', $request->document_id)
+            ->where('user_id', $request->user_id)
+            ->first();
+
+        if (!$share) {
+            return response()->json(['success' => false, 'message' => 'Share record not found.']);
+        }
+
+        $document = Document::find($request->document_id);
+        if (!$document || $document->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $share->delete();
+
+        return response()->json(['success' => true, 'message' => 'Access revoked successfully.']);
+    }
+
+    public function revokeFolderAccess(Request $request)
+    {
+        $documentIds = $this->getAllDocumentIdsInFolder((int) $request->folder_id);
+
+        if (empty($documentIds)) {
+            return response()->json(['success' => false, 'message' => 'No documents found in folder.']);
+        }
+
+        $ownedCount = Document::whereIn('id', $documentIds)
+            ->where('user_id', auth()->id())
+            ->count();
+
+        if ($ownedCount === 0) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        ShareDocument::whereIn('document_id', $documentIds)
+            ->where('user_id', $request->user_id)
+            ->delete();
+
+        return response()->json(['success' => true, 'message' => 'Folder access revoked successfully.']);
+    }
+
+    public function leaveShare(Request $request)
+    {
+        ShareDocument::where('document_id', $request->document_id)
+            ->where('user_id', auth()->id())
+            ->delete();
+
+        return response()->json(['success' => true, 'message' => 'You have left this shared document.']);
     }
 }

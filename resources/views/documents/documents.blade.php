@@ -509,44 +509,44 @@
     }
 
     $(document).ready(function () {
-        $("#shareDocument").on("change", function() {
-            var document = $(this).val()
+        // $("#shareDocument").on("change", function() {
+        //     var document = $(this).val()
             
-            $.ajax({
-                type:"POST",
-                url:"{{ url('/documents/share-document') }}",
-                dataType: "json",
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                data: {
-                    document: document
-                },
-                success: function(res) {
-                    $("#peopleAccessContainer").find("a").remove();
+        //     $.ajax({
+        //         type:"POST",
+        //         url:"{{ url('/documents/share-document') }}",
+        //         dataType: "json",
+        //         headers: {
+        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //         },
+        //         data: {
+        //             document: document
+        //         },
+        //         success: function(res) {
+        //             $("#peopleAccessContainer").find("a").remove();
                     
-                    if (res.length > 0) {
-                        $("#peopleAccessContainer").show()
+        //             if (res.length > 0) {
+        //                 $("#peopleAccessContainer").show()
     
-                        res.forEach(shareDocs => {
-                            $("#peopleAccessContainer").append(`
-                                <a href="javascript:void(0);" class="list-group-item list-group-item-action active">
-                                    <div class="d-flex mb-2 align-items-center">
-                                        <div class="flex-shrink-0">
-                                            <img src="/images/no_image.png" class="avatar-sm rounded-circle" />
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <h5 class="list-title fs-15 mb-1 text-dark">${shareDocs.user.name}</h5>
-                                            <p class="list-text mb-0 fs-12 text-dark">${shareDocs.user.email}</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            `);
-                        });
-                    }
-                }
-            })
-        })
+        //                 res.forEach(shareDocs => {
+        //                     $("#peopleAccessContainer").append(`
+        //                         <a href="javascript:void(0);" class="list-group-item list-group-item-action active">
+        //                             <div class="d-flex mb-2 align-items-center">
+        //                                 <div class="flex-shrink-0">
+        //                                     <img src="/images/no_image.png" class="avatar-sm rounded-circle" />
+        //                                 </div>
+        //                                 <div class="flex-grow-1 ms-3">
+        //                                     <h5 class="list-title fs-15 mb-1 text-dark">${shareDocs.user.name}</h5>
+        //                                     <p class="list-text mb-0 fs-12 text-dark">${shareDocs.user.email}</p>
+        //                                 </div>
+        //                             </div>
+        //                         </a>
+        //                     `);
+        //                 });
+        //             }
+        //         }
+        //     })
+        // })
 
         var savedView = localStorage.getItem('documentViewPreference');
         if (savedView === 'grid') { currentView = 'grid'; }
@@ -860,6 +860,166 @@
             }
         });
 
+        $('#share').on('shown.bs.modal', function () {
+            $('#shareFolderSelect').chosen({ width: '100%' });
+            $('#shareDocumentSelect').chosen({ width: '100%' });
+            $('#shareUsersSelect').chosen({ width: '100%' });
+        });
+
     });
+
+    (function () {
+        var folderData = {!! json_encode($folderData) !!};
+
+        function checkShareReady() {
+            var type = $('input[name="share_type"]:checked').val();
+            var usersOk  = $('#shareUsersSelect').val() && $('#shareUsersSelect').val().length > 0;
+            var targetOk = false;
+
+            if (type === 'folder') {
+                targetOk = !!$('#shareFolderSelect').val();
+            } else if (type === 'document') {
+                targetOk = $('#shareDocumentSelect').val() && $('#shareDocumentSelect').val().length > 0;
+            }
+
+            $('#shareSubmitBtn').prop('disabled', !(usersOk && targetOk));
+        }
+
+        function renderPeopleWithAccess(res) {
+            $('#peopleAccessContainer').find('a').remove();
+
+            if (res.length > 0) {
+                $('#peopleAccessContainer').show();
+                res.forEach(function (shareDocs) {
+                    $('#peopleAccessContainer').append(
+                        '<a href="javascript:void(0);" class="list-group-item list-group-item-action active">' +
+                            '<div class="d-flex mb-2 align-items-center">' +
+                                '<div class="flex-shrink-0">' +
+                                    '<img src="/images/no_image.png" class="avatar-sm rounded-circle" />' +
+                                '</div>' +
+                                '<div class="flex-grow-1 ms-3">' +
+                                    '<h5 class="list-title fs-15 mb-1 text-dark">' + shareDocs.user.name + '</h5>' +
+                                    '<p class="list-text mb-0 fs-12 text-dark">' + shareDocs.user.email + '</p>' +
+                                '</div>' +
+                            '</div>' +
+                        '</a>'
+                    );
+                });
+            } else {
+                $('#peopleAccessContainer').hide();
+            }
+        }
+
+        $('#share').on('shown.bs.modal', function () {
+            if (!$('#shareFolderSelect').data('chosen-init')) {
+                $('#shareFolderSelect').chosen({ width: '100%' }).on('change', function () {
+                    var folderId = $(this).val();
+
+                    $('#peopleAccessContainer').hide().find('a').remove();
+
+                    if (!folderId) { $('#folderPreview').hide(); checkShareReady(); return; }
+
+                    var folder = folderData.find(function(f) { return String(f.id) === String(folderId); });
+                    if (folder) {
+                        $('#folderPreviewName').text(folder.name);
+                        $('#folderPreviewCount').text(folder.docs.length + ' file' + (folder.docs.length !== 1 ? 's' : ''));
+
+                        var listHtml = '';
+                        if (folder.docs.length > 0) {
+                            folder.docs.forEach(function (doc) {
+                                listHtml += '<div class="d-flex align-items-center gap-2 py-1 border-bottom">' +
+                                    '<i class="ri-file-text-line text-muted"></i>' +
+                                    '<span class="text-truncate">' + doc.title + '</span>' +
+                                    '</div>';
+                            });
+                        } else {
+                            listHtml = '<div class="text-muted fst-italic">This folder has no documents yet.</div>';
+                        }
+                        $('#folderPreviewList').html(listHtml);
+                        $('#folderPreview').show();
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ url("/documents/share-folder") }}',
+                        dataType: 'json',
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        data: { folder_id: folderId },
+                        success: function (res) { renderPeopleWithAccess(res); }
+                    });
+
+                    checkShareReady();
+                });
+                $('#shareFolderSelect').data('chosen-init', true);
+            }
+
+            if (!$('#shareDocumentSelect').data('chosen-init')) {
+                $('#shareDocumentSelect').chosen({ width: '100%' }).on('change', function () {
+                    var docIds = $(this).val();
+
+                    $('#peopleAccessContainer').hide().find('a').remove();
+
+                    if (!docIds || docIds.length === 0) { checkShareReady(); return; }
+
+                    var lastDocId = Array.isArray(docIds) ? docIds[docIds.length - 1] : docIds;
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ url("/documents/share-document") }}',
+                        dataType: 'json',
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        data: { document: lastDocId },
+                        success: function (res) { renderPeopleWithAccess(res); }
+                    });
+
+                    checkShareReady();
+                });
+                $('#shareDocumentSelect').data('chosen-init', true);
+            }
+
+            if (!$('#shareUsersSelect').data('chosen-init')) {
+                $('#shareUsersSelect').chosen({ width: '100%' }).on('change', checkShareReady);
+                $('#shareUsersSelect').data('chosen-init', true);
+            }
+        });
+
+        $('input[name="share_type"]').on('change', function () {
+            var val = $(this).val();
+
+            $('.share-type-card').removeClass('border-primary bg-light');
+            $(this).closest('.share-type-card').addClass('border-primary bg-light');
+
+            $('#peopleAccessContainer').hide().find('a').remove();
+            $('#folderPreview').hide();
+
+            if (val === 'folder') {
+                $('#folderSelectionField').show();
+                $('#documentSelectionField').hide();
+                $('#shareDocumentSelect').val(null).trigger('chosen:updated');
+            } else {
+                $('#documentSelectionField').show();
+                $('#folderSelectionField').hide();
+                $('#shareFolderSelect').val('').trigger('chosen:updated');
+            }
+
+            $('#usersField').show();
+            checkShareReady();
+        });
+
+        $('#share').on('hidden.bs.modal', function () {
+            $('input[name="share_type"]').prop('checked', false);
+            $('.share-type-card').removeClass('border-primary bg-light');
+            $('#folderSelectionField, #documentSelectionField, #usersField').hide();
+            $('#folderPreview').hide();
+
+            $('#shareFolderSelect').val('').trigger('chosen:updated');
+            $('#shareDocumentSelect').val(null).trigger('chosen:updated');
+            $('#shareUsersSelect').val(null).trigger('chosen:updated');
+
+            $('#shareSubmitBtn').prop('disabled', true);
+            $('#peopleAccessContainer').hide().find('a').remove();
+        });
+
+    }());
 </script>
 @endsection

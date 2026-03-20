@@ -1,5 +1,5 @@
 <div class="modal fade" id="new_department" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom border-2">
                 <h5 class="modal-title mb-3">New Department</h5>

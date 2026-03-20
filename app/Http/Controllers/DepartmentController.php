@@ -59,53 +59,42 @@ class DepartmentController extends Controller
 
         $data = [];
         foreach ($items as $department) {
-            $status = $department->status == 1
-                ? '<span class="badge bg-success">Active</span>'
-                : '<span class="badge bg-danger">Inactive</span>';
-
             $depHead = $department->dep_head
                 ? $department->dep_head->name
                 : '<span class="text-muted">No Head</span>';
 
-            if ($department->status == 0) {
-                $actions = '
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                        <i class="ri-more-2-fill"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button class="dropdown-item activate-department" data-id="' . $department->id . '">
-                            <i class="ri-check-line me-2"></i>Activate
-                        </button></li>
-                    </ul>';
-            } else {
-                $actions = '
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                        <i class="ri-more-2-fill"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment' . $department->id . '">
+            $actions = '
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                    <i class="ri-more-2-fill"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment' . $department->id . '">
                             <i class="ri-pencil-line me-2"></i>Edit
-                        </button></li>
-                        <li><button class="dropdown-item deactivate-department" data-id="' . $department->id . '">
-                            <i class="ri-close-line me-2"></i>Deactivate
-                        </button></li>
-                    </ul>';
-            }
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item text-danger delete-department"
+                            data-id="' . $department->id . '"
+                            data-name="' . e($department->name) . '">
+                            <i class="ri-delete-bin-line me-2"></i>Delete
+                        </button>
+                    </li>
+                </ul>';
 
             $data[] = [
-                'action' => '<div class="dropdown">' . $actions . '</div>',
-                'code' => '<strong>' . $department->code . '</strong>',
-                'name' => $department->name ?? 'N/A',
+                'action'   => '<div class="dropdown">' . $actions . '</div>',
+                'code'     => '<strong>' . $department->code . '</strong>',
+                'name'     => $department->name ?? 'N/A',
                 'dep_head' => $depHead,
-                'status' => $status,
             ];
         }
 
         return response()->json([
-            'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
+            'draw'            => intval($draw),
+            'recordsTotal'    => $totalRecords,
             'recordsFiltered' => $totalFiltered,
-            'data' => $data,
+            'data'            => $data,
         ]);
     }
 
@@ -271,19 +260,29 @@ class DepartmentController extends Controller
      */
     public function destroy($id)
     {
-        //
+        \DB::beginTransaction();
+        try {
+            $department = Department::findOrFail($id);
+            $department->delete();
+            \DB::commit();
+            Alert::success('Successfully Deleted')->persistent('Dismiss');
+        } catch (\Exception $e) {
+            \DB::rollback();
+            Alert::error('Error occurred')->persistent('Dismiss');
+        }
+        return back();
     }
     
-    public function deactivate(Request $request)
-    {
-        Department::where('id', $request->id)->update(['status' => 0]);
-        return "success";
-    }
+    // public function deactivate(Request $request)
+    // {
+    //     Department::where('id', $request->id)->update(['status' => 0]);
+    //     return "success";
+    // }
     
-    public function activate(Request $request)
-    {
-        // dd($request->all());
-        Department::where('id', $request->id)->update(['status' => 1]);
-        return "success";
-    }
+    // public function activate(Request $request)
+    // {
+    //     // dd($request->all());
+    //     Department::where('id', $request->id)->update(['status' => 1]);
+    //     return "success";
+    // }
 }
