@@ -1691,7 +1691,7 @@
                         @endif
 
                         <!-- Settings Submenu -->
-                        @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control'))
+                        {{-- @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control')) --}}
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                                href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
@@ -1756,9 +1756,9 @@
                                 </ul>
                             </div>
                         </li>
-                        @endif
+                        {{-- @endif --}}
 
-                        @if((auth()->user()->role == 'Administrator'))
+                        {{-- @if((auth()->user()->role == 'Administrator')) --}}
                         <div>
                             <li class="nav-item @if(Request::is('reports')) active @endif">
                                 <a class="nav-link menu-link" href="{{url('reports')}}">
@@ -1767,7 +1767,7 @@
                                 </a>
                             </li>
                         </div>
-                        @endif
+                        {{-- @endif --}}
 
                         {{-- SSO Default Access --}}
                         {{-- @if(auth()->user()->google_id != null)
