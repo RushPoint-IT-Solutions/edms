@@ -7,13 +7,21 @@ use App\Company;
 use App\Department;
 use App\UserDepartment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index()
     {
+        if (!auth()->check() || !auth()->user()->can('users.view')) {
+            return view("pages.403-error");
+        }
+
         $companies = Company::get();
         $departments = Department::get();
         $roles = Role::get();
@@ -43,7 +51,7 @@ class UserController extends Controller
         $columnName = $request->get('columns')[$columnIndex]['data'];
         $columnSortOrder = $order['dir'];
 
-        $query = User::with(['department', 'company', 'departments.dep']);
+        $query = User::select("name","email","department_id","role","status","id")->with(['department', 'company', 'departments.dep']);
 
         $totalRecords = User::count();
 
@@ -85,11 +93,6 @@ class UserController extends Controller
                 ? '<span class="badge-status inactive badge bg-danger">Inactive</span>' 
                 : '<span class="badge-status active badge bg-success">Active</span>';
 
-            // $shareDepartments = '';
-            // foreach($user->departments as $department) {
-            //     $shareDepartments .= ($department->dep->name ?? 'N/A') . '<br>';
-            // }
-
             $actions = '<div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
                     <i class="ri-more-2-fill"></i>
@@ -100,8 +103,13 @@ class UserController extends Controller
                 $actions .= '<li><button class="dropdown-item activate-user" data-id="'.$user->id.'">
                     <i class="ri-check-line me-2"></i>Activate</button></li>';
             } else {
-                $actions .= '<li><button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass'.$user->id.'">
+                $actions .= '<li><button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass'.$user->id.'" data-id='.$user->id.'>
                     <i class="ri-key-line me-2"></i>Change Password</button></li>';
+                $actions .= '<li>
+                                <button class="dropdown-item" id="accessControlBtn'.$user->id.'">
+                                    <i class="ri-user-settings-line"></i> Access Control
+                                </button>
+                            </li>';
                 $actions .= '<li><button class="dropdown-item edit" type="button" id="editUserBtn">
                     <i class="ri-pencil-line me-2"></i>Edit</button></li>';
                 
@@ -152,54 +160,99 @@ class UserController extends Controller
 
     public function create(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
-            'name' => 'required|min:3|max:50',
-            'email' => 'required|email|unique:users',
-            'role' => 'required'
-        ], [
-            'name.required' => 'Name is required',
-            'name.min' => 'Name must be at least 3 characters',
-            'email.required' => 'Email is required',
-            'email.email' => 'Please enter a valid email address',
-            'email.unique' => 'This email address is already registered',
-            'role.required' => 'Role is required',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|min:3|max:50',
+                'email' => 'required|email|unique:users',
+                'role' => 'required'
+            ], [
+                'name.required' => 'Name is required',
+                'name.min' => 'Name must be at least 3 characters',
+                'email.required' => 'Email is required',
+                'email.email' => 'Please enter a valid email address',
+                'email.unique' => 'This email address is already registered',
+                'role.required' => 'Role is required',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first(),
-                'errors' => $validator->errors()
-            ], 422);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first(),
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $new_account = new User;
+            $new_account->name = $request->name;
+            $new_account->email = $request->email;
+            $new_account->company_id = $request->company;
+            $new_account->department_id = $request->department;
+            $new_account->role = $request->role;
+            $new_account->password = bcrypt('Marsu2025!');
+            $new_account->save();
+
+            $new_account->syncRoles($request->role);
+
+            return response()->json(['status' => "success", 'message' => 'Account created successfully!'], 201);
+        } catch (\Exception $e) {
+            Log::error("Error in creating user ", $e->getMessage());
         }
+    }
 
-        $new_account = new User;
-        $new_account->name = $request->name;
-        $new_account->email = $request->email;
-        $new_account->company_id = $request->company;
-        $new_account->department_id = $request->department;
-        $new_account->role = $request->role;
-        $new_account->password = bcrypt('Marsu2025!');
-        $new_account->save();
+    public function edit_user(Request $request)
+    {
+        // dd($request->all());
+        try {
+            $validator = Validator::make($request->all(), [
+                'role' => 'required|exists:roles,name',
+                'department' => 'required|exists:departments,id'
+            ]);
 
-        $new_account->syncRoles($request->role);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first(),
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        return response()->json(['success' => true, 'message' => 'Account created successfully!'], 201);
+            $account = User::where('id', $request->id)->first();
+            $account->role = $request->role;
+            $account->department_id = $request->department;
+            $account->save();
+            
+            $account->syncRoles($request->role);
+
+            return response()->json(['status' => "success", 'message' => 'Account updated successfully!'], 201);
+        } catch (\Exception $e) {
+            Log::error("Error in updating user ", $e->getMessage());
+        }
     }
     
     public function changepassword(Request $request)
     {
-        // dd($request->all());
-        // $this->validate($request, [
-        //     'password' => 'required|confirmed|min:5',
-        // ]);
+        try {
+            $validator = Validator::make($request->all(),[
+                'password' => 'string|required|confirmed|min:3',
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->first(),
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        $user = User::findOrFail($request->user_id);
-        $user->password = bcrypt($request->password);
-        $user->save();
-        
-        Alert::success('Successfully Change Password')->persistent('Dismiss');
-        return back();
+            $user = User::findOrFail($request->user_id);
+            $user->password = bcrypt($request->password);
+            $user->save();
+
+            return response()->json(['status' => 'success', 'message' => 'Successfully Changed']);
+        }
+        catch (\Exception $e) {
+            Log::error("Error changing password ", $e->getMessage());
+        }
     }
     public function deactivate_user(Request $request)
     {
@@ -218,74 +271,43 @@ class UserController extends Controller
 
         return "success";
     }
-    public function edit_user(Request $request)
+
+    public function accessControl(Request $request,$id)
     {
-        // dd($request->all());
-        $this->validate($request, [
-            'email' => 'unique:users,email,' . $request->id,
-        ]);
+        $user = User::findOrFail($id);
 
-        $account = User::where('id', $request->id)->first();
-        $account->name = $request->name;
-        $account->email = $request->email;
-        $account->role = $request->role;
-        // $account->company_id = $request->company;
-        $account->department_id = $request->department;
-        $account->save();
-        
-        $account->syncRoles($request->role);
-        // $share_department = UserDepartment::where('user_id',$id)->delete();
-        // if($request->share_department)
-        // {
-        //     foreach($request->share_department as $d)
-        //     {
-        //         $department = new UserDepartment;
-        //         $department->user_id = $id;
-        //         $department->department_id = $d;
-        //         $department->created_by = auth()->user()->id;
-        //         $department->save();
-        //     }
-        // }
+        $permissions = [];
+        $access_control = Permission::select(
+            "id",
+            "name",
+            DB::raw("SUBSTRING_INDEX(name,'.',1) as Module"),
+            DB::raw("SUBSTRING_INDEX(name,'.',-1) as Action"),
+        )
+        ->get();
 
-        Alert::success('Successfully Updated')->persistent('Dismiss');
-        return back();
-    }
-    public function roles()
-    {
-        $roles = [
-            'User' => 'User',
-            // 'Documents and Records Controller' => 'Documents and Records Controller',
-            'Department Head' => 'Department Head',
-            'Document Control Officer' => 'Document Control Officer',
-            'Business Process Manager' => 'Business Process Manager',
-            'Management Representative' => 'Management Representative',
-            'Administrator' => 'Administrator',
-        ];
+        $permissions=[];
+        foreach($access_control as $control) {
+            $permissions[$control->Module][$control->Action] = $control->id;
+        }
 
-        return $roles;
+        return view("settings.access_control.index",
+            array(
+                'user' => $user,
+                'permissions' => $permissions
+            )   
+        );
     }
 
-    // public function addUserFromWpro(Request $request)
-    // {
-    //     $user = User::where('email', $request->email)->first();
-        
-    //     if ($user == null)
-    //     {
-    //         $users = new User;
-    //         $users->name = $request->name;
-    //         $users->email = $request->email;
-    //         $users->password = $request->password;
-    //         $users->department_id = $request->department_id;
-    //         $users->company_id = $request->company_id;
-    //         $users->role = $request->role;
-    //         $users->save();
+    public function updateAccessControl(Request $request)
+    {
+        try {
+            $permissions = Permission::select("name")->whereIn("id", $request->permission)->get()->pluck("name")->toArray();
+            $user = User::findOrFail($request->user_id);
+            $user->syncPermissions($permissions);
 
-    //         return response()->json(['message' => 'Successfully Saved']);
-    //     }
-    //     else
-    //     {
-    //         return response()->json(['message' => 'Error! The email is existing in our system']);
-    //     }
-        
-    // }
+            return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+        } catch (\Exception $e) {
+            Log::error("Error in access control ", $e->getMessage());
+        }
+    }
 }

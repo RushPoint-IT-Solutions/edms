@@ -86,9 +86,11 @@
 @include('users.new_account')
 @include('users.edit_user')
 @include('users.changepassword')
+{{-- @include("settings.access_control.access_control") --}}
 @endsection
 
 @section('js')
+<script src="{{ asset("js/ajaxRequest.js") }}"></script>
 <script>
 $(document).ready(function () {
 
@@ -116,7 +118,7 @@ $(document).ready(function () {
             { data: 'status', name: 'status' },
             { data: 'action', name: 'action', orderable: false, searchable: false },
         ],
-        pageLength: 25,
+        pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         dom: 'lBfrtip',
         buttons: [
@@ -151,6 +153,8 @@ $(document).ready(function () {
         },
         rowCallback: function (row, data) {
             $(row).find('#editUserBtn').on('click', function () {
+                console.log(data);
+                
                 $('#editUserModal').modal('show');
                 $("[name='id']").val(data.user_id);
                 $("[name='name']").val(data.name);
@@ -162,6 +166,12 @@ $(document).ready(function () {
                 $('#change_pass').modal('show');
                 $("[name='user_id']").val(data.user_id);
             });
+            $(row).find("#accessControlBtn"+data.user_id).on("click", function() {
+                console.log(data);
+                $("#accessControl").modal("show")
+                $("#accessControl .modal-title").text(data.name)
+                
+            })
         }
     });
 
@@ -247,6 +257,39 @@ $(document).ready(function () {
         });
     });
 
+    $("#EditUserForm").on("submit", function(e) {
+        e.preventDefault()
+        var form = $(this)
+        var btn = $("#EditUpdate")
+
+        ajaxRequest({
+            type:"POST",
+            url:"{{ url('/users/edit-user') }}",
+            data: form.serialize(),
+            beforeSend: function() {
+                btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+            },
+            success: function(response) {
+                swal("Success", response.message, response.status);
+                $('#editUserModal').modal('hide');
+                form[0].reset();
+                form.find('.cat').trigger('chosen:updated');
+                table.ajax.reload(null, false);
+            },
+            complete: function(){
+                btn.prop('disabled', false).html('Submit');
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('Submit');
+                var message = 'Something went wrong.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                swal("Error!", message, "error");
+            }
+        })
+    })
+
     $(document).on('click', '.deactivate-user', function (e) {
         e.preventDefault();
         var id = $(this).data('id');
@@ -303,9 +346,58 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on('hidden.bs.modal', '#new_account, [id^="editUser"], [id^="change_pass"]', function () {
-        table.ajax.reload(null, false);
-    });
+    $("#changePasswordForm").on("submit", function(e) {
+        e.preventDefault()
+
+        var form = $(this).serializeArray()
+        var btn = $("#ChangePasswordBtn")
+
+        ajaxRequest({
+            type:"POST",
+            url:"{{ url('users/change-password') }}",
+            data: form,
+            beforeSend: function() {
+                btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Changing...');
+            },
+            success: function(response) {
+                swal("Success", response.message, response.status);
+                form[0].reset();
+                form.find('.cat').trigger('chosen:updated');
+                table.ajax.reload(null, false);
+            },
+            complete: function() {
+                btn.prop('disabled', false).html('Change');
+                $("#change_pass").modal("hide")
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('Change');
+
+                // Clear previous errors
+                $('#changePasswordForm .form-control').removeClass('is-invalid is-valid');
+                $('#changePasswordForm .invalid-feedback').text('');
+
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+
+                    $.each(errors, function (key, value) {
+                        let input = $('[name="' + key + '"]');
+                        input.addClass('is-invalid');
+                        input.next('.invalid-feedback').text(value[0]);
+                    });
+                } else {
+                    let message = 'Something went wrong.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    swal("Error!", message, "error");
+                }
+            }
+        })
+    })
+
+    // $(document).on('hidden.bs.modal', '#new_account, [id^="editUser"], [id^="change_pass"]', function () {
+    //     table.ajax.reload(null, false);
+    // });
 
     $('.cat').chosen({ width: "100%" });
 });

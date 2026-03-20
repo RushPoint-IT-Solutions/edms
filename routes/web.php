@@ -65,11 +65,14 @@ Route::group(['middleware' => 'auth'], function () {
          //Users
         Route::get('/users', 'UserController@index')->name('settings');
         Route::prefix('users')->group(function() {
+            Route::get("access-control/{id}", "UserController@accessControl");
+
             Route::post('new-account', 'UserController@create')->name('settings');
             Route::post('/edit-user', 'UserController@edit_user')->name('settings');
             Route::post('/change-password', 'UserController@changepassword')->name('settings');
             Route::post('deactivate-user', 'UserController@deactivate_user')->name('settings');
             Route::post('activate-user', 'UserController@activate_user')->name('settings');
+            Route::post('/access-control/update', 'UserController@updateAccessControl')->name('access-control.update');
         });
 
         // Type of Documents
@@ -119,8 +122,8 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/add-permission/{id}', 'RoleController@addPermission')->name('roles.addPermission');
         });
 
-        Route::get('/access-control', 'AccessControlController@index')->name('settings');
-        Route::post('/access-control/update', 'AccessControlController@update')->name('access-control.update');
+        // Route::get('/access-control', 'AccessControlController@index')->name('settings');
+        // Route::post('/access-control/update', 'AccessControlController@update')->name('access-control.update');
         
         Route::prefix('permission')->group(function() {
             Route::post('/store','PermissionController@store');

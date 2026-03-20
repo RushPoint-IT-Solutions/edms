@@ -5,7 +5,7 @@
                 <h5 class="modal-title mb-3">Change Password</h5>
                 <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url('/users/change-password') }}" onsubmit="show();">
+            <form method="POST" id="changePasswordForm">
                 @csrf
                 <div class="modal-body">
                     <input type="hidden" name="user_id">
@@ -17,13 +17,11 @@
                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
                         <input type="password" name="password_confirmation" class="form-control" placeholder="Re-enter new password" required>
                     </div>
-                    @if($errors->has('password'))
-                        <span class="text-danger">{{ $errors->first('password') }}</span>
-                    @endif
+                    <div class="invalid-feedback"></div>
                 </div>
                 <div class="modal-footer border-top border-2">
                     <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                    <button type="submit" class="btn btn-primary mt-3" id="ChangePasswordBtn">Change</button>
                 </div>
             </form>
         </div>

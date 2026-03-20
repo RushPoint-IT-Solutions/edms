@@ -992,7 +992,7 @@
 </head>
 
 <body>
-    <div id="preloaderMarsu">
+    <div id="preloaderMarsu" style="display: none;">
         <div class="logo-placeholder">
             <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
         </div>
@@ -1569,29 +1569,29 @@
                             </a>
                             <div class="menu-dropdown collapse {{ Route::current()->getName() == 'settings' ? 'show' : '' }}" id="sidebarSettings">
                                 <ul class="nav nav-sm flex-column">
-                                    @if(canView('department'))
+                                    {{-- @if(canView('department')) --}}
                                     <li class="nav-item">
                                         <a href="{{ url('departments') }}" class="nav-link {{ Request::is('departments*') ? 'active' : '' }}" data-key="t-departments">Departments</a>
                                     </li>
-                                    @endif
+                                    {{-- @endif --}}
 
-                                    @if(canView('teams'))
+                                    {{-- @if(canView('teams')) --}}
                                     <li class="nav-item">
                                         <a href="{{ url('teams') }}" class="nav-link {{ Request::is('teams*') ? 'active' : '' }}" data-key="t-teams">Offices</a>
                                     </li>
-                                    @endif
+                                    {{-- @endif --}}
 
-                                    @if(canView('users'))
+                                    {{-- @if(canView('users')) --}}
                                     <li class="nav-item">
                                         <a href="{{ url('users') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}" data-key="t-users">Users</a>
                                     </li>
-                                    @endif
+                                    {{-- @endif --}}
 
-                                    @if(canView('documents_type'))
+                                    {{-- @if(canView('documents_type')) --}}
                                     <li class="nav-item">
                                         <a href="{{ url('documents_type') }}" class="nav-link {{ Request::is('documents_type*') ? 'active' : '' }}" data-key="t-documents_type">Type of Documents</a>
                                     </li>
-                                    @endif
+                                    {{-- @endif --}}
 
                                     {{-- @can('rmo')
                                         <li class="nav-item">
@@ -1599,11 +1599,11 @@
                                         </li>
                                     @endcan --}}
 
-                                    @if(canView('roles and permission'))
+                                    {{-- @if(canView('roles and permission')) --}}
                                     <li class="nav-item">
                                         <a href="{{ url('roles') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}" data-key="t-roles">Roles</a>
                                     </li>
-                                    @endif
+                                    {{-- @endif --}}
 
                                     {{-- @can("office")
                                     <li class="nav-item">
@@ -1740,11 +1740,11 @@
         }
     </script>
     
-    <script>
+    {{-- <script>
         window.addEventListener('load', function() {
             document.getElementById('preloaderMarsu').style.display = 'none';
         });
-    </script>
+    </script> --}}
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

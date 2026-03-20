@@ -83,17 +83,16 @@ function getUnreadCommentNotifications()
         ->get();
 }
 
-function canView($permissionKey)
+function canView($user,$permissionId)
 {
-    if (!auth()->check()) return false;
+    $user = $user->hasPermissionTo($permissionId);
 
-    $role = auth()->user()->role ?? 'User';
+    $result = 0;
+    if ($user) {
+        $result = 1;
+    }
 
-    $permission = RolePermission::where('role', $role)
-        ->where('permission_key', $permissionKey)
-        ->first();
-
-    return $permission && $permission->can_view === 'on';
+    return $result;
 }
 
 function canCreate($permissionKey)

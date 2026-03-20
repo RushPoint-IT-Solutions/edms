@@ -5,7 +5,7 @@
                 <h5 class="modal-title mb-3">Edit User</h5>
                 <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url('users/edit-user') }}" onsubmit="show();">
+            <form method="POST" id="EditUserForm">
                 @csrf
                 <div class="modal-body">
                     <input type="hidden" name="id">
@@ -40,7 +40,7 @@
                 </div>
                 <div class="modal-footer border-top border-2">
                     <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                    <button type="submit" class="btn btn-primary mt-3" id="EditUpdate">Update</button>
                 </div>
             </form>
         </div>
