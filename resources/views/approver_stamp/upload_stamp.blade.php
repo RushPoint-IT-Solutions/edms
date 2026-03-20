@@ -5,17 +5,18 @@
                 <h5 class="modal-title mb-3">Upload Stamp</h5>
                 <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url('approver-stamp/store') }}" enctype="multipart/form-data">
+            <form method="POST" id="ApproverForm">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Attachment <span class="text-danger">*</span></label>
                         <input type="file" name="attachment" class="form-control" required>
+                        <div class="invalid-feedback"></div>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-2">
                     <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary mt-3">Save</button>
+                    <button type="submit" class="btn btn-primary mt-3" id="SaveBtn">Save</button>
                 </div>
             </form>
         </div>

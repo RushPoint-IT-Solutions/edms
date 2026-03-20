@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\ApproverStamp;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class ApproverStampController extends Controller
@@ -43,7 +46,7 @@ class ApproverStampController extends Controller
             $data[] = [
                 'file_name' => $item->file_name,
                 'user' => $item->user->name ?? '-',
-                'preview' => '<img src="' . url($item->file) . '" style="height:50px;object-fit:contain;">',
+                'preview' => '<a href="'.url($item->file).'"> <img src="' . url($item->file) . '" style="height:50px;object-fit:contain;"> </a>',
                 'created_at' => $item->created_at ? $item->created_at->format('M d, Y') : '-',
             ];
         }
@@ -74,40 +77,53 @@ class ApproverStampController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'attachment' => 'required'
+        // dd($request->all());
+        $validator = Validator::make($request->all(), [
+            'attachment' => 'required|mimes:png,jpg,jpeg'
         ]);
 
-        $approver_stamp = ApproverStamp::where('user_id', auth()->id())->first();
-        if ($approver_stamp)
-        {
-            $attachment = $request->file('attachment');
-            $name = time()."_".$attachment->getClientOriginalName();
-            $attachment->move(public_path('approver_stamp'),$name);
-            $file = "/approver_stamp/".$name;
-            
-            $approver_stamp->file = $file;
-            $approver_stamp->file_name = $name;
-            $approver_stamp->user_id = auth()->id();
-            $approver_stamp->save();
-        }
-        else
-        {
-            $approver_stamp = new ApproverStamp;
-    
-            $attachment = $request->file('attachment');
-            $name = time()."_".$attachment->getClientOriginalName();
-            $attachment->move(public_path('approver_stamp'),$name);
-            $file = "/approver_stamp/".$name;
-            
-            $approver_stamp->file = $file;
-            $approver_stamp->file_name = $name;
-            $approver_stamp->user_id = auth()->id();
-            $approver_stamp->save();
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ]);
         }
 
-        Alert::success('Successfully Saved')->persistent('Dismiss');
-        return back();
+        try {
+            $approver_stamp = ApproverStamp::where('user_id', auth()->id())->first();
+            if ($approver_stamp)
+            {
+                $attachment = $request->file('attachment');
+                $name = time()."_".$attachment->getClientOriginalName();
+                $attachment->move(public_path('approver_stamp'),$name);
+                $file = "/approver_stamp/".$name;
+                
+                $approver_stamp->file = $file;
+                $approver_stamp->file_name = $name;
+                $approver_stamp->user_id = auth()->id();
+                $approver_stamp->save();
+
+                return response()->json(['status' => 'success', 'message' => 'Successfully Updated']);
+            }
+            else
+            {
+                $approver_stamp = new ApproverStamp;
+        
+                $attachment = $request->file('attachment');
+                $name = time()."_".$attachment->getClientOriginalName();
+                $attachment->move(public_path('approver_stamp'),$name);
+                $file = "/approver_stamp/".$name;
+                
+                $approver_stamp->file = $file;
+                $approver_stamp->file_name = $name;
+                $approver_stamp->user_id = auth()->id();
+                $approver_stamp->save();
+
+                return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+            }
+        } catch (\Exception $e) {
+            Log::error("Error in upload stamp " . $e->getMessage());
+        }
     }
 
     /**

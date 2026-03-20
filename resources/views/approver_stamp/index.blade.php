@@ -54,6 +54,8 @@
 @endsection
 
 @section('js')
+<script src="{{ asset("js/ajaxRequest.js") }}"></script>
+<script src="{{ asset("js/errorDisplay.js") }}"></script>
 <script>
 $(document).ready(function () {
 
@@ -137,6 +139,34 @@ $(document).ready(function () {
     setTimeout(function () { moveControls(); }, 100);
     $(window).on('resize', function () { moveControls(); });
 
+    $("#ApproverForm").on("submit", function(e) {
+        e.preventDefault()
+
+        var form = new FormData($(this)[0])
+
+        ajaxRequest({
+            type:"POST",
+            url: "{{ url('approver-stamp/store') }}",
+            data: form,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                $("#SaveBtn").prop("disabled", true).text("Saving...")
+            },
+            success: function(res) {
+                if (res.status == "error") {
+                    displayError("ApproverForm", res.errors)
+                }
+                else {
+
+                }
+            },
+            complete: function() {
+                $("#SaveBtn").prop("disabled", false).text("Save")
+                $("#upload_stamp").modal("hide")
+            }
+        })
+    })
 });
 </script>
 @endsection

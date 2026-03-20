@@ -183,7 +183,6 @@ class UserController extends Controller
         }
 
         try {
-
             $new_account = new User;
             $new_account->name = $request->name;
             $new_account->email = $request->email;
