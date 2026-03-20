@@ -1,5 +1,5 @@
 function ajaxRequest(option) {
-    const { data, success, type, url, beforeSend, complete } = option
+    const { data, success, type, url, beforeSend, complete, errors } = option
     
     $.ajax({
         type: type,
@@ -7,21 +7,24 @@ function ajaxRequest(option) {
         data: data,
         dataType:"json",
         beforeSend: function() {
-            if (beforeSend) {
-                beforeSend()
+            if (typeof beforeSend === "function") {
+                beforeSend();
             }
         },
         success: function(response) {
-            success(response)
+            if (typeof success === "function") {
+                success(response);
+            }
         },
         complete: function() {
-            if (complete) {
-                complete()
+            if (typeof complete === "function") {
+                complete();
             }
-        },  
-        error: function(error) {
-            console.error(error);
-            error()
+        },
+        error: function(xhr, status, err) {
+            if (typeof errors === "function") {
+                errors({ xhr, status, err });
+            }
         }
     })
 }

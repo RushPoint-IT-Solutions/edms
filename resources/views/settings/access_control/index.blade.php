@@ -39,11 +39,11 @@
                         <tr>
                             <td>{{str_replace("_"," ",ucfirst($module))}}</td>
                             <td>
-                                @if(isset($action['create']))
+                                {{-- @if(isset($action['create']))
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="checkbox" name="permission[]" value="{{ $action['create'] }}">
                                 </div>
-                                @endif
+                                @endif --}}
                             </td>
                             <td>
                                 @if(isset($action['view']))
@@ -68,7 +68,7 @@
             </table>
 
             <div class="text-end">
-                <button type="submit" class="btn btn-primary btn-sm mt-2">Save</button>
+                <button type="submit" class="btn btn-primary btn-sm mt-2" id="SaveBtn">Save</button>
             </div>
         </form>
     </div>
@@ -111,7 +111,7 @@ $(document).ready(function () {
             url: "{{ url('/users/access-control/update') }}",
             data: formData,
             beforeSend: function() {
-                show()
+                $("#SaveBtn").prop("disabled", true).text('Saving...')
             },
             success: function(response) {
                 if (response.status == "success") {
@@ -119,7 +119,7 @@ $(document).ready(function () {
                 }
             },
             complete: function() {
-                hide()
+                $("#SaveBtn").prop("disabled", false).text('Save')
             }
         })
     })

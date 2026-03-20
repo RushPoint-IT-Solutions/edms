@@ -139,7 +139,7 @@ $(document).ready(function () {
         },
         drawCallback: function () {
             moveControls();
-            loadModalsForVisibleUsers();
+            // loadModalsForVisibleUsers();
         },
         initComplete: function () {
             var inp = $('#usersTable_filter input');
@@ -212,22 +212,22 @@ $(document).ready(function () {
     setTimeout(function () { moveControls(); }, 100);
     $(window).on('resize', function () { moveControls(); });
 
-    function loadModalsForVisibleUsers() {
-        var data = table.rows({ page: 'current' }).data();
-        var userIds = [];
-        data.each(function (row) {
-            if (row.user_id) userIds.push(row.user_id);
-        });
-        if (userIds.length > 0) {
-            $.ajax({
-                url: '{{ route("users.modals") }}',
-                type: 'POST',
-                data: { user_ids: userIds, _token: '{{ csrf_token() }}' },
-                success: function (response) { $('#modalsContainer').html(response); },
-                error: function (xhr) { console.error('Error loading modals:', xhr.responseText); }
-            });
-        }
-    }
+    // function loadModalsForVisibleUsers() {
+    //     var data = table.rows({ page: 'current' }).data();
+    //     var userIds = [];
+    //     data.each(function (row) {
+    //         if (row.user_id) userIds.push(row.user_id);
+    //     });
+    //     if (userIds.length > 0) {
+    //         $.ajax({
+    //             url: '{{ route("users.modals") }}',
+    //             type: 'POST',
+    //             data: { user_ids: userIds, _token: '{{ csrf_token() }}' },
+    //             success: function (response) { $('#modalsContainer').html(response); },
+    //             error: function (xhr) { console.error('Error loading modals:', xhr.responseText); }
+    //         });
+    //     }
+    // }
 
     $('#newAccountForm').on('submit', function (e) {
         e.preventDefault();
@@ -270,14 +270,26 @@ $(document).ready(function () {
                 btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
             },
             success: function(response) {
-                swal("Success", response.message, response.status);
-                $('#editUserModal').modal('hide');
-                form[0].reset();
-                form.find('.cat').trigger('chosen:updated');
-                table.ajax.reload(null, false);
+                if (response.status == "error") {
+                    $('#EditUserForm .form-control').removeClass('is-invalid is-valid');
+                    $('#EditUserForm .invalid-feedback').text('');
+                    
+                    $.each(response.errors, function (key, value) {
+                        let input = $('[name="' + key + '"]');
+                        input.addClass('is-invalid');
+                        input.next('.invalid-feedback').text(value[0]);
+                    });
+                }
+                else {
+                    swal("Success", response.message, response.status);
+                    form[0].reset();
+                    form.find('.cat').trigger('chosen:updated');
+                    table.ajax.reload(null, false);
+                }
             },
             complete: function(){
                 btn.prop('disabled', false).html('Submit');
+                $('#editUserModal').modal('hide');
             },
             error: function (xhr) {
                 btn.prop('disabled', false).html('Submit');
@@ -349,7 +361,7 @@ $(document).ready(function () {
     $("#changePasswordForm").on("submit", function(e) {
         e.preventDefault()
 
-        var form = $(this).serializeArray()
+        var form = $(this).serialize()
         var btn = $("#ChangePasswordBtn")
 
         ajaxRequest({
@@ -360,37 +372,30 @@ $(document).ready(function () {
                 btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Changing...');
             },
             success: function(response) {
-                swal("Success", response.message, response.status);
-                form[0].reset();
-                form.find('.cat').trigger('chosen:updated');
-                table.ajax.reload(null, false);
-            },
-            complete: function() {
-                btn.prop('disabled', false).html('Change');
-                $("#change_pass").modal("hide")
-            },
-            error: function (xhr) {
-                btn.prop('disabled', false).html('Change');
+                console.log(response);
 
-                // Clear previous errors
-                $('#changePasswordForm .form-control').removeClass('is-invalid is-valid');
-                $('#changePasswordForm .invalid-feedback').text('');
-
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors;
-
-                    $.each(errors, function (key, value) {
+                if (response.status == "error") {
+                    $('#changePasswordForm .form-control').removeClass('is-invalid is-valid');
+                    $('#changePasswordForm .invalid-feedback').text('');
+                    
+                    $.each(response.errors, function (key, value) {
+                        console.log(value);
+                        
                         let input = $('[name="' + key + '"]');
                         input.addClass('is-invalid');
                         input.next('.invalid-feedback').text(value[0]);
                     });
-                } else {
-                    let message = 'Something went wrong.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        message = xhr.responseJSON.message;
-                    }
-                    swal("Error!", message, "error");
                 }
+                else {
+                    swal("Success", response.message, response.status);
+                    form[0].reset();
+                    form.find('.cat').trigger('chosen:updated');
+                    table.ajax.reload(null, false);
+                    $("#change_pass").modal("hide")
+                }
+            },
+            complete: function() {
+                btn.prop('disabled', false).html('Change');
             }
         })
     })

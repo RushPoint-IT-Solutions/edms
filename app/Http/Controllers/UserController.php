@@ -6,6 +6,7 @@ use App\User;
 use App\Company;
 use App\Department;
 use App\UserDepartment;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -106,9 +107,9 @@ class UserController extends Controller
                 $actions .= '<li><button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass'.$user->id.'" data-id='.$user->id.'>
                     <i class="ri-key-line me-2"></i>Change Password</button></li>';
                 $actions .= '<li>
-                                <button class="dropdown-item" id="accessControlBtn'.$user->id.'">
+                                <a href="' . url('/users/access-control/'.$user->id) . '" class="dropdown-item" id="accessControlBtn'.$user->id.'">
                                     <i class="ri-user-settings-line"></i> Access Control
-                                </button>
+                                </a>
                             </li>';
                 $actions .= '<li><button class="dropdown-item edit" type="button" id="editUserBtn">
                     <i class="ri-pencil-line me-2"></i>Edit</button></li>';
@@ -144,43 +145,44 @@ class UserController extends Controller
         ]);
     }
 
-    public function getUserModals(Request $request)
-    {
-        $userIds = $request->user_ids;
-        $users = User::with(['department', 'company', 'departments.dep'])
-            ->whereIn('id', $userIds)
-            ->get();
+    // public function getUserModals(Request $request)
+    // {
+    //     $userIds = $request->user_ids;
+    //     $users = User::with(['department', 'company', 'departments.dep'])
+    //         ->whereIn('id', $userIds)
+    //         ->get();
         
-        $companies = Company::get();
-        $departments = Department::get();
-        $roles = $this->roles();
+    //     $companies = Company::get();
+    //     $departments = Department::get();
+    //     $roles = $this->roles();
         
-        return view('partials.user_modals', compact('users', 'companies', 'departments', 'roles'));
-    }
+    //     return view('partials.user_modals', compact('users', 'companies', 'departments', 'roles'));
+    // }
 
     public function create(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|min:3|max:50',
-                'email' => 'required|email|unique:users',
-                'role' => 'required'
-            ], [
-                'name.required' => 'Name is required',
-                'name.min' => 'Name must be at least 3 characters',
-                'email.required' => 'Email is required',
-                'email.email' => 'Please enter a valid email address',
-                'email.unique' => 'This email address is already registered',
-                'role.required' => 'Role is required',
-            ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:3|max:50',
+            'email' => 'required|email|unique:users',
+            'role' => 'required'
+        ], [
+            'name.required' => 'Name is required',
+            'name.min' => 'Name must be at least 3 characters',
+            'email.required' => 'Email is required',
+            'email.email' => 'Please enter a valid email address',
+            'email.unique' => 'This email address is already registered',
+            'role.required' => 'Role is required',
+        ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $validator->errors()->first(),
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
 
             $new_account = new User;
             $new_account->name = $request->name;
@@ -189,9 +191,8 @@ class UserController extends Controller
             $new_account->department_id = $request->department;
             $new_account->role = $request->role;
             $new_account->password = bcrypt('Marsu2025!');
+            $new_account->role = $request->role;
             $new_account->save();
-
-            $new_account->syncRoles($request->role);
 
             return response()->json(['status' => "success", 'message' => 'Account created successfully!'], 201);
         } catch (\Exception $e) {
@@ -202,27 +203,25 @@ class UserController extends Controller
     public function edit_user(Request $request)
     {
         // dd($request->all());
-        try {
-            $validator = Validator::make($request->all(), [
-                'role' => 'required|exists:roles,name',
-                'department' => 'required|exists:departments,id'
+        $validator = Validator::make($request->all(), [
+            'role' => 'required|exists:roles,name',
+            'department' => 'required|exists:departments,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors()
             ]);
+        }
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $validator->errors()->first(),
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
+        try {
             $account = User::where('id', $request->id)->first();
             $account->role = $request->role;
             $account->department_id = $request->department;
             $account->save();
             
-            $account->syncRoles($request->role);
-
             return response()->json(['status' => "success", 'message' => 'Account updated successfully!'], 201);
         } catch (\Exception $e) {
             Log::error("Error in updating user ", $e->getMessage());
@@ -231,19 +230,19 @@ class UserController extends Controller
     
     public function changepassword(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(),[
-                'password' => 'string|required|confirmed|min:3',
-            ]);
-    
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $validator->errors()->first(),
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+        $validator = Validator::make($request->all(),[
+            'password' => 'string|required|confirmed|min:3',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors()
+            ]);
+        }
+
+        try {
             $user = User::findOrFail($request->user_id);
             $user->password = bcrypt($request->password);
             $user->save();
@@ -301,13 +300,19 @@ class UserController extends Controller
     public function updateAccessControl(Request $request)
     {
         try {
-            $permissions = Permission::select("name")->whereIn("id", $request->permission)->get()->pluck("name")->toArray();
             $user = User::findOrFail($request->user_id);
-            $user->syncPermissions($permissions);
-
-            return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+            if ($request->has('permission')) {
+                $permissions = Permission::select("name")->whereIn("id", $request->permission)->get()->pluck("name")->toArray();
+                $user->syncPermissions($permissions);
+    
+                return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+            }
+            else {
+                $user->syncPermissions([]);
+                return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+            }
         } catch (\Exception $e) {
-            Log::error("Error in access control ", $e->getMessage());
+            Log::error("Error in access control ". $e->getMessage());
         }
     }
 }

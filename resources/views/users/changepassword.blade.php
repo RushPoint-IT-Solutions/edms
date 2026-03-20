@@ -12,12 +12,12 @@
                     <div class="mb-3">
                         <label class="form-label">New Password <span class="text-danger">*</span></label>
                         <input type="password" name="password" class="form-control" placeholder="Enter new password" required>
+                        <div class="invalid-feedback"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
                         <input type="password" name="password_confirmation" class="form-control" placeholder="Re-enter new password" required>
                     </div>
-                    <div class="invalid-feedback"></div>
                 </div>
                 <div class="modal-footer border-top border-2">
                     <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
