@@ -164,6 +164,9 @@ $(document).ready(function () {
             complete: function() {
                 $("#SaveBtn").prop("disabled", false).text("Save")
                 $("#upload_stamp").modal("hide")
+            },
+            error: function() {
+                swal("Error", "Something went wrong", "error")
             }
         })
     })

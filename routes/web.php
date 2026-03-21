@@ -126,10 +126,12 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/roles', 'RoleController@index')->name('settings');
         Route::prefix('roles')->group(function() {
             Route::get('/data', 'RoleController@getData')->name('roles.data');
-            Route::get('/permissions/data', 'RoleController@getPermissionsData')->name('permissions.data');
+            Route::get('/edit', 'RoleController@edit');
             Route::post('/store', 'RoleController@store')->name('roles.store');
-            Route::post('/permissions/store', 'RoleController@storePermission')->name('permissions.store');
-            Route::post('/add-permission/{id}', 'RoleController@addPermission')->name('roles.addPermission');
+            Route::post('/update', 'RoleController@update');
+            // Route::get('/permissions/data', 'RoleController@getPermissionsData')->name('permissions.data');
+            // Route::post('/permissions/store', 'RoleController@storePermission')->name('permissions.store');
+            // Route::post('/add-permission/{id}', 'RoleController@addPermission')->name('roles.addPermission');
         });
 
         Route::prefix('control-codes')->group(function () {

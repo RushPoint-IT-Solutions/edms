@@ -1,5 +1,5 @@
 function ajaxRequest(option) {
-    const { data, success, type, url, processData, contentType, beforeSend, complete, errors } = option
+    const { data, success, type, url, processData, contentType, beforeSend, complete, error } = option
     
     $.ajax({
         type: type,
@@ -23,9 +23,9 @@ function ajaxRequest(option) {
                 complete();
             }
         },
-        error: function(xhr, status, err) {
-            if (typeof errors === "function") {
-                errors({ xhr, status, err });
+        error: function(err) {
+            if (typeof error === "function") {
+                error(err);
             }
         }
     })

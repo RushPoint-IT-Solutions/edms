@@ -123,6 +123,7 @@ class ApproverStampController extends Controller
             }
         } catch (\Exception $e) {
             Log::error("Error in upload stamp " . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Something went wrong'], 500);
         }
     }
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use RealRashid\SweetAlert\Facades\Alert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -17,13 +19,10 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::get();
-        $permissions = Permission::get();
 
         return view('roles.index', array(
             'roles' => $roles,
-            'permissions' => $permissions,
             'totalRoles' => $roles->count(),
-            'totalPermissions' => $permissions->count(),
         ));
     }
 
@@ -51,8 +50,7 @@ class RoleController extends Controller
                 <div class="dropdown">
                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
                     <ul class="dropdown-menu">
-                        <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#edit' . $role->id . '"><i class="ri-edit-box-line me-2"></i>Edit</button></li>
-                        <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#view' . $role->id . '"><i class="ri-key-2-line me-2"></i>Permissions</button></li>
+                        <li><button class="dropdown-item" id="EditBtn" data-bs-toggle="modal" data-bs-target="#edit' . $role->id . '" data-id="'.$role->id.'"><i class="ri-edit-box-line me-2"></i>Edit</button></li>
                     </ul>
                 </div>';
 
@@ -132,17 +130,28 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
-        $this->validate($request,[
+        $validator = Validator::make($request->all(), [
             'name' => 'required'
         ]);
 
-        $role = new Role;
-        $role->name = $request->name;
-        $role->guard_name = 'web';
-        $role->save();
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => "error",
+                "errors" => $validator->errors()
+            ]);
+        }
+        
+        try {
+            $role = new Role;
+            $role->name = $request->name;
+            $role->guard_name = 'web';
+            $role->save();
 
-        Alert::success('Successfully Saved')->persistent('Dismiss');
-        return back();
+            return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+        } catch (\Exception $e) {
+            Log::error("Error in creating role" . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Something went wrong'], 500);
+        }
     }
 
     /**
@@ -162,9 +171,11 @@ class RoleController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Request $request)
     {
-        //
+        $role = Role::where("id", $request->id)->first();
+
+        return response()->json(['data' => $role]);
     }
 
     /**
@@ -174,11 +185,30 @@ class RoleController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $this->validate($request,[
+        $validator = Validator::make($request->all(), [
             'name' => 'required'
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => "error",
+                "errors" => $validator->errors()
+            ]);
+        }
+        
+        try {
+            $role = Role::where("id", $request->id)->first();
+            $role->name = $request->name;
+            $role->guard_name = 'web';
+            $role->save();
+
+            return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+        } catch (\Exception $e) {
+            Log::error("Error in creating role" . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Something went wrong']);
+        }
     }
 
     /**

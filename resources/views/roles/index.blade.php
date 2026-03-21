@@ -16,13 +16,6 @@
             <p>Total Roles</p>
         </div>
     </div>
-    <div class="col-xl-4 col-md-6">
-        <div class="dashboard-card active">
-            <div class="icon-circle"><i class="ri-key-2-line"></i></div>
-            <h2 class="mb-0 font-weight-bold">{{ $totalPermissions }}</h2>
-            <p>Total Permissions</p>
-        </div>
-    </div>
 </div>
 
 <div class="row">
@@ -102,15 +95,17 @@
 @include('roles.new')
 @foreach($roles as $role)
     @include('roles.edit')
-    @include('roles.view')
+    {{-- @include('roles.view') --}}
 @endforeach
-@foreach($permissions as $permission)
+{{-- @foreach($permissions as $permission)
     @include('permissions.editPermission')
 @endforeach
-@include('permissions.newPermission')
+@include('permissions.newPermission') --}}
 @endsection
 
 @section('js')
+<script src="{{ asset("js/ajaxRequest.js") }}"></script>
+<script src="{{ asset("js/errorDisplay.js") }}"></script>
 <script>
 $(document).ready(function () {
 
@@ -156,6 +151,25 @@ $(document).ready(function () {
                 clearTimeout(t);
                 t = setTimeout(function () { rolesTable.search(v).draw(); }, 500);
             });
+        },
+        rowCallback: function(row, data) {
+            $(row).find("#EditBtn").on("click", function() {
+                $("#EditModal").modal("show")
+
+                var id = $(this).data("id")
+                ajaxRequest({
+                    type:"GET",
+                    url:"{{ url('roles/edit') }}",
+                    data: {
+                        id: id
+                    },
+                    success: function(response) {
+                        $("#EditName").val(response.data.name)
+                        $("#id").val(response.data.id)
+                    }
+                })
+            })
+            
         }
     });
 
@@ -180,76 +194,143 @@ $(document).ready(function () {
 
     setTimeout(function () { moveRolesControls(); }, 100);
 
-    var permsTable = $('#permissionTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("permissions.data") }}',
-            type: 'GET',
-            error: function (xhr) { console.error(xhr.status, xhr.responseText); }
-        },
-        columns: [
-            { data: 'action', orderable: false, searchable: false },
-            { data: 'name', name: 'name' },
-        ],
-        pageLength: 25,
-        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        dom: 'lBfrtip',
-        buttons: [
-            { extend: 'copy', text: 'Copy' },
-            { extend: 'excel', text: 'Excel', title: 'Permissions' },
-        ],
-        order: [[1, 'asc']],
-        language: {
-            processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
-            emptyTable: "No permissions found",
-            zeroRecords: "No matching permissions found",
-            lengthMenu: "Show _MENU_ entries",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)",
-            search: "Search:",
-            paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
-        },
-        drawCallback: function () { movePermsControls(); },
-        initComplete: function () {
-            var inp = $('#permissionTable_filter input');
-            inp.unbind();
-            var t;
-            inp.on('input', function () {
-                var v = $(this).val();
-                clearTimeout(t);
-                t = setTimeout(function () { permsTable.search(v).draw(); }, 500);
-            });
-        }
-    });
+    // @php
+    // var permsTable = $('#permissionTable').DataTable({
+    //     processing: true,
+    //     serverSide: true,
+    //     ajax: {
+    //         url: '{{ route("permissions.data") }}',
+    //         type: 'GET',
+    //         error: function (xhr) { console.error(xhr.status, xhr.responseText); }
+    //     },
+    //     columns: [
+    //         { data: 'action', orderable: false, searchable: false },
+    //         { data: 'name', name: 'name' },
+    //     ],
+    //     pageLength: 25,
+    //     lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+    //     dom: 'lBfrtip',
+    //     buttons: [
+    //         { extend: 'copy', text: 'Copy' },
+    //         { extend: 'excel', text: 'Excel', title: 'Permissions' },
+    //     ],
+    //     order: [[1, 'asc']],
+    //     language: {
+    //         processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
+    //         emptyTable: "No permissions found",
+    //         zeroRecords: "No matching permissions found",
+    //         lengthMenu: "Show _MENU_ entries",
+    //         info: "Showing _START_ to _END_ of _TOTAL_ entries",
+    //         infoEmpty: "Showing 0 to 0 of 0 entries",
+    //         infoFiltered: "(filtered from _MAX_ total entries)",
+    //         search: "Search:",
+    //         paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
+    //     },
+    //     drawCallback: function () { movePermsControls(); },
+    //     initComplete: function () {
+    //         var inp = $('#permissionTable_filter input');
+    //         inp.unbind();
+    //         var t;
+    //         inp.on('input', function () {
+    //             var v = $(this).val();
+    //             clearTimeout(t);
+    //             t = setTimeout(function () { permsTable.search(v).draw(); }, 500);
+    //         });
+    //     }
+    // });
+    // @endphp
 
-    function movePermsControls() {
-        var wrapper = $('#permissionTable_wrapper');
+    // function movePermsControls() {
+    //     var wrapper = $('#permissionTable_wrapper');
 
-        var length = wrapper.find('.dataTables_length');
-        if (length.length) $('#perms-length-control').empty().append(length.detach());
+    //     var length = wrapper.find('.dataTables_length');
+    //     if (length.length) $('#perms-length-control').empty().append(length.detach());
 
-        var filter = wrapper.find('.dataTables_filter');
-        if (filter.length) $('#perms-filter-control').empty().append(filter.detach());
+    //     var filter = wrapper.find('.dataTables_filter');
+    //     if (filter.length) $('#perms-filter-control').empty().append(filter.detach());
 
-        var buttons = wrapper.find('.dt-buttons');
-        if (buttons.length) $('#perms-buttons-control').empty().append(buttons.detach());
+    //     var buttons = wrapper.find('.dt-buttons');
+    //     if (buttons.length) $('#perms-buttons-control').empty().append(buttons.detach());
 
-        var info = wrapper.find('.dataTables_info');
-        if (info.length) $('#perms-info-control').empty().append(info.detach());
+    //     var info = wrapper.find('.dataTables_info');
+    //     if (info.length) $('#perms-info-control').empty().append(info.detach());
 
-        var paginate = wrapper.find('.dataTables_paginate');
-        if (paginate.length) $('#perms-pagination-control').empty().append(paginate.detach());
-    }
+    //     var paginate = wrapper.find('.dataTables_paginate');
+    //     if (paginate.length) $('#perms-pagination-control').empty().append(paginate.detach());
+    // }
 
-    setTimeout(function () { movePermsControls(); }, 100);
+    // setTimeout(function () { movePermsControls(); }, 100);
 
     $(window).on('resize', function () {
         moveRolesControls();
-        movePermsControls();
+        // movePermsControls();
     });
 
+    $("#RoleForm").on("submit", function(e) {
+        e.preventDefault()
+
+        var form = $(this).serializeArray()
+
+        ajaxRequest({
+            type:"POST",
+            url:"{{ url('roles/store') }}",
+            data: form,
+            beforeSend: function() {
+                $("#SaveRoleBtn").prop("disabled", true).text("Saving...")
+            },
+            success: function(response) {
+                if (response.status == "error") {
+                    displayError("RoleForm", response.errors)
+                }
+                else {
+                    $("#RoleForm").trigger("reset")
+                    $("#new").modal("hide")
+                    swal("Success", response.message, response.status)
+                }
+            },
+            complete: function() {
+                $("#SaveRoleBtn").prop("disabled", false).text("Save")
+                rolesTable.ajax.reload(null, false);
+            },
+            error: function(error) {
+                $("#new").modal("hide")
+                swal("Error", "Something went wrong", "error")
+            }
+        })
+    })
+    
+    $("#EditRoleForm").on("submit", function(e) {
+        e.preventDefault()
+
+        var form = $(this).serializeArray()
+
+        ajaxRequest({
+            type:"POST",
+            url:"{{ url('roles/update') }}",
+            data: form,
+            beforeSend: function() {
+                $("#UpdateRoleBtn").prop("disabled", true).text("Updating...")
+            },
+            success: function(response) {
+                if (response.status == "error") {
+                    displayError("EditRoleForm", response.errors)
+                }
+                else {
+                    $("#EditRoleForm").trigger("reset")
+                    $("#EditModal").modal("hide")
+                    swal("Success", response.message, response.status)
+                }
+            },
+            complete: function() {
+                $("#UpdateRoleBtn").prop("disabled", false).text("Update")
+                rolesTable.ajax.reload(null, false);
+            },
+            error: function(error) {
+                $("#EditModal").modal("hide")
+                swal("Error", "Something went wrong", "error")
+            }
+        })
+    })
 });
 </script>
 @endsection
