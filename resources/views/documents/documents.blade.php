@@ -79,7 +79,7 @@
                 <span id="selectedCount">0</span> item(s) selected
             </div>
             <div class="bulk-actions">
-                <button class="btn btn-sm btn-primary" id="bulkShareBtn">
+                <button class="btn btn-sm btn-warning" id="bulkShareBtn">
                     <i class="ri-share-line"></i>
                     Share Selected
                 </button>
