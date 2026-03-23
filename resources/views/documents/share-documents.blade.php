@@ -9,7 +9,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <form action="{{ url('/documents/share') }}" method="post" onsubmit="show()" id="shareForm">
+            <form action="{{ url('/documents/share') }}" method="post" id="shareForm">
                 @csrf
 
                 <div class="modal-body">
@@ -41,7 +41,7 @@
                                             </div>
                                             <div>
                                                 <div class="fw-semibold" style="font-size:0.875rem;">Specific Documents</div>
-                                                <div class="text-muted" style="font-size:0.72rem;">Pick one or more documents to share</div>
+                                                <div class="text-muted" style="font-size:0.72rem;">Browse folders and pick documents</div>
                                             </div>
                                         </div>
                                     </label>
@@ -78,19 +78,54 @@
                         </div>
 
                         <div class="col-12" id="documentSelectionField" style="display:none;">
-                            <label class="form-label fw-semibold">Select Documents</label>
-                            <select name="documents[]" class="cat form-control" id="shareDocumentSelect" multiple>
-                                @foreach ($documents as $document)
-                                    <option value="{{ $document->id }}">
-                                        {{ $document->control_code }} - {{ $document->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="text-muted mt-1" style="font-size:0.72rem;">
-                                <i class="ri-information-line"></i> Hold Ctrl / Cmd to select multiple documents
+                            <label class="form-label fw-semibold">Browse & Select Documents</label>
+
+                            <div style="position:relative;margin-bottom:8px;">
+                                <i class="ri-search-line" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:0.9rem;pointer-events:none;"></i>
+                                <input type="text" id="docBrowserSearch" placeholder="Search documents by title or control code..."
+                                    autocomplete="off"
+                                    style="width:100%;padding:6px 30px 6px 30px;border:1px solid #dee2e6;border-radius:6px;font-size:0.82rem;">
+                                <button id="docBrowserSearchClear" type="button"
+                                        style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);
+                                            background:none;border:none;color:#9ca3af;cursor:pointer;padding:0;font-size:0.9rem;">
+                                    <i class="ri-close-line"></i>
+                                </button>
                             </div>
+
+                            <div id="docSearchPane" style="display:none;border:1px solid #dee2e6;border-radius:6px;
+                                                            max-height:220px;overflow-y:auto;background:#fff;margin-bottom:8px;">
+                            </div>
+
+                            <div id="docBrowserWrapper">
+                                <div id="docBrowserCrumb"
+                                    style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:0.78rem;
+                                            background:#f8f9fa;border:1px solid #dee2e6;border-bottom:none;
+                                            border-radius:6px 6px 0 0;padding:6px 10px;min-height:32px;">
+                                    <span class="crumb-item text-primary"
+                                        style="cursor:pointer;font-weight:600;"
+                                        data-index="-1">
+                                        <i class="ri-home-4-line"></i> Root
+                                    </span>
+                                </div>
+
+                                <div id="docBrowserPane"
+                                    style="border:1px solid #dee2e6;border-radius:0 0 6px 6px;
+                                            height:220px;overflow-y:auto;background:#fff;">
+                                </div>
+                            </div>
+
+                            <div style="margin-top:8px;">
+                                <div id="docSelectedChips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;"></div>
+                                <p id="docNoSelected" class="text-muted mb-0" style="font-size:0.72rem;margin-top:4px;">
+                                    <i class="ri-information-line"></i>
+                                    No documents selected yet — search or navigate folders and check documents.
+                                </p>
+                            </div>
+
+                            <div id="docHiddenInputs"></div>
                         </div>
 
+                        {{-- Users --}}
                         <div class="col-12" id="usersField" style="display:none;">
                             <label class="form-label fw-semibold">Share With (Users)</label>
                             <select name="users[]" id="shareUsersSelect" class="cat form-control" multiple required>
@@ -105,17 +140,6 @@
                             <p class="fw-semibold mb-2" style="font-size:0.78rem;">
                                 <i class="ri-group-line me-1"></i>People currently with access
                             </p>
-                            {{-- <a href="javascript:void(0);" class="list-group-item list-group-item-action active">
-                                <div class="d-flex mb-2 align-items-center">
-                                    <div class="flex-shrink-0">
-                                        <img src="{{ asset("images/no_image.png") }}" alt="" class="avatar-sm rounded-circle" />
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h5 class="list-title fs-15 mb-1 text-dark" id="Name"></h5>
-                                        <p class="list-text mb-0 fs-12 text-dark" id="Email"></p>
-                                    </div>
-                                </div>
-                            </a> --}}
                         </div>
 
                     </div>
@@ -128,7 +152,82 @@
                     </button>
                 </div>
             </form>
-
         </div>
     </div>
 </div>
+
+<style>
+.doc-browser-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.doc-browser-row:hover { 
+    background: #f5f8ff; 
+}
+
+.doc-browser-row.is-folder { 
+    font-weight: 500; 
+}
+
+.doc-browser-row.is-folder:hover { 
+    background: #fff8e8; 
+}
+
+.doc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #e0f2fe;
+    color: #0369a1;
+    border-radius: 20px;
+    padding: 2px 10px 2px 8px;
+    font-size: 0.75rem;
+    max-width: 260px;
+}
+
+.doc-chip span { 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+}
+
+.doc-chip button {
+    background: none; 
+    border: none; 
+    padding: 0; 
+    line-height: 1;
+    color: #0369a1; 
+    cursor: pointer;
+     font-size: 0.85rem; 
+     flex-shrink: 0;
+}
+
+.doc-chip button:hover { 
+    color: #dc2626; 
+}
+
+.crumb-sep { 
+    color: #adb5bd; 
+}
+
+.crumb-item { 
+    color: #0284c7;
+}
+
+.crumb-item.active { 
+    color: #6b7280; 
+    cursor: default;
+}
+</style>
+
+<script>
+    window._shareDocTree = @json($shareTree);
+    window._shareOthersDocs = @json($shareOthersDocs);
+</script>
