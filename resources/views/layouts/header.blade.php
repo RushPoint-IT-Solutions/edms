@@ -1060,6 +1060,95 @@
             min-height: 490px;
         }
 
+        /* Base nav card */
+        .section-nav-card {
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #fff;
+            text-align: center;
+        }
+
+        .section-nav-card:hover {
+            border-color: #7b1c1c;
+            box-shadow: 0 4px 12px rgba(123, 28, 28, 0.15) !important;
+        }
+
+        /* Active state — maroon to match your sidebar */
+        .section-nav-card.active {
+            border-color: #7b1c1c;
+            box-shadow: 0 4px 16px rgba(123, 28, 28, 0.2) !important;
+        }
+
+        /* Icon background pill */
+        .section-nav-card .nav-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            font-size: 1.4rem;
+            background-color: #f3e8e8;
+            color: #7b1c1c;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .section-nav-card.active .nav-icon {
+            background-color: #7b1c1c;
+            color: #fff;
+        }
+        .section-nav-card:hover {
+            border: 1.5px solid #7b1c1c !important;
+        }
+
+        .section-nav-card:hover .nav-icon {
+            background-color: #f3e0e0 !important;
+        }
+
+        .section-nav-card:hover .nav-icon i {
+            color: #7b1c1c !important;
+        }
+
+        .section-nav-card.active .nav-icon {
+            background-color: #f3e0e0 !important;
+        }
+
+        .section-nav-card.active .nav-icon i {
+            color: #7b1c1c !important;
+        }
+
+        /* Label text */
+        .section-nav-card .nav-label {
+            font-weight: 600;
+            color: #333;
+            transition: color 0.2s;
+        }
+
+        .section-nav-card.active .nav-label {
+            color: #7b1c1c;
+        }
+
+        /* Sub-label */
+        .section-nav-card .nav-count {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Button inside card */
+        .section-nav-card .btn-primary {
+            background-color: #7b1c1c;
+            border-color: #7b1c1c;
+        }
+
+        .section-nav-card .btn-primary:hover {
+            background-color: #5c1414;
+            border-color: #5c1414;
+        }
+
         @media print {
             .filter-bar, .report-tabs, .export-actions,
             #preloaderMarsu, .navbar-menu, #page-topbar,

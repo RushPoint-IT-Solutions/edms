@@ -67,6 +67,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/documents/leave-share-folder', 'DocumentController@leaveShareFolder')->name('documents.leave-share-folder');
         Route::get('/shared-with-me/folder/{id}', 'DocumentController@sharedWithMeFolderView')->name('shared-with-me.folder');
         Route::get('/shared-with-others/folder/{id}', 'DocumentController@sharedWithOthersFolderView')->name('shared-with-others.folder');
+        Route::get('/documents/share-activity', 'DocumentController@shareActivity');
 
         Route::post('test-bulk', function() {
             return response()->json(['hit' => true]);

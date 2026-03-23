@@ -64,10 +64,10 @@
                 </div>
             </div>
             <div class="view-toggle">
-                <button class="view-toggle-btn active" id="listViewBtn" title="List view">
+                <button class="view-toggle-btn" id="listViewBtn" title="List view">
                     <i class="ri-list-check"></i>
                 </button>
-                <button class="view-toggle-btn" id="gridViewBtn" title="Grid view">
+                <button class="view-toggle-btn active" id="gridViewBtn" title="Grid view">
                     <i class="ri-grid-fill"></i>
                 </button>
             </div>
@@ -79,6 +79,10 @@
                 <span id="selectedCount">0</span> item(s) selected
             </div>
             <div class="bulk-actions">
+                <button class="btn btn-sm btn-primary" id="bulkShareBtn">
+                    <i class="ri-share-line"></i>
+                    Share Selected
+                </button>
                 @if(canDelete('documents'))
                 <button class="bulk-delete-btn" id="bulkDeleteBtn">
                     <i class="ri-delete-bin-line"></i>
@@ -203,7 +207,7 @@
     let selectedItems = {};
     let clickTimer = null;
     let selectedRow = null;
-    let currentView = 'list';
+    let currentView = 'grid';
 
     function loadFolderTree() {
         $('#listView').show();
@@ -381,7 +385,11 @@
                 var docId = row.data('document-id');
                 if (docId) {
                     var exists = selected.some(function (i) { return String(i.id) === String(docId) && i.type === 'document'; });
-                    if (!exists) selected.push({ id: docId, type: 'document' });
+                    if (!exists) selected.push({ 
+                        id: docId, 
+                        type: 'document',
+                        name: row.find('.item-name').text().trim()
+                    });
                 }
             }
         });
@@ -392,7 +400,11 @@
             var id = $cb.data('id');
             if (id && type !== 'others') {
                 var exists = selected.some(function (i) { return String(i.id) === String(id) && i.type === type; });
-                if (!exists) selected.push({ id: id, type: type });
+                if (!exists) selected.push({ 
+                    id: id, 
+                    type: type,
+                    name: $cb.data('name') || $cb.closest('.grid-item').find('.grid-item-name').text().trim()
+                });
             }
         });
 
@@ -509,47 +521,8 @@
     }
 
     $(document).ready(function () {
-        // $("#shareDocument").on("change", function() {
-        //     var document = $(this).val()
-            
-        //     $.ajax({
-        //         type:"POST",
-        //         url:"{{ url('/documents/share-document') }}",
-        //         dataType: "json",
-        //         headers: {
-        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        //         },
-        //         data: {
-        //             document: document
-        //         },
-        //         success: function(res) {
-        //             $("#peopleAccessContainer").find("a").remove();
-                    
-        //             if (res.length > 0) {
-        //                 $("#peopleAccessContainer").show()
-    
-        //                 res.forEach(shareDocs => {
-        //                     $("#peopleAccessContainer").append(`
-        //                         <a href="javascript:void(0);" class="list-group-item list-group-item-action active">
-        //                             <div class="d-flex mb-2 align-items-center">
-        //                                 <div class="flex-shrink-0">
-        //                                     <img src="/images/no_image.png" class="avatar-sm rounded-circle" />
-        //                                 </div>
-        //                                 <div class="flex-grow-1 ms-3">
-        //                                     <h5 class="list-title fs-15 mb-1 text-dark">${shareDocs.user.name}</h5>
-        //                                     <p class="list-text mb-0 fs-12 text-dark">${shareDocs.user.email}</p>
-        //                                 </div>
-        //                             </div>
-        //                         </a>
-        //                     `);
-        //                 });
-        //             }
-        //         }
-        //     })
-        // })
-
         var savedView = localStorage.getItem('documentViewPreference');
-        if (savedView === 'grid') { currentView = 'grid'; }
+        if (savedView === 'list') { currentView = 'list'; }
 
         loadFolderTree();
 
@@ -641,11 +614,36 @@
 
         $('#bulkCancelBtn').on('click', function () { clearAllSelections(); });
 
+        $('#bulkShareBtn').on('click', function () {
+            var selected = getSelectedItems();
+            if (selected.length === 0) return;
+
+            var documentItems = selected
+                .filter(function (i) { return i.type === 'document'; })
+                .map(function (i) { return { id: i.id, name: i.name }; });
+
+            var folderItems = selected.filter(function (i) { return i.type === 'folder'; });
+
+            var shareModal = new bootstrap.Modal(document.getElementById('share'));
+            shareModal.show();
+
+            $('#share').one('shown.bs.modal', function () {
+                if (documentItems.length > 0) {
+                    window.bulkPreSelectDocs(documentItems);
+                } else if (folderItems.length === 1) {
+                    $('input[name="share_type"][value="folder"]').prop('checked', true).trigger('change');
+                    setTimeout(function () {
+                        $('#shareFolderSelect').val(folderItems[0].id).trigger('chosen:updated').trigger('change');
+                    }, 100);
+                }
+            });
+        });
+
         $('#bulkDeleteBtn').on('click', function () {
             var selected = getSelectedItems();
             if (selected.length === 0) return;
 
-            var folderIds = selected.filter(function (i) { return i.type === 'folder';   }).map(function (i) { return i.id; });
+            var folderIds = selected.filter(function (i) { return i.type === 'folder'; }).map(function (i) { return i.id; });
             var documentIds = selected.filter(function (i) { return i.type === 'document'; }).map(function (i) { return i.id; });
 
             var message = 'You are about to delete ' + selected.length + ' item(s)';
@@ -739,7 +737,7 @@
             if (currentView === 'list') {
                 $('.folder-tree-row').each(function () {
                     var folderName = $(this).data('folder-name');
-                    var level      = $(this).data('level');
+                    var level = $(this).data('level');
 
                     if (level === 0 && folderName && folderName.includes(searchTerm)) {
                         $(this).show();
@@ -859,27 +857,319 @@
                 $('#selectedControlCode').removeAttr('name');
             }
         });
-
-        $('#share').on('shown.bs.modal', function () {
-            $('#shareFolderSelect').chosen({ width: '100%' });
-            $('#shareDocumentSelect').chosen({ width: '100%' });
-            $('#shareUsersSelect').chosen({ width: '100%' });
-        });
-
     });
 
     (function () {
+        var docTree = window._shareDocTree || [];
+        var othersDocs = window._shareOthersDocs || [];
+        var navStack = [];
+        var selectedDocs = {};
         var folderData = {!! json_encode($folderData) !!};
 
+        function findNode(tree, id) {
+            for (var i = 0; i < tree.length; i++) {
+                if (String(tree[i].id) === String(id)) return tree[i];
+                var found = findNode(tree[i].children || [], id);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        function currentNode() {
+            if (navStack.length === 0) return null;
+            return navStack[navStack.length - 1].node;
+        }
+
+        function currentChildren() {
+            var node = currentNode();
+            if (!node) return docTree;
+            return node.children || [];
+        }
+
+        function currentDocs() {
+            var node = currentNode();
+            if (!node) return [];
+            return node.docs || [];
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function escAttr(str) { return escHtml(str); }
+
+        function countAllDocs(node) {
+            var count = 0;
+            (node.children || []).forEach(function (c) {
+                count += (c.docs || []).length + countAllDocs(c);
+            });
+            return count;
+        }
+
+        function renderBrowser() {
+            var pane  = document.getElementById('docBrowserPane');
+            var crumb = document.getElementById('docBrowserCrumb');
+
+            var crumbHtml = '<span class="crumb-item" style="cursor:pointer;font-weight:600;" data-crumb="-1">'
+                          + '<i class="ri-home-4-line"></i> Root</span>';
+            navStack.forEach(function (step, idx) {
+                crumbHtml += '<span class="crumb-sep">/</span>';
+                var isLast = idx === navStack.length - 1;
+                crumbHtml += '<span class="crumb-item' + (isLast ? ' active' : '') + '"'
+                           + ' data-crumb="' + idx + '">' + escHtml(step.name) + '</span>';
+            });
+            crumb.innerHTML = crumbHtml;
+
+            var html = '';
+            var folders = currentChildren();
+            var docs = currentDocs();
+
+            if (navStack.length > 0) {
+                html += '<div class="doc-browser-row is-folder" data-nav="back" title="Go up">'
+                      + '<i class="ri-arrow-left-line" style="color:#9ca3af;"></i>'
+                      + '<span style="color:#9ca3af;font-style:italic;">.. up one level</span>'
+                      + '</div>';
+            }
+
+            if (folders.length === 0 && docs.length === 0 && navStack.length > 0) {
+                html += '<div style="padding:40px;text-align:center;color:#9ca3af;font-size:0.82rem;">'
+                      + '<i class="ri-folder-open-line" style="font-size:1.4rem;display:block;margin-bottom:6px;"></i>'
+                      + 'This folder is empty.</div>';
+            }
+
+            folders.forEach(function (f) {
+                var docCount = f.docs.length + countAllDocs(f);
+                html += '<div class="doc-browser-row is-folder" data-nav-folder="' + f.id + '">'
+                      + '<i class="ri-folder-2-fill" style="color:#e67e22;flex-shrink:0;"></i>'
+                      + '<span style="flex:1;">' + escHtml(f.name) + '</span>'
+                      + '<small class="text-muted">' + docCount + ' doc' + (docCount !== 1 ? 's' : '') + '</small>'
+                      + '<i class="ri-arrow-right-s-line text-muted"></i>'
+                      + '</div>';
+            });
+
+            if (navStack.length === 0 && othersDocs.length > 0) {
+                html += '<div class="doc-browser-row is-folder" data-nav-folder="__others__">'
+                      + '<i class="ri-folder-2-fill" style="color:#9ca3af;flex-shrink:0;"></i>'
+                      + '<span style="flex:1;color:#9ca3af;font-style:italic;">Others</span>'
+                      + '<small class="text-muted">' + othersDocs.length + ' doc' + (othersDocs.length !== 1 ? 's' : '') + '</small>'
+                      + '<i class="ri-arrow-right-s-line text-muted"></i>'
+                      + '</div>';
+            }
+
+            if (navStack.length === 1 && navStack[0].id === '__others__') {
+                othersDocs.forEach(function (d) {
+                    var checked = selectedDocs[d.id] ? 'checked' : '';
+                    html += '<div class="doc-browser-row" data-doc-id="' + d.id + '">'
+                          + '<input type="checkbox" class="form-check-input doc-browser-cb" '
+                          + 'data-doc-id="' + d.id + '" data-doc-label="' + escAttr(d.label) + '" '
+                          + checked + ' style="flex-shrink:0;">'
+                          + '<i class="ri-file-text-line" style="color:#6b7280;flex-shrink:0;"></i>'
+                          + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+                          + escHtml(d.label) + '</span>'
+                          + '</div>';
+                });
+            }
+
+            docs.forEach(function (d) {
+                var checked = selectedDocs[d.id] ? 'checked' : '';
+                html += '<div class="doc-browser-row" data-doc-id="' + d.id + '">'
+                      + '<input type="checkbox" class="form-check-input doc-browser-cb" '
+                      + 'data-doc-id="' + d.id + '" data-doc-label="' + escAttr(d.label) + '" '
+                      + checked + ' style="flex-shrink:0;">'
+                      + '<i class="ri-file-text-line" style="color:#6b7280;flex-shrink:0;"></i>'
+                      + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+                      + escHtml(d.label) + '</span>'
+                      + '</div>';
+            });
+
+            pane.innerHTML = html;
+            bindBrowserEvents();
+            renderChips();
+        }
+
+        function bindBrowserCheckboxes(container) {
+            container.querySelectorAll('.doc-browser-row[data-doc-id]').forEach(function (row) {
+                row.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('doc-browser-cb')) return;
+                    var cb = row.querySelector('.doc-browser-cb');
+                    if (cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+                });
+            });
+
+            container.querySelectorAll('.doc-browser-cb').forEach(function (cb) {
+                cb.addEventListener('change', function () {
+                    var id = cb.getAttribute('data-doc-id');
+                    var label = cb.getAttribute('data-doc-label');
+                    if (cb.checked) {
+                        selectedDocs[id] = label;
+                    } else {
+                        delete selectedDocs[id];
+                    }
+                    renderChips();
+                    checkShareReady();
+                });
+            });
+        }
+
+        function bindBrowserEvents() {
+            var pane = document.getElementById('docBrowserPane');
+
+            pane.querySelectorAll('[data-nav-folder]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var fid = el.getAttribute('data-nav-folder');
+                    if (fid === '__others__') {
+                        navStack.push({ id: '__others__', name: 'Others', node: null });
+                    } else {
+                        var node = findNode(docTree, fid);
+                        if (node) navStack.push({ id: node.id, name: node.name, node: node });
+                    }
+                    renderBrowser();
+                });
+            });
+
+            pane.querySelectorAll('[data-nav="back"]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    navStack.pop();
+                    renderBrowser();
+                });
+            });
+
+            bindBrowserCheckboxes(pane);
+
+            document.getElementById('docBrowserCrumb').querySelectorAll('[data-crumb]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var idx = parseInt(el.getAttribute('data-crumb'), 10);
+                    navStack = idx === -1 ? [] : navStack.slice(0, idx + 1);
+                    renderBrowser();
+                });
+            });
+        }
+
+        function renderChips() {
+            var container = document.getElementById('docSelectedChips');
+            var noSel = document.getElementById('docNoSelected');
+            var hidden = document.getElementById('docHiddenInputs');
+            var ids = Object.keys(selectedDocs);
+
+            container.innerHTML = '';
+            hidden.innerHTML = '';
+
+            if (ids.length === 0) {
+                noSel.style.display = 'block';
+            } else {
+                noSel.style.display = 'none';
+                ids.forEach(function (id) {
+                    var chip = document.createElement('span');
+                    chip.className = 'doc-chip';
+                    chip.innerHTML = '<i class="ri-file-text-line" style="flex-shrink:0;"></i>'
+                                   + '<span title="' + escAttr(selectedDocs[id]) + '">' + escHtml(selectedDocs[id]) + '</span>'
+                                   + '<button type="button" title="Remove"><i class="ri-close-line"></i></button>';
+                    chip.querySelector('button').addEventListener('click', function () {
+                        delete selectedDocs[id];
+                        var cb = document.querySelector('.doc-browser-cb[data-doc-id="' + id + '"]');
+                        if (cb) cb.checked = false;
+                        renderChips();
+                        checkShareReady();
+                    });
+                    container.appendChild(chip);
+
+                    var inp = document.createElement('input');
+                    inp.type  = 'hidden';
+                    inp.name  = 'documents[]';
+                    inp.value = id;
+                    hidden.appendChild(inp);
+                });
+            }
+        }
+
+        function resetDocBrowser() {
+            navStack = [];
+            selectedDocs = {};
+            $('#docBrowserSearch').val('');
+            $('#docSearchPane').hide();
+            $('#docBrowserWrapper').show();
+            $('#docBrowserSearchClear').hide();
+            renderBrowser();
+        }
+
+        function flattenAllDocs(tree, folderPath) {
+            var results = [];
+            folderPath = folderPath || 'Root';
+            tree.forEach(function (node) {
+                (node.docs || []).forEach(function (d) {
+                    results.push({ id: d.id, label: d.label, path: folderPath + ' / ' + node.name });
+                });
+                results = results.concat(flattenAllDocs(node.children || [], folderPath + ' / ' + node.name));
+            });
+            return results;
+        }
+
+        function getAllDocs() {
+            var all = flattenAllDocs(docTree, 'Root');
+            othersDocs.forEach(function (d) {
+                all.push({ id: d.id, label: d.label, path: 'Root / Others' });
+            });
+            return all;
+        }
+
+        function renderSearchPane(term) {
+            var pane = document.getElementById('docSearchPane');
+            term = term.toLowerCase().trim();
+
+            if (!term) {
+                pane.style.display = 'none';
+                document.getElementById('docBrowserWrapper').style.display = 'block';
+                document.getElementById('docBrowserSearchClear').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('docBrowserWrapper').style.display = 'none';
+            document.getElementById('docBrowserSearchClear').style.display = 'block';
+            pane.style.display = 'block';
+
+            var matches = getAllDocs().filter(function (d) {
+                return d.label.toLowerCase().includes(term);
+            });
+
+            if (matches.length === 0) {
+                pane.innerHTML = '<div style="padding:32px;text-align:center;font-size:0.82rem;color:#9ca3af;">'
+                               + '<i class="ri-search-line" style="font-size:1.4rem;display:block;margin-bottom:6px;"></i>'
+                               + 'No documents found for <strong>"' + escHtml(term) + '"</strong></div>';
+                return;
+            }
+
+            var html = '';
+            matches.forEach(function (d) {
+                var checked = selectedDocs[d.id] ? 'checked' : '';
+                html += '<div class="doc-browser-row" data-doc-id="' + d.id + '">'
+                      + '<input type="checkbox" class="form-check-input doc-browser-cb" '
+                      + 'data-doc-id="' + d.id + '" data-doc-label="' + escAttr(d.label) + '" '
+                      + checked + ' style="flex-shrink:0;">'
+                      + '<i class="ri-file-text-line" style="color:#6b7280;flex-shrink:0;"></i>'
+                      + '<div style="flex:1;overflow:hidden;">'
+                      +   '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem;">' + escHtml(d.label) + '</div>'
+                      +   '<div style="font-size:0.7rem;color:#9ca3af;margin-top:1px;">'
+                      +     '<i class="ri-folder-line" style="font-size:0.7rem;"></i> ' + escHtml(d.path)
+                      +   '</div>'
+                      + '</div>'
+                      + '</div>';
+            });
+            pane.innerHTML = html;
+
+            bindBrowserCheckboxes(pane);
+        }
+
         function checkShareReady() {
-            var type = $('input[name="share_type"]:checked').val();
+            var type = document.querySelector('input[name="share_type"]:checked');
             var usersOk  = $('#shareUsersSelect').val() && $('#shareUsersSelect').val().length > 0;
             var targetOk = false;
 
-            if (type === 'folder') {
+            if (type && type.value === 'folder') {
                 targetOk = !!$('#shareFolderSelect').val();
-            } else if (type === 'document') {
-                targetOk = $('#shareDocumentSelect').val() && $('#shareDocumentSelect').val().length > 0;
+            } else if (type && type.value === 'document') {
+                targetOk = Object.keys(selectedDocs).length > 0;
             }
 
             $('#shareSubmitBtn').prop('disabled', !(usersOk && targetOk));
@@ -887,7 +1177,6 @@
 
         function renderPeopleWithAccess(res) {
             $('#peopleAccessContainer').find('a').remove();
-
             if (res.length > 0) {
                 $('#peopleAccessContainer').show();
                 res.forEach(function (shareDocs) {
@@ -914,27 +1203,22 @@
             if (!$('#shareFolderSelect').data('chosen-init')) {
                 $('#shareFolderSelect').chosen({ width: '100%' }).on('change', function () {
                     var folderId = $(this).val();
-
                     $('#peopleAccessContainer').hide().find('a').remove();
+                    $('#folderPreview').hide();
+                    if (!folderId) { checkShareReady(); return; }
 
-                    if (!folderId) { $('#folderPreview').hide(); checkShareReady(); return; }
-
-                    var folder = folderData.find(function(f) { return String(f.id) === String(folderId); });
+                    var folder = folderData.find(function (f) { return String(f.id) === String(folderId); });
                     if (folder) {
                         $('#folderPreviewName').text(folder.name);
                         $('#folderPreviewCount').text(folder.docs.length + ' file' + (folder.docs.length !== 1 ? 's' : ''));
-
-                        var listHtml = '';
-                        if (folder.docs.length > 0) {
-                            folder.docs.forEach(function (doc) {
-                                listHtml += '<div class="d-flex align-items-center gap-2 py-1 border-bottom">' +
-                                    '<i class="ri-file-text-line text-muted"></i>' +
-                                    '<span class="text-truncate">' + doc.title + '</span>' +
-                                    '</div>';
-                            });
-                        } else {
-                            listHtml = '<div class="text-muted fst-italic">This folder has no documents yet.</div>';
-                        }
+                        var listHtml = folder.docs.length
+                            ? folder.docs.map(function (d) {
+                                return '<div class="d-flex align-items-center gap-2 py-1 border-bottom">'
+                                     + '<i class="ri-file-text-line text-muted"></i>'
+                                     + '<span class="text-truncate">' + d.title + '</span>'
+                                     + '</div>';
+                              }).join('')
+                            : '<div class="text-muted fst-italic">This folder has no documents yet.</div>';
                         $('#folderPreviewList').html(listHtml);
                         $('#folderPreview').show();
                     }
@@ -947,63 +1231,34 @@
                         data: { folder_id: folderId },
                         success: function (res) { renderPeopleWithAccess(res); }
                     });
-
                     checkShareReady();
                 });
                 $('#shareFolderSelect').data('chosen-init', true);
-            }
-
-            if (!$('#shareDocumentSelect').data('chosen-init')) {
-                $('#shareDocumentSelect').chosen({ width: '100%' }).on('change', function () {
-                    var docIds = $(this).val();
-
-                    $('#peopleAccessContainer').hide().find('a').remove();
-
-                    if (!docIds || docIds.length === 0) { checkShareReady(); return; }
-
-                    var lastDocId = Array.isArray(docIds) ? docIds[docIds.length - 1] : docIds;
-
-                    $.ajax({
-                        type: 'POST',
-                        url: '{{ url("/documents/share-document") }}',
-                        dataType: 'json',
-                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        data: { document: lastDocId },
-                        success: function (res) { renderPeopleWithAccess(res); }
-                    });
-
-                    checkShareReady();
-                });
-                $('#shareDocumentSelect').data('chosen-init', true);
             }
 
             if (!$('#shareUsersSelect').data('chosen-init')) {
                 $('#shareUsersSelect').chosen({ width: '100%' }).on('change', checkShareReady);
                 $('#shareUsersSelect').data('chosen-init', true);
             }
-        });
 
-        $('input[name="share_type"]').on('change', function () {
-            var val = $(this).val();
+            renderBrowser();
 
-            $('.share-type-card').removeClass('border-primary bg-light');
-            $(this).closest('.share-type-card').addClass('border-primary bg-light');
+            if (!$('#docBrowserSearch').data('search-init')) {
+                $('#docBrowserSearch').on('input', function () {
+                    renderSearchPane($(this).val());
+                    setTimeout(function () {
+                        document.querySelectorAll('#docSearchPane .doc-browser-cb').forEach(function (cb) {
+                            cb.checked = !!selectedDocs[cb.getAttribute('data-doc-id')];
+                        });
+                    }, 0);
+                });
 
-            $('#peopleAccessContainer').hide().find('a').remove();
-            $('#folderPreview').hide();
+                $('#docBrowserSearchClear').on('click', function () {
+                    $('#docBrowserSearch').val('').trigger('input').focus();
+                });
 
-            if (val === 'folder') {
-                $('#folderSelectionField').show();
-                $('#documentSelectionField').hide();
-                $('#shareDocumentSelect').val(null).trigger('chosen:updated');
-            } else {
-                $('#documentSelectionField').show();
-                $('#folderSelectionField').hide();
-                $('#shareFolderSelect').val('').trigger('chosen:updated');
+                $('#docBrowserSearch').data('search-init', true);
             }
-
-            $('#usersField').show();
-            checkShareReady();
         });
 
         $('#share').on('hidden.bs.modal', function () {
@@ -1011,15 +1266,45 @@
             $('.share-type-card').removeClass('border-primary bg-light');
             $('#folderSelectionField, #documentSelectionField, #usersField').hide();
             $('#folderPreview').hide();
-
             $('#shareFolderSelect').val('').trigger('chosen:updated');
-            $('#shareDocumentSelect').val(null).trigger('chosen:updated');
             $('#shareUsersSelect').val(null).trigger('chosen:updated');
-
             $('#shareSubmitBtn').prop('disabled', true);
             $('#peopleAccessContainer').hide().find('a').remove();
+            resetDocBrowser();
         });
 
+        $('input[name="share_type"]').on('change', function () {
+            var val = $(this).val();
+            $('.share-type-card').removeClass('border-primary bg-light');
+            $(this).closest('.share-type-card').addClass('border-primary bg-light');
+            $('#peopleAccessContainer').hide().find('a').remove();
+            $('#folderPreview').hide();
+
+            if (val === 'folder') {
+                $('#folderSelectionField').show();
+                $('#documentSelectionField').hide();
+                resetDocBrowser();
+            } else {
+                $('#documentSelectionField').show();
+                $('#folderSelectionField').hide();
+                $('#shareFolderSelect').val('').trigger('chosen:updated');
+                renderBrowser();
+            }
+
+            $('#usersField').show();
+            checkShareReady();
+        });
+
+        window.bulkPreSelectDocs = function (items) {
+            resetDocBrowser();
+            $('input[name="share_type"][value="document"]').prop('checked', true).trigger('change');
+            items.forEach(function (item) {
+                selectedDocs[item.id] = item.name;
+            });
+            renderBrowser();
+            renderChips();
+            checkShareReady();
+        };
     }());
 </script>
 @endsection

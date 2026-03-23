@@ -51,7 +51,12 @@ class DocumentController extends Controller
         $department = $request->department;
 
         $document_types = DocumentType::orderBy('name','desc')->get();
-        $document_folders = DocumentFolder::with('document','childrenFolder')->get();
+        $document_folders = DocumentFolder::with('document','childrenFolder')
+            ->when(auth()->user()->role != 'Administrator', function ($q) {
+                $q->where('user_id', auth()->user()->id);
+            })
+            ->get();
+
         $obsoletes = Obsolete::get();
         $users = User::whereNull("status")->get();
 
@@ -120,6 +125,12 @@ class DocumentController extends Controller
             ];
         })->values();
 
+        $shareTree = $this->buildShareTree($document_folders, $documents);
+        $shareOthersDocs = $documents->filter(fn($d) => is_null($d->folder_id))->map(fn($d) => [
+            'id'    => $d->id,
+            'label' => $d->control_code . ' - ' . $d->title,
+        ])->values()->toArray();
+
         return view('documents.documents', [
             'documents' => $documents,
             'obsoletes' => $obsoletes,
@@ -132,13 +143,17 @@ class DocumentController extends Controller
             'hasOthers' => $hasOthers,
             'existingDocuments' => $existingDocuments,
             'users' => $users,
-            'folderData' => $folderData
+            'folderData' => $folderData,
+            'shareTree' => $shareTree,
+            'shareOthersDocs' => $shareOthersDocs,
         ]);
     }
 
     public function getFolderTree(Request $request)
     {
-        $document_folders = DocumentFolder::with('document', 'childrenFolder')->get();
+        $document_folders = DocumentFolder::with('document', 'childrenFolder')
+                    ->where('user_id', auth()->user()->id)
+                    ->get();
 
         $documents = Document::with('change_requests', 'attachments')
             ->orderBy('control_code', 'desc')
@@ -938,6 +953,10 @@ class DocumentController extends Controller
                 $document_tag->save();
             }
 
+            if ($document->folder_id) {
+                $this->propagateFolderShares($document->folder_id, $document->id);
+            }
+
             DB::commit();
 
             Alert::success('Successfully Uploaded')->persistent('Dismiss');
@@ -1146,6 +1165,7 @@ class DocumentController extends Controller
         // dd($request->all());
         $folder = new DocumentFolder;
         $folder->name = $request->name;
+        $folder->user_id = auth()->user()->id;
         if ($request->has('folder_id')) {
             $folder->parent_id = $request->folder_id;
         }
@@ -1494,6 +1514,10 @@ class DocumentController extends Controller
         {
             $document->folder_id = $request->folder_id;
             $document->save();
+
+            if ($request->folder_id) {
+                $this->propagateFolderShares($request->folder_id, $document->id);
+            }
         }
 
         Alert::success('Successfully Saved')->persistent('Dismiss');
@@ -1606,12 +1630,12 @@ class DocumentController extends Controller
         ]);
 
         $documentIds = [];
+        $folderId = null;
 
         if ($request->share_type === 'folder') {
             $request->validate(['folder_id' => 'required|exists:document_folders,id']);
-
-            $documentIds = $this->getAllDocumentIdsInFolder($request->folder_id);
-
+            $folderId = $request->folder_id;
+            $documentIds = $this->getAllDocumentIdsInFolder($folderId);
         } else {
             $request->validate([
                 'documents' => 'required|array',
@@ -1642,6 +1666,8 @@ class DocumentController extends Controller
                 $share = new ShareDocument;
                 $share->user_id = $userId;
                 $share->document_id = $docId;
+                $share->folder_id = $folderId;
+                $share->shared_by = auth()->id();
                 $share->save();
                 $newCount++;
             }
@@ -1660,6 +1686,98 @@ class DocumentController extends Controller
         return back();
     }
 
+    public function shareActivity(Request $request)
+    {
+        $type = $request->input('type');
+        $id   = $request->input('id');
+    
+        $activity = [];
+    
+        if ($type === 'folder') {
+            $folder = DocumentFolder::find($id);
+            if (!$folder) return response()->json([]);
+    
+            $docIds = $this->getAllDocumentIdsInFolder((int) $id);
+    
+            $shareRecords = ShareDocument::with('user')
+                ->whereIn('document_id', $docIds)
+                ->whereNotNull('folder_id')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->unique(function ($s) {
+                    return $s->user_id . '_' . $s->created_at->format('Y-m-d');
+                });
+    
+            foreach ($shareRecords as $record) {
+                $userName = ($record->user && $record->user->name) ? $record->user->name : 'Someone';
+                $activity[] = [
+                    'icon' => 'ri-share-line',
+                    'color' => '#3b82f6',
+                    'text' => '<strong>' . htmlspecialchars($folder->name) . '</strong> was shared with <strong>' . htmlspecialchars($userName) . '</strong>',
+                    'time' => $record->created_at->format('M d, Y \a\t g:i A'),
+                ];
+            }
+    
+            $firstShare = ShareDocument::whereIn('document_id', $docIds)
+                ->whereNotNull('folder_id')
+                ->orderBy('created_at', 'asc')
+                ->first();
+    
+            if ($firstShare) {
+                $laterDocs = Document::with('user')
+                    ->whereIn('id', $docIds)
+                    ->where('created_at', '>', $firstShare->created_at)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+    
+                foreach ($laterDocs as $doc) {
+                    $uploaderName = ($doc->user && $doc->user->name) ? $doc->user->name : 'Someone';
+                    $activity[] = [
+                        'icon' => 'ri-file-add-line',
+                        'color' => '#10b981',
+                        'text' => '<strong>' . htmlspecialchars($uploaderName) . '</strong> added <strong>' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</strong>',
+                        'time' => $doc->created_at->format('M d, Y \a\t g:i A'),
+                    ];
+                }
+            }
+    
+            $activity[] = [
+                'icon' => 'ri-folder-add-line',
+                'color' => '#e67e22',
+                'text' => 'Folder <strong>' . htmlspecialchars($folder->name) . '</strong> was created',
+                'time' => $folder->created_at->format('M d, Y \a\t g:i A'),
+            ];
+    
+        } else {
+            $doc = Document::with('user', 'share_document.user')->find($id);
+            if (!$doc) return response()->json([]);
+    
+            foreach ($doc->share_document->sortByDesc('created_at') as $record) {
+                $userName = ($record->user && $record->user->name) ? $record->user->name : 'Someone';
+                $activity[] = [
+                    'icon' => 'ri-share-line',
+                    'color' => '#3b82f6',
+                    'text' => 'Shared with <strong>' . htmlspecialchars($userName) . '</strong>',
+                    'time' => $record->created_at->format('M d, Y \a\t g:i A'),
+                ];
+            }
+    
+            $uploaderName = ($doc->user && $doc->user->name) ? $doc->user->name : 'Someone';
+            $activity[] = [
+                'icon' => 'ri-upload-line',
+                'color' => '#8b5cf6',
+                'text' => '<strong>' . htmlspecialchars($uploaderName) . '</strong> uploaded this document',
+                'time' => $doc->created_at->format('M d, Y \a\t g:i A'),
+            ];
+        }
+    
+        usort($activity, function ($a, $b) {
+            return strtotime($b['time']) - strtotime($a['time']);
+        });
+    
+        return response()->json($activity);
+    }
+
     private function getAllDocumentIdsInFolder(int $folderId): array
     {
         $folder = DocumentFolder::with(['document', 'childrenFolder'])->find($folderId);
@@ -1672,6 +1790,37 @@ class DocumentController extends Controller
         }
 
         return array_unique($ids);
+    }
+
+    private function propagateFolderShares($folderId, $newDocumentId)
+    {
+        if (!$folderId) return;
+
+        $folderIds = [];
+        $current = DocumentFolder::find($folderId);
+        while ($current) {
+            $folderIds[] = $current->id;
+            $current = $current->parent_id ? DocumentFolder::find($current->parent_id) : null;
+        }
+
+        $userIds = ShareDocument::whereIn('folder_id', $folderIds)
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
+        foreach ($userIds as $userId) {
+            $alreadyExists = ShareDocument::where('user_id', $userId)
+                ->where('document_id', $newDocumentId)
+                ->exists();
+
+            if (!$alreadyExists) {
+                $share = new ShareDocument;
+                $share->user_id = $userId;
+                $share->document_id = $newDocumentId;
+                $share->folder_id = $folderId;
+                $share->save();
+            }
+        }
     }
 
     public function shareFolder(Request $request)
@@ -1703,66 +1852,125 @@ class DocumentController extends Controller
     {
         $userId = auth()->id();
 
-        $sharedRecords = ShareDocument::where('user_id', $userId)
-            ->with(['document.attachments', 'document.user', 'document.folder.parent'])
+        $sharedDocIds = ShareDocument::where('user_id', $userId)
+            ->pluck('document_id')
+            ->toArray();
+
+        if (empty($sharedDocIds)) {
+            return view('documents.shared_with_me', ['groupedByDate' => collect()]);
+        }
+
+        $sharedDocs = Document::with(['attachments', 'user', 'share_document.user', 'folder'])
+            ->whereIn('id', $sharedDocIds)
             ->get();
 
-        $items = collect();
+        $items          = collect();
         $addedFolderIds = [];
+        $coveredDocIds  = [];
 
-        foreach ($sharedRecords as $record) {
-            $doc = $record->document;
-            if (!$doc) continue;
+        $sharedFolderIds = ShareDocument::where('user_id', $userId)
+            ->whereNotNull('folder_id')
+            ->pluck('folder_id')
+            ->unique()
+            ->toArray();
 
-            $fileInfo = $this->getDocumentFileInfo($doc);
+        foreach ($sharedFolderIds as $sharedFolderId) {
+            $folder = DocumentFolder::find($sharedFolderId);
+            if (!$folder) continue;
 
-            if ($doc->folder_id) {
-                $topFolder = $doc->folder;
-                $checkedFolder = $topFolder;
+            $topFolder = $folder;
+            $check     = $folder;
 
-                while ($checkedFolder && $checkedFolder->parent_id) {
-                    $parentDocIds = $this->getAllDocumentIdsInFolder($checkedFolder->parent_id);
-                    $parentIsShared = ShareDocument::where('user_id', $userId)
-                        ->whereIn('document_id', $parentDocIds)
-                        ->exists();
+            while ($check->parent_id) {
+                $parentIsShared = ShareDocument::where('user_id', $userId)
+                    ->where('folder_id', $check->parent_id)
+                    ->exists();
 
-                    if ($parentIsShared) {
-                        $checkedFolder = DocumentFolder::find($checkedFolder->parent_id);
-                        $topFolder = $checkedFolder;
-                    } else {
-                        break;
-                    }
+                if ($parentIsShared) {
+                    $check = DocumentFolder::find($check->parent_id);
+                    $topFolder = $check;
+                } else {
+                    break;
                 }
-
-                if ($topFolder && !in_array($topFolder->id, $addedFolderIds)) {
-                    $addedFolderIds[] = $topFolder->id;
-                    $items->push([
-                        'id' => $topFolder->id,
-                        'name' => $topFolder->name,
-                        'type' => 'folder',
-                        'ownerName' => $doc->user->name ?? '—',
-                        'ownerEmail' => $doc->user->email ?? '',
-                        'ownerColor' => $this->avatarColor($doc->user->name ?? ''),
-                        'dateShared' => $record->created_at->format('M d, Y'),
-                        'sortDate' => $record->created_at,
-                        'iconClass' => 'ri-folder-2-fill',
-                        'previewClass' => 'folder-preview',
-                    ]);
-                }
-            } else {
-                $items->push([
-                    'id' => $doc->id,
-                    'name' => $doc->control_code . ' - ' . $doc->title,
-                    'type' => 'document',
-                    'ownerName' => $doc->user->name ?? '—',
-                    'ownerEmail' => $doc->user->email ?? '',
-                    'ownerColor' => $this->avatarColor($doc->user->name ?? ''),
-                    'dateShared' => $record->created_at->format('M d, Y'),
-                    'sortDate' => $record->created_at,
-                    'iconClass' => $fileInfo['iconClass'],
-                    'previewClass' => $fileInfo['previewClass'],
-                ]);
             }
+
+            if (in_array($topFolder->id, $addedFolderIds)) continue;
+            $addedFolderIds[] = $topFolder->id;
+
+            $allUnderTop = $this->getAllDocumentIdsInFolder($topFolder->id);
+            $coveredDocIds = array_merge($coveredDocIds, $allUnderTop);
+
+            $rep = ShareDocument::where('user_id', $userId)
+                ->whereIn('document_id', $allUnderTop)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            $repDoc = $rep ? Document::with('user')->find($rep->document_id) : null;
+
+            $sharedUsers = ShareDocument::with('user')
+                ->where('folder_id', $topFolder->id)
+                ->get()
+                ->unique('user_id')
+                ->values()
+                ->map(function ($s) {
+                    $name = ($s->user && $s->user->name) ? $s->user->name : '';
+                    $s->avatarColor = $this->avatarColor($name);
+                    return $s;
+                });
+
+            $ownerName  = ($repDoc && $repDoc->user) ? $repDoc->user->name  : '—';
+            $ownerEmail = ($repDoc && $repDoc->user) ? $repDoc->user->email : '';
+
+            $items->push([
+                'id' => $topFolder->id,
+                'name' => $topFolder->name,
+                'type' => 'folder',
+                'ownerName' => $ownerName,
+                'ownerEmail' => $ownerEmail,
+                'ownerColor' => $this->avatarColor($ownerName),
+                'sharedUsers' => $sharedUsers,
+                'dateShared' => $rep ? $rep->created_at->format('M d, Y') : '—',
+                'sortDate' => $rep ? $rep->created_at : now(),
+                'iconClass' => 'ri-folder-2-fill',
+                'previewClass' => 'folder-preview',
+            ]);
+        }
+
+        foreach ($sharedDocs as $doc) {
+            if (in_array($doc->id, $coveredDocIds)) continue;
+
+            $fileInfo    = $this->getDocumentFileInfo($doc);
+            $shareRecord = ShareDocument::where('user_id', $userId)
+                ->where('document_id', $doc->id)
+                ->first();
+
+            $sharedUsers = $doc->share_document
+                ->filter(function ($s) use ($userId) {
+                    return $s->user_id !== $userId;
+                })
+                ->values()
+                ->map(function ($s) {
+                    $name = ($s->user && $s->user->name) ? $s->user->name : '';
+                    $s->avatarColor = $this->avatarColor($name);
+                    return $s;
+                });
+
+            $ownerName  = ($doc->user && $doc->user->name)  ? $doc->user->name  : '—';
+            $ownerEmail = ($doc->user && $doc->user->email) ? $doc->user->email : '';
+
+            $items->push([
+                'id' => $doc->id,
+                'name' => $doc->control_code . ' - ' . $doc->title,
+                'type' => 'document',
+                'ownerName' => $ownerName,
+                'ownerEmail' => $ownerEmail,
+                'ownerColor' => $this->avatarColor($ownerName),
+                'sharedUsers' => $sharedUsers,
+                'dateShared' => $shareRecord ? $shareRecord->created_at->format('M d, Y') : '—',
+                'sortDate' => $shareRecord ? $shareRecord->created_at : now(),
+                'iconClass' => $fileInfo['iconClass'],
+                'previewClass' => $fileInfo['previewClass'],
+            ]);
         }
 
         $items = $items->sortByDesc('sortDate')->unique('id')->values();
@@ -1770,7 +1978,6 @@ class DocumentController extends Controller
         $groupedByDate = $items->groupBy(function($item) {
             $date = $item['sortDate'];
             $now = now();
-
             if ($date->isToday()) return 'Today';
             if ($date->isYesterday()) return 'Yesterday';
             if ($date->greaterThanOrEqualTo($now->copy()->subDays(7))) return 'Last 7 days';
@@ -1809,7 +2016,7 @@ class DocumentController extends Controller
                 ->whereIn('document_id', $parentDocIds)
                 ->exists();
             if ($hasInheritedAccess) break;
-            $parentCheck = $parentCheck->parent ?? null;
+            $parentCheck = isset($parentCheck->parent) ? $parentCheck->parent : null;
         }
 
         if (!$hasDirectAccess && !$hasInheritedAccess) {
@@ -1820,18 +2027,18 @@ class DocumentController extends Controller
         $current = $folder;
         while ($current) {
             array_unshift($breadcrumbs, $current);
-            $current = $current->parent ?? null;
+            $current = isset($current->parent) ? $current->parent : null;
         }
-
+    
         $sharedDocumentIds = ShareDocument::where('user_id', $userId)
             ->pluck('document_id')
             ->toArray();
-
+    
         $childFolders = DocumentFolder::where('parent_id', $id)
             ->orderBy('name', 'asc')
             ->get();
-
-        $childDocuments = Document::with(['attachments'])
+    
+        $childDocuments = Document::with(['attachments', 'user'])
             ->where('folder_id', $id)
             ->whereIn('id', $sharedDocumentIds)
             ->orderBy('control_code', 'desc')
@@ -1842,14 +2049,85 @@ class DocumentController extends Controller
                 $doc->previewClass = $fileInfo['previewClass'];
                 $doc->iconClass = $fileInfo['iconClass'];
                 $doc->badgeClass = $fileInfo['badgeClass'];
+                $doc->ownerName = ($doc->user && $doc->user->name) ? $doc->user->name : '—';
+                $doc->ownerColor = $this->avatarColor($doc->ownerName);
                 return $doc;
             });
+    
+        $folderOwnerName  = '—';
+        $folderOwnerColor = '#9ca3af';
+    
+        $topSharedFolderId = $id;
+        $checkFolder = $folder;
+        while ($checkFolder && $checkFolder->parent_id) {
+            $parentIsShared = ShareDocument::where('user_id', $userId)
+                ->where('folder_id', $checkFolder->parent_id)
+                ->exists();
+            if ($parentIsShared) {
+                $checkFolder = DocumentFolder::find($checkFolder->parent_id);
+                $topSharedFolderId = $checkFolder ? $checkFolder->id : $topSharedFolderId;
+            } else {
+                break;
+            }
+        }
 
+        $breadcrumbs = [];
+        $current = $folder;
+        while ($current) {
+            array_unshift($breadcrumbs, $current);
+            if ($current->id == $topSharedFolderId) break;
+            $current = isset($current->parent) ? $current->parent : null;
+        }
+    
+        if ($folderOwnerName === '—' && $childDocuments->isNotEmpty()) {
+            $first = $childDocuments->first();
+            if ($first->ownerName !== '—') {
+                $folderOwnerName  = $first->ownerName;
+                $folderOwnerColor = $first->ownerColor;
+            }
+        }
+    
+        $allUnderFolder = $this->getAllDocumentIdsInFolder((int) $id);
+        $topFolderId = $id;
+    
+        $checkFolder = $folder;
+        while ($checkFolder && $checkFolder->parent_id) {
+            $parentIsShared = ShareDocument::where('user_id', $userId)
+                ->where('folder_id', $checkFolder->parent_id)
+                ->exists();
+            if ($parentIsShared) {
+                $checkFolder = DocumentFolder::find($checkFolder->parent_id);
+                $topFolderId = $checkFolder ? $checkFolder->id : $topFolderId;
+            } else {
+                break;
+            }
+        }
+    
+        $folderSharedUsers = ShareDocument::with('user')
+            ->where('folder_id', $topFolderId)
+            ->get()
+            ->unique('user_id')
+            ->filter(function ($s) use ($userId) {
+                return $s->user_id !== $userId;
+            })
+            ->values()
+            ->map(function ($s) {
+                $name = ($s->user && $s->user->name) ? $s->user->name : '';
+                $s->avatarColor = $this->avatarColor($name);
+                return $s;
+            });
+    
+        $folderSharedWithNames = $folderSharedUsers->pluck('user.name')->filter()->implode(', ');
+    
         return view('documents.shared_with_me_folder', compact(
             'folder',
             'breadcrumbs',
             'childFolders',
-            'childDocuments'
+            'childDocuments',
+            'folderOwnerName',
+            'folderOwnerColor',
+            'folderSharedUsers',
+            'folderSharedWithNames'
         ));
     }
 
@@ -1870,32 +2148,53 @@ class DocumentController extends Controller
         return $colors[crc32($name) % count($colors)];
     }
 
-    public function sharedWithOthers()
+    private function buildShareTree($folders, $documents, $parentId = null): array
+    {
+        $result = [];
+        foreach ($folders->where('parent_id', $parentId) as $folder) {
+            $result[] = [
+                'id'       => $folder->id,
+                'name'     => $folder->name,
+                'children' => $this->buildShareTree($folders, $documents, $folder->id),
+                'docs'     => $documents->where('folder_id', $folder->id)->map(fn($d) => [
+                    'id'    => $d->id,
+                    'label' => $d->control_code . ' - ' . $d->title,
+                ])->values()->toArray(),
+            ];
+        }
+        return $result;
+    }
+
+   public function sharedWithOthers()
     {
         $userId = auth()->id();
-
+        $me = User::find($userId);
+    
+        $ownerName = $me ? $me->name  : '—';
+        $ownerColor = $this->avatarColor($ownerName);
+    
         $sharedDocuments = Document::with(['attachments', 'share_document.user', 'folder.parent'])
             ->where('user_id', $userId)
             ->whereHas('share_document')
             ->orderBy('updated_at', 'desc')
             ->get()
-            ->map(function($doc) {
+            ->map(function ($doc) {
                 $fileInfo = $this->getDocumentFileInfo($doc);
-                $doc->fileType = $fileInfo['fileType'];
+                $doc->fileType  = $fileInfo['fileType'];
                 $doc->previewClass = $fileInfo['previewClass'];
-                $doc->iconClass = $fileInfo['iconClass'];
-                $doc->badgeClass = $fileInfo['badgeClass'];
+                $doc->iconClass  = $fileInfo['iconClass'];
+                $doc->badgeClass  = $fileInfo['badgeClass'];
                 return $doc;
             });
-
+    
         $items = collect();
         $addedFolderIds = [];
-
+    
         foreach ($sharedDocuments as $doc) {
             if ($doc->folder_id) {
                 $topFolder = $doc->folder;
                 $checkedFolder = $topFolder;
-
+    
                 while ($checkedFolder && $checkedFolder->parent_id) {
                     $parent = DocumentFolder::find($checkedFolder->parent_id);
                     if ($parent) {
@@ -1905,26 +2204,32 @@ class DocumentController extends Controller
                         break;
                     }
                 }
-
+    
                 if ($topFolder && !in_array($topFolder->id, $addedFolderIds)) {
                     $addedFolderIds[] = $topFolder->id;
-
+    
                     $folderDocIds = $this->getAllDocumentIdsInFolder($topFolder->id);
-                    $sharedUsers = ShareDocument::with('user')
+                    $sharedUsers  = ShareDocument::with('user')
                         ->whereIn('document_id', $folderDocIds)
                         ->get()
                         ->unique('user_id')
                         ->values()
-                        ->map(function($share) {
-                            $share->avatarColor = $this->avatarColor($share->user->name ?? '');
+                        ->map(function ($share) {
+                            $name = ($share->user && $share->user->name) ? $share->user->name : '';
+                            $share->avatarColor = $this->avatarColor($name);
                             return $share;
                         });
-
+    
+                    $sharedWithNames = $sharedUsers->pluck('user.name')->filter()->implode(', ');
+    
                     $items->push([
                         'id' => $topFolder->id,
                         'name' => $topFolder->name,
                         'type' => 'folder',
+                        'ownerName' => $ownerName,
+                        'ownerColor' => $ownerColor,
                         'sharedUsers' => $sharedUsers,
+                        'sharedWithNames' => $sharedWithNames,
                         'sortDate' => $doc->updated_at,
                         'dateLabel' => $doc->updated_at->format('M d, Y'),
                         'iconClass' => 'ri-folder-2-fill',
@@ -1932,14 +2237,22 @@ class DocumentController extends Controller
                     ]);
                 }
             } else {
+                $sharedUsers = $doc->share_document->map(function ($share) {
+                    $name = ($share->user && $share->user->name) ? $share->user->name : '';
+                    $share->avatarColor = $this->avatarColor($name);
+                    return $share;
+                });
+    
+                $sharedWithNames = $sharedUsers->pluck('user.name')->filter()->implode(', ');
+    
                 $items->push([
                     'id' => $doc->id,
                     'name' => $doc->control_code . ' - ' . $doc->title,
                     'type' => 'document',
-                    'sharedUsers' => $doc->share_document->map(function($share) {
-                        $share->avatarColor = $this->avatarColor($share->user->name ?? '');
-                        return $share;
-                    }),
+                    'ownerName' => $ownerName,
+                    'ownerColor' => $ownerColor,
+                    'sharedUsers' => $sharedUsers,
+                    'sharedWithNames' => $sharedWithNames,
                     'sortDate' => $doc->updated_at,
                     'dateLabel' => $doc->updated_at->format('M d, Y'),
                     'iconClass' => $doc->iconClass,
@@ -1949,10 +2262,10 @@ class DocumentController extends Controller
                 ]);
             }
         }
-
+    
         $items = $items->sortByDesc('sortDate')->unique('id')->values();
-
-        $groupedByDate = $items->groupBy(function($item) {
+    
+        $groupedByDate = $items->groupBy(function ($item) {
             $date = $item['sortDate'];
             $now = now();
             if ($date->isToday()) return 'Today';
@@ -1962,14 +2275,18 @@ class DocumentController extends Controller
             if ($date->year === $now->year) return 'Earlier this year';
             return 'Older';
         });
-
+    
         return view('documents.shared_with_others', compact('groupedByDate'));
     }
 
     public function sharedWithOthersFolderView(Request $request, $id)
     {
         $userId = auth()->id();
-
+        $me = User::find($userId);
+    
+        $ownerName = $me ? $me->name : '—';
+        $ownerColor = $this->avatarColor($ownerName);
+    
         $folder = DocumentFolder::with([
             'document',
             'childrenFolder',
@@ -1977,24 +2294,24 @@ class DocumentController extends Controller
             'parent.parent',
             'parent.parent.parent',
         ])->findOrFail($id);
-
+    
         $breadcrumbs = [];
         $current = $folder;
         while ($current) {
             array_unshift($breadcrumbs, $current);
-            $current = $current->parent ?? null;
+            $current = isset($current->parent) ? $current->parent : null;
         }
-
+    
         $childFolders = DocumentFolder::where('parent_id', $id)
             ->orderBy('name', 'asc')
             ->get();
-
+    
         $childDocuments = Document::with(['attachments', 'share_document.user'])
             ->where('folder_id', $id)
             ->where('user_id', $userId)
             ->orderBy('control_code', 'desc')
             ->get()
-            ->map(function($doc) {
+            ->map(function ($doc) {
                 $fileInfo = $this->getDocumentFileInfo($doc);
                 $doc->fileType = $fileInfo['fileType'];
                 $doc->previewClass = $fileInfo['previewClass'];
@@ -2002,7 +2319,7 @@ class DocumentController extends Controller
                 $doc->badgeClass = $fileInfo['badgeClass'];
                 return $doc;
             });
-
+    
         $folderDocIds = $this->getAllDocumentIdsInFolder((int) $id);
         $sharedUsers = ShareDocument::with('user')
             ->whereIn('document_id', $folderDocIds)
@@ -2010,16 +2327,22 @@ class DocumentController extends Controller
             ->unique('user_id')
             ->values()
             ->map(function($share) {
-                $share->avatarColor = $this->avatarColor($share->user->name ?? '');
+                $name = ($share->user && $share->user->name) ? $share->user->name : '';
+                $share->avatarColor = $this->avatarColor($name);
                 return $share;
             });
-
+    
+        $sharedWithNames = $sharedUsers->pluck('user.name')->filter()->implode(', ');
+    
         return view('documents.shared_with_others_folder', compact(
             'folder',
             'breadcrumbs',
             'childFolders',
             'childDocuments',
-            'sharedUsers'
+            'sharedUsers',
+            'ownerName',
+            'ownerColor',
+            'sharedWithNames'
         ));
     }
 
