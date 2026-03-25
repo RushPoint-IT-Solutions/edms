@@ -23,6 +23,7 @@ use App\RequestApprover;
 use App\ShareDocument;
 use App\User;
 use App\Team;
+use App\ControlCode;
 use chillerlan\QRCode\Output\QRGdImagePNG;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -61,6 +62,7 @@ class DocumentController extends Controller
         $users = User::whereNull("status")->get();
 
         $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
+        $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
 
         $documents = Document::with('change_requests', 'attachments', 'share_document')
             ->orderBy('control_code', 'desc')
@@ -152,6 +154,7 @@ class DocumentController extends Controller
             'shareTree' => $shareTree,
             'shareOthersDocs' => $shareOthersDocs,
             'teams' => $teams,
+            'controlCodes' => $controlCodes,
         ]);
     }
 
@@ -893,27 +896,27 @@ class DocumentController extends Controller
 
         $isRevision = $request->input('is_revision', '0') === '1';
 
-        $controlCode = $request->filled('control_code_existing')
-            ? trim($request->control_code_existing)
-            : trim($request->control_code ?? '');
+        if ($isRevision) {
+            $controlCode = trim($request->control_code_existing ?? '');
 
-        if (!$isRevision && empty($controlCode)) {
-            $request->validate([
-                'office_id' => 'required|exists:teams,id',
-                'document_type' => 'required|array|min:1',
-            ]);
+            if (empty($controlCode)) {
+                return back()->withErrors(['control_code_existing' => 'Please select an existing document.']);
+            }
 
-            $controlCode = $this->generateNewControlCode(
-                (int) $request->office_id,
-                (int) $request->document_type[0]
-            );
-        }
+        } else {
+            $controlCode = trim($request->control_code ?? '');
 
+            if (empty($controlCode)) {
+                return back()->withErrors(['control_code' => 'Please select a control code.']);
+            }
 
-        if (!$isRevision) {
-            $request->validate([
-                'control_code' => 'unique:documents,control_code,' . $controlCode . ',control_code'
-            ]);
+            $controlCodeRecord = ControlCode::where('code', $controlCode)
+                ->where('status', 1)
+                ->first();
+
+            if (!$controlCodeRecord) {
+                return back()->withErrors(['control_code' => 'The selected control code is invalid or no longer available.']);
+            }
         }
 
         try {
@@ -932,21 +935,16 @@ class DocumentController extends Controller
             $document->office_id = $request->office_id;
             $document->save();
 
-            foreach($request->document_type as $type) {
-                // dd($type);
-                if(is_null($type)) {
-                    continue;
-                }
-                else {
-                    $document_type = new DocumentTypeList;
-                    $document_type->document_id = $document->id;
-                    $document_type->type = $type;
-                    $document_type->save();
-                }
+            foreach ($request->document_type as $type) {
+                if (is_null($type)) continue;
+
+                $document_type = new DocumentTypeList;
+                $document_type->document_id = $document->id;
+                $document_type->type = $type;
+                $document_type->save();
             }
 
-            foreach($request->file('attachment') as $key => $file)
-            {
+            foreach ($request->file('attachment') as $key => $file) {
                 $name = time() . '_' . $file->getClientOriginalName();
                 $file->move(public_path() . '/document_attachments/', $name);
                 $file_name = '/document_attachments/' . $name;
@@ -958,8 +956,7 @@ class DocumentController extends Controller
                 $doc_attachment->save();
             }
 
-            foreach($request->tags as $tag)
-            {
+            foreach ($request->tags as $tag) {
                 $document_tag = new DocumentTag;
                 $document_tag->document_id = $document->id;
                 $document_tag->name = $tag;
@@ -970,6 +967,11 @@ class DocumentController extends Controller
                 $this->propagateFolderShares($document->folder_id, $document->id);
             }
 
+            if (!$isRevision && isset($controlCodeRecord)) {
+                $controlCodeRecord->status = 0;
+                $controlCodeRecord->save();
+            }
+
             DB::commit();
 
             Alert::success('Successfully Uploaded')->persistent('Dismiss');
@@ -978,30 +980,12 @@ class DocumentController extends Controller
         } catch (Exception $e) {
             DB::rollback();
             Log::error("Cannot upload documents", ['error' => $e->getMessage()]);
-            
+
             Alert::error('Error')->persistent('Dismiss');
             return back();
         }
     }
 
-    private function generateNewControlCode($teamId, $documentTypeId): string
-    {
-        $docType = DocumentType::findOrFail($documentTypeId);
-        $team = Team::findOrFail($teamId);
-        $year = now()->year;
-
-        $teamIdentifier = !empty($team->code) ? $team->code : $team->name;
-
-        $prefix = "MarSU-{$teamIdentifier}-{$docType->name}-{$year}";
-        $count  = Document::where('control_code', 'like', "{$prefix}-%")->count();
-
-        do {
-            $count++;
-            $candidate = $prefix . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
-        } while (Document::where('control_code', $candidate)->exists());
-
-        return $candidate;
-    }
 
     /**
      * Display the specified resource.

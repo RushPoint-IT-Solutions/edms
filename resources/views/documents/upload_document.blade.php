@@ -21,40 +21,56 @@
                             <label class="form-label fw-semibold">
                                 Control Code *
                                 <span id="newDocBadge" class="badge bg-success text-white ms-1" style="display:none; font-size:0.7rem;">New</span>
-                                <span id="revisionBadge" class="badge bg-warning text-dark ms-1"  style="display:none; font-size:0.7rem;">Revision</span>
+                                <span id="revisionBadge" class="badge bg-warning text-dark ms-1" style="display:none; font-size:0.7rem;">Revision</span>
                             </label>
-                            <select id="controlCodeSelect" name="_control_code_picker" class="form-select">
-                                <option value="">— Search or select a control code —</option>
-                                <option value="__OTHER__">✦ Other (New document)</option>
-                                @foreach($existingDocuments ?? [] as $ed)
-                                    <option value="{{ $ed->control_code }}"
-                                        data-title="{{ $ed->title }}"
-                                        data-type="{{ $ed->category }}"
-                                        data-folder="{{ $ed->folder_id }}"
-                                        data-other="{{ $ed->other_category }}"
-                                        data-request="{{ $ed->type_of_request }}"
-                                        data-revision="{{ $ed->latest_revision ?? 0 }}"
-                                        data-office="{{ $ed->office_id }}"
-                                        data-doctypes="{{ $ed->document_type_list->pluck('type')->implode(',') }}">
-                                        {{ $ed->control_code }} — {{ \Illuminate\Support\Str::limit($ed->title, 50) }}
-                                    </option>
-                                @endforeach
+                            <select id="controlCodeTypePicker" class="form-select">
+                                <option value="">— Select —</option>
+                                <option value="new">New</option>
+                                <option value="existing">Existing</option>
                             </select>
                         </div>
 
-                        <div class="col-md-6" id="newControlCodeSection" style="display:none;">
-                                <div id="controlCodePreview"
-                                    class="form-control mt-4"
-                                    style="background:#ffffff; font-family:monospace;
-                                            font-size:0.85rem; color:#000000;
-                                            letter-spacing:0.03em;
-                                            border:1px dashed #93c5fd;">
-                                    <i class="ri-barcode-line text-primary" style="flex-shrink:0;"></i>
-                                    <span id="controlCodePreviewText">MarSU — select office &amp; doc type</span>
-                                </div>
-                            <small class="text-muted">
-                                The control code will be <strong>auto-generated</strong> on submit.
-                            </small>
+                        <div class="col-md-6" id="controlCodeResultField" style="display:none;">
+
+                            <div id="newDocCodeDisplay" style="display:none;">
+                                <label class="form-label fw-semibold">Select Control Code</label>
+                                <select id="newControlCodePicker" name="_new_control_code" class="form-select">
+                                    <option value="">— Select a control code —</option>
+                                    @foreach($controlCodes ?? [] as $cc)
+                                        <option value="{{ $cc->code }}"
+                                            data-description="{{ $cc->description }}">
+                                            {{ $cc->code }}{{ $cc->description ? ' — ' . $cc->description : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">
+                                    <i class="ri-information-line me-1"></i>
+                                    These are pre-generated control codes available for new documents.
+                                </small>
+                            </div>
+
+                            <div id="existingDocCodeDisplay" style="display:none;">
+                                <label class="form-label fw-semibold">Select Existing Document</label>
+                                <select id="existingControlCodePicker" name="_existing_control_code" class="form-select">
+                                    <option value="">— Search or select a control code —</option>
+                                    @foreach($existingDocuments ?? [] as $ed)
+                                        <option value="{{ $ed->control_code }}"
+                                            data-title="{{ $ed->title }}"
+                                            data-folder="{{ $ed->folder_id }}"
+                                            data-other="{{ $ed->other_category }}"
+                                            data-request="{{ $ed->type_of_request }}"
+                                            data-revision="{{ $ed->latest_revision ?? 0 }}"
+                                            data-office="{{ $ed->office_id }}"
+                                            data-doctypes="{{ $ed->document_type_list->pluck('type')->implode(',') }}">
+                                            {{ $ed->control_code }} — {{ \Illuminate\Support\Str::limit($ed->title, 50) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">
+                                    <i class="ri-information-line me-1"></i>
+                                    Select the document you are uploading a revision for.
+                                </small>
+                            </div>
                         </div>
 
                         <div class="col-md-8">

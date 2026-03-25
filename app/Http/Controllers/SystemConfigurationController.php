@@ -17,6 +17,7 @@ class SystemConfigurationController extends Controller
     {
         $departments = Department::with('dep_head')->get();
         $employees = User::all();
+        $offices = Department::orderBy('name')->get();
 
         $teams = Team::with('creator')->get();
         $activeDepartments = Department::where('status', 1)->get();
@@ -27,7 +28,8 @@ class SystemConfigurationController extends Controller
             'employees',
             'teams',
             'activeDepartments',
-            'documentTypes'
+            'documentTypes',
+            'offices'
         ));
     }
 }
