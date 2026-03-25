@@ -17,15 +17,21 @@
                             @endforeach
                         </select>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Team Name <span class="text-danger">*</span></label>
+                        <label class="form-label">Office name <span class="text-danger">*</span></label>
                         <input type="text" id="team_name" name="team_name" class="form-control" placeholder="Enter team name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Campus <span class="text-danger">*</span></label>
+                        <input type="text" id="campus" name="campus" class="form-control" placeholder="Enter Campus" required>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-2">
                     <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary mt-3" id="createTeamBtn">
-                        <i class="fa fa-save"></i> Create Team
+                        <i class="fa fa-save"></i> Create Office
                     </button>
                 </div>
             </form>

@@ -118,6 +118,7 @@
                                 <th>Team Name</th>
                                 <th>Created By</th>
                                 <th>Department</th>
+                                <th>Campus</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -406,6 +407,7 @@ $(document).ready(function () {
     $('#departmentsTable tbody').on('click', '.delete-department', function () {
         var id = $(this).data('id');
         var name = $(this).data('name');
+        
         swal({ title: 'Delete "' + name + '"?', text: 'This action cannot be undone.', type: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, delete it!', cancelButtonText: 'Cancel', closeOnConfirm: false }, function () {
             var form = $('<form method="POST" style="display:none;"><input type="hidden" name="_token" value="{{ csrf_token() }}"><input type="hidden" name="_method" value="DELETE"></form>');
             form.attr('action', '{{ url("departments") }}/' + id);
@@ -424,6 +426,7 @@ $(document).ready(function () {
             { data: 'name', name: 'name' },
             { data: 'created_by', orderable: false, searchable: false },
             { data: 'department', orderable: false, searchable: false },
+            { data: 'campus', orderable: false, searchable: false },
         ],
         null,
         { excelTitle: 'Offices', emptyTable: 'No offices found', zeroRecords: 'No matching offices found', moveControls: moveTeamsControls }
@@ -453,12 +456,15 @@ $(document).ready(function () {
         e.preventDefault();
         var teamName = $('#team_name').val().trim();
         var department = $('#new_department_id').val();
+        var campus = $('#campus').val().trim();
+
         if (!teamName) { swal('Error!', 'Please enter an office name', 'error'); return; }
+        
         var btn = $('#createTeamBtn');
         btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Creating...');
         $.ajax({
             type: 'POST', url: '{{ url("teams") }}',
-            data: { team_name: teamName, department: department },
+            data: { team_name: teamName, department: department, campus: campus },
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function () {
                 swal('Success!', 'Office created successfully!', 'success');
@@ -479,12 +485,15 @@ $(document).ready(function () {
         var teamId = form.data('id');
         var teamName = form.find('input[name="team_name"]').val().trim();
         var department = form.find('select[name="department"]').val();
+        var campus = form.find('input[name="campus"]').val().trim();
+
         if (!teamName) { swal('Error!', 'Please enter an office name', 'error'); return; }
+
         var btn = form.find('.update-team-btn');
         btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
         $.ajax({
             type: 'POST', url: '{{ url("teams") }}/' + teamId,
-            data: { _method: 'PUT', team_name: teamName, department: department },
+            data: { _method: 'PUT', team_name: teamName, department: department, campus: campus },
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function () {
                 swal('Success!', 'Office updated successfully!', 'success');
