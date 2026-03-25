@@ -23,6 +23,7 @@ use App\RequestApprover;
 use App\ShareDocument;
 use App\User;
 use App\Team;
+use App\ControlCode;
 use chillerlan\QRCode\Output\QRGdImagePNG;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -60,6 +61,9 @@ class DocumentController extends Controller
         $obsoletes = Obsolete::get();
         $users = User::whereNull("status")->get();
 
+        $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
+        $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
+
         $documents = Document::with('change_requests', 'attachments', 'share_document')
             ->orderBy('control_code', 'desc')
             ->get();
@@ -71,17 +75,20 @@ class DocumentController extends Controller
                 ->get();
         }
 
-        $existingDocuments = Document::selectRaw('
+        $existingDocuments = Document::with('document_type_list')
+            ->selectRaw('
+                MAX(id) as id,
                 control_code,
                 title,
                 category,
                 folder_id,
                 other_category,
                 type_of_request,
+                office_id,
                 MAX(version) AS latest_revision,
                 COUNT(*) AS upload_count
             ')
-            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request')
+            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request', 'office_id')
             ->orderBy('control_code', 'asc')
             ->get();
 
@@ -146,6 +153,8 @@ class DocumentController extends Controller
             'folderData' => $folderData,
             'shareTree' => $shareTree,
             'shareOthersDocs' => $shareOthersDocs,
+            'teams' => $teams,
+            'controlCodes' => $controlCodes,
         ]);
     }
 
@@ -885,55 +894,57 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // dd($request->all());
-        $controlCode = $request->filled('control_code_existing')
-            ? trim($request->control_code_existing)
-            : trim($request->control_code);
-
         $isRevision = $request->input('is_revision', '0') === '1';
 
-        if (!$isRevision) {
-            $request->validate([
-                'control_code' => 'unique:documents,control_code'
-            ]);
+        if ($isRevision) {
+            $controlCode = trim($request->control_code_existing ?? '');
+
+            if (empty($controlCode)) {
+                return back()->withErrors(['control_code_existing' => 'Please select an existing document.']);
+            }
+
+        } else {
+            $controlCode = trim($request->control_code ?? '');
+
+            if (empty($controlCode)) {
+                return back()->withErrors(['control_code' => 'Please select a control code.']);
+            }
+
+            $controlCodeRecord = ControlCode::where('code', $controlCode)
+                ->where('status', 1)
+                ->first();
+
+            if (!$controlCodeRecord) {
+                return back()->withErrors(['control_code' => 'The selected control code is invalid or no longer available.']);
+            }
         }
 
         try {
             DB::beginTransaction();
-            
+
             $document = new Document;
             $document->control_code = $controlCode;
             $document->title = $request->title;
-            // $document->category = $request->document_type;
             $document->other_category = $request->other;
             $document->effective_date = $request->effective_date;
             $document->user_id = auth()->user()->id;
             $document->version = $request->version;
-            if ($request->has("public")) {
-                $document->public = 1;
-            }
-            else {
-                $document->public = null;
-            }
+            $document->public = $request->has('public') ? 1 : null;
             $document->folder_id = $request->folder;
             $document->type_of_request = $request->type_of_request;
+            $document->office_id = $request->office_id;
             $document->save();
 
-            foreach($request->document_type as $type) {
-                // dd($type);
-                if(is_null($type)) {
-                    continue;
-                }
-                else {
-                    $document_type = new DocumentTypeList;
-                    $document_type->document_id = $document->id;
-                    $document_type->type = $type;
-                    $document_type->save();
-                }
+            foreach ($request->document_type as $type) {
+                if (is_null($type)) continue;
+
+                $document_type = new DocumentTypeList;
+                $document_type->document_id = $document->id;
+                $document_type->type = $type;
+                $document_type->save();
             }
 
-            foreach($request->file('attachment') as $key => $file)
-            {
+            foreach ($request->file('attachment') as $key => $file) {
                 $name = time() . '_' . $file->getClientOriginalName();
                 $file->move(public_path() . '/document_attachments/', $name);
                 $file_name = '/document_attachments/' . $name;
@@ -945,8 +956,7 @@ class DocumentController extends Controller
                 $doc_attachment->save();
             }
 
-            foreach($request->tags as $tag)
-            {
+            foreach ($request->tags as $tag) {
                 $document_tag = new DocumentTag;
                 $document_tag->document_id = $document->id;
                 $document_tag->name = $tag;
@@ -957,6 +967,11 @@ class DocumentController extends Controller
                 $this->propagateFolderShares($document->folder_id, $document->id);
             }
 
+            if (!$isRevision && isset($controlCodeRecord)) {
+                $controlCodeRecord->status = 0;
+                $controlCodeRecord->save();
+            }
+
             DB::commit();
 
             Alert::success('Successfully Uploaded')->persistent('Dismiss');
@@ -964,12 +979,13 @@ class DocumentController extends Controller
 
         } catch (Exception $e) {
             DB::rollback();
-            Log::error("Cannot upload documents", $e->getMessage());
-            
+            Log::error("Cannot upload documents", ['error' => $e->getMessage()]);
+
             Alert::error('Error')->persistent('Dismiss');
             return back();
         }
     }
+
 
     /**
      * Display the specified resource.

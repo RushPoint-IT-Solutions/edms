@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\ControlCode;
 use App\Department;
+use App\Teams;
 use App\DocumentType;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -98,7 +99,7 @@ class ControlCodeController extends Controller
         $department = Department::findOrFail($departmentId);
         $year = now()->year;
 
-        $prefix = "{$docType->name}-{$department->code}-{$year}";
+        $prefix = "MarSU-{$department->code}-{$docType->name}-{$year}";
 
         $count = ControlCode::where('code', 'like', "{$prefix}-%")->count();
 

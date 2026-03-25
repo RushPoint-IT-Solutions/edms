@@ -1060,7 +1060,6 @@
             min-height: 490px;
         }
 
-        /* Base nav card */
         .section-nav-card {
             border: 2px solid transparent;
             border-radius: 10px;
@@ -1076,13 +1075,11 @@
             box-shadow: 0 4px 12px rgba(123, 28, 28, 0.15) !important;
         }
 
-        /* Active state — maroon to match your sidebar */
         .section-nav-card.active {
             border-color: #7b1c1c;
             box-shadow: 0 4px 16px rgba(123, 28, 28, 0.2) !important;
         }
 
-        /* Icon background pill */
         .section-nav-card .nav-icon {
             display: inline-flex;
             align-items: center;
@@ -1121,7 +1118,6 @@
             color: #7b1c1c !important;
         }
 
-        /* Label text */
         .section-nav-card .nav-label {
             font-weight: 600;
             color: #333;
@@ -1132,13 +1128,11 @@
             color: #7b1c1c;
         }
 
-        /* Sub-label */
         .section-nav-card .nav-count {
             font-size: 0.8rem;
             color: #888;
         }
 
-        /* Button inside card */
         .section-nav-card .btn-primary {
             background-color: #7b1c1c;
             border-color: #7b1c1c;

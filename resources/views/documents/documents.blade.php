@@ -209,6 +209,9 @@
     let selectedRow = null;
     let currentView = 'grid';
 
+    var uploadSelect2Inited = false;
+    var uploadChosenInited  = false;
+
     function loadFolderTree() {
         $('#listView').show();
         $('#gridView').hide();
@@ -385,8 +388,8 @@
                 var docId = row.data('document-id');
                 if (docId) {
                     var exists = selected.some(function (i) { return String(i.id) === String(docId) && i.type === 'document'; });
-                    if (!exists) selected.push({ 
-                        id: docId, 
+                    if (!exists) selected.push({
+                        id: docId,
                         type: 'document',
                         name: row.find('.item-name').text().trim()
                     });
@@ -400,8 +403,8 @@
             var id = $cb.data('id');
             if (id && type !== 'others') {
                 var exists = selected.some(function (i) { return String(i.id) === String(id) && i.type === type; });
-                if (!exists) selected.push({ 
-                    id: id, 
+                if (!exists) selected.push({
+                    id: id,
                     type: type,
                     name: $cb.data('name') || $cb.closest('.grid-item').find('.grid-item-name').text().trim()
                 });
@@ -504,25 +507,169 @@
         $(selector).val(value).trigger('chosen:updated');
     }
 
+    function updateControlCodePreview() {
+        var firstOpt = $('#documentTypeField option:selected').first();
+        var docTypeName = firstOpt.length ? (firstOpt.data('name') || '????') : '????';
+        var deptOpt = $('#newDocDeptField option:selected');
+        var deptCode  = deptOpt.val() ? (deptOpt.data('code') || '????') : '????';
+        var year = new Date().getFullYear();
+
+        $('#controlCodePreviewText').val('MarSU-' + deptCode + '-' + docTypeName + '-' + year + '-????');
+    }
+
     function resetUploadForm() {
+        resetUploadFormFields();
+
         $('#titleField').val('').prop('readonly', false);
-        $('#revisionField').val(0).prop('readonly', true).css({ background: '#f8f9fa', cursor: 'not-allowed' });
+        $('#revisionField').val(0)
+            .prop('readonly', true)
+            .css({ background: '#f8f9fa', cursor: 'not-allowed' });
         $('#revisionAutoIcon').hide();
         $('#revisionInfoBox').hide();
-        $('#manualControlCodeWrapper').hide();
-        $('#manualControlCode').val('').removeAttr('required');
-        $('#selectedControlCode').val('');
+
+        $('#controlCodeResultField').hide();
+        $('#newDocCodeDisplay').hide();
+        $('#existingDocCodeDisplay').hide();
+
+        if ($('#newControlCodePicker').data('select2')) {
+            $('#newControlCodePicker').val(null).trigger('change');
+        }
+        if ($('#existingControlCodePicker').data('select2')) {
+            $('#existingControlCodePicker').val(null).trigger('change');
+        }
+
+        $('#controlCodeTypePicker').val('');
+
         $('#isRevision').val('0');
+        $('#selectedControlCode').val('');
+        $('#finalNewControlCode').val('');
+        $('#selectedControlCode').attr('name', 'control_code_existing');
+        $('#finalNewControlCode').attr('name', 'control_code');
+
         $('#newDocBadge').hide();
         $('#revisionBadge').hide();
-        setChosenValue('#documentTypeField', '');
-        setChosenValue('#folderField', '');
-        setChosenValue('#typeOfRequestField', '');
+        $('#folderField').val('');
+        $('#typeOfRequestField').val('');
+    }
+
+    function resetUploadFormFields() {
+        $('#titleField').val('').prop('readonly', false);
+        $('#revisionField').val(0)
+            .prop('readonly', true)
+            .css({ background: '#f8f9fa', cursor: 'not-allowed' });
+        $('#revisionAutoIcon').hide();
+        $('#revisionInfoBox').hide();
+
+        if ($('#newControlCodePicker').data('select2')) {
+            $('#newControlCodePicker').val(null).trigger('change');
+        }
+        if ($('#existingControlCodePicker').data('select2')) {
+            $('#existingControlCodePicker').val(null).trigger('change');
+        }
+
+        $('#isRevision').val('0');
+        $('#selectedControlCode').val('');
+        $('#finalNewControlCode').val('');
+        $('#selectedControlCode').attr('name', 'control_code_existing');
+        $('#finalNewControlCode').attr('name', 'control_code');
+
+        $('#folderField').val('');
+        $('#typeOfRequestField').val('');
+    }
+
+    function initUploadModalPlugins() {
+        if (!uploadSelect2Inited) {
+            $('#newControlCodePicker').select2({
+                dropdownParent: $('#uploadDocument'),
+                placeholder: '— Select a control code —',
+                allowClear: true,
+                width: '100%',
+            });
+
+            $('#existingControlCodePicker').select2({
+                dropdownParent: $('#uploadDocument'),
+                placeholder: '— Search or select a control code —',
+                allowClear: true,
+                width: '100%',
+            });
+
+            $('#newControlCodePicker').on('select2:select', function () {
+                var val = $(this).val();
+                $('#selectedControlCode').val('');
+                $('#finalNewControlCode').val(val || '');
+            });
+
+            $('#newControlCodePicker').on('select2:clear', function () {
+                $('#selectedControlCode').val('');
+                $('#finalNewControlCode').val('');
+            });
+
+            $('#existingControlCodePicker').on('select2:select', function () {
+                var val       = $(this).val();
+                var $selected = $(this).find('option[value="' + val + '"]');
+
+                if (!val) return;
+
+                var title        = $selected.data('title')    || '';
+                var folderId     = $selected.data('folder')   || '';
+                var curRevision  = parseInt($selected.data('revision') || 0);
+                var nextRevision = curRevision + 1;
+                var officeId     = $selected.data('office')   || '';
+                var docTypes     = $selected.data('doctypes') || '';
+
+                $('#selectedControlCode').val(val);
+                $('#finalNewControlCode').val('');
+                $('#titleField').val(title).prop('readonly', true);
+                $('#newDocDeptField').val(officeId);
+
+                if (docTypes) {
+                    var typeIds = String(docTypes).split(',').map(function (t) { return t.trim(); });
+                    $('#documentTypeField').val(typeIds).trigger('chosen:updated');
+                } else {
+                    $('#documentTypeField').val([]).trigger('chosen:updated');
+                }
+
+                $('#folderField').val(folderId);
+                $('#typeOfRequestField').val('Revision');
+
+                $('#revisionField').val(nextRevision)
+                    .prop('readonly', true)
+                    .css({ background: '#f8f9fa', cursor: 'not-allowed' });
+                $('#revisionAutoIcon').show();
+
+                $('#revisionInfoText').html(
+                    'You are uploading <strong>Revision ' + nextRevision + '</strong> of ' +
+                    '<strong>' + val + '</strong>. ' +
+                    'Previous revision: <strong>' + curRevision + '</strong>.'
+                );
+                $('#revisionInfoBox').show();
+            });
+
+            $('#existingControlCodePicker').on('select2:clear', function () {
+                $('#selectedControlCode').val('');
+                $('#titleField').val('').prop('readonly', false);
+                $('#revisionField').val(0).css({ background: '#f8f9fa', cursor: 'not-allowed' });
+                $('#revisionAutoIcon').hide();
+                $('#revisionInfoBox').hide();
+                $('#newDocDeptField').val('');
+                $('#documentTypeField').val([]).trigger('chosen:updated');
+                $('#folderField').val('');
+                $('#typeOfRequestField').val('Revision');
+            });
+
+            uploadSelect2Inited = true;
+        }
+
+        if (!uploadChosenInited) {
+            $('#documentTypeField').chosen({ width: '100%' });
+            $('select[name="tags[]"]', '#uploadDocument').chosen({ width: '100%' });
+            uploadChosenInited = true;
+        }
     }
 
     $(document).ready(function () {
         var savedView = localStorage.getItem('documentViewPreference');
-        if (savedView === 'list') { currentView = 'list'; }
+        if (savedView === 'grid') { currentView = 'grid'; }
 
         loadFolderTree();
 
@@ -791,72 +938,77 @@
             if (e.key === 'Escape') { $(this).val('').trigger('input'); }
         });
 
-        $('#controlCodeSelect').select2({
-            dropdownParent: $('#uploadDocument'),
-            placeholder: '— Search or select a control code —',
-            allowClear: true,
-            width: '100%',
+        $(document).on('change', '#controlCodeTypePicker', function () {
+            var val = $(this).val();
+
+            $('#controlCodeResultField').hide();
+            $('#newDocCodeDisplay').hide();
+            $('#existingDocCodeDisplay').hide();
+            $('#newDocBadge').hide();
+            $('#revisionBadge').hide();
+            resetUploadFormFields();
+
+            if (!val) return;
+
+            $('#controlCodeResultField').show();
+
+            if (val === 'new') {
+                $('#newDocBadge').show();
+                $('#newDocCodeDisplay').show();
+                $('#isRevision').val('0');
+                $('#typeOfRequestField').val('New');
+            } else if (val === 'existing') {
+                $('#revisionBadge').show();
+                $('#existingDocCodeDisplay').show();
+                $('#isRevision').val('1');
+                $('#typeOfRequestField').val('Revision');
+            }
         });
 
-        $('#controlCodeSelect').on('change', function () {
-            var val = $(this).val();
-            var $selected = $(this).find('option:selected');
+        $(document).on('change', '#newDocDeptField', function () {
+            updateControlCodePreview();
+        });
 
-            if (!val) { resetUploadForm(); return; }
-
-            if (val === '__OTHER__') {
-                resetUploadForm();
-                $('#manualControlCodeWrapper').show();
-                $('#manualControlCode').attr('required', true);
-                $('#newDocBadge').show();
-                $('#revisionField').val(0).prop('readonly', true).css({ background: '#f8f9fa', cursor: 'not-allowed' });
-                return;
+        $(document).on('change', '#documentTypeField', function () {
+            if ($('#newControlCodeSection').is(':visible')) {
+                updateControlCodePreview();
             }
+        });
 
-            resetUploadForm();
+        $('#uploadDocumentForm').on('submit', function (e) {
+            var type = $('#controlCodeTypePicker').val();
 
-            var title = $selected.data('title') || '';
-            var docType = $selected.data('type') || '';
-            var folderId = $selected.data('folder') || '';
-            var other = $selected.data('other') || '';
-            var curRevision = parseInt($selected.data('revision') || 0);
-            var nextRevision = curRevision + 1;
+            if (type === 'new') {
+                if (!$('#newControlCodePicker').val()) {
+                    e.preventDefault();
+                    alert('Please select a control code for the new document.');
+                    return false;
+                }
+                $('#selectedControlCode').removeAttr('name');
 
-            $('#selectedControlCode').val(val);
-            $('#titleField').val(title).prop('readonly', true);
-            $('#otherField').val(other);
-            $('#isRevision').val('1');
-            $('#revisionBadge').show();
+            } else if (type === 'existing') {
+                if (!$('#existingControlCodePicker').val()) {
+                    e.preventDefault();
+                    alert('Please select an existing document.');
+                    return false;
+                }
+                $('#finalNewControlCode').removeAttr('name');
 
-            setChosenValue('#documentTypeField', docType);
-            setChosenValue('#folderField', folderId);
-            setChosenValue('#typeOfRequestField', 'Revision');
+            } else {
+                e.preventDefault();
+                alert('Please select New or Existing.');
+                return false;
+            }
+        });
 
-            $('#revisionField').val(nextRevision).prop('readonly', true).css({ background: '#f8f9fa', cursor: 'not-allowed' });
-            $('#revisionAutoIcon').show();
-
-            $('#revisionInfoText').html(
-                'You are uploading <strong>Revision ' + nextRevision + '</strong> of ' +
-                '<strong>' + val + '</strong>. ' +
-                'Previous revision: <strong>' + curRevision + '</strong>.'
-            );
-            $('#revisionInfoBox').show();
+        $('#uploadDocument').on('shown.bs.modal', function () {
+            initUploadModalPlugins();
         });
 
         $('#uploadDocument').on('hidden.bs.modal', function () {
-            $('#controlCodeSelect').val(null).trigger('change');
             resetUploadForm();
         });
 
-        $('#uploadDocumentForm').on('submit', function () {
-            var val = $('#controlCodeSelect').val();
-            if (val && val !== '__OTHER__') {
-                $('#manualControlCode').removeAttr('name');
-            } else {
-                $('#manualControlCode').attr('name', 'control_code');
-                $('#selectedControlCode').removeAttr('name');
-            }
-        });
     });
 
     (function () {
