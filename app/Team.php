@@ -13,7 +13,8 @@ class Team extends Model
         'name',
         'created_by',
         'status',
-        'department_id'
+        'department_id',
+        'campus'
     ];
 
     public function creator()

@@ -83,10 +83,11 @@ class TeamsController extends Controller
                 </div>';
 
             $data[] = [
-                'action'     => $actions,
-                'name'       => '<strong>' . $team->name . '</strong>',
+                'action' => $actions,
+                'name' => '<strong>' . $team->name . '</strong>',
                 'created_by' => $createdBy,
                 'department' => $department,
+                'campus' => $team->campus,
             ];
         }
 
@@ -121,6 +122,7 @@ class TeamsController extends Controller
             $team = Team::create([
                 'name' => $request->team_name,
                 'department_id' => $request->department,
+                'campus' => $request->campus,
                 'created_by' => Auth::id(),
                 'status' => 1,
             ]);
@@ -163,7 +165,8 @@ class TeamsController extends Controller
             $team = Team::findOrFail($id);
             $team->update([
                 'name' => $request->team_name,
-                'department_id' => $request->department
+                'department_id' => $request->department,
+                'campus' => $request->campus
             ]);
 
             return response()->json([
