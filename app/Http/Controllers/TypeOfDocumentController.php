@@ -49,6 +49,7 @@ class TypeOfDocumentController extends Controller
                                 <a class="dropdown-item edit-btn" href="#"
                                     data-id="' . $type->id . '"
                                     data-name="' . e($type->name) . '"
+                                    data-category="' . e($type->category) . '"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editDocumentTypeModal">
                                     <i class="ri-pencil-line me-2"></i>Edit
@@ -65,14 +66,15 @@ class TypeOfDocumentController extends Controller
                     </div>
                 ',
                 'name' => e($type->name),
+                'category' => e($type->category),
             ];
         }
 
         return response()->json([
-            'draw'            => intval($draw),
-            'recordsTotal'    => $totalRecords,
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalFiltered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
@@ -80,10 +82,12 @@ class TypeOfDocumentController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'required|string|max:50',
         ]);
 
         $type = new DocumentType;
         $type->name = $request->name;
+        $type->category = $request->category;
         $type->save();
 
         Alert::success('Successfully Added')->persistent('Dismiss');
@@ -94,10 +98,12 @@ class TypeOfDocumentController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:document_types,name,' . $id,
+            'category' => 'required|string|max:255',
         ]);
 
         $type = DocumentType::findOrFail($id);
         $type->name = $request->name;
+        $type->category = $request->category;
         $type->save();
 
         Alert::success('Successfully Updated')->persistent('Dismiss');

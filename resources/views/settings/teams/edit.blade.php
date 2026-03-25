@@ -1,5 +1,5 @@
 <div class="modal fade" id="editTeam{{ $team->id }}" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom border-2">
                 <h5 class="modal-title">Edit Team</h5>
@@ -17,9 +17,15 @@
                             @endforeach
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Team Name <span class="text-danger">*</span></label>
                         <input type="text" name="team_name" class="form-control" value="{{ $team->name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Campus <span class="text-danger">*</span></label>
+                        <input type="text" name="campus" class="form-control" value="{{ $team->campus }}" required>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-2">

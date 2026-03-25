@@ -155,6 +155,7 @@
                             <tr>
                                 <th>Actions</th>
                                 <th>Name</th>
+                                <th>Category</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -530,8 +531,9 @@ $(document).ready(function () {
         '{{ route("document-types.data") }}',
         [
             { data: 'action', orderable: false, searchable: false },
-            { data: 'name',   name: 'name' },
-        ],
+            { data: 'name', name: 'name' },
+            { data: 'category', name: 'category' },
+s        ],
         null,
         { pageLength: 10, excelTitle: 'Document Types', emptyTable: 'No document types found', zeroRecords: 'No matching records found', order: [[1, 'asc']], moveControls: moveDoctypeControls }
     );
@@ -541,13 +543,18 @@ $(document).ready(function () {
     $(document).on('click', '.edit-btn', function () {
         var id = $(this).data('id');
         var name = $(this).data('name');
+        var category = $(this).data('category');
+        
         $('#editName').val(name);
-        $('#editDocumentTypeForm').attr('action', '/documents_type/update/' + id);
+        $('#editCategory').val(category);
+        $('#editDocumentTypeForm').attr('action', '{{ url("/documents_type/update/") }}/' + $(this).data('id'));
     });
 
     $(document).on('click', '.delete-btn', function () {
         var id = $(this).data('id');
         var name = $(this).data('name');
+        var category = $(this).data('category');
+
         swal({
             title: 'Delete "' + name + '"?',
             text: 'This action cannot be undone.',
