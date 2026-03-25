@@ -181,37 +181,19 @@
                     <span class="flex-grow-1">Comments</span>
                 </div>
                 <div class="card-body">
-                    <div data-simplebar style="max-height: 400px;" class="mb-3">
-                        @if(count($change_request->comments) > 0)
-                            @foreach ($change_request->comments as $comment)
-                            <div class="comment-item">
-                                <div class="d-flex align-items-start gap-2">
-                                    <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle" style="width: 32px; height: 32px;">
-                                    <div class="flex-grow-1">
-                                        <div class="comment-author">{{ $comment->user->name }}</div>
-                                        <div class="comment-time">{{ date('d M Y - h:i A', strtotime($comment->created_at)) }}</div>
-                                        <div class="mt-2 text-muted">{!! $comment->comment !!}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        @else 
-                            <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
-                        @endif
+                    <div data-simplebar style="max-height: 400px; overflow-y:auto;" class="mb-3" id="CommentContainer">
+                        
                     </div>
 
-                    <form method="POST" action="{{ url('change-request/comments') }}" onsubmit="show()">
+                    <form method="POST" id="CommentForm">
                         @csrf
                         <input type="hidden" name="change_request_id" value="{{ $change_request->id }}">
                         
                         <label class="form-label small fw-semibold">Add a Comment</label>
-                        <textarea name="comment" class="form-control {{ $errors->has('comment') ? 'is-invalid' : '' }}" 
-                            id="summernote" rows="3" placeholder="Write your comment..."></textarea>
-                        @if($errors->has('comment'))
-                            <p class="text-danger small mt-1">{{ $errors->first('comment') }}</p>
-                        @endif
+                        <textarea name="comment" class="form-control" id="summernote" rows="3" placeholder="Write your comment..."></textarea>
+                        <div class="invalid-feedback"></div>
                         
-                        <button type="submit" class="btn btn-success w-100 mt-3">
+                        <button type="submit" class="btn btn-success w-100 mt-3" id="CommentBtn">
                             <i class="ri-send-plane-fill me-1"></i> Post Comment
                         </button>
                     </form>
@@ -322,14 +304,75 @@
 @endsection
 
 @section('js')
+<script src="{{ asset('js/ajaxRequest.js') }}"></script>
+<script src="{{ asset('js/errorDisplay.js') }}"></script>
 <script src="{{ asset('assets/js/pages/form-editor.init.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.js"></script>
 <script>
+    function getComments() {
+        ajaxRequest({
+            type:"GET",
+            url: "{{ url('change-request/get-comments') }}",
+            data: {
+                change_request_id: "{{ $change_request->id }}"
+            },
+            success: function(response) {
+                var commentList = ''
+                response.forEach(comment => {
+                    commentList += `
+                        <div class="comment-item">
+                            <div class="d-flex align-items-start gap-2">
+                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle" style="width: 32px; height: 32px;">
+                                <div class="flex-grow-1">
+                                    <div class="comment-author">${comment.user.name}</div>
+                                    <div class="comment-time">${comment.created_at}</div>
+                                    <div class="mt-2 text-muted">${comment.user_comment}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                })
+                
+                $("#CommentContainer").html(commentList)
+            }
+        })
+    }
+
     $(document).ready(function() {
+        getComments()
+
         $('#summernote').summernote({
             height: 200,
             placeholder: "Write a comment..."
         });
+
+        $("#CommentForm").on("submit", function(e) {
+            e.preventDefault()
+
+            if ($('#summernote').summernote('isEmpty')) {
+                swal("Error", "Comment cannot be empty", "error");
+                return;
+            }
+
+            var form = $(this).serializeArray()
+
+            ajaxRequest({
+                type:"POST",
+                url:"{{ url('change-request/comments') }}",
+                data: form,
+                beforeSend: function() {
+                    $("#CommentBtn").prop("disabled", true).text("Commenting...")
+                },
+                success: function(response) {
+                    swal("Success", response.message, response.status)
+                    $('#summernote').summernote('reset'); // clear editor
+                }, 
+                complete: function() {
+                    $("#CommentBtn").prop("disabled", false).text("Comment")
+                    getComments()
+                }
+            })
+        })
     });
 </script>
 @endsection

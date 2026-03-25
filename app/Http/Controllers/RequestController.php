@@ -44,6 +44,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class RequestController extends Controller
 {
@@ -1270,34 +1271,54 @@ class RequestController extends Controller
     //     ));
     // }
 
+    public function getComments(Request $request) 
+    {
+        // dd($request->all());
+        try {
+            $comments = Comment::select(DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d') AS created_at"), 'comment as user_comment', 'user_id')
+                ->with('user:id,name')
+                ->where("change_request_id", $request->change_request_id)
+                ->get();
+
+            return response()->json($comments);
+        } catch (\Throwable $e) {
+            Log::error("Error in fetching comment ". $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Comment not found']);
+        }
+    }
+
     public function comments(Request $request)
     {
-        $request->validate([
-            'comment' => 'required'
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $comments = new Comment;
-        $comments->change_request_id = $request->change_request_id;
-        $comments->comment = $request->comment;
-        $comments->user_id = auth()->user()->id;
-        $comments->save();
+            $comments = new Comment;
+            $comments->change_request_id = $request->change_request_id;
+            $comments->comment = $request->comment;
+            $comments->user_id = auth()->user()->id;
+            $comments->save();
 
-        $changeRequest = ChangeRequest::with('approvers')->findOrFail($request->change_request_id);
+            $changeRequest = ChangeRequest::with('approvers')->findOrFail($request->change_request_id);
 
-        $recipients = collect([$changeRequest->user_id])
-            ->merge($changeRequest->approvers->pluck('user_id'))
-            ->unique()
-            ->filter(fn($id) => $id != auth()->id());
+            $recipients = collect([$changeRequest->user_id])
+                ->merge($changeRequest->approvers->pluck('user_id'))
+                ->unique()
+                ->filter(fn($id) => $id != auth()->id());
 
-        foreach ($recipients as $userId) {
-            UserNotification::updateOrCreate(
-                ['user_id' => $userId, 'type' => 'comment', 'change_request_id' => $request->change_request_id],
-                ['read_at' => null]
-            );
+            foreach ($recipients as $userId) {
+                UserNotification::updateOrCreate(
+                    ['user_id' => $userId, 'type' => 'comment', 'change_request_id' => $request->change_request_id],
+                    ['read_at' => null]
+                );
+            }
+
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error in comment ". $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Something went wrong']);
         }
-
-        Alert::success('Successfully Saved')->persistent('Dismiss');
-        return back();
     }
 
     public function viewChangeRequest($id)

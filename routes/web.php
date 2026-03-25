@@ -103,6 +103,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
             Route::get('for_approval/{id}', 'RequestController@show');
             Route::get('view-change-request/{id}','RequestController@viewChangeRequest');
+            Route::get('get-comments','RequestController@getComments');
 
             Route::post('store','RequestController@store');
             Route::post('comments', 'RequestController@comments');
