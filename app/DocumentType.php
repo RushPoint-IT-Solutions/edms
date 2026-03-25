@@ -9,7 +9,8 @@ class DocumentType extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
 
-    protected $fillable = ['
-        name'
+    protected $fillable = [
+        'name',
+        'category'
     ];
 }

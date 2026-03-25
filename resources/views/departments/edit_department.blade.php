@@ -1,5 +1,5 @@
 <div class="modal fade" id="editDepartment{{ $department->id }}" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom border-2">
                 <h5 class="modal-title mb-3">Edit Department</h5>

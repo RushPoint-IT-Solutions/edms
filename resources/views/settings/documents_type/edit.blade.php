@@ -1,5 +1,5 @@
 <div class="modal fade" id="editDocumentTypeModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Type of Document</h5>
@@ -11,6 +11,11 @@
                     <div class="mb-3">
                         <label class="form-label">Name <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="editName" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category <span class="text-danger">*</span></label>
+                        <input type="text" name="category" id="editCategory" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
