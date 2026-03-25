@@ -7,63 +7,61 @@
                 <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
             </div>
 
-            <form method="POST" action="{{ url('/documents/upload-document') }}" onsubmit="show();" enctype="multipart/form-data" id="uploadDocumentForm">
+            <form method="POST" action="{{ url('/documents/upload-document') }}" enctype="multipart/form-data" id="uploadDocumentForm">
                 @csrf
 
                 <div class="modal-body">
                     <input type="hidden" name="is_revision" id="isRevision" value="0">
+                    <input type="hidden" name="control_code_existing" id="selectedControlCode" value="">
+                    <input type="hidden" name="control_code" id="finalNewControlCode" value="">
 
                     <div class="row g-3">
 
                         <div class="col-md-6">
-                            <label class="form-label">
+                            <label class="form-label fw-semibold">
                                 Control Code *
-                                <span id="newDocBadge" class="badge bg-light text-dark border ms-1" style="display:none;">New</span>
-                                <span id="revisionBadge" class="badge bg-light text-dark border ms-1" style="display:none;">Revision</span>
+                                <span id="newDocBadge" class="badge bg-success text-white ms-1" style="display:none; font-size:0.7rem;">New</span>
+                                <span id="revisionBadge" class="badge bg-warning text-dark ms-1"  style="display:none; font-size:0.7rem;">Revision</span>
                             </label>
-
                             <select id="controlCodeSelect" name="_control_code_picker" class="form-select">
                                 <option value="">— Search or select a control code —</option>
-                                <option value="__OTHER__">Other (New)</option>
-                                @foreach($existingDocuments ?? [] as $existingDoc)
-                                    <option value="{{ $existingDoc->control_code }}"
-                                        data-title="{{ $existingDoc->title }}"
-                                        data-type="{{ $existingDoc->category }}"
-                                        data-folder="{{ $existingDoc->folder_id }}"
-                                        data-other="{{ $existingDoc->other_category }}"
-                                        data-request="{{ $existingDoc->type_of_request }}"
-                                        data-revision="{{ $existingDoc->latest_revision ?? 0 }}">
-                                        {{ $existingDoc->control_code }} — {{ \Illuminate\Support\Str::limit($existingDoc->title, 50) }}
+                                <option value="__OTHER__">✦ Other (New document)</option>
+                                @foreach($existingDocuments ?? [] as $ed)
+                                    <option value="{{ $ed->control_code }}"
+                                        data-title="{{ $ed->title }}"
+                                        data-type="{{ $ed->category }}"
+                                        data-folder="{{ $ed->folder_id }}"
+                                        data-other="{{ $ed->other_category }}"
+                                        data-request="{{ $ed->type_of_request }}"
+                                        data-revision="{{ $ed->latest_revision ?? 0 }}"
+                                        data-office="{{ $ed->office_id }}"
+                                        data-doctypes="{{ $ed->document_type_list->pluck('type')->implode(',') }}">
+                                        {{ $ed->control_code }} — {{ \Illuminate\Support\Str::limit($ed->title, 50) }}
                                     </option>
                                 @endforeach
                             </select>
-
-                            <input type="hidden" id="selectedControlCode" name="control_code_existing">
                         </div>
 
-                        <div class="col-md-6" id="manualControlCodeWrapper" style="display:none;">
-                            <label class="form-label">New Control Code *</label>
-                            <input type="text"
-                                id="manualControlCode"
-                                name="control_code"
-                                class="form-control @if($errors->has('control_code')) is-invalid @endif"
-                                placeholder="Enter new control code (e.g. CT-00600)"
-                                value="{{ old('control_code') }}">
-                            @if($errors->has('control_code'))
-                                <span class="invalid-feedback">{{ $errors->first('control_code') }}</span>
-                            @endif
+                        <div class="col-md-6" id="newControlCodeSection" style="display:none;">
+                                <div id="controlCodePreview"
+                                    class="form-control mt-4"
+                                    style="background:#ffffff; font-family:monospace;
+                                            font-size:0.85rem; color:#000000;
+                                            letter-spacing:0.03em;
+                                            border:1px dashed #93c5fd;">
+                                    <i class="ri-barcode-line text-primary" style="flex-shrink:0;"></i>
+                                    <span id="controlCodePreviewText">MarSU — select office &amp; doc type</span>
+                                </div>
+                            <small class="text-muted">
+                                The control code will be <strong>auto-generated</strong> on submit.
+                            </small>
                         </div>
 
-                        <div class="col-md-12">
-                            <label class="form-label">Title *</label>
-                            <input type="text" id="titleField" name="title" class="form-control" value="{{ old('title') }}" required>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Type of Document *</label>
-                            <select id="documentTypeField" name="document_type[]" class="form-control cat" multiple required>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Type of Document *</label>
+                            <select id="documentTypeField" name="document_type[]" class="form-control chosen-select-doc" multiple required>
                                 @foreach($document_types as $types)
-                                    <option value="{{ $types->id }}">
+                                    <option value="{{ $types->id }}" data-name="{{ $types->name }}">
                                         {{ $types->code }} - {{ $types->name }}
                                     </option>
                                 @endforeach
@@ -71,42 +69,66 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Released Date *</label>
-                            <input type="date" class="form-control" name="effective_date" value="{{ old('effective_date') }}" required>
+                            <label class="form-label fw-semibold">Office *</label>
+                            <select id="newDocDeptField" name="office_id" class="form-select">
+                                <option value="">— Select office —</option>
+                                @foreach($teams ?? [] as $team)
+                                    <option value="{{ $team->id }}" data-code="{{ $team->name }}">
+                                        {{ $team->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
-                        <div class="col-md-4 align-items-end mt-5">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="public" value="1" id="public">
-                                <label class="form-check-label" for="public">Public</label>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Title *</label>
+                            <input type="text" id="titleField" name="title" class="form-control" value="{{ old('title') }}" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Revision *</label>
+                            <div class="input-group">
+                                <input type="number" id="revisionField" name="version"
+                                       class="form-control"
+                                       value="{{ old('version', 0) }}"
+                                       style="background:#f8f9fa; cursor:not-allowed;"
+                                       readonly>
+                                <span class="input-group-text" id="revisionAutoIcon"
+                                      style="display:none;" title="Auto-set">
+                                    <i class="ri-magic-line text-muted"></i>
+                                </span>
                             </div>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">
-                                Revision *
-                                <small id="revisionHint" class="text-muted ms-1" style="display:none;"></small>
-                            </label>
-                            <input type="number" id="revisionField" name="version"
-                                class="form-control"
-                                value="{{ old('version', 0) }}"
-                                readonly>
+                            <label class="form-label fw-semibold">Released Date *</label>
+                            <input type="date" class="form-control" name="effective_date"
+                                   value="{{ old('effective_date') }}" required>
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end pb-2">
+                            <div class="form-check ms-1">
+                                <input class="form-check-input" type="checkbox"
+                                       name="public" value="1" id="uploadPublic">
+                                <label class="form-check-label" for="uploadPublic">Public</label>
+                            </div>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Choose Folder *</label>
-                            <select id="folderField" name="folder" class="form-select" required>
+                            <label class="form-label fw-semibold">Choose Folder</label>
+                            <select id="folderField" name="folder" class="form-select">
+                                <option value="">— No folder —</option>
                                 @foreach($document_folders as $folder)
                                     @if($folder->parent_id == null)
                                         @include("documents.option", ['folder' => $folder, 'level' => 0])
-                                    @endif  
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Tags *</label>
-                            <select name="tags[]" class="form-control cat" multiple required>
+                            <label class="form-label fw-semibold">Tags *</label>
+                            <select name="tags[]" class="form-control chosen-select-tags" multiple required>
                                 <option value="Confidential">Confidential</option>
                                 <option value="Urgent">Urgent</option>
                                 <option value="Final">Final</option>
@@ -116,7 +138,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Type of request *</label>
+                            <label class="form-label fw-semibold">Type of Request *</label>
                             <select id="typeOfRequestField" name="type_of_request" class="form-select" required>
                                 <option value=""></option>
                                 <option value="New">New</option>
@@ -126,28 +148,26 @@
                             </select>
                         </div>
 
-                        <div class="col-12">
-                            <hr>
-                        </div>
+                        <div class="col-12"><hr class="my-1"></div>
 
                         <div class="col-md-4">
-                            <label class="form-label">SOFT Copy *</label>
+                            <label class="form-label fw-semibold">SOFT Copy</label>
                             <input type="file" class="form-control" name="attachment[soft_copy]" accept=".docx,.doc">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">PDF Copy *</label>
+                            <label class="form-label fw-semibold">PDF Copy *</label>
                             <input type="file" class="form-control" name="attachment[pdf_copy]" accept=".pdf" required>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Fillable Copy</label>
+                            <label class="form-label fw-semibold">Fillable Copy</label>
                             <input type="file" class="form-control" name="attachment[fillable_copy]">
                         </div>
 
                         <div class="col-12" id="revisionInfoBox" style="display:none;">
-                            <div class="alert alert-light border">
-                                <strong>Uploading a Revision</strong><br>
+                            <div class="alert alert-light border mb-0">
+                                <i class="ri-information-line me-1 text-primary"></i>
                                 <span id="revisionInfoText"></span>
                             </div>
                         </div>
@@ -156,8 +176,8 @@
                 </div>
 
                 <div class="modal-footer border-top border-2">
-                    <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="uploadSubmitBtn">Submit</button>
                 </div>
 
             </form>

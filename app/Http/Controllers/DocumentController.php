@@ -60,6 +60,8 @@ class DocumentController extends Controller
         $obsoletes = Obsolete::get();
         $users = User::whereNull("status")->get();
 
+        $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
+
         $documents = Document::with('change_requests', 'attachments', 'share_document')
             ->orderBy('control_code', 'desc')
             ->get();
@@ -71,17 +73,20 @@ class DocumentController extends Controller
                 ->get();
         }
 
-        $existingDocuments = Document::selectRaw('
+        $existingDocuments = Document::with('document_type_list')
+            ->selectRaw('
+                MAX(id) as id,
                 control_code,
                 title,
                 category,
                 folder_id,
                 other_category,
                 type_of_request,
+                office_id,
                 MAX(version) AS latest_revision,
                 COUNT(*) AS upload_count
             ')
-            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request')
+            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request', 'office_id')
             ->orderBy('control_code', 'asc')
             ->get();
 
@@ -146,6 +151,7 @@ class DocumentController extends Controller
             'folderData' => $folderData,
             'shareTree' => $shareTree,
             'shareOthersDocs' => $shareOthersDocs,
+            'teams' => $teams,
         ]);
     }
 
@@ -885,38 +891,45 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // dd($request->all());
+        $isRevision = $request->input('is_revision', '0') === '1';
+
         $controlCode = $request->filled('control_code_existing')
             ? trim($request->control_code_existing)
-            : trim($request->control_code);
+            : trim($request->control_code ?? '');
 
-        $isRevision = $request->input('is_revision', '0') === '1';
+        if (!$isRevision && empty($controlCode)) {
+            $request->validate([
+                'office_id' => 'required|exists:teams,id',
+                'document_type' => 'required|array|min:1',
+            ]);
+
+            $controlCode = $this->generateNewControlCode(
+                (int) $request->office_id,
+                (int) $request->document_type[0]
+            );
+        }
+
 
         if (!$isRevision) {
             $request->validate([
-                'control_code' => 'unique:documents,control_code'
+                'control_code' => 'unique:documents,control_code,' . $controlCode . ',control_code'
             ]);
         }
 
         try {
             DB::beginTransaction();
-            
+
             $document = new Document;
             $document->control_code = $controlCode;
             $document->title = $request->title;
-            // $document->category = $request->document_type;
             $document->other_category = $request->other;
             $document->effective_date = $request->effective_date;
             $document->user_id = auth()->user()->id;
             $document->version = $request->version;
-            if ($request->has("public")) {
-                $document->public = 1;
-            }
-            else {
-                $document->public = null;
-            }
+            $document->public = $request->has('public') ? 1 : null;
             $document->folder_id = $request->folder;
             $document->type_of_request = $request->type_of_request;
+            $document->office_id = $request->office_id;
             $document->save();
 
             foreach($request->document_type as $type) {
@@ -964,11 +977,30 @@ class DocumentController extends Controller
 
         } catch (Exception $e) {
             DB::rollback();
-            Log::error("Cannot upload documents", $e->getMessage());
+            Log::error("Cannot upload documents", ['error' => $e->getMessage()]);
             
             Alert::error('Error')->persistent('Dismiss');
             return back();
         }
+    }
+
+    private function generateNewControlCode($teamId, $documentTypeId): string
+    {
+        $docType = DocumentType::findOrFail($documentTypeId);
+        $team = Team::findOrFail($teamId);
+        $year = now()->year;
+
+        $teamIdentifier = !empty($team->code) ? $team->code : $team->name;
+
+        $prefix = "MarSU-{$teamIdentifier}-{$docType->name}-{$year}";
+        $count  = Document::where('control_code', 'like', "{$prefix}-%")->count();
+
+        do {
+            $count++;
+            $candidate = $prefix . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        } while (Document::where('control_code', $candidate)->exists());
+
+        return $candidate;
     }
 
     /**
