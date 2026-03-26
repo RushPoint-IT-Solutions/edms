@@ -1,9 +1,8 @@
-{{-- email.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
 <style>
-    .forgot-password-container {
+    .otp-container {
         display: flex;
         height: 100vh;
         width: 100%;
@@ -36,7 +35,7 @@
         text-decoration: none;
     }
     
-    .forgot-left {
+    .otp-left {
         flex: 1;
         background: #ffffff;
         display: flex;
@@ -46,7 +45,7 @@
         padding: 40px;
     }
     
-    .forgot-right {
+    .otp-right {
         flex: 1;
         background: linear-gradient(135deg, #6b1a1a 0%, #4a0e0e 100%);
         display: flex;
@@ -59,55 +58,11 @@
         border-bottom-left-radius: 50px;
     }
     
-    .left-logo-placeholder {
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-        text-align: center;
-    }
-    
-    .system-title {
-        font-size: 32px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin-bottom: 25px;
-    }
-    
-    .system-subtitle {
-        font-size: 32px;
-        font-weight: 700;
-        margin-top: -20px;
-        margin-bottom: 45px;
-    }
-    
-    .system-description {
-        font-size: 20px;
-        margin-bottom: 15px;
-        font-weight: 300 !important;
-        text-align: center;
-    }
-    
-    .forgot-title {
-        font-size: 36px;
-        margin-top: 30px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: #333;
-    }
-    
-    .forgot-subtitle {
+    .otp-instruction {
         font-size: 14px;
         color: #666;
-        margin-bottom: 40px;
-        text-align: center;
+        margin-bottom: 30px;
     }
-    
     
     .form-input {
         width: 100%;
@@ -138,7 +93,7 @@
         display: block;
     }
     
-    .btn-reset {
+    .btn-verify {
         width: 100%;
         padding: 15px;
         background: #6b1a1a;
@@ -153,77 +108,122 @@
         font-family: 'Montserrat', sans-serif;
     }
     
-    .btn-reset:hover {
+    .btn-verify:hover {
         background: #4a0e0e;
     }
     
+    .right-logo-placeholder {
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+        text-align: center;
+    }
+    
+    .otp-title {
+        font-size: 36px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        margin-top: 30px;
+        color: #333;
+    }
+
+    .system-title {
+        font-size: 36px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .system-subtitle {
+        font-size: 32px;
+        font-weight: 700;
+        margin-top: -20px;
+        margin-bottom: 45px;
+    }
+    
+    .system-description {
+        font-size: 20px;
+        margin-bottom: 15px;
+        font-weight: 300 !important;
+        text-align: center;
+    }
+    
+    .tagline {
+        font-size: 20px;
+        margin-bottom: 15px;
+        font-weight: 300 !important;
+        text-align: center;
+    }
+    
     @media (max-width: 768px) {
-        .forgot-password-container {
+        .otp-container {
             flex-direction: column;
         }
         
-        .forgot-right {
+        .otp-right {
             order: -1;
             min-height: 300px;
             border-radius: 0;
         }
-        
-        .back-button {
-            top: 15px;
-            left: 15px;
-        }
-        .system-title {
+        .system-title, .right-title {
             font-size: 28px;
         }
         
-        .system-subtitle {
+        .system-subtitle, .right-subtitle {
             font-size: 24px;
         }
-        
-        .system-description {
+        .tagline {
             font-size: 18px;
+        }
+        .back-button {
+            top: 15px;
+            right: 15px;
+            border-radius: 20px;
         }
     }
 </style>
-<div id="preloaderMarsu">
-    <div class="logo-placeholder">
-        <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
-    </div>
-</div>
-<div class="forgot-password-container">
-    <a href="{{ route('login') }}" class="back-button">
-        BACK
-    </a>
+
+<div class="otp-container">
+    <a href="{{ route('password.request') }}" class="back-button">BACK</a>
     
-    <div class="forgot-left">
+    <div class="otp-left">
         <div class="logo-marsu">
-            <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
+            <img src="{{asset('assets/images/marsu-logo.png')}}" alt="MARSU Logo" height="120">
         </div>
         
-        <h1 class="forgot-title">Forgot Password</h1>
-        <p class="forgot-subtitle">Please enter your email address</p>
+        <h1 class="otp-title">Verify OTP</h1>
         
-        <form method="POST" class="preload-marsu" action="{{ route('password.email') }}">
+        <p class="otp-instruction">Please enter the OTP to proceed</p>
+    
+        <form method="POST" action="{{ route('password.verify') }}" class="preload-marsu">
             {{ csrf_field() }}
-            <!-- <input type="email" name="email" placeholder="Enter your email" required> -->
+            <!-- <input type="text" name="otp" placeholder="Enter OTP" maxlength="6" required> -->
             <input 
-                id="email" 
-                type="email" 
+                id="otp" 
+                type="text" 
                 class="form-input" 
-                name="email" 
-                placeholder="Enter your email"
+                name="otp" 
+                placeholder="Enter OTP"
+                maxlength="6" 
                 required
             >
-            @if ($errors->has('email'))
+            @if ($errors->has('otp'))
                 <span class="invalid-feedback" role="alert">
-                    <strong>{{ $errors->first('email') }}</strong>
+                    <strong>{{ $errors->first('otp') }}</strong>
                 </span>
             @endif
-            <button type="submit" class="btn-reset">Send OTP</button>
+            <!-- @if($errors->has('otp')) <span class="invalid-feedback">{{ $errors->first('otp') }}</span> @endif -->
+            
+            <button type="submit" class="btn btn-verify">Verify OTP</button>
         </form>
     </div>
     
-    <div class="forgot-right">
+    <div class="otp-right">
         <div class="right-logo-placeholder">
             <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
         </div>

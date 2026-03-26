@@ -1,5 +1,7 @@
 <?php
-
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\ForgotPasswordOtpController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -299,6 +301,16 @@ Route::get('/change-request/{id}', 'DocumentController@viewChangeRequest')->name
 Route::get('/pdf-viewer/{file}', function($file) {
     return view('pdf-viewer', ['pdfFile' => $file]);
 })->name('pdf.viewer');
+
+// Request OTP
+Route::get('password/reset', function () { return view('auth.passwords.email'); })->name('password.request');
+Route::post('password/reset', [ForgotPasswordOtpController::class, 'sendOtp'])->name('password.email');
+
+Route::get('password/otp', function () { return view('auth.passwords.otp'); })->name('password.otp');
+Route::post('password/otp', [ForgotPasswordOtpController::class, 'verifyOtp'])->name('password.verify');
+
+Route::get('password/custom-reset', function () { return view('auth.passwords.reset'); })->name('password.customreset');
+Route::post('password/custom-reset', [ForgotPasswordOtpController::class, 'resetPassword'])->name('password.reset.final');
 
 // Route::get('mailable', function () {
 //     $documents = App\Document::find(1);

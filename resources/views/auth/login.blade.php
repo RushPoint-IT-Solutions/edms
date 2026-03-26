@@ -33,18 +33,17 @@
     }
 
     
-    .logo-placeholder {
-        width: 100px;
-        height: 100px;
-        background: #f0f0f0;
+    .right-logo-placeholder {
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 12px;
-        color: #999;
+        color: rgba(255, 255, 255, 0.5);
         text-align: center;
-        margin-bottom: 20px;
     }
     
     .welcome-title {
@@ -177,20 +176,6 @@
         height: 20px;
     }
     
-    .right-logo-placeholder {
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-        text-align: center;
-        margin-bottom: 25px;
-    }
-    
     .system-title {
         font-size: 32px;
         font-weight: 700;
@@ -254,7 +239,7 @@
 
 <div class="login-container">
     <div class="login-left">
-        <div class="logo-placeholder">
+        <div class="right-logo-placeholder">
             <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
         </div>
         
