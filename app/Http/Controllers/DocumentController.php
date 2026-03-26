@@ -893,8 +893,8 @@ class DocumentController extends Controller
     {
         $approvers = User::all();
         $document_types = DocumentType::get();
-        $departments = Department::where('status', null)->orderBy('name', 'asc')->get();
-        $teams = Team::where('status', null)->orderBy('name', 'asc')->get();
+        $departments = Department::where('status', 1)->orderBy('name', 'asc')->get();
+        $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
 
         $change_request = null;
         if ($id)
