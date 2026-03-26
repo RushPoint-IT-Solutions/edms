@@ -20,14 +20,6 @@
             @csrf
             <input type="hidden" name="user_id" value="{{ $user->id }}">
 
-            <div class="px-3 pt-3 pb-1">
-                <div class="alert alert-info py-2 mb-3 small">
-                    <i class="ri-information-line me-1"></i>
-                    These settings <strong>override</strong> the role defaults for this user only.
-                    Toggles are pre-filled with the user's current permissions.
-                </div>
-            </div>
-
             <div class="table-responsive px-3">
                 <table class="table table-striped table-sm mb-0">
                     <thead>
