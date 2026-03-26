@@ -48,9 +48,9 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
-        if (!canView('personal.view')) {
-            return view('pages.403-error');
-        }
+        // if (!canView('personal.view')) {
+        //     return view('pages.403-error');
+        // }
 
         $search = $request->search;
         $department = $request->department;
@@ -80,6 +80,9 @@ class DocumentController extends Controller
         }
 
         $existingDocuments = Document::with('document_type_list', 'document_tags')
+            ->when(auth()->user()->role != 'Administrator', function ($q) {
+                $q->where('user_id', auth()->user()->id);
+            })
             ->selectRaw('
                 MAX(id) as id,
                 control_code,
