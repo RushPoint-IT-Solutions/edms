@@ -53,16 +53,35 @@
                             <label class="form-label fw-semibold">Select Folder</label>
                             <select name="folder_id" class="cat form-control" id="shareFolderSelect">
                                 <option value="">— Select a folder —</option>
-                                @foreach ($document_folders->where('parent_id', null) as $folder)
-                                    <option value="{{ $folder->id }}">
-                                        {{ $folder->name }} ({{ $folder->document->count() }} file{{ $folder->document->count() !== 1 ? 's' : '' }})
+
+                                @if(isset($folder_data) && $folder_data)
+                                    {{-- Inside a specific folder: show only current folder + its subfolders --}}
+                                    <option value="{{ $folder_data->id }}">
+                                        {{ $folder_data->name }} ({{ $folder_data->document->count() }} file{{ $folder_data->document->count() !== 1 ? 's' : '' }})
                                     </option>
-                                    @foreach ($folder->childrenFolder as $child)
+                                    @foreach ($folder_data->childrenFolder as $child)
                                         <option value="{{ $child->id }}">
                                             &nbsp;&nbsp;&nbsp;↳ {{ $child->name }} ({{ $child->document->count() }} file{{ $child->document->count() !== 1 ? 's' : '' }})
                                         </option>
+                                        @foreach ($child->childrenFolder as $grandchild)
+                                            <option value="{{ $grandchild->id }}">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ {{ $grandchild->name }} ({{ $grandchild->document->count() }} file{{ $grandchild->document->count() !== 1 ? 's' : '' }})
+                                            </option>
+                                        @endforeach
                                     @endforeach
-                                @endforeach
+                                @else
+                                    {{-- Root page: show all root-level folders and their children --}}
+                                    @foreach ($document_folders->where('parent_id', null) as $folder)
+                                        <option value="{{ $folder->id }}">
+                                            {{ $folder->name }} ({{ $folder->document->count() }} file{{ $folder->document->count() !== 1 ? 's' : '' }})
+                                        </option>
+                                        @foreach ($folder->childrenFolder as $child)
+                                            <option value="{{ $child->id }}">
+                                                &nbsp;&nbsp;&nbsp;↳ {{ $child->name }} ({{ $child->document->count() }} file{{ $child->document->count() !== 1 ? 's' : '' }})
+                                            </option>
+                                        @endforeach
+                                    @endforeach
+                                @endif
                             </select>
 
                             <div id="folderPreview" class="mt-2" style="display:none;">
@@ -125,7 +144,6 @@
                             <div id="docHiddenInputs"></div>
                         </div>
 
-                        {{-- Users --}}
                         <div class="col-12" id="usersField" style="display:none;">
                             <label class="form-label fw-semibold">Share With (Users)</label>
                             <select name="users[]" id="shareUsersSelect" class="cat form-control" multiple required>
