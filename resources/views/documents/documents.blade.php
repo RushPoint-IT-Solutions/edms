@@ -113,6 +113,7 @@
                         </th>
                         <th style="width:45%;">Name</th>
                         <th>File type</th>
+                        <th>Version</th>
                         <th>Size</th>
                         <th>Modified</th>
                         <th class="actions-cell"></th>

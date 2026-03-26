@@ -254,7 +254,7 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>Document</td>
-                    <td>—</td>
+                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">';
 
@@ -445,7 +445,7 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>' . strtoupper($doc->fileType) . '</td>
-                    <td>—</td>
+                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
                 </tr>';
@@ -576,7 +576,7 @@ class DocumentController extends Controller
                     </div>
                 </td>
                 <td>' . strtoupper($doc->fileType) . '</td>
-                <td>—</td>
+                <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                 <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                 <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
             </tr>';
@@ -814,7 +814,7 @@ class DocumentController extends Controller
                     $html .= '<span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>';
                     $html .= '</div></td>';
                     $html .= '<td>' . strtoupper($fileInfo['fileType']) . '</td>';
-                    $html .= '<td>—</td>';
+                    $html .= '<td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
                         <div class="dropdown">
