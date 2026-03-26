@@ -145,6 +145,13 @@ Route::group(['middleware' => 'auth'], function () {
 
         Route::get('/system-configuration', 'SystemConfigurationController@index')->name('settings');
 
+        Route::prefix('system-configuration')->group(function () {
+            Route::get('/departments/data', 'SystemConfigurationController@getDepartmentsData')->name('system-config.departments.data');
+            Route::get('/teams/data',       'SystemConfigurationController@getTeamsData')->name('system-config.teams.data');
+            Route::get('/document-types/data', 'SystemConfigurationController@getDocumentTypesData')->name('system-config.document-types.data');
+            Route::get('/control-codes/data',  'SystemConfigurationController@getControlCodesData')->name('system-config.control-codes.data');
+        });
+
         Route::get('/access-control', 'AccessControlController@index')->name('settings');
         Route::post('/access-control/update', 'AccessControlController@update')->name('access-control.update');
         
