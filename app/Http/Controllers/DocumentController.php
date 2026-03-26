@@ -48,9 +48,9 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
-        // if (!canView('personal.view')) {
-        //     return view('pages.403-error');
-        // }
+        if (!canView('personal.view')) {
+            return view('pages.403-error');
+        }
 
         $search = $request->search;
         $department = $request->department;
