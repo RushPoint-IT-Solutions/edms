@@ -23,7 +23,12 @@
                     <tr>
                         <td>Module</td>
                         <td>Create</td>
-                        <td>Read</td>
+                        <td>
+                            Read
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="readAll">
+                            </div>
+                        </td>
                         <td>Update</td>
                         <td>Delete</td>
                     </tr>
@@ -48,7 +53,7 @@
                             <td>
                                 @if(isset($action['view']))
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="permission[]" value="{{ $action['view'] }}" @if($checkView) checked @endif>
+                                    <input class="form-check-input read-check" type="checkbox" name="permission[]" value="{{ $action['view'] }}" @if($checkView) checked @endif>
                                 </div>
                                 @endif
                             </td>
@@ -120,8 +125,20 @@ $(document).ready(function () {
             },
             complete: function() {
                 $("#SaveBtn").prop("disabled", false).text('Save')
+                location.reload()
             }
         })
+    })
+
+    $("#readAll").on("click", function() {
+        var checked = $(this).is(":checked")
+
+        if (checked) {
+            $(".read-check").prop("checked", true)
+        }
+        else {
+            $(".read-check").prop("checked", false)
+        }
     })
 });
 </script>

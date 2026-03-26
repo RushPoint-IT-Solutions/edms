@@ -48,6 +48,10 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
+        if (!canView('personal.view')) {
+            return view('pages.403-error');
+        }
+
         $search = $request->search;
         $department = $request->department;
 
@@ -1866,6 +1870,10 @@ class DocumentController extends Controller
 
     public function sharedWithMe()
     {
+        if (!canView('share_with_me.view')) {
+            return view('pages.403-error');
+        }
+
         $userId = auth()->id();
 
         $sharedDocIds = ShareDocument::where('user_id', $userId)
@@ -2183,6 +2191,10 @@ class DocumentController extends Controller
 
    public function sharedWithOthers()
     {
+        if (!canView('share_with_others.view')) {
+            return view('pages.403-error');
+        }
+
         $userId = auth()->id();
         $me = User::find($userId);
     

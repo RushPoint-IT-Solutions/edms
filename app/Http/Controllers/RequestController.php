@@ -185,7 +185,10 @@ class RequestController extends Controller
 
     public function changeRequests(Request $request)
     {
-        // dd($request->all());
+        if(!canView('files.view')) {
+            return view('pages.403-error');
+        }
+
         $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
 
         $query = ChangeRequest::whereNull('is_draft')
@@ -384,7 +387,10 @@ class RequestController extends Controller
     // }
     public function forApproval()
     {
-        //
+        if(!canView('document_approvals.view')) {
+            return view('pages.403-error');
+        }
+
         $document_types = DocumentType::get();
         // $copy_for_approvals = CopyApprover::with('copy_request.document.attachments')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();
         $change_for_approvals = RequestApprover::with('change_request.document_type')->orderBy('id','desc')->where('user_id',auth()->user()->id)->get();

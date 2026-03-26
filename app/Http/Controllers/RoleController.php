@@ -18,6 +18,10 @@ class RoleController extends Controller
      */
     public function index()
     {
+        if (!canView('roles.view')) {
+            return view("pages.403-error");
+        }
+
         $roles = Role::get();
 
         return view('roles.index', array(

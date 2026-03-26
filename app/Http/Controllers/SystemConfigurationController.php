@@ -15,6 +15,10 @@ class SystemConfigurationController extends Controller
 
     public function index()
     {
+        if (!canView('system_configuration.view')) {
+            return view("pages.403-error");
+        }
+
         $departments = Department::with('dep_head')->get();
         $employees = User::all();
         $offices = Department::orderBy('name')->get();

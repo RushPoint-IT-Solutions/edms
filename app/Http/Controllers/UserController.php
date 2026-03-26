@@ -19,7 +19,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        if (!auth()->check() || !auth()->user()->can('users.view')) {
+        if (!canView('users.view')) {
             return view("pages.403-error");
         }
 
@@ -281,6 +281,7 @@ class UserController extends Controller
             DB::raw("SUBSTRING_INDEX(name,'.',1) as Module"),
             DB::raw("SUBSTRING_INDEX(name,'.',-1) as Action"),
         )
+        ->orderBy('order_by', 'asc')
         ->get();
 
         $permissions=[];
@@ -312,6 +313,7 @@ class UserController extends Controller
             }
         } catch (\Exception $e) {
             Log::error("Error in access control ". $e->getMessage());
+            return response()->json(['status' => 'success', 'errorInfo' => $e->getMessage()]);
         }
     }
 }

@@ -18,6 +18,10 @@ class ApproverStampController extends Controller
      */
     public function index()
     {
+        if (!canView('approver_stamp.view')) {
+            return view('pages.403-error');
+        }
+
         return view('approver_stamp.index');
     }
 

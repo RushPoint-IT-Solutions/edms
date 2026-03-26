@@ -1572,12 +1572,14 @@
                         </li>
                         {{-- @endif --}}
 
+                        @if(canView("monitoring.view"))
                         <li class="nav-item {{ Request::is('monitoring*') ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{ url('/monitoring') }}">
                                 <i class="ri-bar-chart-box-line"></i>
                                 <span>Monitoring</span>
                             </a>
                         </li>
+                        @endif
 
                         <!-- Search -->
                         {{-- @can('search')
@@ -1610,7 +1612,7 @@
                         @endif --}}
 
                         <!-- Change Requests -->
-                        {{-- @if(canView('change request')) --}}
+                        @if(canView('files.view'))
                         <li class="nav-item {{ Route::current()->getName() == 'change-requests' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/change-requests')}}">
                                 <i class="ri-edit-line"></i>
@@ -1621,11 +1623,12 @@
                                 @endif
                             </a>
                         </li>
-                        {{-- @endif --}}
+                        @endif
 
                         @php
                             $forApprovalActive = Request::is('for-approval*') || Request::is('for-request-access*');
                         @endphp
+                        @if(canView('document_approvals.view') || canView("access_request.view"))
                         <li class="nav-item {{ $forApprovalActive ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ $forApprovalActive ? '' : 'collapsed' }}"
                             href="#sidebarForApproval" data-bs-toggle="collapse" role="button"
@@ -1636,7 +1639,7 @@
                             </a>
                             <div class="menu-dropdown collapse {{ $forApprovalActive ? 'show' : '' }}" id="sidebarForApproval">
                                 <ul class="nav nav-sm flex-column">
-                                    {{-- @if(canView('for approval')) --}}
+                                    @if(canView('document_approvals.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('/for-approval') }}"
                                         class="nav-link {{ Request::is('for-approval*') ? 'active' : '' }}"
@@ -1644,7 +1647,8 @@
                                         Document Approvals
                                         </a>
                                     </li>
-                                    {{-- @endif --}}
+                                    @endif
+                                    @if(canView('access_request.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('/for-request-access') }}"
                                         class="nav-link {{ Request::is('for-request-access*') ? 'active' : '' }}"
@@ -1652,12 +1656,14 @@
                                         Access Requests
                                         </a>
                                     </li>
+                                    @endif
                                 </ul>
                             </div>
                         </li>
+                        @endif
 
                         <!-- Documents -->
-                        {{-- @if(canView('documents')) --}}
+                        @if(canView('personal.view') || canView('share_with_me.view') || canView('share_with_others.view'))
                         @php
                             $docsActive = Request::is('documents*') || Request::is('shared-with-me*') || Request::is('shared-with-others*');
                         @endphp
@@ -1671,6 +1677,7 @@
                             </a>
                             <div class="menu-dropdown collapse {{ $docsActive ? 'show' : '' }}" id="sidebarDocuments">
                                 <ul class="nav nav-sm flex-column">
+                                    @if(canView('personal.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('/documents') }}"
                                         class="nav-link {{ Request::is('documents*') && !Request::is('shared*') ? 'active' : '' }}"
@@ -1678,6 +1685,8 @@
                                             Personal
                                         </a>
                                     </li>
+                                    @endif
+                                    @if(canView('share_with_me.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('/shared-with-me') }}"
                                         class="nav-link {{ Request::is('shared-with-me*') ? 'active' : '' }}"
@@ -1685,6 +1694,8 @@
                                             Shared with Me
                                         </a>
                                     </li>
+                                    @endif
+                                    @if(canView('share_with_others.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('/shared-with-others') }}"
                                         class="nav-link {{ Request::is('shared-with-others*') ? 'active' : '' }}"
@@ -1692,10 +1703,11 @@
                                             Shared with Others
                                         </a>
                                     </li>
+                                    @endif
                                 </ul>
                             </div>
                         </li>
-                        {{-- @endcan --}}
+                        @endcan
 
                         {{-- <!-- Acknowledgement -->
                         <li class="nav-item {{ Route::current()->getName() == 'acknowledgement' ? 'active' : '' }}">
@@ -1706,14 +1718,14 @@
                         </li> --}}
 
                         <!-- Permits & Licenses -->
-                        {{-- @if(canView('permits and license')) --}}
+                        @if(canView('permits_and_license.view'))
                         <li class="nav-item {{ Route::current()->getName() == 'permits' ? 'active' : '' }}">
                             <a class="nav-link menu-link" href="{{url('/permits')}}">
                                 <i class="ri-file-shield-line"></i>
                                 <span data-key="t-permits">Permits & Licenses</span>
                             </a>
                         </li>
-                        {{-- @endcan --}}
+                        @endcan
 
                         <!-- Documents IA (Audit role only) -->
                         {{-- @if(auth()->user()->audit_role != null)
@@ -1762,19 +1774,21 @@
                         </li> --}}
 
                         <!-- Approver Stamp -->
+                        @if(canView('approver_stamp.view'))
                         <li class="nav-item @if(Request::is('approver-stamp')) active @endif">
                             <a class="nav-link menu-link" href="{{url('approver-stamp')}}">
                                 <i class="mdi mdi-stamper"></i>
                                 <span data-key="t-memorandum">Approver Stamp</span>
                             </a>
                         </li>
+                        @endif
 
                         @if((auth()->user()->role == 'Administrator'))
                             <li class="menu-title"><span data-key="t-menu">ADMIN</span></li>
                         @endif
 
                         <!-- Settings Submenu -->
-                        {{-- @if(canView('department') || canView('teams') || canView('users') || canView('documents_type') || canView('roles and permission') || canView('access_control')) --}}
+                        @if(canView('users.view') || canView('roles.view') || canView('system_configuration.view'))
                         <li class="nav-item {{ Route::current()->getName() == 'settings' ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ Route::current()->getName() == 'settings' ? '' : 'collapsed' }}" 
                                href="#sidebarSettings" data-bs-toggle="collapse" role="button" 
@@ -1797,11 +1811,11 @@
                                     </li>
                                     @endif --}}
 
-                                    {{-- @if(canView('users')) --}}
+                                    @if(canView('users.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('users') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}" data-key="t-users">Users</a>
                                     </li>
-                                    {{-- @endif --}}
+                                    @endif
 
                                     {{-- @if(canView('documents_type'))
                                     <li class="nav-item">w
@@ -1815,11 +1829,11 @@
                                         </li>
                                     @endcan --}}
 
-                                    {{-- @if(canView('roles and permission')) --}}
+                                    @if(canView('roles.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('roles') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}" data-key="t-roles">Roles</a>
                                     </li>
-                                    {{-- @endif --}}
+                                    @endif
 
                                     {{-- @can("office")
                                     <li class="nav-item">
@@ -1833,13 +1847,15 @@
                                     </li>
                                     @endif --}}
 
+                                    @if(canView('system_configuration.view'))
                                     <li class="nav-item">
                                         <a href="{{ url('system-configuration') }}" class="nav-link {{ Request::is('system-configuration*') ? 'active' : '' }}" data-key="t-system-configuration">System Configuration</a>
                                     </li>
+                                    @endif
                                 </ul>
                             </div>
                         </li>
-                        {{-- @endif --}}
+                        @endif
 
                         {{-- @if((auth()->user()->role == 'Administrator')) --}}
                         <div>

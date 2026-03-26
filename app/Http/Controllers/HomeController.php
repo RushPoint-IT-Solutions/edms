@@ -308,6 +308,10 @@ class HomeController extends Controller
 
     public function forRequestAccess()
     {
+        if (!canView('access_request.view')) {
+            return view('pages.403-error');
+        }
+
         $base = DocumentRequestAccess::where('user_id', auth()->id());
 
         $forApproval = (clone $base)->where('status', 0)->count();

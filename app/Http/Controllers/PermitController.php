@@ -16,6 +16,10 @@ class PermitController extends Controller
 {
     public function index(Request $request)
     {
+        if (!canView('permits_and_license.view')) {
+            return view('pages.403-error');
+        }
+
         $permits_count = Permit::count();
         $permits = Permit::get();
         $for_renewal_count = Permit::where('expiration_date','<',date('Y-m-d', strtotime("+3 months", strtotime(date('Y-m-d')))))->where('expiration_date', '>',  date('Y-m-d'))->where('status', null)->count();

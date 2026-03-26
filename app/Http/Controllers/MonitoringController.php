@@ -72,6 +72,10 @@ class MonitoringController extends Controller
 
     public function index(Request $request)
     {
+        if(!canView('monitoring.view')) {
+            return view('pages.403-error');
+        }
+        
         $today = now()->startOfDay();
 
         $departments = Department::where('status', 'active')
