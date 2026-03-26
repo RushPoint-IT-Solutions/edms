@@ -299,6 +299,7 @@
                 var nextRevision = curRevision + 1;
                 var officeId = $selected.data('office') || '';
                 var docTypes = $selected.data('doctypes') || '';
+                var tags = $selected.data('tags') || '';
 
                 $('#selectedControlCode').val(val);
                 $('#finalNewControlCode').val('');
@@ -310,6 +311,13 @@
                     $('#documentTypeField').val(typeIds).trigger('chosen:updated');
                 } else {
                     $('#documentTypeField').val([]).trigger('chosen:updated');
+                }
+
+                if (tags) {
+                    var tagValues = String(tags).split(',').map(function(t) { return t.trim(); });
+                    $('select[name="tags[]"]', '#uploadDocument').val(tagValues).trigger('chosen:updated');
+                } else {
+                    $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
                 }
 
                 $('#folderField').val(folderId);
@@ -334,6 +342,7 @@
                 $('#revisionInfoBox').hide();
                 $('#newDocDeptField').val('');
                 $('#documentTypeField').val([]).trigger('chosen:updated');
+                $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
                 $('#folderField').val('');
                 $('#typeOfRequestField').val('Revision');
             });
@@ -349,6 +358,8 @@
     }
 
     function resetUploadForm() {
+        resetUploadFormFields();
+        
         $('#titleField').val('').prop('readonly', false);
         $('#revisionField').val(0)
             .prop('readonly', true)
@@ -376,6 +387,33 @@
         $('#revisionBadge').hide();
         $('#folderField').val('');
         $('#typeOfRequestField').val('');
+    }
+
+    function resetUploadFormFields() {
+        $('#titleField').val('').prop('readonly', false);
+        $('#revisionField').val(0)
+            .prop('readonly', true)
+            .css({ background: '#f8f9fa', cursor: 'not-allowed' });
+        $('#revisionAutoIcon').hide();
+        $('#revisionInfoBox').hide();
+
+        if ($('#newControlCodePicker').data('select2')) {
+            $('#newControlCodePicker').val(null).trigger('change');
+        }
+        if ($('#existingControlCodePicker').data('select2')) {
+            $('#existingControlCodePicker').val(null).trigger('change');
+        }
+
+        $('#isRevision').val('0');
+        $('#selectedControlCode').val('');
+        $('#finalNewControlCode').val('');
+        $('#selectedControlCode').attr('name', 'control_code_existing');
+        $('#finalNewControlCode').attr('name', 'control_code');
+        $('#folderField').val('');
+        $('#typeOfRequestField').val('');
+        $('#documentTypeField').val([]).trigger('chosen:updated');
+        $('#newDocDeptField').val('');
+        $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
     }
 
 
@@ -814,6 +852,7 @@
             $('#existingDocCodeDisplay').hide();
             $('#newDocBadge').hide();
             $('#revisionBadge').hide();
+            resetUploadFormFields();
 
             if (!val) return;
             $('#controlCodeResultField').show();

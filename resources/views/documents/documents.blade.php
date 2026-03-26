@@ -573,9 +573,11 @@
         $('#finalNewControlCode').val('');
         $('#selectedControlCode').attr('name', 'control_code_existing');
         $('#finalNewControlCode').attr('name', 'control_code');
-
         $('#folderField').val('');
         $('#typeOfRequestField').val('');
+        $('#documentTypeField').val([]).trigger('chosen:updated');
+        $('#newDocDeptField').val('');
+        $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
     }
 
     function initUploadModalPlugins() {
@@ -611,12 +613,14 @@
 
                 if (!val) return;
 
-                var title        = $selected.data('title')    || '';
-                var folderId     = $selected.data('folder')   || '';
-                var curRevision  = parseInt($selected.data('revision') || 0);
+                var title = $selected.data('title') || '';
+                var folderId = $selected.data('folder') || '';
+                var curRevision = parseInt($selected.data('revision') || 0);
                 var nextRevision = curRevision + 1;
-                var officeId     = $selected.data('office')   || '';
-                var docTypes     = $selected.data('doctypes') || '';
+                var officeId = $selected.data('office') || '';
+                var docTypes = $selected.data('doctypes') || '';
+                var tags = $selected.data('tags') || '';
+
 
                 $('#selectedControlCode').val(val);
                 $('#finalNewControlCode').val('');
@@ -628,6 +632,13 @@
                     $('#documentTypeField').val(typeIds).trigger('chosen:updated');
                 } else {
                     $('#documentTypeField').val([]).trigger('chosen:updated');
+                }
+
+                if (tags) {
+                    var tagValues = String(tags).split(',').map(function(t) { return t.trim(); });
+                    $('select[name="tags[]"]', '#uploadDocument').val(tagValues).trigger('chosen:updated');
+                } else {
+                    $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
                 }
 
                 $('#folderField').val(folderId);
@@ -654,6 +665,7 @@
                 $('#revisionInfoBox').hide();
                 $('#newDocDeptField').val('');
                 $('#documentTypeField').val([]).trigger('chosen:updated');
+                $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
                 $('#folderField').val('');
                 $('#typeOfRequestField').val('Revision');
             });

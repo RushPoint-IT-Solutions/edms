@@ -39,7 +39,7 @@
                                     @foreach($controlCodes ?? [] as $cc)
                                         <option value="{{ $cc->code }}"
                                             data-description="{{ $cc->description }}">
-                                            {{ $cc->code }}{{ $cc->description ? ' — ' . $cc->description : '' }}
+                                            {{ $cc->code }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -61,7 +61,8 @@
                                             data-request="{{ $ed->type_of_request }}"
                                             data-revision="{{ $ed->latest_revision ?? 0 }}"
                                             data-office="{{ $ed->office_id }}"
-                                            data-doctypes="{{ $ed->document_type_list->pluck('type')->implode(',') }}">
+                                            data-doctypes="{{ $ed->document_type_list->pluck('type')->implode(',') }}"
+                                            data-tags="{{ $ed->document_tags->pluck('name')->implode(',') }}">
                                             {{ $ed->control_code }} — {{ \Illuminate\Support\Str::limit($ed->title, 50) }}
                                         </option>
                                     @endforeach
