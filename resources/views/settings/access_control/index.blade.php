@@ -8,138 +8,153 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h4>{{ $user->name }}</h4>
+<div class="card shadow-sm">
+    <div class="card-header d-flex align-items-center gap-2 py-3">
+        <i class="ri-shield-user-line fs-5"></i>
+        <h5 class="mb-0">{{ $user->name }}</h5>
+        <small class="text-muted ms-1">({{ $user->role }})</small>
     </div>
-    <div class="card-body tab-content">
-        <form method="POST" action="{{ url("/users/access-control/update") }}" id="accessControlForm">
-            @csrf
 
+    <div class="card-body p-0">
+        <form method="POST" action="{{ url('/users/access-control/update') }}" id="accessControlForm">
+            @csrf
             <input type="hidden" name="user_id" value="{{ $user->id }}">
 
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <td>Module</td>
-                        <td>Create</td>
-                        <td>
-                            Read
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="readAll">
-                            </div>
-                        </td>
-                        <td>Update</td>
-                        <td>Delete</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($permissions as $module => $action)
-                        @php
-                            // $checkCreate = $user->hasPermissionTo($action['create']);
-                            $checkView = $user->hasPermissionTo($action['view']);
-                            // $checkEdit = $user->hasPermissionTo($action['edit']);
-                            // $checkDelete = $user->hasPermissionTo($action['delete']);
-                        @endphp
+            <div class="px-3 pt-3 pb-1">
+                <div class="alert alert-info py-2 mb-3 small">
+                    <i class="ri-information-line me-1"></i>
+                    These settings <strong>override</strong> the role defaults for this user only.
+                    Toggles are pre-filled with the user's current permissions.
+                </div>
+            </div>
+
+            <div class="table-responsive px-3">
+                <table class="table table-striped table-sm mb-0">
+                    <thead>
                         <tr>
-                            <td>{{str_replace("_"," ",ucfirst($module))}}</td>
-                            <td>
-                                {{-- @if(isset($action['create']))
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="permission[]" value="{{ $action['create'] }}">
+                            <th>Module / Permission</th>
+                            <th class="text-center" width="80">Create</th>
+                            <th class="text-center" width="80">Read</th>
+                            <th class="text-center" width="80">Update</th>
+                            <th class="text-center" width="80">Delete</th>
+                        </tr>
+                        {{-- All toggle row --}}
+                        <tr class="table-secondary">
+                            <td><strong>All</strong></td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="createAll" disabled>
                                 </div>
-                                @endif --}}
                             </td>
-                            <td>
-                                @if(isset($action['view']))
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input read-check" type="checkbox" name="permission[]" value="{{ $action['view'] }}" @if($checkView) checked @endif>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="readAll">
                                 </div>
-                                @endif
                             </td>
-                            <td>
-                                {{-- <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="">
-                                </div> --}}
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="updateAll" disabled>
+                                </div>
                             </td>
-                            <td>
-                                {{-- <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="">
-                                </div> --}}
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="deleteAll" disabled>
+                                </div>
                             </td>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($permissions as $module => $action)
+                            @php
+                                $checkView = $user->hasPermissionTo($action['view']);
+                                // $checkCreate = $user->hasPermissionTo($action['create']);
+                                // $checkEdit   = $user->hasPermissionTo($action['edit']);
+                                // $checkDelete = $user->hasPermissionTo($action['delete']);
+                            @endphp
+                            <tr>
+                                <td>
+                                    <i class="ri-folder-line me-2 text-muted"></i>
+                                    <strong>{{ str_replace('_', ' ', ucfirst($module)) }}</strong>
+                                </td>
 
-            <div class="text-end">
-                <button type="submit" class="btn btn-primary btn-sm mt-2" id="SaveBtn">Save</button>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch">
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    @if(isset($action['view']))
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input read-check"
+                                               type="checkbox" role="switch"
+                                               name="permission[]"
+                                               value="{{ $action['view'] }}"
+                                               {{ $action['view'] }}" @if($checkView) checked @endif>
+                                    </div>
+                                    @endif
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch">
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch">
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="px-3 py-3 d-flex justify-content-end gap-2">
+                <a href="{{ url()->previous() }}" class="btn btn-secondary btn-sm">Cancel</a>
+                <button type="submit" class="btn btn-success btn-sm" id="SaveBtn">
+                    <i class="ri-save-line me-1"></i> Save Access
+                </button>
             </div>
         </form>
     </div>
 </div>
 
-<style>
-    .group-header-row:hover { background-color: #d6d8db !important; }
-    .group-toggle-icon {
-        display: inline-block;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .group-header-row[data-collapsed="false"] .group-toggle-icon {
-        transform: rotate(90deg);
-    }
-    .group-child-wrapper .group-child-row {
-        display: none;
-        opacity: 0;
-        transform: translateY(-6px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .group-child-wrapper.is-open .group-child-row {
-        display: table-row;
-        opacity: 1;
-        transform: translateY(0);
-    }
-</style>
 @endsection
 
 @section('js')
-<script src="{{ asset("js/ajaxRequest.js") }}"></script>
+<script src="{{ asset('js/ajaxRequest.js') }}"></script>
 <script>
 $(document).ready(function () {
-    $("#accessControlForm").on("submit", function(e) {
-        e.preventDefault()
+    $("#accessControlForm").on("submit", function (e) {
+        e.preventDefault();
 
-        var formData = $(this).serializeArray()
+        var formData = $(this).serializeArray();
 
         ajaxRequest({
-            type:"POST",
+            type: "POST",
             url: "{{ url('/users/access-control/update') }}",
             data: formData,
-            beforeSend: function() {
-                $("#SaveBtn").prop("disabled", true).text('Saving...')
+            beforeSend: function () {
+                $("#SaveBtn").prop("disabled", true).html('<i class="ri-loader-4-line me-1"></i> Saving...');
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.status == "success") {
-                    swal("Successs", response.message, response.status)
+                    swal("Success", response.message, response.status);
                 }
             },
-            complete: function() {
-                $("#SaveBtn").prop("disabled", false).text('Save')
-                location.reload()
+            complete: function () {
+                $("#SaveBtn").prop("disabled", false).html('<i class="ri-save-line me-1"></i> Save Access');
+                location.reload();
             }
-        })
-    })
+        });
+    });
 
-    $("#readAll").on("click", function() {
-        var checked = $(this).is(":checked")
-
-        if (checked) {
-            $(".read-check").prop("checked", true)
-        }
-        else {
-            $(".read-check").prop("checked", false)
-        }
-    })
+    $("#readAll").on("change", function () {
+        $(".read-check").prop("checked", $(this).is(":checked"));
+    });
 });
 </script>
 @endsection
