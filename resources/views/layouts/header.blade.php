@@ -30,6 +30,44 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
+        :root {
+            --bs-first: #c7522a;
+            --bs-second: #1CA7A6;
+        }
+
+        .btn-first {
+            color: #ffffff;
+            background-color: var(--bs-first);
+            border-color: var(--bs-first);
+        }
+
+        .btn-first:focus,
+        .btn-first:active,
+        .btn-first.show {
+            color: #ffffff;
+            background-color: #a84322;
+            border-color: #a84322;
+            box-shadow: none; /* optional: removes blue glow */
+        }
+
+        .btn-first:hover {
+            color: #ffffff;
+            background-color: #a84322;
+            border-color: #a84322;
+        }
+
+        .btn-second {
+            color: #ffffff;
+            background-color: var(--bs-second);
+            border-color: var(--bs-second);
+        }
+
+        .btn-second:hover{
+            color: #ffffff;
+            background-color: #178f8e;
+            border-color: #178f8e;
+        }
+
         .helpdesk-link-wrapper {
             position: absolute;
             bottom: 0;

@@ -401,21 +401,27 @@ class DocumentController extends Controller
                 $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
                 $docUrl = url('/documents/view-document/' . $doc->id);
 
-                $actionHtml = $canDelete
-                    ? '<div class="dropdown">
-                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
-                                <i class="ri-more-2-fill"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                        <i class="ri-delete-bin-line me-2"></i>Delete document
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>'
-                    : '<button class="action-btn"><i class="ri-more-2-fill"></i></button>';
+                $shareListItem = '<li>
+                    <a class="dropdown-item" href="javascript:void(0)"
+                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                        <i class="ri-share-line me-2"></i>Share
+                    </a>
+                </li>';
+
+                $actionHtml = '<div class="dropdown">
+                    <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        ' . $shareListItem .
+                        ($canDelete ? '<li>
+                            <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                                <i class="ri-delete-bin-line me-2"></i>Delete document
+                            </a>
+                        </li>' : '') . '
+                    </ul>
+                </div>';
 
                 $listHtml .= '
                 <tr class="document-row"
@@ -441,16 +447,20 @@ class DocumentController extends Controller
                     <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
                 </tr>';
 
-                $gridDropdown = $canDelete
-                    ? '<ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                    <i class="ri-delete-bin-line me-2"></i>Delete document
-                                </a>
-                            </li>
-                        </ul>'
-                    : '';
+                $gridDropdown = '<ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)"
+                            onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                            <i class="ri-share-line me-2"></i>Share
+                        </a>
+                    </li>' .
+                    ($canDelete ? '<li>
+                        <a class="dropdown-item text-danger" href="javascript:void(0)"
+                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                            <i class="ri-delete-bin-line me-2"></i>Delete document
+                        </a>
+                    </li>' : '') . '
+                </ul>';
 
                 $gridHtml .= '
                 <div class="grid-item file-item"
@@ -522,21 +532,27 @@ class DocumentController extends Controller
             $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
             $docUrl = url('/documents/view-document/' . $doc->id);
 
-            $actionHtml = $canDelete
-                ? '<div class="dropdown">
-                        <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                    <i class="ri-delete-bin-line me-2"></i>Delete document
-                                </a>
-                            </li>
-                        </ul>
-                    </div>'
-                : '<button class="action-btn"><i class="ri-more-2-fill"></i></button>';
+            $shareListItem = '<li>
+                <a class="dropdown-item" href="javascript:void(0)"
+                    onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                    <i class="ri-share-line me-2"></i>Share
+                </a>
+            </li>';
+
+            $actionHtml = '<div class="dropdown">
+                <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                    <i class="ri-more-2-fill"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    ' . $shareListItem .
+                    ($canDelete ? '<li>
+                        <a class="dropdown-item text-danger" href="javascript:void(0)"
+                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                            <i class="ri-delete-bin-line me-2"></i>Delete document
+                        </a>
+                    </li>' : '') . '
+                </ul>
+            </div>';
 
             $listHtml .= '
             <tr class="document-row"
@@ -566,7 +582,13 @@ class DocumentController extends Controller
         $gridHtml = '';
 
         foreach ($childFolders as $folder) {
-            $dropdownItems = '';
+            $dropdownItems = '<li>
+                <a class="dropdown-item" href="javascript:void(0)"
+                    onclick="event.stopPropagation(); preSingleFolderShare(' . $folder->id . ')">
+                    <i class="ri-share-line me-2"></i>Share folder
+                </a>
+            </li>';
+
             if ($canEdit) {
                 $dropdownItems .= '
                 <li>
@@ -619,16 +641,20 @@ class DocumentController extends Controller
             $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
             $docUrl = url('/documents/view-document/' . $doc->id);
 
-            $gridDropdown = $canDelete
-                ? '<ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                <i class="ri-delete-bin-line me-2"></i>Delete document
-                            </a>
-                        </li>
-                    </ul>'
-                : '';
+            $gridDropdown = '<ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="javascript:void(0)"
+                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                        <i class="ri-share-line me-2"></i>Share
+                    </a>
+                </li>' .
+                ($canDelete ? '<li>
+                    <a class="dropdown-item text-danger" href="javascript:void(0)"
+                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                        <i class="ri-delete-bin-line me-2"></i>Delete document
+                    </a>
+                </li>' : '') . '
+            </ul>';
 
             $gridHtml .= '
             <div class="grid-item file-item"
@@ -1195,22 +1221,6 @@ class DocumentController extends Controller
         return back();
     }
 
-    // public function folderView(Request $request,$id)
-    // {
-    //     $folder_data = DocumentFolder::with('document','childrenFolder')->findOrFail($id);
-    //     $documents = Document::get();
-
-    //     $document_folders = DocumentFolder::get();
-
-    //     return view('documents.folder_view',
-    //         array(
-    //             'folder_data' => $folder_data,
-    //             'document_folders' => $document_folders,
-    //             'documents' => $documents
-    //         )
-    //     );
-    // }
-
     private function getDocumentFileInfo($doc)
     {
         $document = Document::with('attachments')->find($doc->id);
@@ -1260,6 +1270,38 @@ class DocumentController extends Controller
 
         $document_types = DocumentType::orderBy('name', 'desc')->get();
         $all_document_folders = DocumentFolder::get();
+
+        $users = User::whereNull("status")->get();
+
+        $allUserFolders = DocumentFolder::with('document', 'childrenFolder')
+            ->where('user_id', auth()->user()->id)
+            ->get();
+
+        $allUserDocuments = Document::where('user_id', auth()->user()->id)
+            ->orderBy('control_code', 'desc')
+            ->get();
+
+        $folderData = $allUserFolders->map(function ($f) {
+            return [
+                'id'   => $f->id,
+                'name' => $f->name,
+                'docs' => $f->document->map(fn($d) => [
+                    'id'    => $d->id,
+                    'title' => $d->control_code . ' - ' . $d->title,
+                ])->values(),
+            ];
+        })->values();
+
+        $shareTree = $this->buildShareTree($allUserFolders, $allUserDocuments);
+
+        $shareOthersDocs = $allUserDocuments
+            ->filter(fn($d) => is_null($d->folder_id))
+            ->map(fn($d) => [
+                'id'    => $d->id,
+                'label' => $d->control_code . ' - ' . $d->title,
+            ])
+            ->values()
+            ->toArray();
 
         $breadcrumbs = [];
 
@@ -1333,7 +1375,11 @@ class DocumentController extends Controller
                     'is_others_folder' => true,
                     'document_types' => $document_types,
                     'folderTreeHtml' => '',
-                    'breadcrumbs' => []
+                    'breadcrumbs' => [],
+                    'users' => $users,
+                    'folderData' => $folderData,
+                    'shareTree' => $shareTree,
+                    'shareOthersDocs' => $shareOthersDocs,
                 )
             );
         }

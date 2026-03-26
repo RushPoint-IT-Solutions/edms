@@ -19,10 +19,9 @@
 
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-end align-items-center py-3 gap-1">
-        @if(canCreate('documents'))
         <div class="dropdown">
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="dropdown">
-                <i class="ri-add-line"></i> New
+            <button type="button" class="btn btn-first btn-sm" data-bs-toggle="dropdown">
+                <i class="ri-add-line"></i> Create
             </button>
             <div class="dropdown-menu dropdown-menu-end">
                 <a class="dropdown-item" href="{{ route('documents.create') }}">
@@ -36,7 +35,7 @@
                 </a>
             </div>
         </div>
-        <div class="dropdown">
+        {{-- <div class="dropdown">
             <button type="button" class="btn btn-info btn-sm" data-bs-toggle="dropdown">
                 <i class="ri-more-2-line"></i>
             </button>
@@ -45,8 +44,10 @@
                     <i class="ri-user-add-line"></i> Share with others
                 </a>
             </div>
-        </div>
-        @endif
+        </div> --}}
+        <a type="button" class="btn btn-second btn-sm" data-bs-toggle="modal" data-bs-target="#share">
+            <i class="ri-user-add-line"></i> Share with others
+        </a>
     </div>
     <div class="card-body">
 
