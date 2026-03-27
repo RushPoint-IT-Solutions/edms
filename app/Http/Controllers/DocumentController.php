@@ -1289,6 +1289,9 @@ class DocumentController extends Controller
         $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
 
         $existingDocuments = Document::with('document_type_list', 'document_tags')
+            ->when(auth()->user()->role != 'Administrator', function ($q) {
+                $q->where('user_id', auth()->user()->id);
+            })
             ->selectRaw('
                 MAX(id) as id,
                 control_code,
