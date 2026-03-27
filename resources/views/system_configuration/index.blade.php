@@ -8,51 +8,101 @@
     </div>
 </div>
 
-<div class="row g-3 mb-3">
-    <div class="col-12 col-md-3">
-        <div class="section-nav-card shadow-sm active" data-target="pane-departments">
-            <div class="nav-icon"><i class="ri-community-line"></i></div>
-            <div class="nav-label">Departments</div>
-            <div class="nav-count">Manage departments</div>
-            <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_department">
-                <i class="fa fa-plus"></i> New Department
-            </button>
-        </div>
+<div class="row g-4 mb-3">
+  <div class="col d-flex">
+    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-campus">
+      <div class="nav-icon"><i class="ri-map-pin-line"></i></div>
+      <div class="nav-label">Campus</div>
+      <div class="nav-count">Manage campuses</div>
+      <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#newCampusModal">
+        <i class="fa fa-plus"></i> New Campus
+      </button>
     </div>
-    <div class="col-12 col-md-3">
-        <div class="section-nav-card shadow-sm" data-target="pane-teams">
-            <div class="nav-icon"><i class="ri-folder-line"></i></div>
-            <div class="nav-label">Offices</div>
-            <div class="nav-count">Manage offices</div>
-            <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_team">
-                <i class="fa fa-plus"></i> New Office
-            </button>
-        </div>
+  </div>
+  
+  <div class="col d-flex">
+    <div class="section-nav-card shadow-sm active flex-fill d-flex flex-column" data-target="pane-departments">
+      <div class="nav-icon"><i class="ri-community-line"></i></div>
+      <div class="nav-label">Departments</div>
+      <div class="nav-count">Manage departments</div>
+      <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_department">
+        <i class="fa fa-plus"></i> New Department
+      </button>
     </div>
-    <div class="col-12 col-md-3">
-        <div class="section-nav-card shadow-sm" data-target="pane-doctypes">
-            <div class="nav-icon"><i class="ri-file-text-line"></i></div>
-            <div class="nav-label">Document Types</div>
-            <div class="nav-count">Manage document types</div>
-            <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#addDocumentTypeModal">
-                <i class="fa fa-plus"></i> Add Type
-            </button>
-        </div>
+  </div>
+  
+  <div class="col d-flex">
+    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-teams">
+      <div class="nav-icon"><i class="ri-folder-line"></i></div>
+      <div class="nav-label">Offices</div>
+      <div class="nav-count">Manage offices</div>
+      <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_team">
+        <i class="fa fa-plus"></i> New Office
+      </button>
     </div>
-    <div class="col-12 col-md-3">
-        <div class="section-nav-card shadow-sm" data-target="pane-controlcodes">
-            <div class="nav-icon"><i class="ri-barcode-line"></i></div>
-            <div class="nav-label">Control Codes</div>
-            <div class="nav-count">Manage document control codes</div>
-            <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_control_code">
-                <i class="fa fa-plus"></i> New Control Code
-            </button>
-        </div>
+  </div>
+  
+  <div class="col d-flex">
+    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-doctypes">
+      <div class="nav-icon"><i class="ri-file-text-line"></i></div>
+      <div class="nav-label">Document Types</div>
+      <div class="nav-count">Manage document types</div>
+      <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#addDocumentTypeModal">
+        <i class="fa fa-plus"></i> Add Type
+      </button>
     </div>
+  </div>
+  
+  <div class="col d-flex">
+    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-controlcodes">
+      <div class="nav-icon"><i class="ri-barcode-line"></i></div>
+      <div class="nav-label">Control Codes</div>
+      <div class="nav-count">Manage Control codes</div>
+      <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_control_code">
+        <i class="fa fa-plus"></i> New Control Code
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="row">
     <div class="col-12">
+
+        <div class="card shadow-sm config-panel" id="pane-campus">
+            <div class="panel-header">
+                <div class="panel-icon"><i class="ri-map-pin-line"></i></div>
+                <div>
+                    <h6>Campus</h6>
+                    <p>View and manage all campuses</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div id="campus-filter-control"></div>
+                        <div id="campus-length-control"></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div id="campus-buttons-control"></div>
+                    </div>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="campusTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Action</th>
+                                <th>Campus Name</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="bottom-controls-container">
+                    <div id="campus-info-control"></div>
+                    <div id="campus-pagination-control"></div>
+                </div>
+            </div>
+        </div>
 
         <div class="card shadow-sm config-panel active" id="pane-departments">
             <div class="panel-header">
@@ -207,6 +257,9 @@
 
     </div>
 </div>
+
+@include('settings.campus.new');
+@include('settings.campus.edit');
 
 @include('departments.new_department')
 @foreach($departments as $department)
@@ -407,6 +460,167 @@ $(document).ready(function () {
             }
         };
     }
+
+    function loadCampusOptions(selectEl, selectedValue) {
+        $.get('{{ route("campus.list") }}', function (campuses) {
+            var options = '<option value="">Select campus...</option>';
+            $.each(campuses, function (i, campus) {
+                var selected = selectedValue && selectedValue == campus.name ? 'selected' : '';
+                options += '<option value="' + campus.name + '" ' + selected + '>' + campus.name + '</option>';
+            });
+            selectEl.html(options);
+        });
+    }
+
+    $('#new_team').on('show.bs.modal', function () {
+        loadCampusOptions($('#campus'), null);
+    });
+
+    $(document).on('show.bs.modal', '[id^="editTeam"]', function () {
+        var currentCampus = $(this).find('.edit-campus-select').data('current');
+        loadCampusOptions($(this).find('.edit-campus-select'), currentCampus);
+    });
+
+    //campus
+    var moveCampusControls = makeMoveControls('campusTable', 'campus');
+
+    var campusTable = makeTable(
+        'campusTable',
+        '{{ route("system-config.campus.data") }}',
+        [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'name', name: 'name' }
+        ],
+        null,
+        {
+            excelTitle: 'Campuses',
+            emptyTable: 'No campuses found',
+            zeroRecords: 'No matching campuses found',
+            moveControls: moveCampusControls
+        }
+    );
+
+    setTimeout(moveCampusControls, 100);
+
+    $('#newCampusForm').on('submit', function (e) {
+        e.preventDefault();
+
+        var name = $('#new_campus_name').val().trim();
+        if (!name) {
+            swal('Error!', 'Please enter a campus name.', 'error');
+            return;
+        }
+
+        var btn = $('#createCampusBtn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Creating...');
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("campus.store") }}',
+            data: { name: name },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function () {
+                swal('Success!', 'Campus created successfully!', 'success');
+                $('#newCampusModal').modal('hide');
+                $('#newCampusForm')[0].reset();
+                campusTable.ajax.reload();
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Campus');
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Campus');
+                swal('Error!', xhr.responseJSON?.message || 'Something went wrong.', 'error');
+            }
+        });
+    });
+
+    $('#campusTable tbody').on('click', '.edit-campus', function () {
+        $('#edit_campus_id').val($(this).data('id'));
+        $('#edit_campus_name').val($(this).data('name'));
+        $('#editCampusModal').modal('show');
+    });
+
+    $('#editCampusForm').on('submit', function (e) {
+        e.preventDefault();
+
+        var id   = $('#edit_campus_id').val();
+        var name = $('#edit_campus_name').val().trim();
+        if (!name) {
+            swal('Error!', 'Please enter a campus name.', 'error');
+            return;
+        }
+
+        var btn = $('#updateCampusBtn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ url("campus/update") }}/' + id,
+            data: { name: name },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function () {
+                swal('Success!', 'Campus updated successfully!', 'success');
+                $('#editCampusModal').modal('hide');
+                campusTable.ajax.reload();
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Campus');
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Campus');
+                swal('Error!', xhr.responseJSON?.message || 'Something went wrong.', 'error');
+            }
+        });
+    });
+
+    $('#campusTable tbody').on('click', '.delete-campus', function () {
+        var id   = $(this).data('id');
+        var name = $(this).data('name');
+
+        swal({
+            title: 'Delete "' + name + '"?',
+            text: 'This action cannot be undone.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ url("campus") }}/' + id,
+                data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+                success: function () {
+                    swal('Deleted!', 'Campus deleted successfully!', 'success');
+                    campusTable.ajax.reload();
+                },
+                error: function () {
+                    swal('Error!', 'Failed to delete campus.', 'error');
+                }
+            });
+        });
+    });
+
+    $('#campusTable tbody').on('click', '.delete-campus', function () {
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+
+        swal({
+            title: 'Delete "' + name + '"?',
+            text: 'This action cannot be undone.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false
+        }, function () {
+            var form = $('<form method="POST" style="display:none;"></form>');
+            form.append('<input type="hidden" name="_token" value="{{ csrf_token() }}">');
+            form.append('<input type="hidden" name="_method" value="DELETE">');
+            form.attr('action', '{{ url("system-configuration/campus") }}/' + id);
+            $('body').append(form);
+            form.submit();
+        });
+    });
 
     //department
     var moveDeptControls = makeMoveControls('departmentsTable', 'dept');

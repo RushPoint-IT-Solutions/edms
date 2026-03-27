@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Campus;
 use App\Department;
 use App\DocumentType;
 use App\Team;
@@ -35,6 +36,55 @@ class SystemConfigurationController extends Controller
             'documentTypes',
             'offices'
         ));
+    }
+
+    public function getCampusData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+        $query = Campus::query();
+        $totalRecords = (clone $query)->count();
+        if (!empty($search)) {
+            $query->where('name', 'like', "%$search%");
+        }
+        $totalFiltered = $query->count();
+        $items = $query->orderBy('name')->skip($start)->take($length)->get();
+        $data = [];
+        foreach ($items as $campus) {
+            $data[] = [
+                'action' => '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button class="dropdown-item edit-campus"
+                                    data-id="' . $campus->id . '"
+                                    data-name="' . e($campus->name) . '">
+                                    <i class="ri-pencil-line me-2"></i>Edit
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item text-danger delete-campus"
+                                    data-id="' . $campus->id . '"
+                                    data-name="' . e($campus->name) . '">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete
+                                </button>
+                            </li>
+                        </ul>
+                    </div>',
+                'name' => '<strong>' . e($campus->name) . '</strong>',
+            ];
+        }
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
     }
 
     public function getDepartmentsData(Request $request)
