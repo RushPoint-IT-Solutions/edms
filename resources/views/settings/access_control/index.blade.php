@@ -35,7 +35,7 @@
                             <td><strong>All</strong></td>
                             <td class="text-center">
                                 <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="createAll" disabled>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="createAll">
                                 </div>
                             </td>
                             <td class="text-center">
@@ -45,12 +45,12 @@
                             </td>
                             <td class="text-center">
                                 <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="updateAll" disabled>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="updateAll">
                                 </div>
                             </td>
                             <td class="text-center">
                                 <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="deleteAll" disabled>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="deleteAll">
                                 </div>
                             </td>
                         </tr>
