@@ -38,7 +38,9 @@
                                     <option value="">— Select a control code —</option>
                                     @foreach($controlCodes ?? [] as $cc)
                                         <option value="{{ $cc->code }}"
-                                            data-description="{{ $cc->description }}">
+                                            data-description="{{ $cc->description }}"
+                                            data-office="{{ $cc->department_id }}"
+                                            data-doctypes="{{ $cc->document_type_id }}">
                                             {{ preg_replace('/-\d+$/', '-????', $cc->code) }}
                                         </option>
                                     @endforeach
