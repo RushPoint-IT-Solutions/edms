@@ -95,7 +95,7 @@ class DocumentController extends Controller
                 MAX(version) AS latest_revision,
                 COUNT(*) AS upload_count
             ')
-            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request', 'office_id')
+            ->groupBy('control_code')
             ->orderBy('control_code', 'asc')
             ->get();
 
@@ -950,6 +950,22 @@ class DocumentController extends Controller
             if (!$controlCodeRecord) {
                 return back()->withErrors(['control_code' => 'The selected control code is invalid or no longer available.']);
             }
+
+            preg_match('/^(.*-)(\d+)$/', $controlCode, $matches);
+            if (!empty($matches)) {
+                $base      = $matches[1];
+                $padLength = strlen($matches[2]);
+
+                $latestDoc = Document::where('control_code', 'like', $base . '%')
+                    ->orderByRaw('CAST(SUBSTRING_INDEX(control_code, "-", -1) AS UNSIGNED) DESC')
+                    ->first();
+
+                if ($latestDoc) {
+                    preg_match('/^(.*-)(\d+)$/', $latestDoc->control_code, $lastMatches);
+                    $nextNumber  = (int) $lastMatches[2] + 1;
+                    $controlCode = $base . str_pad($nextNumber, $padLength, '0', STR_PAD_LEFT);
+                }
+            }
         }
 
         try {
@@ -998,11 +1014,6 @@ class DocumentController extends Controller
 
             if ($document->folder_id) {
                 $this->propagateFolderShares($document->folder_id, $document->id);
-            }
-
-            if (!$isRevision && isset($controlCodeRecord)) {
-                $controlCodeRecord->status = 0;
-                $controlCodeRecord->save();
             }
 
             DB::commit();
@@ -1279,11 +1290,18 @@ class DocumentController extends Controller
 
         $existingDocuments = Document::with('document_type_list', 'document_tags')
             ->selectRaw('
-                MAX(id) as id, control_code, title, category, folder_id,
-                other_category, type_of_request, office_id,
-                MAX(version) AS latest_revision, COUNT(*) AS upload_count
+                MAX(id) as id,
+                control_code,
+                MAX(title) as title,
+                MAX(category) as category,
+                MAX(folder_id) as folder_id,
+                MAX(other_category) as other_category,
+                MAX(type_of_request) as type_of_request,
+                MAX(office_id) as office_id,
+                MAX(version) AS latest_revision,
+                COUNT(*) AS upload_count
             ')
-            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request', 'office_id')
+            ->groupBy('control_code')
             ->orderBy('control_code', 'asc')
             ->get();
 
