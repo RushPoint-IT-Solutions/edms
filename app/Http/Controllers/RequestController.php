@@ -710,7 +710,7 @@ class RequestController extends Controller
                     if($key == 0)
                     {
                         $approvers->status = "Pending";
-                        $approvers->start_date = date('Y-m-d');
+                        $approvers->start_date = date('Y-m-d H:i:s');
                     }
                     else
                     {
@@ -796,7 +796,7 @@ class RequestController extends Controller
                         if($key == 0)
                         {
                             $approvers->status = "Pending";
-                            $approvers->start_date = date('Y-m-d');
+                            $approvers->start_date = date('Y-m-d H:i:s');
                         }
                         else
                         {
@@ -1113,7 +1113,7 @@ class RequestController extends Controller
                 }
                 else
                 {
-                    $requestApprover->start_date = date('Y-m-d');
+                    $requestApprover->start_date = date('Y-m-d H:i:s');
                     $requestApprover->status = "Pending";
                     $requestApprover->save();
 

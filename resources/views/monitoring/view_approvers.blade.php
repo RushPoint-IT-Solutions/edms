@@ -5,6 +5,16 @@
                 <h6 class="modal-title">View approvers</h6>
             </div>
             <div class="modal-body">
+                @php
+                    use setasign\Fpdi\Fpdi;
+                    $pdf = new Fpdi();
+                    $page_count = 0;
+                    if ($change_request->file) {
+                        $page_count = $pdf->setSourceFile(public_path($change_request->file));
+                    }
+                    // dd($page_count);
+                @endphp 
+                <p><b>Number of pages:</b> {{$page_count}}</p>
                 <div class="card" style="border: 1px solid #842029;">
                     <div class="card-header" style="background-color: #842029;">
                         <h6 class="card-title" style="color:white;">Description</h6>
@@ -28,10 +38,10 @@
                             <tr>
                                 <td>{{$approver->level}}</td>
                                 <td>{{$approver->user->name}}</td>
-                                <td>{{date("M d Y", strtotime($approver->start_date))}}</td>
+                                <td>{{date("M d Y h:i A", strtotime($approver->start_date))}}</td>
                                 <td>
                                     @if($approver->status == "Approved")
-                                    {{date("M d Y", strtotime($approver->updated_at))}}
+                                    {{date("M d Y h:i A", strtotime($approver->updated_at))}}
                                     @endif
                                 </td>
                                 <td>
