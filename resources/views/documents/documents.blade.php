@@ -599,8 +599,23 @@
 
             $('#newControlCodePicker').on('select2:select', function () {
                 var val = $(this).val();
+                var $selected = $(this).find('option[value="' + val + '"]');
+
                 $('#selectedControlCode').val('');
                 $('#finalNewControlCode').val(val || '');
+
+                var officeId = $selected.data('office') || '';
+                var docType = $selected.data('doctypes') || '';
+
+                if (officeId) {
+                    $('#newDocDeptField').val(officeId);
+                }
+
+                if (docType) {
+                    $('#documentTypeField').val([String(docType).trim()]).trigger('chosen:updated');
+                } else {
+                    $('#documentTypeField').val([]).trigger('chosen:updated');
+                }
             });
 
             $('#newControlCodePicker').on('select2:clear', function () {

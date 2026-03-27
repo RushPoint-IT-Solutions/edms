@@ -48,9 +48,9 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
-        if (!canView('personal.view')) {
-            return view('pages.403-error');
-        }
+        // if (!canView('personal.view')) {
+        //     return view('pages.403-error');
+        // }
 
         $search = $request->search;
         $department = $request->department;
@@ -66,7 +66,10 @@ class DocumentController extends Controller
         $users = User::whereNull("status")->get();
 
         $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
-        $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
+        $controlCodes = ControlCode::with('documentType', 'department')
+            ->where('status', 1)
+            ->orderBy('code')
+            ->get();
 
         $documents = Document::with('change_requests', 'attachments', 'share_document')
             ->orderBy('control_code', 'desc')
@@ -1285,7 +1288,10 @@ class DocumentController extends Controller
         $all_document_folders = DocumentFolder::where('user_id', auth()->user()->id)->get();
 
         $users = User::whereNull('status')->get();
-        $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
+        $controlCodes = ControlCode::with('documentType', 'department')
+            ->where('status', 1)
+            ->orderBy('code')
+            ->get();
         $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
 
         $existingDocuments = Document::with('document_type_list', 'document_tags')
