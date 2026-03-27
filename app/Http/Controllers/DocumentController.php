@@ -503,11 +503,7 @@ class DocumentController extends Controller
             ]);
         }
 
-        $all_document_folders = DocumentFolder::with('document', 'childrenFolder')
-            ->when(auth()->user()->role != 'Administrator', function ($q) {
-                $q->where('user_id', auth()->user()->id);
-            })
-            ->get();
+        $all_document_folders = DocumentFolder::where('user_id', auth()->user()->id)->get();
 
         $foldersQuery = DocumentFolder::where('parent_id', $id);
         $documentsQuery = Document::where('folder_id', $id);
@@ -1286,9 +1282,7 @@ class DocumentController extends Controller
 
         $document_types = DocumentType::orderBy('name', 'desc')->get();
 
-        $all_document_folders = DocumentFolder::when(auth()->user()->role != 'Administrator', function ($q) {
-            $q->where('user_id', auth()->user()->id);
-        })->get();
+        $all_document_folders = DocumentFolder::where('user_id', auth()->user()->id)->get();
 
         $users = User::whereNull('status')->get();
         $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
