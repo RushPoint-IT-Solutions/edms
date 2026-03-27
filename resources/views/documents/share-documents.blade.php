@@ -55,7 +55,6 @@
                                 <option value="">— Select a folder —</option>
 
                                 @if(isset($folder_data) && $folder_data)
-                                    {{-- Inside a specific folder: show only current folder + its subfolders --}}
                                     <option value="{{ $folder_data->id }}">
                                         {{ $folder_data->name }} ({{ $folder_data->document->count() }} file{{ $folder_data->document->count() !== 1 ? 's' : '' }})
                                     </option>
@@ -70,7 +69,6 @@
                                         @endforeach
                                     @endforeach
                                 @else
-                                    {{-- Root page: show all root-level folders and their children --}}
                                     @foreach ($document_folders->where('parent_id', null) as $folder)
                                         <option value="{{ $folder->id }}">
                                             {{ $folder->name }} ({{ $folder->document->count() }} file{{ $folder->document->count() !== 1 ? 's' : '' }})
