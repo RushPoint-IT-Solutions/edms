@@ -223,7 +223,7 @@ class RequestController extends Controller
 
         $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
 
-        $query = ChangeRequest::with(['user', 'approvers.user'])
+        $query = ChangeRequest::with(['user.department', 'approvers.user'])
             ->whereNull('is_draft')
             ->when(!$isAdmin, function ($q) {
                 $q->where('user_id', auth()->user()->id);
@@ -1345,12 +1345,17 @@ class RequestController extends Controller
 
         if (Hash::check($request->password, $password))
         {
-            return redirect('documents/signature/'.$request->change_request_id);
+            return response()->json([
+                'success' => true,
+                'redirect' => url('documents/signature/' . $request->change_request_id)
+            ]);
         }
         else 
         {
-            Alert::warning('The password you provided does not match our records.')->persistent('Dismiss');
-            return back();
+            return response()->json([
+                'success' => false,
+                'message' => 'The password you provided does not match our records.'
+            ]);
         }
     }
 }
