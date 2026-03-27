@@ -71,7 +71,7 @@
 
                                 <td class="text-center">
                                     <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                        <input class="form-check-input" type="checkbox" role="switch">
+                                        <input class="form-check-input create-check" type="checkbox" role="switch">
                                     </div>
                                 </td>
 
@@ -89,13 +89,13 @@
 
                                 <td class="text-center">
                                     <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                        <input class="form-check-input" type="checkbox" role="switch">
+                                        <input class="form-check-input update-check" type="checkbox" role="switch">
                                     </div>
                                 </td>
 
                                 <td class="text-center">
                                     <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                        <input class="form-check-input" type="checkbox" role="switch">
+                                        <input class="form-check-input delete-check" type="checkbox" role="switch">
                                     </div>
                                 </td>
                             </tr>
@@ -146,6 +146,16 @@ $(document).ready(function () {
 
     $("#readAll").on("change", function () {
         $(".read-check").prop("checked", $(this).is(":checked"));
+    });
+
+    $("#createAll").on("change", function () {
+        $(".create-check").prop("checked", $(this).is(":checked"));
+    });
+    $("#updateAll").on("change", function () {
+        $(".update-check").prop("checked", $(this).is(":checked"));
+    });
+    $("#deleteAll").on("change", function () {
+        $(".delete-check").prop("checked", $(this).is(":checked"));
     });
 });
 </script>
