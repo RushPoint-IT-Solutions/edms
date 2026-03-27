@@ -86,12 +86,12 @@ class DocumentController extends Controller
             ->selectRaw('
                 MAX(id) as id,
                 control_code,
-                title,
-                category,
-                folder_id,
-                other_category,
-                type_of_request,
-                office_id,
+                MAX(title) as title,
+                MAX(category) as category,
+                MAX(folder_id) as folder_id,
+                MAX(other_category) as other_category,
+                MAX(type_of_request) as type_of_request,
+                MAX(office_id) as office_id,
                 MAX(version) AS latest_revision,
                 COUNT(*) AS upload_count
             ')
