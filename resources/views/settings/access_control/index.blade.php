@@ -157,6 +157,33 @@ $(document).ready(function () {
     $("#deleteAll").on("change", function () {
         $(".delete-check").prop("checked", $(this).is(":checked"));
     });
+
+    function syncAllToggle(checkClass, allId) {
+        var total   = $(checkClass).length;
+        var checked = $(checkClass + ':checked').length;
+        $(allId).prop('checked', total > 0 && total === checked);
+    }
+
+    syncAllToggle('.read-check',   '#readAll');
+    // syncAllToggle('.create-check', '#createAll');
+    // syncAllToggle('.update-check', '#updateAll');
+    // syncAllToggle('.delete-check', '#deleteAll');
+
+    $(document).on('change', '.read-check', function () { 
+        syncAllToggle('.read-check',   '#readAll');   
+    });
+
+    // $(document).on('change', '.create-check', function () { 
+    //     syncAllToggle('.create-check', '#createAll'); 
+    // });
+
+    // $(document).on('change', '.update-check', function () { 
+    //     syncAllToggle('.update-check', '#updateAll'); 
+    // });
+
+    // $(document).on('change', '.delete-check', function () { 
+    //     syncAllToggle('.delete-check', '#deleteAll'); 
+    // });
 });
 </script>
 @endsection
