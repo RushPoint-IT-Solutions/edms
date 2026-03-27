@@ -1,6 +1,7 @@
 @extends('layouts.header')
 
 @section('css')
+<link href="{{ asset('login_css/css/plugins/chosen/bootstrap-chosen.css') }}" rel="stylesheet">
 <link href="{{ asset('/assets/css/docs_style.css') }}" rel="stylesheet">
 @endsection
 
@@ -9,11 +10,11 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
-                <div class="breadcrumb">
+                <div class="breadcrumb d-flex align-items-center gap-2">
                     <a href="{{ url('documents') }}">
                         <i class="ri-folder-line"></i> Documents
                     </a>
-                    
+
                     @if(!isset($is_others_folder) || !$is_others_folder)
                         @foreach($breadcrumbs as $crumb)
                             <span class="breadcrumb-separator">/</span>
@@ -27,6 +28,29 @@
                         <span class="breadcrumb-separator">/</span>
                         <span>Others</span>
                     @endif
+
+                    <div class="ms-auto d-flex align-items-center gap-2">
+                        @if(!isset($is_others_folder) || !$is_others_folder)
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-first btn-sm" data-bs-toggle="dropdown">
+                                <i class="ri-add-line"></i>
+                                New
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadDocument">
+                                    <i class="ri-file-add-line me-2"></i>New file
+                                </button>
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                                    <i class="ri-folder-add-line me-2"></i>New folder
+                                </button>
+                            </div>
+                        </div>
+                        @endif
+
+                        <button type="button" class="btn btn-second btn-sm" data-bs-toggle="modal" data-bs-target="#share">
+                             <i class="ri-user-add-line"></i> Share with others
+                        </button>
+                    </div>
                 </div>
 
                 <div class="top-toolbar">
@@ -103,28 +127,6 @@
                     </div>
 
                     <div class="d-flex align-items-center ms-auto gap-2">
-                        @if(!isset($is_others_folder) || !$is_others_folder)
-                        <div class="ms-auto">
-                            <div class="dropdown">
-                                <button type="button" class="new-btn" data-bs-toggle="dropdown">
-                                    <i class="ri-add-line"></i>
-                                    New
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="{{ route("documents.create") }}">
-                                        <i class="ri-folder-add-line me-2"></i>Request document
-                                    </a>
-                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#uploadDocument">
-                                        <i class="ri-file-add-line me-2"></i>New file
-                                    </a>
-                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#createFolderModal">
-                                        <i class="ri-folder-add-line me-2"></i>New folder
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        @endif
-
                         <div class="view-toggle">
                             <button class="view-toggle-btn active" id="listViewBtn" title="List view">
                                 <i class="ri-list-check"></i>
@@ -146,6 +148,10 @@
                         <span id="selectedCount">0</span> item(s) selected
                     </div>
                     <div class="bulk-actions">
+                        <button class="btn btn-sm btn-warning" id="bulkShareBtn">
+                            <i class="ri-share-line"></i>
+                            Share Selected
+                        </button>
                         @if(canDelete('documents'))
                         <button class="bulk-delete-btn" id="bulkDeleteBtn">
                             <i class="ri-delete-bin-line"></i>
@@ -178,7 +184,6 @@
                 </div>
 
                 <div id="contentWrapper" style="display:none;">
-
                     <div class="list-view" id="listView" style="display:none;">
                         <table class="document-table">
                             <thead>
@@ -186,6 +191,7 @@
                                     <th class="checkbox-cell"><input type="checkbox" id="selectAll"></th>
                                     <th style="width:45%;">Name</th>
                                     <th>File type</th>
+                                    <th>Version</th>
                                     <th>Size</th>
                                     <th>Modified</th>
                                     <th class="actions-cell"></th>
@@ -236,16 +242,181 @@
 @foreach ($document_folders as $folder)
     @include('documents.rename_folder')
 @endforeach
+@include('documents.share-documents')
 @endsection
 
 @section('js')
+<script src="{{ asset('login_css/js/plugins/chosen/chosen.jquery.js') }}"></script>
+<script src="{{ asset('login_css/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
+<script src="{{ asset('login_css/js/plugins/dataTables/datatables.min.js') }}"></script>
+<script src="{{ asset('js/BootstrapMenu.min.js') }}"></script>
+
 <script>
-    let clickTimer = null;
+    let clickTimer  = null;
     let selectedRow = null;
     let currentView = 'list';
     let dragCounter = 0;
 
+    var uploadSelect2Inited = false;
+    var uploadChosenInited  = false;
+
     const FOLDER_ID = '{{ $folder_data->id ?? "others" }}';
+
+    function initUploadModalPlugins() {
+        if (!uploadSelect2Inited) {
+            $('#newControlCodePicker').select2({
+                dropdownParent: $('#uploadDocument'),
+                placeholder: '— Select a control code —',
+                allowClear: true,
+                width: '100%',
+            });
+
+            $('#existingControlCodePicker').select2({
+                dropdownParent: $('#uploadDocument'),
+                placeholder: '— Search or select a control code —',
+                allowClear: true,
+                width: '100%',
+            });
+
+            $('#newControlCodePicker').on('select2:select', function () {
+                var val = $(this).val();
+                $('#selectedControlCode').val('');
+                $('#finalNewControlCode').val(val || '');
+            });
+
+            $('#newControlCodePicker').on('select2:clear', function () {
+                $('#selectedControlCode').val('');
+                $('#finalNewControlCode').val('');
+            });
+
+            $('#existingControlCodePicker').on('select2:select', function () {
+                var val = $(this).val();
+                var $selected = $(this).find('option[value="' + val + '"]');
+                if (!val) return;
+
+                var title = $selected.data('title') || '';
+                var folderId = $selected.data('folder') || '';
+                var curRevision = parseInt($selected.data('revision') || 0);
+                var nextRevision = curRevision + 1;
+                var officeId = $selected.data('office') || '';
+                var docTypes = $selected.data('doctypes') || '';
+                var tags = $selected.data('tags') || '';
+
+                $('#selectedControlCode').val(val);
+                $('#finalNewControlCode').val('');
+                $('#titleField').val(title).prop('readonly', true);
+                $('#newDocDeptField').val(officeId);
+
+                if (docTypes) {
+                    var typeIds = String(docTypes).split(',').map(function (t) { return t.trim(); });
+                    $('#documentTypeField').val(typeIds).trigger('chosen:updated');
+                } else {
+                    $('#documentTypeField').val([]).trigger('chosen:updated');
+                }
+
+                if (tags) {
+                    var tagValues = String(tags).split(',').map(function(t) { return t.trim(); });
+                    $('select[name="tags[]"]', '#uploadDocument').val(tagValues).trigger('chosen:updated');
+                } else {
+                    $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
+                }
+
+                $('#folderField').val(folderId);
+                $('#typeOfRequestField').val('Revision');
+                $('#revisionField').val(nextRevision)
+                    .prop('readonly', true)
+                    .css({ background: '#f8f9fa', cursor: 'not-allowed' });
+                $('#revisionAutoIcon').show();
+                $('#revisionInfoText').html(
+                    'You are uploading <strong>Revision ' + nextRevision + '</strong> of ' +
+                    '<strong>' + val + '</strong>. ' +
+                    'Previous revision: <strong>' + curRevision + '</strong>.'
+                );
+                $('#revisionInfoBox').show();
+            });
+
+            $('#existingControlCodePicker').on('select2:clear', function () {
+                $('#selectedControlCode').val('');
+                $('#titleField').val('').prop('readonly', false);
+                $('#revisionField').val(0).css({ background: '#f8f9fa', cursor: 'not-allowed' });
+                $('#revisionAutoIcon').hide();
+                $('#revisionInfoBox').hide();
+                $('#newDocDeptField').val('');
+                $('#documentTypeField').val([]).trigger('chosen:updated');
+                $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
+                $('#folderField').val('');
+                $('#typeOfRequestField').val('Revision');
+            });
+
+            uploadSelect2Inited = true;
+        }
+
+        if (!uploadChosenInited) {
+            $('#documentTypeField').chosen({ width: '100%' });
+            $('select[name="tags[]"]', '#uploadDocument').chosen({ width: '100%' });
+            uploadChosenInited = true;
+        }
+    }
+
+    function resetUploadForm() {
+        resetUploadFormFields();
+
+        $('#titleField').val('').prop('readonly', false);
+        $('#revisionField').val(0)
+            .prop('readonly', true)
+            .css({ background: '#f8f9fa', cursor: 'not-allowed' });
+        $('#revisionAutoIcon').hide();
+        $('#revisionInfoBox').hide();
+        $('#controlCodeResultField').hide();
+        $('#newDocCodeDisplay').hide();
+        $('#existingDocCodeDisplay').hide();
+
+        if ($('#newControlCodePicker').data('select2')) {
+            $('#newControlCodePicker').val(null).trigger('change');
+        }
+        if ($('#existingControlCodePicker').data('select2')) {
+            $('#existingControlCodePicker').val(null).trigger('change');
+        }
+
+        $('#controlCodeTypePicker').val('');
+        $('#isRevision').val('0');
+        $('#selectedControlCode').val('');
+        $('#finalNewControlCode').val('');
+        $('#selectedControlCode').attr('name', 'control_code_existing');
+        $('#finalNewControlCode').attr('name', 'control_code');
+        $('#newDocBadge').hide();
+        $('#revisionBadge').hide();
+        $('#folderField').val('');
+        $('#typeOfRequestField').val('');
+    }
+
+    function resetUploadFormFields() {
+        $('#titleField').val('').prop('readonly', false);
+        $('#revisionField').val(0)
+            .prop('readonly', true)
+            .css({ background: '#f8f9fa', cursor: 'not-allowed' });
+        $('#revisionAutoIcon').hide();
+        $('#revisionInfoBox').hide();
+
+        if ($('#newControlCodePicker').data('select2')) {
+            $('#newControlCodePicker').val(null).trigger('change');
+        }
+        if ($('#existingControlCodePicker').data('select2')) {
+            $('#existingControlCodePicker').val(null).trigger('change');
+        }
+
+        $('#isRevision').val('0');
+        $('#selectedControlCode').val('');
+        $('#finalNewControlCode').val('');
+        $('#selectedControlCode').attr('name', 'control_code_existing');
+        $('#finalNewControlCode').attr('name', 'control_code');
+        $('#folderField').val('');
+        $('#typeOfRequestField').val('');
+        $('#documentTypeField').val([]).trigger('chosen:updated');
+        $('#newDocDeptField').val('');
+        $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
+    }
+
 
     function loadFolderContents() {
         $('#loadingState').show();
@@ -269,13 +440,11 @@
                 if (total > 0) {
                     $('#documentTableBody').html(response.listHtml || '');
                     $('#gridContainer').html(response.gridHtml || '');
-
                     $('#visibleFolders').text(folders);
                     $('#visibleDocuments').text(documents);
                     $('#totalEntries').text(total);
                     $('#showingFrom').text(1);
                     $('#showingTo').text(total);
-
                     $('#contentWrapper').show();
                     $('#emptyState').hide();
 
@@ -351,13 +520,13 @@
                 const folderId = $row.data('folder-id');
                 if (folderId) {
                     const exists = selected.some(i => String(i.id) === String(folderId) && i.type === 'folder');
-                    if (!exists) selected.push({ id: folderId, type: 'folder' });
+                    if (!exists) selected.push({ id: folderId, type: 'folder', name: $row.find('.item-name').text().trim() });
                 }
             } else if ($row.hasClass('document-row') || $row.hasClass('child-row')) {
                 const docId = $row.data('document-id');
                 if (docId) {
                     const exists = selected.some(i => String(i.id) === String(docId) && i.type === 'document');
-                    if (!exists) selected.push({ id: docId, type: 'document' });
+                    if (!exists) selected.push({ id: docId, type: 'document', name: $row.find('.item-name').text().trim() });
                 }
             }
         });
@@ -367,9 +536,11 @@
             const documentId = $(this).data('document-id');
             const id = folderId || documentId;
             const type = folderId ? 'folder' : 'document';
+            const name = $(this).find('.grid-item-name').text().trim();
+
             if (id) {
                 const exists = selected.some(i => String(i.id) === String(id) && i.type === type);
-                if (!exists) selected.push({ id, type });
+                if (!exists) selected.push({ id, type, name });
             }
         });
 
@@ -408,6 +579,7 @@
 
     function handleFolderClick(element, hasChildren) {
         event.stopPropagation();
+
         const row = $(element).closest('tr');
         $('.folder-tree-row').removeClass('selected-row');
         row.addClass('selected-row');
@@ -496,19 +668,23 @@
     };
 
     function applyFilters() {
-        let visibleFolders = 0, visibleDocuments = 0;
+        let visibleFolders = 0;
+        let visibleDocuments = 0;
 
         if (currentView === 'list') {
             $('.document-row, .folder-tree-row').each(function () {
                 const $row    = $(this);
                 if (parseInt($row.data('level') || 0) > 0) return;
+
                 const rowType = $row.data('type');
                 const rowMod = new Date($row.data('modified'));
                 const typeOk = filters.types.includes('all') || filters.types.includes(rowType);
                 let modOk = true;
+
                 if (filters.modifiedDays !== 'all') {
                     modOk = Math.floor((new Date() - rowMod) / 86400000) <= parseInt(filters.modifiedDays);
                 }
+
                 if (typeOk && modOk) {
                     $row.show();
                     rowType === 'folder' ? visibleFolders++ : visibleDocuments++;
@@ -523,11 +699,13 @@
                 const $item = $(this);
                 const iType = $item.data('type');
                 const iMod = new Date($item.data('modified'));
-                const typeOk  = filters.types.includes('all') || filters.types.includes(iType);
+                const typeOk = filters.types.includes('all') || filters.types.includes(iType);
                 let modOk = true;
+
                 if (filters.modifiedDays !== 'all') {
                     modOk = Math.floor((new Date() - iMod) / 86400000) <= parseInt(filters.modifiedDays);
                 }
+
                 if (typeOk && modOk) {
                     $item.show();
                     iType === 'folder' ? visibleFolders++ : visibleDocuments++;
@@ -558,6 +736,7 @@
                 );
             });
         }
+
         if (filters.modifiedDays !== 'all') {
             hasActive = true;
             const label = filters.modifiedDays == 1 ? 'Last 24 Hours' : 'Last ' + filters.modifiedDays + ' Days';
@@ -566,6 +745,7 @@
                 '<button onclick="removeModifiedFilter()">&times;</button></div>'
             );
         }
+
         $container.toggle(hasActive);
     }
 
@@ -610,7 +790,7 @@
     }
 
     $(document).ready(function () {
-        $('.select2').select2({ dropdownParent: $('#addDocumentInFolder'), theme: "classic" });
+        $('.select2').select2({ dropdownParent: $('#addDocumentInFolder'), theme: 'classic' });
 
         if (localStorage.getItem('folderViewPreference') === 'grid') currentView = 'grid';
         loadFolderContents();
@@ -635,25 +815,60 @@
         $('#gridViewBtn').on('click', switchToGridView);
 
         $('#uploadDocument').on('shown.bs.modal', function () {
-            $('#uploadDocument .cat').each(function () {
-                if ($(this).data('select2')) $(this).select2('destroy');
-            });
-            $('#uploadDocument .cat').select2({
-                dropdownParent: $('#uploadDocument'), theme: "classic",
-                placeholder: "Select an option", allowClear: true
-            });
+            initUploadModalPlugins();
+        });
+
+        $('#uploadDocument').on('hidden.bs.modal', function () {
+            resetUploadForm();
         });
 
         $('#uploadDocumentForm').on('submit', function (e) {
-            var tags = $('select[name="tags[]"]').val();
-            if (!tags || !tags.length) {
+            var type = $('#controlCodeTypePicker').val();
+
+            if (type === 'new') {
+                if (!$('#newControlCodePicker').val()) {
+                    e.preventDefault();
+                    alert('Please select a control code for the new document.');
+                    return false;
+                }
+                $('#selectedControlCode').removeAttr('name');
+            } else if (type === 'existing') {
+                if (!$('#existingControlCodePicker').val()) {
+                    e.preventDefault();
+                    alert('Please select an existing document.');
+                    return false;
+                }
+                $('#finalNewControlCode').removeAttr('name');
+            } else {
                 e.preventDefault();
-                alert('Please select at least one tag');
+                alert('Please select New or Existing.');
                 return false;
             }
-            $(this).find('button[type="submit"]')
-                .prop('disabled', true)
-                .html('<i class="ri-loader-4-line"></i> Uploading...');
+        });
+
+        $(document).on('change', '#controlCodeTypePicker', function () {
+            var val = $(this).val();
+            $('#controlCodeResultField').hide();
+            $('#newDocCodeDisplay').hide();
+            $('#existingDocCodeDisplay').hide();
+            $('#newDocBadge').hide();
+            $('#revisionBadge').hide();
+            resetUploadFormFields();
+
+            if (!val) return;
+            $('#controlCodeResultField').show();
+
+            if (val === 'new') {
+                $('#newDocBadge').show();
+                $('#newDocCodeDisplay').show();
+                $('#isRevision').val('0');
+                $('#typeOfRequestField').val('New');
+            } else if (val === 'existing') {
+                $('#revisionBadge').show();
+                $('#existingDocCodeDisplay').show();
+                $('#isRevision').val('1');
+                $('#typeOfRequestField').val('Revision');
+            }
         });
 
         $(document).on('keydown', function (e) {
@@ -722,17 +937,23 @@
             msg += '. This cannot be undone.';
 
             swal({
-                title: 'Are you sure?', text: msg, type: 'warning',
-                showCancelButton: true, confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Delete', cancelButtonText: 'Cancel',
-                closeOnConfirm: false, closeOnCancel: true
+                title: 'Are you sure?',
+                text: msg,
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                closeOnConfirm: false,
+                closeOnCancel: true
             }, function (confirmed) {
                 if (!confirmed) return;
                 $.ajax({
-                    url : '{{ url("documents/bulk-delete") }}', type: 'POST',
+                    url: '{{ url("documents/bulk-delete") }}',
+                    type: 'POST',
                     data: {
-                        _token : '{{ csrf_token() }}',
-                        folder_ids : folderIds.join(','),
+                        _token: '{{ csrf_token() }}',
+                        folder_ids: folderIds.join(','),
                         document_ids: documentIds.join(',')
                     },
                     success: function () {
@@ -750,19 +971,25 @@
         $(document).on('click', '.delete-folder-btn', function (e) {
             e.stopPropagation();
             e.preventDefault();
+
             const id = $(this).data('id');
             const name = $(this).data('name');
 
             swal({
                 title: 'Are you sure?',
                 text: 'Delete folder "' + name + '"? This action cannot be undone.',
-                type: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Delete', cancelButtonText: 'Cancel',
-                closeOnConfirm: false, closeOnCancel: true
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                closeOnConfirm: false,
+                closeOnCancel: true
             }, function (confirmed) {
                 if (!confirmed) return;
                 $.ajax({
-                    url : '{{ url("documents/delete-folder") }}/' + id, type: 'POST',
+                    url: '{{ url("documents/delete-folder") }}/' + id,
+                    type: 'POST',
                     data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
                     success: function (r) {
                         if (r.success) {
@@ -828,7 +1055,8 @@
         $('.filter-dropdown').on('click', function (e) { e.stopPropagation(); });
 
         $(document).on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
         });
         $(document).on('dragenter', function () {
             if (++dragCounter === 1) $('.document-manager').addClass('drag-over');
@@ -842,6 +1070,498 @@
             const files = e.originalEvent.dataTransfer.files;
             if (files.length) handleFileDrop(files);
         });
+
+        $('#bulkShareBtn').on('click', function () {
+            var selected = getSelectedItems();
+            if (!selected.length) return;
+
+            var documentItems = selected
+                .filter(function (i) { return i.type === 'document'; })
+                .map(function (i) { return { id: i.id, name: i.name }; });
+
+            var folderItems = selected.filter(function (i) { return i.type === 'folder'; });
+
+            var shareModal = new bootstrap.Modal(document.getElementById('share'));
+            shareModal.show();
+
+            $('#share').one('shown.bs.modal', function () {
+                if (documentItems.length > 0) {
+                    window.bulkPreSelectDocs(documentItems);
+                } else if (folderItems.length === 1) {
+                    $('input[name="share_type"][value="folder"]').prop('checked', true).trigger('change');
+                    setTimeout(function () {
+                        $('#shareFolderSelect').val(folderItems[0].id).trigger('chosen:updated').trigger('change');
+                    }, 100);
+                }
+            });
+        });
     });
+
+    window.preSingleDocShare = function (id, name) {
+        var shareModal = new bootstrap.Modal(document.getElementById('share'));
+        shareModal.show();
+        $('#share').one('shown.bs.modal', function () {
+            window.bulkPreSelectDocs([{ id: id, name: name }]);
+        });
+    };
+
+    window.preSingleFolderShare = function (folderId) {
+        var shareModal = new bootstrap.Modal(document.getElementById('share'));
+        shareModal.show();
+        $('#share').one('shown.bs.modal', function () {
+            $('input[name="share_type"][value="folder"]').prop('checked', true).trigger('change');
+            setTimeout(function () {
+                $('#shareFolderSelect').val(folderId).trigger('chosen:updated').trigger('change');
+            }, 100);
+        });
+    };
+
+    (function () {
+        var fullTree = window._shareDocTree || [];
+        var othersDocs = window._shareOthersDocs || [];
+        var navStack = [];
+        var selectedDocs = {};
+        var folderData = {!! json_encode($folderData) !!};
+
+        function findNodeInTree(tree, id) {
+            for (var i = 0; i < tree.length; i++) {
+                if (String(tree[i].id) === String(id)) return tree[i];
+                var found = findNodeInTree(tree[i].children || [], id);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        var scopedNode = (FOLDER_ID && FOLDER_ID !== 'others')
+            ? findNodeInTree(fullTree, FOLDER_ID)
+            : null;
+
+        var docTree = scopedNode ? (scopedNode.children || []) : fullTree;
+        var rootDocs = scopedNode ? (scopedNode.docs || []) : [];
+
+        function currentNode() {
+            return navStack.length ? navStack[navStack.length - 1].node : null;
+        }
+
+        function currentChildren() {
+            var n = currentNode();
+            return n ? (n.children || []) : docTree;
+        }
+
+        function currentDocs() {
+            var n = currentNode();
+            return n ? (n.docs || []) : rootDocs;
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function escAttr(str) { return escHtml(str); }
+
+        function countAllDocs(node) {
+            var c = 0;
+            (node.children || []).forEach(function (ch) {
+                c += (ch.docs || []).length + countAllDocs(ch);
+            });
+            return c;
+        }
+
+        function renderBrowser() {
+            var pane = document.getElementById('docBrowserPane');
+            var crumb = document.getElementById('docBrowserCrumb');
+            var rootLabel = scopedNode ? escHtml(scopedNode.name) : 'Root';
+
+            var crumbHtml = '<span class="crumb-item" style="cursor:pointer;font-weight:600;" data-crumb="-1">'
+                          + '<i class="ri-home-4-line"></i> ' + rootLabel + '</span>';
+
+            navStack.forEach(function (step, idx) {
+                crumbHtml += '<span class="crumb-sep">/</span>';
+                var isLast = (idx === navStack.length - 1);
+                crumbHtml += '<span class="crumb-item' + (isLast ? ' active' : '') + '" data-crumb="' + idx + '">'
+                           + escHtml(step.name) + '</span>';
+            });
+            crumb.innerHTML = crumbHtml;
+
+            var html = '';
+            var folders = currentChildren();
+            var docs = currentDocs();
+
+            if (navStack.length) {
+                html += '<div class="doc-browser-row is-folder" data-nav="back">'
+                      + '<i class="ri-arrow-left-line" style="color:#9ca3af;"></i>'
+                      + '<span style="color:#9ca3af;font-style:italic;">.. up one level</span>'
+                      + '</div>';
+            }
+
+            if (!folders.length && !docs.length && navStack.length) {
+                html += '<div style="padding:40px;text-align:center;color:#9ca3af;font-size:0.82rem;">'
+                      + '<i class="ri-folder-open-line" style="font-size:1.4rem;display:block;margin-bottom:6px;"></i>'
+                      + 'This folder is empty.</div>';
+            }
+
+            folders.forEach(function (f) {
+                var cnt = f.docs.length + countAllDocs(f);
+                html += '<div class="doc-browser-row is-folder" data-nav-folder="' + f.id + '">'
+                      + '<i class="ri-folder-2-fill" style="color:#e67e22;flex-shrink:0;"></i>'
+                      + '<span style="flex:1;">' + escHtml(f.name) + '</span>'
+                      + '<small class="text-muted">' + cnt + ' doc' + (cnt !== 1 ? 's' : '') + '</small>'
+                      + '<i class="ri-arrow-right-s-line text-muted"></i>'
+                      + '</div>';
+            });
+
+            if (navStack.length === 0 && !scopedNode && othersDocs.length) {
+                html += '<div class="doc-browser-row is-folder" data-nav-folder="__others__">'
+                      + '<i class="ri-folder-2-fill" style="color:#9ca3af;flex-shrink:0;"></i>'
+                      + '<span style="flex:1;color:#9ca3af;font-style:italic;">Others</span>'
+                      + '<small class="text-muted">' + othersDocs.length + ' doc' + (othersDocs.length !== 1 ? 's' : '') + '</small>'
+                      + '<i class="ri-arrow-right-s-line text-muted"></i>'
+                      + '</div>';
+            }
+
+            if (navStack.length === 1 && navStack[0].id === '__others__') {
+                othersDocs.forEach(function (d) {
+                    var checked = selectedDocs[d.id] ? 'checked' : '';
+                    html += '<div class="doc-browser-row" data-doc-id="' + d.id + '">'
+                          + '<input type="checkbox" class="form-check-input doc-browser-cb" '
+                          + 'data-doc-id="' + d.id + '" data-doc-label="' + escAttr(d.label) + '" '
+                          + checked + ' style="flex-shrink:0;">'
+                          + '<i class="ri-file-text-line" style="color:#6b7280;flex-shrink:0;"></i>'
+                          + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+                          + escHtml(d.label) + '</span></div>';
+                });
+            }
+
+            docs.forEach(function (d) {
+                var checked = selectedDocs[d.id] ? 'checked' : '';
+                html += '<div class="doc-browser-row" data-doc-id="' + d.id + '">'
+                      + '<input type="checkbox" class="form-check-input doc-browser-cb" '
+                      + 'data-doc-id="' + d.id + '" data-doc-label="' + escAttr(d.label) + '" '
+                      + checked + ' style="flex-shrink:0;">'
+                      + '<i class="ri-file-text-line" style="color:#6b7280;flex-shrink:0;"></i>'
+                      + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+                      + escHtml(d.label) + '</span></div>';
+            });
+
+            pane.innerHTML = html;
+            bindBrowserEvents();
+            renderChips();
+        }
+
+        function bindBrowserCheckboxes(container) {
+            container.querySelectorAll('.doc-browser-row[data-doc-id]').forEach(function (row) {
+                row.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('doc-browser-cb')) return;
+                    var cb = row.querySelector('.doc-browser-cb');
+                    if (cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+                });
+            });
+
+            container.querySelectorAll('.doc-browser-cb').forEach(function (cb) {
+                cb.addEventListener('change', function () {
+                    var id = cb.getAttribute('data-doc-id');
+                    var label = cb.getAttribute('data-doc-label');
+                    if (cb.checked) {
+                        selectedDocs[id] = label;
+                    } else {
+                        delete selectedDocs[id];
+                    }
+                    renderChips();
+                    checkShareReady();
+                });
+            });
+        }
+
+        function bindBrowserEvents() {
+            var pane = document.getElementById('docBrowserPane');
+
+            pane.querySelectorAll('[data-nav-folder]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var fid = el.getAttribute('data-nav-folder');
+                    if (fid === '__others__') {
+                        navStack.push({ id: '__others__', name: 'Others', node: null });
+                    } else {
+                        var node = findNodeInTree(docTree, fid);
+                        if (node) navStack.push({ id: node.id, name: node.name, node: node });
+                    }
+                    renderBrowser();
+                });
+            });
+
+            pane.querySelectorAll('[data-nav="back"]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    navStack.pop();
+                    renderBrowser();
+                });
+            });
+
+            bindBrowserCheckboxes(pane);
+
+            document.getElementById('docBrowserCrumb').querySelectorAll('[data-crumb]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var idx = parseInt(el.getAttribute('data-crumb'), 10);
+                    navStack = idx === -1 ? [] : navStack.slice(0, idx + 1);
+                    renderBrowser();
+                });
+            });
+        }
+
+        function renderChips() {
+            var container = document.getElementById('docSelectedChips');
+            var noSel = document.getElementById('docNoSelected');
+            var hidden = document.getElementById('docHiddenInputs');
+            var ids = Object.keys(selectedDocs);
+
+            container.innerHTML = '';
+            hidden.innerHTML = '';
+
+            if (!ids.length) {
+                noSel.style.display = 'block';
+            } else {
+                noSel.style.display = 'none';
+                ids.forEach(function (id) {
+                    var chip = document.createElement('span');
+                    chip.className = 'doc-chip';
+                    chip.innerHTML = '<i class="ri-file-text-line" style="flex-shrink:0;"></i>'
+                                   + '<span title="' + escAttr(selectedDocs[id]) + '">' + escHtml(selectedDocs[id]) + '</span>'
+                                   + '<button type="button" title="Remove"><i class="ri-close-line"></i></button>';
+                    chip.querySelector('button').addEventListener('click', function () {
+                        delete selectedDocs[id];
+                        var cb = document.querySelector('.doc-browser-cb[data-doc-id="' + id + '"]');
+                        if (cb) cb.checked = false;
+                        renderChips();
+                        checkShareReady();
+                    });
+                    container.appendChild(chip);
+
+                    var inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'documents[]';
+                    inp.value = id;
+                    hidden.appendChild(inp);
+                });
+            }
+        }
+
+        function resetDocBrowser() {
+            navStack = [];
+            selectedDocs = {};
+            $('#docBrowserSearch').val('');
+            $('#docSearchPane').hide();
+            $('#docBrowserWrapper').show();
+            $('#docBrowserSearchClear').hide();
+            renderBrowser();
+        }
+
+        function flattenAllDocs(tree, folderPath) {
+            var results = [];
+            folderPath = folderPath || 'Root';
+            tree.forEach(function (node) {
+                (node.docs || []).forEach(function (d) {
+                    results.push({ id: d.id, label: d.label, path: folderPath + ' / ' + node.name });
+                });
+                results = results.concat(flattenAllDocs(node.children || [], folderPath + ' / ' + node.name));
+            });
+            return results;
+        }
+
+        function getAllDocs() {
+            var rootLabel = scopedNode ? escHtml(scopedNode.name) : 'Root';
+            var all = flattenAllDocs(docTree, rootLabel);
+
+            rootDocs.forEach(function (d) {
+                var exists = all.some(function (x) { return String(x.id) === String(d.id); });
+                if (!exists) all.push({ id: d.id, label: d.label, path: rootLabel });
+            });
+
+            if (!scopedNode) {
+                othersDocs.forEach(function (d) {
+                    all.push({ id: d.id, label: d.label, path: 'Root / Others' });
+                });
+            }
+
+            return all;
+        }
+
+        function renderSearchPane(term) {
+            var pane = document.getElementById('docSearchPane');
+            term = term.toLowerCase().trim();
+
+            if (!term) {
+                pane.style.display = 'none';
+                document.getElementById('docBrowserWrapper').style.display = 'block';
+                document.getElementById('docBrowserSearchClear').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('docBrowserWrapper').style.display = 'none';
+            document.getElementById('docBrowserSearchClear').style.display = 'block';
+            pane.style.display = 'block';
+
+            var matches = getAllDocs().filter(function (d) {
+                return d.label.toLowerCase().includes(term);
+            });
+
+            if (!matches.length) {
+                pane.innerHTML = '<div style="padding:32px;text-align:center;font-size:0.82rem;color:#9ca3af;">'
+                               + '<i class="ri-search-line" style="font-size:1.4rem;display:block;margin-bottom:6px;"></i>'
+                               + 'No documents found for <strong>"' + escHtml(term) + '"</strong></div>';
+                return;
+            }
+
+            var html = '';
+            matches.forEach(function (d) {
+                var checked = selectedDocs[d.id] ? 'checked' : '';
+                html += '<div class="doc-browser-row" data-doc-id="' + d.id + '">'
+                      + '<input type="checkbox" class="form-check-input doc-browser-cb" '
+                      + 'data-doc-id="' + d.id + '" data-doc-label="' + escAttr(d.label) + '" '
+                      + checked + ' style="flex-shrink:0;">'
+                      + '<i class="ri-file-text-line" style="color:#6b7280;flex-shrink:0;"></i>'
+                      + '<div style="flex:1;overflow:hidden;">'
+                      + '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem;">' + escHtml(d.label) + '</div>'
+                      + '<div style="font-size:0.7rem;color:#9ca3af;margin-top:1px;"><i class="ri-folder-line" style="font-size:0.7rem;"></i> ' + escHtml(d.path) + '</div>'
+                      + '</div></div>';
+            });
+            pane.innerHTML = html;
+            bindBrowserCheckboxes(pane);
+        }
+
+        function checkShareReady() {
+            var type = document.querySelector('input[name="share_type"]:checked');
+            var usersOk = $('#shareUsersSelect').val() && $('#shareUsersSelect').val().length > 0;
+            var targetOk = false;
+
+            if (type && type.value === 'folder') targetOk = !!$('#shareFolderSelect').val();
+            if (type && type.value === 'document') targetOk = Object.keys(selectedDocs).length > 0;
+
+            $('#shareSubmitBtn').prop('disabled', !(usersOk && targetOk));
+        }
+
+        function renderPeopleWithAccess(res) {
+            $('#peopleAccessContainer').find('a').remove();
+            if (res.length) {
+                $('#peopleAccessContainer').show();
+                res.forEach(function (s) {
+                    $('#peopleAccessContainer').append(
+                        '<a href="javascript:void(0);" class="list-group-item list-group-item-action active">'
+                      + '<div class="d-flex mb-2 align-items-center">'
+                      + '<div class="flex-shrink-0"><img src="/images/no_image.png" class="avatar-sm rounded-circle"/></div>'
+                      + '<div class="flex-grow-1 ms-3">'
+                      + '<h5 class="list-title fs-15 mb-1 text-dark">' + s.user.name + '</h5>'
+                      + '<p class="list-text mb-0 fs-12 text-dark">' + s.user.email + '</p>'
+                      + '</div></div></a>'
+                    );
+                });
+            } else {
+                $('#peopleAccessContainer').hide();
+            }
+        }
+
+        $('#share').on('shown.bs.modal', function () {
+            if (!$('#shareFolderSelect').data('chosen-init')) {
+                $('#shareFolderSelect').chosen({ width: '100%' }).on('change', function () {
+                    var folderId = $(this).val();
+                    $('#peopleAccessContainer').hide().find('a').remove();
+                    $('#folderPreview').hide();
+                    if (!folderId) { checkShareReady(); return; }
+
+                    var folder = folderData.find(function (f) { return String(f.id) === String(folderId); });
+                    if (folder) {
+                        $('#folderPreviewName').text(folder.name);
+                        $('#folderPreviewCount').text(folder.docs.length + ' file' + (folder.docs.length !== 1 ? 's' : ''));
+                        var listHtml = folder.docs.length
+                            ? folder.docs.map(function (d) {
+                                return '<div class="d-flex align-items-center gap-2 py-1 border-bottom">'
+                                     + '<i class="ri-file-text-line text-muted"></i>'
+                                     + '<span class="text-truncate">' + d.title + '</span></div>';
+                            }).join('')
+                            : '<div class="text-muted fst-italic">This folder has no documents yet.</div>';
+                        $('#folderPreviewList').html(listHtml);
+                        $('#folderPreview').show();
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ url("/documents/share-folder") }}',
+                        dataType: 'json',
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        data: { folder_id: folderId },
+                        success: function (res) { renderPeopleWithAccess(res); }
+                    });
+                    checkShareReady();
+                });
+                $('#shareFolderSelect').data('chosen-init', true);
+            }
+
+            if (!$('#shareUsersSelect').data('chosen-init')) {
+                $('#shareUsersSelect').chosen({ width: '100%' }).on('change', checkShareReady);
+                $('#shareUsersSelect').data('chosen-init', true);
+            }
+
+            renderBrowser();
+
+            if (!$('#docBrowserSearch').data('search-init')) {
+                $('#docBrowserSearch').on('input', function () {
+                    renderSearchPane($(this).val());
+                    setTimeout(function () {
+                        document.querySelectorAll('#docSearchPane .doc-browser-cb').forEach(function (cb) {
+                            cb.checked = !!selectedDocs[cb.getAttribute('data-doc-id')];
+                        });
+                    }, 0);
+                });
+                $('#docBrowserSearchClear').on('click', function () {
+                    $('#docBrowserSearch').val('').trigger('input').focus();
+                });
+                $('#docBrowserSearch').data('search-init', true);
+            }
+        });
+
+        $('#share').on('hidden.bs.modal', function () {
+            $('input[name="share_type"]').prop('checked', false);
+            $('.share-type-card').removeClass('border-primary bg-light');
+            $('#folderSelectionField, #documentSelectionField, #usersField').hide();
+            $('#folderPreview').hide();
+            $('#shareFolderSelect').val('').trigger('chosen:updated');
+            $('#shareUsersSelect').val(null).trigger('chosen:updated');
+            $('#shareSubmitBtn').prop('disabled', true);
+            $('#peopleAccessContainer').hide().find('a').remove();
+            resetDocBrowser();
+        });
+
+        $('input[name="share_type"]').on('change', function () {
+            var val = $(this).val();
+            $('.share-type-card').removeClass('border-primary bg-light');
+            $(this).closest('.share-type-card').addClass('border-primary bg-light');
+            $('#peopleAccessContainer').hide().find('a').remove();
+            $('#folderPreview').hide();
+
+            if (val === 'folder') {
+                $('#folderSelectionField').show();
+                $('#documentSelectionField').hide();
+                resetDocBrowser();
+            } else {
+                $('#documentSelectionField').show();
+                $('#folderSelectionField').hide();
+                $('#shareFolderSelect').val('').trigger('chosen:updated');
+                renderBrowser();
+            }
+
+            $('#usersField').show();
+            checkShareReady();
+        });
+
+        window.bulkPreSelectDocs = function (items) {
+            resetDocBrowser();
+            $('input[name="share_type"][value="document"]').prop('checked', true).trigger('change');
+            items.forEach(function (item) { selectedDocs[item.id] = item.name; });
+            renderBrowser();
+            renderChips();
+            checkShareReady();
+        };
+    }());
 </script>
 @endsection

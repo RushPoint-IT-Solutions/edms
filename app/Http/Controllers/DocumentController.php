@@ -79,7 +79,10 @@ class DocumentController extends Controller
                 ->get();
         }
 
-        $existingDocuments = Document::with('document_type_list')
+        $existingDocuments = Document::with('document_type_list', 'document_tags')
+            ->when(auth()->user()->role != 'Administrator', function ($q) {
+                $q->where('user_id', auth()->user()->id);
+            })
             ->selectRaw('
                 MAX(id) as id,
                 control_code,
@@ -251,7 +254,7 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>Document</td>
-                    <td>—</td>
+                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">';
 
@@ -401,21 +404,27 @@ class DocumentController extends Controller
                 $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
                 $docUrl = url('/documents/view-document/' . $doc->id);
 
-                $actionHtml = $canDelete
-                    ? '<div class="dropdown">
-                            <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
-                                <i class="ri-more-2-fill"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                        <i class="ri-delete-bin-line me-2"></i>Delete document
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>'
-                    : '<button class="action-btn"><i class="ri-more-2-fill"></i></button>';
+                $shareListItem = '<li>
+                    <a class="dropdown-item" href="javascript:void(0)"
+                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                        <i class="ri-share-line me-2"></i>Share
+                    </a>
+                </li>';
+
+                $actionHtml = '<div class="dropdown">
+                    <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        ' . $shareListItem .
+                        ($canDelete ? '<li>
+                            <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                                <i class="ri-delete-bin-line me-2"></i>Delete document
+                            </a>
+                        </li>' : '') . '
+                    </ul>
+                </div>';
 
                 $listHtml .= '
                 <tr class="document-row"
@@ -436,21 +445,25 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>' . strtoupper($doc->fileType) . '</td>
-                    <td>—</td>
+                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
                 </tr>';
 
-                $gridDropdown = $canDelete
-                    ? '<ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                    <i class="ri-delete-bin-line me-2"></i>Delete document
-                                </a>
-                            </li>
-                        </ul>'
-                    : '';
+                $gridDropdown = '<ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)"
+                            onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                            <i class="ri-share-line me-2"></i>Share
+                        </a>
+                    </li>' .
+                    ($canDelete ? '<li>
+                        <a class="dropdown-item text-danger" href="javascript:void(0)"
+                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                            <i class="ri-delete-bin-line me-2"></i>Delete document
+                        </a>
+                    </li>' : '') . '
+                </ul>';
 
                 $gridHtml .= '
                 <div class="grid-item file-item"
@@ -522,21 +535,27 @@ class DocumentController extends Controller
             $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
             $docUrl = url('/documents/view-document/' . $doc->id);
 
-            $actionHtml = $canDelete
-                ? '<div class="dropdown">
-                        <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                    <i class="ri-delete-bin-line me-2"></i>Delete document
-                                </a>
-                            </li>
-                        </ul>
-                    </div>'
-                : '<button class="action-btn"><i class="ri-more-2-fill"></i></button>';
+            $shareListItem = '<li>
+                <a class="dropdown-item" href="javascript:void(0)"
+                    onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                    <i class="ri-share-line me-2"></i>Share
+                </a>
+            </li>';
+
+            $actionHtml = '<div class="dropdown">
+                <button class="action-btn" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                    <i class="ri-more-2-fill"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    ' . $shareListItem .
+                    ($canDelete ? '<li>
+                        <a class="dropdown-item text-danger" href="javascript:void(0)"
+                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                            <i class="ri-delete-bin-line me-2"></i>Delete document
+                        </a>
+                    </li>' : '') . '
+                </ul>
+            </div>';
 
             $listHtml .= '
             <tr class="document-row"
@@ -557,7 +576,7 @@ class DocumentController extends Controller
                     </div>
                 </td>
                 <td>' . strtoupper($doc->fileType) . '</td>
-                <td>—</td>
+                <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                 <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                 <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
             </tr>';
@@ -566,7 +585,13 @@ class DocumentController extends Controller
         $gridHtml = '';
 
         foreach ($childFolders as $folder) {
-            $dropdownItems = '';
+            $dropdownItems = '<li>
+                <a class="dropdown-item" href="javascript:void(0)"
+                    onclick="event.stopPropagation(); preSingleFolderShare(' . $folder->id . ')">
+                    <i class="ri-share-line me-2"></i>Share folder
+                </a>
+            </li>';
+
             if ($canEdit) {
                 $dropdownItems .= '
                 <li>
@@ -619,16 +644,20 @@ class DocumentController extends Controller
             $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
             $docUrl = url('/documents/view-document/' . $doc->id);
 
-            $gridDropdown = $canDelete
-                ? '<ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
-                                <i class="ri-delete-bin-line me-2"></i>Delete document
-                            </a>
-                        </li>
-                    </ul>'
-                : '';
+            $gridDropdown = '<ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="javascript:void(0)"
+                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                        <i class="ri-share-line me-2"></i>Share
+                    </a>
+                </li>' .
+                ($canDelete ? '<li>
+                    <a class="dropdown-item text-danger" href="javascript:void(0)"
+                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                        <i class="ri-delete-bin-line me-2"></i>Delete document
+                    </a>
+                </li>' : '') . '
+            </ul>';
 
             $gridHtml .= '
             <div class="grid-item file-item"
@@ -785,7 +814,7 @@ class DocumentController extends Controller
                     $html .= '<span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>';
                     $html .= '</div></td>';
                     $html .= '<td>' . strtoupper($fileInfo['fileType']) . '</td>';
-                    $html .= '<td>—</td>';
+                    $html .= '<td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
                         <div class="dropdown">
@@ -1195,22 +1224,6 @@ class DocumentController extends Controller
         return back();
     }
 
-    // public function folderView(Request $request,$id)
-    // {
-    //     $folder_data = DocumentFolder::with('document','childrenFolder')->findOrFail($id);
-    //     $documents = Document::get();
-
-    //     $document_folders = DocumentFolder::get();
-
-    //     return view('documents.folder_view',
-    //         array(
-    //             'folder_data' => $folder_data,
-    //             'document_folders' => $document_folders,
-    //             'documents' => $documents
-    //         )
-    //     );
-    // }
-
     private function getDocumentFileInfo($doc)
     {
         $document = Document::with('attachments')->find($doc->id);
@@ -1260,82 +1273,96 @@ class DocumentController extends Controller
 
         $document_types = DocumentType::orderBy('name', 'desc')->get();
         $all_document_folders = DocumentFolder::get();
+        $users = User::whereNull('status')->get();
+        $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
+        $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
 
-        $breadcrumbs = [];
+        $existingDocuments = Document::with('document_type_list', 'document_tags')
+            ->selectRaw('
+                MAX(id) as id, control_code, title, category, folder_id,
+                other_category, type_of_request, office_id,
+                MAX(version) AS latest_revision, COUNT(*) AS upload_count
+            ')
+            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request', 'office_id')
+            ->orderBy('control_code', 'asc')
+            ->get();
+
+        $allUserFolders = DocumentFolder::with('document', 'childrenFolder')
+            ->where('user_id', auth()->id())
+            ->get();
+
+        $allUserDocuments = Document::where('user_id', auth()->id())
+            ->orderBy('control_code', 'desc')
+            ->get();
+
+        $folderData = $allUserFolders->map(fn($f) => [
+            'id' => $f->id,
+            'name' => $f->name,
+            'docs' => $f->document->map(fn($d) => [
+                'id' => $d->id,
+                'title' => $d->control_code . ' - ' . $d->title,
+            ])->values(),
+        ])->values();
+
+        $shareTree = $this->buildShareTree($allUserFolders, $allUserDocuments);
+        $shareOthersDocs = $allUserDocuments
+            ->filter(fn($d) => is_null($d->folder_id))
+            ->map(fn($d) => [
+                'id'    => $d->id,
+                'label' => $d->control_code . ' - ' . $d->title,
+            ])
+            ->values()
+            ->toArray();
+
+        $sharedData = compact(
+            'document_types', 'users', 'folderData', 'shareTree',
+            'shareOthersDocs', 'existingDocuments', 'controlCodes', 'teams'
+        );
 
         if ($id === 'others') {
-            $documentsQuery = Document::with('change_requests','attachments')
+            $documentsQuery = Document::with('change_requests', 'attachments')
                 ->whereNull('folder_id');
-            
-            if (auth()->user()->role != "Administrator") {
-                $documentsQuery->where('user_id', auth()->user()->id);
+
+            if (auth()->user()->role !== 'Administrator') {
+                $documentsQuery->where('user_id', auth()->id());
             }
 
             if ($search) {
-                $documentsQuery->where(function($query) use ($search) {
-                    $query->where('title', 'like', '%'.$search.'%')
-                        ->orWhere('control_code', 'like', '%'.$search.'%');
-                });
+                $documentsQuery->where(fn($q) => $q
+                    ->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('control_code', 'like', '%' . $search . '%')
+                );
             }
 
-            $documents = $documentsQuery->orderBy('control_code', 'desc')->get();
-
-            $documentsWithFileInfo = $documents->map(function($doc) {
-                $fileInfo = $this->getDocumentFileInfo($doc);
-                $doc->fileType = $fileInfo['fileType'];
-                $doc->previewClass = $fileInfo['previewClass'];
-                $doc->iconClass = $fileInfo['iconClass'];
-                $doc->badgeClass = $fileInfo['badgeClass'];
+            $documents = $documentsQuery->orderBy('control_code', 'desc')->get()->map(function ($doc) {
+                $info = $this->getDocumentFileInfo($doc);
+                $doc->fileType = $info['fileType'];
+                $doc->previewClass = $info['previewClass'];
+                $doc->iconClass = $info['iconClass'];
+                $doc->badgeClass = $info['badgeClass'];
                 return $doc;
             });
 
-            $items = $documentsWithFileInfo->map(function($doc) {
-                return (object)[
-                    'id' => $doc->id,
-                    'name' => $doc->control_code . ' - ' . $doc->title,
-                    'title' => $doc->title,
-                    'control_code' => $doc->control_code,
-                    'type' => 'document',
-                    'updated_at' => $doc->updated_at,
-                    'fileType' => $doc->fileType,
-                    'previewClass' => $doc->previewClass,
-                    'iconClass' => $doc->iconClass,
-                    'badgeClass' => $doc->badgeClass,
-                ];
-            });
+            $paginatedItems = $this->paginateCollection($documents, $perPage);
 
-            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-            $itemCollection = collect($items);
-            $currentPageItems = $itemCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
-            $paginatedItems = new \Illuminate\Pagination\LengthAwarePaginator(
-                $currentPageItems,
-                $itemCollection->count(),
-                $perPage,
-                $currentPage,
-                ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
-            );
-
-            return view('documents.folder_view',
-                array(
-                    'folder_data' => (object)[
-                        'id' => 'others',
-                        'name' => 'Others',
-                        'childrenFolder' => collect([]),
-                        'document' => $documentsWithFileInfo,
-                        'updated_at' => now()
-                    ],
-                    'document_folders' => $all_document_folders,
-                    'documents' => Document::all(),
-                    'folders' => $paginatedItems,
-                    'totalFolders' => 0,
-                    'totalDocuments' => $documents->count(),
-                    'totalItems' => $documents->count(),
-                    'is_others_folder' => true,
-                    'document_types' => $document_types,
-                    'folderTreeHtml' => '',
-                    'breadcrumbs' => []
-                )
-            );
+            return view('documents.folder_view', array_merge($sharedData, [
+                'folder_data' => (object)[
+                    'id' => 'others',
+                    'name' => 'Others',
+                    'childrenFolder' => collect([]),
+                    'document' => $documents,
+                    'updated_at'=> now(),
+                ],
+                'document_folders' => $all_document_folders,
+                'documents' => Document::all(),
+                'folders' => $paginatedItems,
+                'totalFolders' => 0,
+                'totalDocuments' => $documents->count(),
+                'totalItems' => $documents->count(),
+                'is_others_folder' => true,
+                'folderTreeHtml' => '',
+                'breadcrumbs' => [],
+            ]));
         }
 
         $folder_data = DocumentFolder::with([
@@ -1344,9 +1371,10 @@ class DocumentController extends Controller
             'parent',
             'parent.parent',
             'parent.parent.parent',
-            'parent.parent.parent.parent'
+            'parent.parent.parent.parent',
         ])->findOrFail($id);
 
+        $breadcrumbs = [];
         $current = $folder_data;
         while ($current) {
             array_unshift($breadcrumbs, $current);
@@ -1357,31 +1385,29 @@ class DocumentController extends Controller
         $documentsQuery = Document::where('folder_id', $id);
 
         if ($search) {
-            $foldersQuery->where('name', 'like', '%'.$search.'%');
-            $documentsQuery->where(function($query) use ($search) {
-                $query->where('title', 'like', '%'.$search.'%')
-                    ->orWhere('control_code', 'like', '%'.$search.'%');
-            });
+            $foldersQuery->where('name', 'like', '%' . $search . '%');
+            $documentsQuery->where(fn($q) => $q
+                ->where('title', 'like', '%' . $search . '%')
+                ->orWhere('control_code', 'like', '%' . $search . '%')
+            );
         }
 
         $childFolders = $foldersQuery->orderBy('name', 'asc')->get();
-        $childDocuments = $documentsQuery->orderBy('control_code', 'desc')->get();
-
-        $documentsWithFileInfo = $childDocuments->map(function($doc) {
-            $fileInfo = $this->getDocumentFileInfo($doc);
-            $doc->fileType = $fileInfo['fileType'];
-            $doc->previewClass = $fileInfo['previewClass'];
-            $doc->iconClass = $fileInfo['iconClass'];
-            $doc->badgeClass = $fileInfo['badgeClass'];
+        $childDocuments = $documentsQuery->orderBy('control_code', 'desc')->get()->map(function ($doc) {
+            $info = $this->getDocumentFileInfo($doc);
+            $doc->fileType = $info['fileType'];
+            $doc->previewClass = $info['previewClass'];
+            $doc->iconClass = $info['iconClass'];
+            $doc->badgeClass = $info['badgeClass'];
             return $doc;
         });
 
-        $folder_data->document = $folder_data->document->map(function($doc) {
-            $fileInfo = $this->getDocumentFileInfo($doc);
-            $doc->fileType = $fileInfo['fileType'];
-            $doc->previewClass = $fileInfo['previewClass'];
-            $doc->iconClass = $fileInfo['iconClass'];
-            $doc->badgeClass = $fileInfo['badgeClass'];
+        $folder_data->document = $folder_data->document->map(function ($doc) {
+            $info = $this->getDocumentFileInfo($doc);
+            $doc->fileType = $info['fileType'];
+            $doc->previewClass = $info['previewClass'];
+            $doc->iconClass = $info['iconClass'];
+            $doc->badgeClass = $info['badgeClass'];
             return $doc;
         });
 
@@ -1394,7 +1420,7 @@ class DocumentController extends Controller
                 'updated_at' => $folder->updated_at,
             ]);
         }
-        foreach ($documentsWithFileInfo as $doc) {
+        foreach ($childDocuments as $doc) {
             $items->push((object)[
                 'id' => $doc->id,
                 'name' => $doc->control_code . ' - ' . $doc->title,
@@ -1409,37 +1435,35 @@ class DocumentController extends Controller
             ]);
         }
 
+        $paginatedItems = $this->paginateCollection($items, $perPage);
+        $documents = Document::all();
+        $folderTreeHtml  = $this->renderFolderTreeView($all_document_folders, $documents, $folder_data->id, 0, $folder_data->id);
+
+        return view('documents.folder_view', array_merge($sharedData, [
+            'folder_data' => $folder_data,
+            'document_folders' => $all_document_folders,
+            'documents' => $documents,
+            'folders' => $paginatedItems,
+            'totalFolders' => $childFolders->count(),
+            'totalDocuments' => $childDocuments->count(),
+            'totalItems' => $childFolders->count() + $childDocuments->count(),
+            'is_others_folder' => false,
+            'folderTreeHtml' => $folderTreeHtml,
+            'breadcrumbs' => $breadcrumbs,
+        ]));
+    }
+
+    private function paginateCollection($items, $perPage)
+    {
         $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-        $currentPageItems = $items->slice(($currentPage - 1) * $perPage, $perPage)->all();
-        $paginatedItems = new \Illuminate\Pagination\LengthAwarePaginator(
-            $currentPageItems,
-            $items->count(),
+        $collection  = collect($items);
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $collection->slice(($currentPage - 1) * $perPage, $perPage)->all(),
+            $collection->count(),
             $perPage,
             $currentPage,
             ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
-        );
-
-        $documents = Document::all();
-        $totalFolders = $childFolders->count();
-        $totalDocuments = $childDocuments->count();
-        $totalItems = $totalFolders + $totalDocuments;
-
-        $folderTreeHtml = $this->renderFolderTreeView($all_document_folders, $documents, $folder_data->id, 0, $folder_data->id);
-
-        return view('documents.folder_view',
-            array(
-                'folder_data' => $folder_data,
-                'document_folders' => $all_document_folders,
-                'documents' => $documents,
-                'folders' => $paginatedItems,
-                'totalFolders' => $totalFolders,
-                'totalDocuments' => $totalDocuments,
-                'totalItems' => $totalItems,
-                'is_others_folder' => false,
-                'document_types' => $document_types,
-                'folderTreeHtml' => $folderTreeHtml,
-                'breadcrumbs' => $breadcrumbs
-            )
         );
     }
 

@@ -19,10 +19,9 @@
 
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-end align-items-center py-3 gap-1">
-        @if(canCreate('documents'))
         <div class="dropdown">
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="dropdown">
-                <i class="ri-add-line"></i> New
+            <button type="button" class="btn btn-first btn-sm" data-bs-toggle="dropdown">
+                <i class="ri-add-line"></i> Create
             </button>
             <div class="dropdown-menu dropdown-menu-end">
                 <a class="dropdown-item" href="{{ route('documents.create') }}">
@@ -36,7 +35,7 @@
                 </a>
             </div>
         </div>
-        <div class="dropdown">
+        {{-- <div class="dropdown">
             <button type="button" class="btn btn-info btn-sm" data-bs-toggle="dropdown">
                 <i class="ri-more-2-line"></i>
             </button>
@@ -45,8 +44,10 @@
                     <i class="ri-user-add-line"></i> Share with others
                 </a>
             </div>
-        </div>
-        @endif
+        </div> --}}
+        <a type="button" class="btn btn-second btn-sm" data-bs-toggle="modal" data-bs-target="#share">
+            <i class="ri-user-add-line"></i> Share with others
+        </a>
     </div>
     <div class="card-body">
 
@@ -112,6 +113,7 @@
                         </th>
                         <th style="width:45%;">Name</th>
                         <th>File type</th>
+                        <th>Version</th>
                         <th>Size</th>
                         <th>Modified</th>
                         <th class="actions-cell"></th>
@@ -572,9 +574,11 @@
         $('#finalNewControlCode').val('');
         $('#selectedControlCode').attr('name', 'control_code_existing');
         $('#finalNewControlCode').attr('name', 'control_code');
-
         $('#folderField').val('');
         $('#typeOfRequestField').val('');
+        $('#documentTypeField').val([]).trigger('chosen:updated');
+        $('#newDocDeptField').val('');
+        $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
     }
 
     function initUploadModalPlugins() {
@@ -610,12 +614,14 @@
 
                 if (!val) return;
 
-                var title        = $selected.data('title')    || '';
-                var folderId     = $selected.data('folder')   || '';
-                var curRevision  = parseInt($selected.data('revision') || 0);
+                var title = $selected.data('title') || '';
+                var folderId = $selected.data('folder') || '';
+                var curRevision = parseInt($selected.data('revision') || 0);
                 var nextRevision = curRevision + 1;
-                var officeId     = $selected.data('office')   || '';
-                var docTypes     = $selected.data('doctypes') || '';
+                var officeId = $selected.data('office') || '';
+                var docTypes = $selected.data('doctypes') || '';
+                var tags = $selected.data('tags') || '';
+
 
                 $('#selectedControlCode').val(val);
                 $('#finalNewControlCode').val('');
@@ -627,6 +633,13 @@
                     $('#documentTypeField').val(typeIds).trigger('chosen:updated');
                 } else {
                     $('#documentTypeField').val([]).trigger('chosen:updated');
+                }
+
+                if (tags) {
+                    var tagValues = String(tags).split(',').map(function(t) { return t.trim(); });
+                    $('select[name="tags[]"]', '#uploadDocument').val(tagValues).trigger('chosen:updated');
+                } else {
+                    $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
                 }
 
                 $('#folderField').val(folderId);
@@ -653,6 +666,7 @@
                 $('#revisionInfoBox').hide();
                 $('#newDocDeptField').val('');
                 $('#documentTypeField').val([]).trigger('chosen:updated');
+                $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
                 $('#folderField').val('');
                 $('#typeOfRequestField').val('Revision');
             });
