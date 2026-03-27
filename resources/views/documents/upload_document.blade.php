@@ -39,7 +39,7 @@
                                     @foreach($controlCodes ?? [] as $cc)
                                         <option value="{{ $cc->code }}"
                                             data-description="{{ $cc->description }}">
-                                            {{ $cc->code }}
+                                            {{ preg_replace('/-\d+$/', '-????', $cc->code) }}
                                         </option>
                                     @endforeach
                                 </select>
