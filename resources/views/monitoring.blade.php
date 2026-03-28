@@ -335,23 +335,23 @@
                         @forelse ($private_documents as $private_document)
                         @php
                             if ($private_document->has_valid_access) {
-                                $stateClass  = 'priv-granted';
+                                $stateClass = 'priv-granted';
                                 $borderColor = '#27ae60';
-                                $iconBg      = '#d1fae5';
-                                $iconColor   = '#27ae60';
-                                $iconClass   = 'ri-shield-check-line';
+                                $iconBg = '#d1fae5';
+                                $iconColor = '#27ae60';
+                                $iconClass = 'ri-shield-check-line';
                             } elseif ($private_document->has_pending_request) {
-                                $stateClass  = 'priv-pending';
+                                $stateClass = 'priv-pending';
                                 $borderColor = '#e67e22';
-                                $iconBg      = '#fff3e0';
-                                $iconColor   = '#e67e22';
-                                $iconClass   = 'ri-time-line';
+                                $iconBg = '#fff3e0';
+                                $iconColor = '#e67e22';
+                                $iconClass = 'ri-time-line';
                             } else {
-                                $stateClass  = 'priv-none';
+                                $stateClass = 'priv-none';
                                 $borderColor = '#dee2e6';
-                                $iconBg      = '#f1f3f5';
-                                $iconColor   = '#adb5bd';
-                                $iconClass   = 'ri-git-repository-private-line';
+                                $iconBg = '#f1f3f5';
+                                $iconColor = '#adb5bd';
+                                $iconClass = 'ri-git-repository-private-line';
                             }
                         @endphp
                         @php
@@ -795,25 +795,25 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                const fileCard   = this.closest('.file-card');
-                const cardId     = fileCard.dataset.cardId;
-                const dropdown   = document.querySelector(`.file-dropdown-menu[data-card-id="${cardId}"]`);
+                const fileCard = this.closest('.file-card');
+                const cardId = fileCard.dataset.cardId;
+                const dropdown = document.querySelector(`.file-dropdown-menu[data-card-id="${cardId}"]`);
 
                 document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
                     if (menu !== dropdown) menu.classList.remove('show');
                 });
                 document.querySelectorAll('.file-card').forEach(c => c.classList.remove('dropdown-open'));
 
-                const rect          = this.getBoundingClientRect();
+                const rect = this.getBoundingClientRect();
                 const dropdownWidth = 200;
                 let left = rect.right - dropdownWidth;
-                let top  = rect.bottom + 4;
+                let top = rect.bottom + 4;
 
                 if (left < 8) left = 8;
                 if (left + dropdownWidth > window.innerWidth - 8) left = window.innerWidth - dropdownWidth - 8;
 
-                dropdown.style.top      = top + 'px';
-                dropdown.style.left     = left + 'px';
+                dropdown.style.top = top + 'px';
+                dropdown.style.left = left + 'px';
                 dropdown.style.position = 'fixed';
 
                 dropdown.classList.toggle('show');
@@ -830,7 +830,7 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const action   = item.getAttribute('data-action');
+            const action = item.getAttribute('data-action');
             const filePath = item.querySelector('.file-path')?.value;
 
             switch (action) {
@@ -840,7 +840,7 @@
 
                 case 'approve':
                     const changeRequestId = item.getAttribute('data-id');
-                    const Status          = item.getAttribute('data-my-status');
+                    const Status = item.getAttribute('data-my-status');
 
                     if (!changeRequestId) break;
 
@@ -921,9 +921,9 @@
                 if (e.target.closest('.dropdown')) return;
 
                 const action = this.dataset.action;
-                const url    = this.dataset.url;
-                const docId  = this.dataset.docId;
-                const modal  = this.dataset.modal;
+                const url = this.dataset.url;
+                const docId = this.dataset.docId;
+                const modal = this.dataset.modal;
 
                 if (action === 'open-pdf' && url) {
                     userView(docId);
@@ -949,6 +949,13 @@
                     userView(docId);
                     window.open(url, '_blank');
                 }
+            });
+        });
+
+        document.addEventListener('show.bs.modal', function () {
+            document.querySelectorAll('.dropdown-menu.show').forEach(function (menu) {
+                const toggle = menu.previousElementSibling;
+                if (toggle) bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
             });
         });
     });

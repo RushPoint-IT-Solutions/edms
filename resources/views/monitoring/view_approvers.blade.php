@@ -64,8 +64,8 @@
                 </table>
             </div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">Okay</button>
+                <button type="button" class="btn btn-danger mt-2" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success mt-2" data-bs-dismiss="modal">Okay</button>
             </div>
         </div>
     </div>
