@@ -1,8 +1,9 @@
 <div class="modal" id="viewApprovers{{ $change_request->id }}">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title">View approvers</h6>
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title">Document Tracking - {{ $change_request->title }} - {{ $change_request->id }}</h5>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 @php
@@ -28,6 +29,7 @@
                         <tr>
                             <th>Level</th>
                             <th>Name</th>
+                            <th>Department</th>
                             <th>Start Date</th>
                             <th>Transaction Date</th>
                             <th>Status</th>
@@ -38,19 +40,22 @@
                             <tr>
                                 <td>{{$approver->level}}</td>
                                 <td>{{$approver->user->name}}</td>
+                                <td>
+                                    {{ $approver->user->department->name ?? '—' }}
+                                </td>
                                 <td>{{date("M d Y h:i A", strtotime($approver->start_date))}}</td>
                                 <td>
                                     @if($approver->status == "Approved")
-                                    {{date("M d Y h:i A", strtotime($approver->updated_at))}}
+                                        {{date("M d Y h:i A", strtotime($approver->updated_at))}}
                                     @endif
                                 </td>
                                 <td>
                                     @if($approver->status == "Pending")
-                                    <span class="badge bg-warning">{{$approver->status}}</span>
+                                        <span class="badge bg-warning">{{$approver->status}}</span>
                                     @elseif($approver->status == "Approved")
-                                    <span class="badge bg-success">{{$approver->status}}</span>
+                                        <span class="badge bg-success">{{$approver->status}}</span>
                                     @else
-                                    <span class="badge bg-danger">{{$approver->status}}</span>
+                                        <span class="badge bg-danger">{{$approver->status}}</span>
                                     @endif
                                 </td>
                             </tr>
@@ -58,8 +63,9 @@
                     </tbody>
                 </table>
             </div>
-            <div class="modal-footer">
-
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">Okay</button>
             </div>
         </div>
     </div>
