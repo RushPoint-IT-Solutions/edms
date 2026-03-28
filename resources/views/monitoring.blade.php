@@ -704,20 +704,20 @@
 </div>
 
 <div class="modal fade" id="dashboardSignModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
+    <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="ri-lock-line me-2"></i>Confirm Password</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="ri-lock-line me-2 mb-2"></i>Confirm Password</h5>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p class="text-muted small mb-3">Enter your password to proceed to the signing page.</p>
                 <input type="password" id="dashboardSignPassword" class="form-control" placeholder="Password" />
                 <div id="dashboardSignError" class="text-danger small mt-2 d-none">Incorrect password. Please try again.</div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="dashboardSignConfirm">
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary mt-2" id="dashboardSignConfirm">
                     <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
                 </button>
             </div>
