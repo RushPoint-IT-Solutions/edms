@@ -41,7 +41,17 @@ class GoogleController extends Controller
 
         Auth::login($user);
 
-  
+        // Default access
+        $access = [
+            'monitoring.view',
+            'files.view',
+            'personal.view',
+            'share_with_me.view',
+            'share_with_others.view',
+        ];
+
+        $user->syncPermissions($access);
+
         return redirect('/')->with('success', 'Welcome, ' . $user->name . '!');
     }
 }
