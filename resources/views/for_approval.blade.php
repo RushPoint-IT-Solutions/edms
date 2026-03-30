@@ -204,8 +204,8 @@ $(document).ready(function () {
         responsive: true,
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy',  text: 'Copy'  },
-            { extend: 'excel', text: 'Excel' }
+            { extend: 'copy',  text: 'Copy', className: 'btn btn-secondary btn-sm', titleAttr: 'Copy to clipboard' },
+            { extend: 'excel', text: 'Excel', className: 'btn btn-secondary btn-sm', title: 'Change Requests' }
         ],
         language: {
             processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
