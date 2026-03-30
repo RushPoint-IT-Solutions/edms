@@ -335,35 +335,34 @@
                         @forelse ($private_documents as $private_document)
                         @php
                             if ($private_document->has_valid_access) {
-                                $stateClass  = 'priv-granted';
+                                $stateClass = 'priv-granted';
                                 $borderColor = '#27ae60';
-                                $iconBg      = '#d1fae5';
-                                $iconColor   = '#27ae60';
-                                $iconClass   = 'ri-shield-check-line';
+                                $iconBg = '#d1fae5';
+                                $iconColor = '#27ae60';
+                                $iconClass = 'ri-shield-check-line';
                             } elseif ($private_document->has_pending_request) {
-                                $stateClass  = 'priv-pending';
+                                $stateClass = 'priv-pending';
                                 $borderColor = '#e67e22';
-                                $iconBg      = '#fff3e0';
-                                $iconColor   = '#e67e22';
-                                $iconClass   = 'ri-time-line';
+                                $iconBg = '#fff3e0';
+                                $iconColor = '#e67e22';
+                                $iconClass = 'ri-time-line';
                             } else {
-                                $stateClass  = 'priv-none';
+                                $stateClass = 'priv-none';
                                 $borderColor = '#dee2e6';
-                                $iconBg      = '#f1f3f5';
-                                $iconColor   = '#adb5bd';
-                                $iconClass   = 'ri-git-repository-private-line';
+                                $iconBg = '#f1f3f5';
+                                $iconColor = '#adb5bd';
+                                $iconClass = 'ri-git-repository-private-line';
                             }
                         @endphp
                         @php
                             $pdfUrl = null;
                             if ($private_document->has_valid_access) {
-                                $pdfAttachment = $private_document->attachments->where('type', 'pdf_copy')->first();
-                                $pdfUrl = $pdfAttachment ? url($pdfAttachment->attachment) : null;
+                                $pdfUrl = $private_document->file ? url($private_document->file) : null;
                             }
                         @endphp
                         <li class="list-group-item px-2 py-2 priv-item {{ $stateClass }} priv-row-clickable"
                             style="border-left: 4px solid {{ $borderColor }}; border-radius: 6px; margin-bottom: 4px; cursor: pointer;"
-                           @if($private_document->has_valid_access && $pdfUrl)
+                            @if($private_document->has_valid_access && $pdfUrl)
                                 data-action="open-pdf"
                                 data-url="{{ $pdfUrl }}"
                                 data-doc-id="{{ $private_document->id }}"
@@ -382,14 +381,12 @@
                                         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:{{ $iconBg }};color:{{ $iconColor }};">
                                         <i class="{{ $iconClass }}"></i>
                                     </div>
-                                    @if($private_document->has_valid_access)
-                                        @foreach($private_document->attachments->where('type', 'pdf_copy') as $attachment)
-                                            <form action="{{ url('/documents/user-view') }}" method="post"
-                                                id="userView{{ $attachment->id }}">
-                                                @csrf
-                                                <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                            </form>
-                                        @endforeach
+                                   @if($private_document->has_valid_access && $private_document->file)
+                                        <form action="{{ url('/documents/user-view') }}" method="post"
+                                            id="userView{{ $private_document->id }}">
+                                            @csrf
+                                            <input type="hidden" name="document_id" value="{{ $private_document->id }}">
+                                        </form>
                                     @endif
                                 </div>
 
@@ -426,7 +423,7 @@
                                     <small class="text-muted d-block text-truncate mt-1" title="{{ $private_document->control_code }}">
                                         {{ $private_document->control_code }}
                                     </small>
-                                    <small class="text-muted d-block text-truncate">Owner: {{ $private_document->owner->name }}</small>
+                                    <small class="text-muted d-block text-truncate">Owner: {{ $private_document->user->name }}</small>
                                 </div>
 
                                 <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1"
@@ -466,11 +463,11 @@
                                                 </li>
                                             @endif
                                             <li>
-                                                <a href="{{ url('/documents/visitors/' . $private_document->id) }}"
+                                                <a href="{{ url('/change-request/visitors/' . $private_document->id) }}"
                                                     target="_blank" class="dropdown-item">
                                                     <i class="ri-eye-line me-2"></i> View Visitors
                                                     <span class="badge bg-primary-subtle text-primary ms-1">
-                                                        {{ $private_document->visitor->count() }}
+                                                        {{ optional($private_document->visitors)->count() ?? 0 }}
                                                     </span>
                                                 </a>
                                             </li>
@@ -535,7 +532,7 @@
                         @forelse ($documents as $document)
                         @php
                             $pubAttachment = $document->attachments->where('type', 'pdf_copy')->first();
-                            $pubUrl        = $pubAttachment ? url($pubAttachment->attachment) : null;
+                            $pubUrl = $pubAttachment ? url($pubAttachment->attachment) : null;
                         @endphp
                         <li class="list-group-item px-2 py-2 priv-item pub-item"
                             style="border-left: 4px solid #3b82f6; border-radius: 6px; margin-bottom: 4px; cursor: {{ $pubUrl ? 'pointer' : 'default' }};"
@@ -644,7 +641,9 @@
                 <div style="overflow-y:scroll;flex-grow:1;min-height:0;">
                     <ul class="list-group list-group-flush">
                         @forelse ($change_requests->where("status", "!=","Approved") as $change_request)
-                        <li class="list-group-item px-2 py-2 priv-item pub-item" style="border-left: 4px solid #e0f0e3; border-radius: 6px; margin-bottom: 4px;" data-bs-toggle="modal" data-bs-target="#viewApprovers{{ $change_request->id }}">
+                        <li class="list-group-item px-2 py-2 priv-item pub-item" 
+                            style="border-left: 4px solid #e0f0e3; border-radius: 6px; margin-bottom: 4px; cursor: {{ $pubUrl ? 'pointer' : 'default' }};" 
+                            data-bs-toggle="modal" data-bs-target="#viewApprovers{{ $change_request->id }}">
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-shrink-0 pt-1">
                                     <div class="avatar-title rounded"
@@ -704,20 +703,20 @@
 </div>
 
 <div class="modal fade" id="dashboardSignModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
+    <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="ri-lock-line me-2"></i>Confirm Password</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="ri-lock-line me-2 mb-2"></i>Confirm Password</h5>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p class="text-muted small mb-3">Enter your password to proceed to the signing page.</p>
                 <input type="password" id="dashboardSignPassword" class="form-control" placeholder="Password" />
                 <div id="dashboardSignError" class="text-danger small mt-2 d-none">Incorrect password. Please try again.</div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="dashboardSignConfirm">
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary mt-2" id="dashboardSignConfirm">
                     <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
                 </button>
             </div>
@@ -793,25 +792,25 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                const fileCard   = this.closest('.file-card');
-                const cardId     = fileCard.dataset.cardId;
-                const dropdown   = document.querySelector(`.file-dropdown-menu[data-card-id="${cardId}"]`);
+                const fileCard = this.closest('.file-card');
+                const cardId = fileCard.dataset.cardId;
+                const dropdown = document.querySelector(`.file-dropdown-menu[data-card-id="${cardId}"]`);
 
                 document.querySelectorAll('.file-dropdown-menu').forEach(menu => {
                     if (menu !== dropdown) menu.classList.remove('show');
                 });
                 document.querySelectorAll('.file-card').forEach(c => c.classList.remove('dropdown-open'));
 
-                const rect          = this.getBoundingClientRect();
+                const rect = this.getBoundingClientRect();
                 const dropdownWidth = 200;
                 let left = rect.right - dropdownWidth;
-                let top  = rect.bottom + 4;
+                let top = rect.bottom + 4;
 
                 if (left < 8) left = 8;
                 if (left + dropdownWidth > window.innerWidth - 8) left = window.innerWidth - dropdownWidth - 8;
 
-                dropdown.style.top      = top + 'px';
-                dropdown.style.left     = left + 'px';
+                dropdown.style.top = top + 'px';
+                dropdown.style.left = left + 'px';
                 dropdown.style.position = 'fixed';
 
                 dropdown.classList.toggle('show');
@@ -828,7 +827,7 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const action   = item.getAttribute('data-action');
+            const action = item.getAttribute('data-action');
             const filePath = item.querySelector('.file-path')?.value;
 
             switch (action) {
@@ -838,7 +837,7 @@
 
                 case 'approve':
                     const changeRequestId = item.getAttribute('data-id');
-                    const Status          = item.getAttribute('data-my-status');
+                    const Status = item.getAttribute('data-my-status');
 
                     if (!changeRequestId) break;
 
@@ -919,21 +918,20 @@
                 if (e.target.closest('.dropdown')) return;
 
                 const action = this.dataset.action;
-                const url    = this.dataset.url;
-                const docId  = this.dataset.docId;
-                const modal  = this.dataset.modal;
+                const url = this.dataset.url;
+                const docId = this.dataset.docId;
+                const modal = this.dataset.modal;
 
                 if (action === 'open-pdf' && url) {
-                    userView(docId);
-                    window.open(url, '_blank');
-                } else if (action === 'pending') {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Request Pending',
-                        html: 'Your access request is currently awaiting approval. Please wait for the document owner to review it.',
-                        confirmButtonColor: '#8B0000',
-                        confirmButtonText: 'Got it',
+                    fetch("{{ url('/change-request/private-user-view') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ change_request_id: docId })
                     });
+                    window.open(url, '_blank');
                 }
             });
         });
@@ -950,6 +948,24 @@
             });
         });
 
+        document.addEventListener('show.bs.modal', function () {
+            document.querySelectorAll('.dropdown-menu.show').forEach(function (menu) {
+                const toggle = menu.previousElementSibling;
+                if (toggle) bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
+            });
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) {
+                const modalInstance = bootstrap.Modal.getInstance(openModal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+        }
     });
 </script>
 @endsection
