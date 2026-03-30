@@ -59,6 +59,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('share','DocumentController@share');
             Route::post("/share-document", "DocumentController@shareDocument");
             Route::post('/share-folder', 'DocumentController@shareFolder');
+            Route::get('/next-control-code', 'DocumentController@previewNextControlCode');
         });
 
         Route::get('/shared-with-me', 'DocumentController@sharedWithMe')->name('shared-with-me');

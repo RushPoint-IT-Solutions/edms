@@ -17,7 +17,30 @@
 
                     <div class="row g-3">
 
-                        <div class="col-md-6">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Type of Document *</label>
+                            <select id="documentTypeField" name="document_type[]" class="form-control chosen-select-doc" multiple required>
+                                @foreach($document_types as $types)
+                                    <option value="{{ $types->id }}" data-name="{{ $types->name }}" data-code="{{ $types->code }}">
+                                        {{ $types->code }} - {{ $types->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Office *</label>
+                            <select id="newDocDeptField" name="office_id" class="form-select" required>
+                                <option value="">— Select office —</option>
+                                @foreach($teams ?? [] as $team)
+                                    <option value="{{ $team->id }}" data-code="{{ $team->name }}">
+                                        {{ $team->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">
                                 Control Code *
                                 <span id="newDocBadge" class="badge bg-success text-white ms-1" style="display:none; font-size:0.7rem;">New</span>
@@ -30,73 +53,39 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6" id="controlCodeResultField" style="display:none;">
-
-                            <div id="newDocCodeDisplay" style="display:none;">
-                                <label class="form-label fw-semibold">Select Control Code</label>
-                                <select id="newControlCodePicker" name="_new_control_code" class="form-select">
-                                    <option value="">— Select a control code —</option>
-                                    @foreach($controlCodes ?? [] as $cc)
-                                        <option value="{{ $cc->code }}"
-                                            data-description="{{ $cc->description }}"
-                                            data-office="{{ $cc->department_id }}"
-                                            data-doctypes="{{ $cc->document_type_id }}">
-                                            {{ preg_replace('/-\d+$/', '-????', $cc->code) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted">
-                                    <i class="ri-information-line me-1"></i>
-                                    These are pre-generated control codes available for new documents.
-                                </small>
-                            </div>
-
-                            <div id="existingDocCodeDisplay" style="display:none;">
-                                <label class="form-label fw-semibold">Select Existing Document</label>
-                                <select id="existingControlCodePicker" name="_existing_control_code" class="form-select">
-                                    <option value="">— Search or select a control code —</option>
-                                    @foreach($existingDocuments ?? [] as $ed)
-                                        <option value="{{ $ed->control_code }}"
-                                            data-title="{{ $ed->title }}"
-                                            data-folder="{{ $ed->folder_id }}"
-                                            data-other="{{ $ed->other_category }}"
-                                            data-request="{{ $ed->type_of_request }}"
-                                            data-revision="{{ $ed->latest_revision ?? 0 }}"
-                                            data-office="{{ $ed->office_id }}"
-                                            data-doctypes="{{ $ed->document_type_list->pluck('type')->implode(',') }}"
-                                            data-tags="{{ $ed->document_tags->pluck('name')->implode(',') }}">
-                                            {{ $ed->control_code }} — {{ \Illuminate\Support\Str::limit($ed->title, 50) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted">
-                                    <i class="ri-information-line me-1"></i>
-                                    Select the document you are uploading a revision for.
-                                </small>
-                            </div>
+                        <div class="col-md-8" id="newCodePreviewField" style="display:none;">
+                            <label class="form-label fw-semibold">Generated Control Code</label>
+                            <input type="text" id="controlCodePreviewText" class="form-control"
+                                   style="background:#f8f9fa; cursor:not-allowed; font-family: monospace; letter-spacing:0.03em;"
+                                   readonly placeholder="Select Type of Document and Office first">
+                            <small class="text-muted">
+                                <i class="ri-information-line me-1"></i>
+                                The sequence number (????) will be assigned automatically upon submission.
+                            </small>
                         </div>
 
-                        <div class="col-md-8">
-                            <label class="form-label fw-semibold">Type of Document *</label>
-                            <select id="documentTypeField" name="document_type[]" class="form-control chosen-select-doc" multiple required>
-                                @foreach($document_types as $types)
-                                    <option value="{{ $types->id }}" data-name="{{ $types->name }}">
-                                        {{ $types->code }} - {{ $types->name }}
+                        <div class="col-md-8" id="existingDocCodeDisplay" style="display:none;">
+                            <label class="form-label fw-semibold">Select Existing Document</label>
+                            <select id="existingControlCodePicker" name="_existing_control_code" class="form-select">
+                                <option value="">— Search or select a control code —</option>
+                                @foreach($existingDocuments ?? [] as $ed)
+                                    <option value="{{ $ed->control_code }}"
+                                        data-title="{{ $ed->title }}"
+                                        data-folder="{{ $ed->folder_id }}"
+                                        data-other="{{ $ed->other_category }}"
+                                        data-request="{{ $ed->type_of_request }}"
+                                        data-revision="{{ $ed->latest_revision ?? 0 }}"
+                                        data-office="{{ $ed->office_id }}"
+                                        data-doctypes="{{ $ed->document_type_list->pluck('type')->implode(',') }}"
+                                        data-tags="{{ $ed->document_tags->pluck('name')->implode(',') }}">
+                                        {{ $ed->control_code }} — {{ Str_limit($ed->title, 50) }}
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Office *</label>
-                            <select id="newDocDeptField" name="office_id" class="form-select">
-                                <option value="">— Select office —</option>
-                                @foreach($teams ?? [] as $team)
-                                    <option value="{{ $team->id }}" data-code="{{ $team->name }}">
-                                        {{ $team->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <small class="text-muted">
+                                <i class="ri-information-line me-1"></i>
+                                Select the document you are uploading a revision for.
+                            </small>
                         </div>
 
                         <div class="col-md-12">
