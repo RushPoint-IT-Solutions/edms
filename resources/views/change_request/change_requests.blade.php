@@ -74,6 +74,9 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">My Files</h5>
+                <a href="{{ route('documents.create') }}" class="btn btn-first btn-sm">
+                    <i class="ri-file-add-line me-2"></i>Create document
+                </a>
             </div>
 
             <div class="card-body">
@@ -232,8 +235,8 @@ $(document).ready(function () {
         responsive: true,
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy',  text: 'Copy',  titleAttr: 'Copy to clipboard' },
-            { extend: 'excel', text: 'Excel', title: 'Change Requests' }
+            { extend: 'copy',  text: 'Copy',  titleAttr: 'Copy to clipboard', className: 'btn btn-success btn-sm'  },
+            { extend: 'excel', text: 'Excel', title: 'Change Requests', className: 'btn btn-success btn-sm' }
         ],
         order: [[8, 'desc']],
         language: {
