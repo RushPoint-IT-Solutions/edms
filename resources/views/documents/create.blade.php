@@ -311,6 +311,10 @@
                                 @endforeach
                                 @endif
                             </select>
+                            <select name="approver_roles[]" class="form-select" style="width: 140px; flex-shrink: 0;">
+                                <option value="For Signature">For Signature</option>
+                                <option value="For Receiving">For Receiving</option>
+                            </select>
                             <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="1">
                                 <i class="ri-add-circle-line"></i>
                             </button>
@@ -811,6 +815,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 @foreach($approvers as $user)
                     <option value="{{ $user->id }}">{{ $user->name }}</option>
                 @endforeach
+            </select>
+            <select name="approver_roles[]" class="form-select" style="width: 140px; flex-shrink: 0;">
+                <option value="For Signature">For Signature</option>
+                <option value="For Receiving">For Receiving</option>
+                <option value="For Notation">For Notation</option>
             </select>
             <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="${level}">
                 <i class="ri-add-circle-line"></i>
