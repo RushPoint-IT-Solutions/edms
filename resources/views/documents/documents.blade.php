@@ -24,9 +24,6 @@
                 <i class="ri-add-line"></i> Create
             </button>
             <div class="dropdown-menu dropdown-menu-end">
-                <a class="dropdown-item" href="{{ route('documents.create') }}">
-                    <i class="ri-file-add-line me-2"></i>Request document
-                </a>
                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadDocument">
                     <i class="ri-upload-2-line me-2"></i>Upload file
                 </a>
@@ -624,7 +621,7 @@
             });
 
             $('#existingControlCodePicker').on('select2:select', function () {
-                var val       = $(this).val();
+                var val = $(this).val();
                 var $selected = $(this).find('option[value="' + val + '"]');
 
                 if (!val) return;
