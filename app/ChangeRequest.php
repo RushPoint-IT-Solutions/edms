@@ -97,4 +97,8 @@ class ChangeRequest extends Model implements Auditable
     {
         return $this->hasMany(RequestTypeList::class);
     }
+    public function document_request_access()
+    {
+        return $this->hasMany(DocumentRequestAccess::class, 'change_request_id');
+    }
 }

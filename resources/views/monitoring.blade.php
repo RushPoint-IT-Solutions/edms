@@ -357,13 +357,12 @@
                         @php
                             $pdfUrl = null;
                             if ($private_document->has_valid_access) {
-                                $pdfAttachment = $private_document->attachments->where('type', 'pdf_copy')->first();
-                                $pdfUrl = $pdfAttachment ? url($pdfAttachment->attachment) : null;
+                                $pdfUrl = $private_document->file ? url($private_document->file) : null;
                             }
                         @endphp
                         <li class="list-group-item px-2 py-2 priv-item {{ $stateClass }} priv-row-clickable"
                             style="border-left: 4px solid {{ $borderColor }}; border-radius: 6px; margin-bottom: 4px; cursor: pointer;"
-                           @if($private_document->has_valid_access && $pdfUrl)
+                            @if($private_document->has_valid_access && $pdfUrl)
                                 data-action="open-pdf"
                                 data-url="{{ $pdfUrl }}"
                                 data-doc-id="{{ $private_document->id }}"
@@ -382,14 +381,12 @@
                                         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:{{ $iconBg }};color:{{ $iconColor }};">
                                         <i class="{{ $iconClass }}"></i>
                                     </div>
-                                    @if($private_document->has_valid_access)
-                                        @foreach($private_document->attachments->where('type', 'pdf_copy') as $attachment)
-                                            <form action="{{ url('/documents/user-view') }}" method="post"
-                                                id="userView{{ $attachment->id }}">
-                                                @csrf
-                                                <input type="hidden" name="document_id" value="{{ $attachment->document_id }}">
-                                            </form>
-                                        @endforeach
+                                   @if($private_document->has_valid_access && $private_document->file)
+                                        <form action="{{ url('/documents/user-view') }}" method="post"
+                                            id="userView{{ $private_document->id }}">
+                                            @csrf
+                                            <input type="hidden" name="document_id" value="{{ $private_document->id }}">
+                                        </form>
                                     @endif
                                 </div>
 
@@ -426,7 +423,7 @@
                                     <small class="text-muted d-block text-truncate mt-1" title="{{ $private_document->control_code }}">
                                         {{ $private_document->control_code }}
                                     </small>
-                                    <small class="text-muted d-block text-truncate">Owner: {{ $private_document->owner->name }}</small>
+                                    <small class="text-muted d-block text-truncate">Owner: {{ $private_document->user->name }}</small>
                                 </div>
 
                                 <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1"
@@ -466,11 +463,11 @@
                                                 </li>
                                             @endif
                                             <li>
-                                                <a href="{{ url('/documents/visitors/' . $private_document->id) }}"
+                                                <a href="{{ url('/change-request/visitors/' . $private_document->id) }}"
                                                     target="_blank" class="dropdown-item">
                                                     <i class="ri-eye-line me-2"></i> View Visitors
                                                     <span class="badge bg-primary-subtle text-primary ms-1">
-                                                        {{ $private_document->visitor->count() }}
+                                                        {{ optional($private_document->visitors)->count() ?? 0 }}
                                                     </span>
                                                 </a>
                                             </li>
@@ -926,16 +923,15 @@
                 const modal = this.dataset.modal;
 
                 if (action === 'open-pdf' && url) {
-                    userView(docId);
-                    window.open(url, '_blank');
-                } else if (action === 'pending') {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Request Pending',
-                        html: 'Your access request is currently awaiting approval. Please wait for the document owner to review it.',
-                        confirmButtonColor: '#8B0000',
-                        confirmButtonText: 'Got it',
+                    fetch("{{ url('/change-request/private-user-view') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ change_request_id: docId })
                     });
+                    window.open(url, '_blank');
                 }
             });
         });

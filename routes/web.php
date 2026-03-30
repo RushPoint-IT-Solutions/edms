@@ -312,6 +312,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 Route::get('document/{id}', 'DocumentController@publicDocument');
 Route::get('/change-request/{id}', 'DocumentController@viewChangeRequest')->name('change-request.view');
+Route::post('/change-request/private-user-view', 'MonitoringController@privateUserView');
 // Route::get('/document/{documentId}', function($documentId) {
 //     return view('public.document');
 // })->name('document.public.view');

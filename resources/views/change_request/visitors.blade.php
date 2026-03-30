@@ -2,54 +2,6 @@
 
 @section('css')
 <style>
-    .dashboard-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: all 0.3s;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    .dashboard-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    .dashboard-card .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 12px;
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-    .dashboard-card.total .icon-circle { 
-        background: #e3f2fd; 
-        color: #2196F3; 
-    }
-
-    .dashboard-card.active .icon-circle { 
-        background: #d1e7dd; 
-        color: #0f5132; 
-    }
-    
-    .dashboard-card h2 {
-        font-size: 28px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-        color: #2c3e50;
-        line-height: 1;
-    }
-    .dashboard-card p {
-        margin: 0;
-        font-size: 13px;
-        color: #6c757d;
-        font-weight: 500;
-    }
     .users-section {
         background: white;
         border-radius: 10px;
@@ -167,13 +119,13 @@
 <div class="modal fade" id="visitsModal" tabindex="-1" aria-labelledby="visitsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header">
+            <div class="modal-header border-bottom">
                 <h5 class="modal-title" id="visitsModalLabel">
                     <i class="ri-history-line me-2"></i>Visit History — <span id="modalUserName"></span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
+            <div class="modal-body p-4">
                 <table class="table table-hover table-bordered mb-0">
                     <thead class="table-light">
                         <tr>
@@ -185,7 +137,7 @@
                     <tbody id="visitsHistoryList"></tbody>
                 </table>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer border-top">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
