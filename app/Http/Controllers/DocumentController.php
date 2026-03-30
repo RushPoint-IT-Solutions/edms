@@ -72,15 +72,9 @@ class DocumentController extends Controller
             ->get();
 
         $documents = Document::with('change_requests', 'attachments', 'share_document')
+            ->where('user_id', auth()->user()->id)
             ->orderBy('control_code', 'desc')
             ->get();
-
-        if (auth()->user()->role != "Administrator") {
-            $documents = Document::with('change_requests', 'attachments', 'share_document')
-                ->where('user_id', auth()->user()->id)
-                ->orderBy('control_code', 'desc')
-                ->get();
-        }
 
         $existingDocuments = Document::with('document_type_list', 'document_tags')
             ->where('user_id', auth()->user()->id)
@@ -178,15 +172,9 @@ class DocumentController extends Controller
                     ->get();
 
         $documents = Document::with('change_requests', 'attachments')
+            ->where('user_id', auth()->user()->id)
             ->orderBy('control_code', 'desc')
             ->get();
-
-        if (auth()->user()->role != "Administrator") {
-            $documents = Document::with('change_requests', 'attachments')
-                ->where('user_id', auth()->user()->id)
-                ->orderBy('control_code', 'desc')
-                ->get();
-        }
 
         $documents = $documents->map(function ($doc) {
             $fileInfo = $this->getDocumentFileInfo($doc);
@@ -381,11 +369,9 @@ class DocumentController extends Controller
         $search = $request->input('search');
 
         if ($id === 'others') {
-            $documentsQuery = Document::with('change_requests', 'attachments')->whereNull('folder_id');
-
-            if (auth()->user()->role != "Administrator") {
-                $documentsQuery->where('user_id', auth()->user()->id);
-            }
+            $documentsQuery = Document::with('change_requests', 'attachments')
+                ->whereNull('folder_id')
+                ->where('user_id', auth()->user()->id);
 
             if ($search) {
                 $documentsQuery->where(function ($q) use ($search) {
@@ -1394,11 +1380,8 @@ class DocumentController extends Controller
 
         if ($id === 'others') {
             $documentsQuery = Document::with('change_requests', 'attachments')
-                ->whereNull('folder_id');
-
-            if (auth()->user()->role !== 'Administrator') {
-                $documentsQuery->where('user_id', auth()->id());
-            }
+                ->whereNull('folder_id')
+                ->where('user_id', auth()->id());
 
             if ($search) {
                 $documentsQuery->where(fn($q) => $q
