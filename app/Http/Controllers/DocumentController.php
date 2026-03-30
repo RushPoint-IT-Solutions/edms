@@ -48,9 +48,9 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
-        // if (!canView('personal.view')) {
-        //     return view('pages.403-error');
-        // }
+        if (!canView('personal.view')) {
+            return view('pages.403-error');
+        }
 
         $search = $request->search;
         $department = $request->department;
@@ -146,6 +146,10 @@ class DocumentController extends Controller
             'label' => $d->control_code . ' - ' . $d->title,
         ])->values()->toArray();
 
+        $upload_folders = DocumentFolder::with('document', 'childrenFolder')
+            ->where('user_id', auth()->user()->id)
+            ->get();
+
         return view('documents.documents', [
             'documents' => $documents,
             'obsoletes' => $obsoletes,
@@ -163,6 +167,7 @@ class DocumentController extends Controller
             'shareOthersDocs' => $shareOthersDocs,
             'teams' => $teams,
             'controlCodes' => $controlCodes,
+            'upload_folders' => $upload_folders,
         ]);
     }
 

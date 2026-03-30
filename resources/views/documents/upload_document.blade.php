@@ -137,7 +137,7 @@
                             <label class="form-label fw-semibold">Choose Folder</label>
                             <select id="folderField" name="folder" class="form-select">
                                 <option value="">— No folder —</option>
-                                @foreach($document_folders as $folder)
+                                @foreach($upload_folders as $folder)
                                     @if($folder->parent_id == null)
                                         @include("documents.option", ['folder' => $folder, 'level' => 0])
                                     @endif
