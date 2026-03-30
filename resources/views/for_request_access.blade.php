@@ -111,8 +111,8 @@ $(document).ready(function () {
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy',  text: 'Copy' },
-            { extend: 'excel', text: 'Excel', title: 'Request Access' },
+            { extend: 'copy',  text: 'Copy', className: 'btn btn-secondary btn-sm', titleAttr: 'Copy to clipboard' },
+            { extend: 'excel', text: 'Excel', title: 'Request Access', className: 'btn btn-secondary btn-sm', titleAttr: 'Export to Excel' },
         ],
         order: [[0, 'desc']],
         language: {
