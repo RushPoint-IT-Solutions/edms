@@ -22,7 +22,11 @@
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
-        <h4 class="mb-0">My Files</h4>
+        @if((auth()->user()->role == "Administrator"))
+        <h4 class="mb-0">Files</h4>
+        @else
+        <h4 class="mb-0">My files</h4>
+        @endif
         <p class="text-muted mb-0">Manage and track document change requests</p>
     </div>
 </div>
@@ -235,8 +239,8 @@ $(document).ready(function () {
         responsive: true,
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy',  text: 'Copy',  titleAttr: 'Copy to clipboard', className: 'btn btn-success btn-sm'  },
-            { extend: 'excel', text: 'Excel', title: 'Change Requests', className: 'btn btn-success btn-sm' }
+            { extend: 'copy',  text: 'Copy',  titleAttr: 'Copy to clipboard', className: 'btn btn-secondary btn-sm'  },
+            { extend: 'excel', text: 'Excel', title: 'Change Requests', className: 'btn btn-secondary btn-sm' }
         ],
         order: [[8, 'desc']],
         language: {
