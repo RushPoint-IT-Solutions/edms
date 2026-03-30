@@ -924,6 +924,41 @@ class DocumentController extends Controller
         );
     }
 
+    public function previewNextControlCode(Request $request)
+    {
+        $docTypeId = $request->input('doc_type_id');
+        $officeId = $request->input('office_id');
+
+        if (!$docTypeId || !$officeId) {
+            return response()->json(['preview' => null]);
+        }
+
+        $docType = DocumentType::find($docTypeId);
+        $office = Team::find($officeId);
+
+        if (!$docType || !$office) {
+            return response()->json(['preview' => null]);
+        }
+
+        $year = date('Y');
+        $base = 'MarSU-' . $office->name . '-' . $docType->code . '-' . $year . '-';
+        $padLen = 4;
+
+        $latest = Document::where('control_code', 'like', $base . '%')
+            ->orderByRaw('CAST(SUBSTRING_INDEX(control_code, "-", -1) AS UNSIGNED) DESC')
+            ->first();
+
+        $nextNumber = 1;
+        if ($latest) {
+            preg_match('/-(\d+)$/', $latest->control_code, $m);
+            $nextNumber = isset($m[1]) ? ((int)$m[1] + 1) : 1;
+        }
+
+        $preview = $base . str_pad($nextNumber, $padLen, '0', STR_PAD_LEFT);
+
+        return response()->json(['preview' => $preview, 'next_number' => $nextNumber]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -935,43 +970,49 @@ class DocumentController extends Controller
 
         $isRevision = $request->input('is_revision', '0') === '1';
 
-        if ($isRevision) {
-            $controlCode = trim($request->control_code_existing ?? '');
+        try {
+            $controlCode = DB::transaction(function () use ($request, $isRevision) {
 
-            if (empty($controlCode)) {
-                return back()->withErrors(['control_code_existing' => 'Please select an existing document.']);
-            }
+                if ($isRevision) {
+                    $code = trim($request->control_code_existing ?? '');
+                    if (empty($code)) {
+                        throw new \InvalidArgumentException('Please select an existing document.');
+                    }
+                    return $code;
+                }
 
-        } else {
-            $controlCode = trim($request->control_code ?? '');
+                $preview = trim($request->control_code ?? '');
+                if (empty($preview)) {
+                    throw new \InvalidArgumentException('Please select a control code.');
+                }
 
-            if (empty($controlCode)) {
-                return back()->withErrors(['control_code' => 'Please select a control code.']);
-            }
+                if (!preg_match('/^(.*-)(\d+)$/', $preview, $matches)) {
+                    throw new \InvalidArgumentException('Invalid control code format.');
+                }
 
-            $controlCodeRecord = ControlCode::where('code', $controlCode)
-                ->where('status', 1)
-                ->first();
-
-            if (!$controlCodeRecord) {
-                return back()->withErrors(['control_code' => 'The selected control code is invalid or no longer available.']);
-            }
-
-            preg_match('/^(.*-)(\d+)$/', $controlCode, $matches);
-            if (!empty($matches)) {
-                $base      = $matches[1];
+                $base = $matches[1];
                 $padLength = strlen($matches[2]);
 
                 $latestDoc = Document::where('control_code', 'like', $base . '%')
+                    ->lockForUpdate()
                     ->orderByRaw('CAST(SUBSTRING_INDEX(control_code, "-", -1) AS UNSIGNED) DESC')
                     ->first();
 
+                $nextNumber = 1;
                 if ($latestDoc) {
-                    preg_match('/^(.*-)(\d+)$/', $latestDoc->control_code, $lastMatches);
-                    $nextNumber  = (int) $lastMatches[2] + 1;
-                    $controlCode = $base . str_pad($nextNumber, $padLength, '0', STR_PAD_LEFT);
+                    preg_match('/-(\d+)$/', $latestDoc->control_code, $m);
+                    $nextNumber = isset($m[1]) ? ((int)$m[1] + 1) : 1;
                 }
-            }
+
+                return $base . str_pad($nextNumber, $padLength, '0', STR_PAD_LEFT);
+            });
+
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['control_code' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            Log::error('Control code generation failed', ['error' => $e->getMessage()]);
+            Alert::error('Error generating control code. Please try again.')->persistent('Dismiss');
+            return back();
         }
 
         try {
@@ -992,7 +1033,6 @@ class DocumentController extends Controller
 
             foreach ($request->document_type as $type) {
                 if (is_null($type)) continue;
-
                 $document_type = new DocumentTypeList;
                 $document_type->document_id = $document->id;
                 $document_type->type = $type;
@@ -1030,12 +1070,10 @@ class DocumentController extends Controller
         } catch (Exception $e) {
             DB::rollback();
             Log::error("Cannot upload documents", ['error' => $e->getMessage()]);
-
             Alert::error('Error')->persistent('Dismiss');
             return back();
         }
     }
-
 
     /**
      * Display the specified resource.

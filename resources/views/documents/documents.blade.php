@@ -21,7 +21,7 @@
     <div class="card-header bg-white d-flex justify-content-end align-items-center py-3 gap-1">
         <div class="dropdown">
             <button type="button" class="btn btn-first btn-sm" data-bs-toggle="dropdown">
-                <i class="ri-add-line"></i> Create
+                <i class="ri-add-line"></i> New
             </button>
             <div class="dropdown-menu dropdown-menu-end">
                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadDocument">
@@ -507,13 +507,38 @@
     }
 
     function updateControlCodePreview() {
-        var firstOpt = $('#documentTypeField option:selected').first();
-        var docTypeName = firstOpt.length ? (firstOpt.data('name') || '????') : '????';
-        var deptOpt = $('#newDocDeptField option:selected');
-        var deptCode  = deptOpt.val() ? (deptOpt.data('code') || '????') : '????';
-        var year = new Date().getFullYear();
+        var type = $('#controlCodeTypePicker').val();
+        if (type !== 'new') return;
 
-        $('#controlCodePreviewText').val('MarSU-' + deptCode + '-' + docTypeName + '-' + year + '-????');
+        var $typeField = $('#documentTypeField option:selected').first();
+        var docTypeId = $typeField.val();
+        var officeId = $('#newDocDeptField').val();
+
+        if (!docTypeId || !officeId) {
+            $('#controlCodePreviewText').val('').attr('placeholder', 'Select Type of Document and Office first');
+            $('#finalNewControlCode').val('');
+            return;
+        }
+
+        $('#controlCodePreviewText').val('').attr('placeholder', 'Loading...');
+
+        $.ajax({
+            url: '{{ url("documents/next-control-code") }}',
+            type: 'GET',
+            data: { doc_type_id: docTypeId, office_id: officeId },
+            success: function (res) {
+                if (res.preview) {
+                    $('#controlCodePreviewText').val(res.preview);
+                    $('#finalNewControlCode').val(res.preview);
+                } else {
+                    $('#controlCodePreviewText').val('').attr('placeholder', 'Could not generate code');
+                    $('#finalNewControlCode').val('');
+                }
+            },
+            error: function () {
+                $('#controlCodePreviewText').val('').attr('placeholder', 'Error loading code');
+            }
+        });
     }
 
     function resetUploadForm() {
@@ -526,19 +551,14 @@
         $('#revisionAutoIcon').hide();
         $('#revisionInfoBox').hide();
 
-        $('#controlCodeResultField').hide();
-        $('#newDocCodeDisplay').hide();
+        $('#newCodePreviewField').hide();
         $('#existingDocCodeDisplay').hide();
 
-        if ($('#newControlCodePicker').data('select2')) {
-            $('#newControlCodePicker').val(null).trigger('change');
-        }
         if ($('#existingControlCodePicker').data('select2')) {
             $('#existingControlCodePicker').val(null).trigger('change');
         }
 
         $('#controlCodeTypePicker').val('');
-
         $('#isRevision').val('0');
         $('#selectedControlCode').val('');
         $('#finalNewControlCode').val('');
@@ -549,6 +569,7 @@
         $('#revisionBadge').hide();
         $('#folderField').val('');
         $('#typeOfRequestField').val('');
+        $('#controlCodePreviewText').val('').attr('placeholder', 'Select Type of Document and Office first');
     }
 
     function resetUploadFormFields() {
@@ -558,10 +579,8 @@
             .css({ background: '#f8f9fa', cursor: 'not-allowed' });
         $('#revisionAutoIcon').hide();
         $('#revisionInfoBox').hide();
+        $('#controlCodePreviewText').val('').attr('placeholder', 'Select Type of Document and Office first');
 
-        if ($('#newControlCodePicker').data('select2')) {
-            $('#newControlCodePicker').val(null).trigger('change');
-        }
         if ($('#existingControlCodePicker').data('select2')) {
             $('#existingControlCodePicker').val(null).trigger('change');
         }
@@ -580,44 +599,11 @@
 
     function initUploadModalPlugins() {
         if (!uploadSelect2Inited) {
-            $('#newControlCodePicker').select2({
-                dropdownParent: $('#uploadDocument'),
-                placeholder: '— Select a control code —',
-                allowClear: true,
-                width: '100%',
-            });
-
             $('#existingControlCodePicker').select2({
                 dropdownParent: $('#uploadDocument'),
                 placeholder: '— Search or select a control code —',
                 allowClear: true,
                 width: '100%',
-            });
-
-            $('#newControlCodePicker').on('select2:select', function () {
-                var val = $(this).val();
-                var $selected = $(this).find('option[value="' + val + '"]');
-
-                $('#selectedControlCode').val('');
-                $('#finalNewControlCode').val(val || '');
-
-                var officeId = $selected.data('office') || '';
-                var docType = $selected.data('doctypes') || '';
-
-                if (officeId) {
-                    $('#newDocDeptField').val(officeId);
-                }
-
-                if (docType) {
-                    $('#documentTypeField').val([String(docType).trim()]).trigger('chosen:updated');
-                } else {
-                    $('#documentTypeField').val([]).trigger('chosen:updated');
-                }
-            });
-
-            $('#newControlCodePicker').on('select2:clear', function () {
-                $('#selectedControlCode').val('');
-                $('#finalNewControlCode').val('');
             });
 
             $('#existingControlCodePicker').on('select2:select', function () {
@@ -633,7 +619,6 @@
                 var officeId = $selected.data('office') || '';
                 var docTypes = $selected.data('doctypes') || '';
                 var tags = $selected.data('tags') || '';
-
 
                 $('#selectedControlCode').val(val);
                 $('#finalNewControlCode').val('');
@@ -967,27 +952,38 @@
         $(document).on('change', '#controlCodeTypePicker', function () {
             var val = $(this).val();
 
-            $('#controlCodeResultField').hide();
-            $('#newDocCodeDisplay').hide();
+            $('#newCodePreviewField').hide();
             $('#existingDocCodeDisplay').hide();
             $('#newDocBadge').hide();
             $('#revisionBadge').hide();
-            resetUploadFormFields();
+
+            $('#titleField').val('').prop('readonly', false);
+            $('#revisionField').val(0).css({ background: '#f8f9fa', cursor: 'not-allowed' });
+            $('#revisionAutoIcon').hide();
+            $('#revisionInfoBox').hide();
+            $('#selectedControlCode').val('');
+            $('#finalNewControlCode').val('');
+            $('#folderField').val('');
 
             if (!val) return;
 
-            $('#controlCodeResultField').show();
-
             if (val === 'new') {
                 $('#newDocBadge').show();
-                $('#newDocCodeDisplay').show();
+                $('#newCodePreviewField').show();
                 $('#isRevision').val('0');
                 $('#typeOfRequestField').val('New');
+                updateControlCodePreview();
+
             } else if (val === 'existing') {
                 $('#revisionBadge').show();
                 $('#existingDocCodeDisplay').show();
                 $('#isRevision').val('1');
                 $('#typeOfRequestField').val('Revision');
+                $('#documentTypeField').val([]).trigger('chosen:updated');
+                $('#newDocDeptField').val('');
+                if ($('#existingControlCodePicker').data('select2')) {
+                    $('#existingControlCodePicker').val(null).trigger('change');
+                }
             }
         });
 
@@ -996,20 +992,20 @@
         });
 
         $(document).on('change', '#documentTypeField', function () {
-            if ($('#newControlCodeSection').is(':visible')) {
-                updateControlCodePreview();
-            }
+            updateControlCodePreview();
         });
 
         $('#uploadDocumentForm').on('submit', function (e) {
             var type = $('#controlCodeTypePicker').val();
 
             if (type === 'new') {
-                if (!$('#newControlCodePicker').val()) {
+                var preview = $('#controlCodePreviewText').val();
+                if (!preview) {
                     e.preventDefault();
-                    alert('Please select a control code for the new document.');
+                    alert('Please select Type of Document and Office to generate a control code.');
                     return false;
                 }
+                $('#finalNewControlCode').val(preview);
                 $('#selectedControlCode').removeAttr('name');
 
             } else if (type === 'existing') {
