@@ -1299,6 +1299,10 @@ class DocumentController extends Controller
             ->get();
         $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
 
+        $upload_folders = DocumentFolder::with('document', 'childrenFolder')
+            ->where('user_id', auth()->user()->id)
+            ->get();
+
         $existingDocuments = Document::with('document_type_list', 'document_tags')
             ->where('user_id', auth()->user()->id)
             ->selectRaw('
@@ -1346,7 +1350,8 @@ class DocumentController extends Controller
 
         $sharedData = compact(
             'document_types', 'users', 'folderData', 'shareTree',
-            'shareOthersDocs', 'existingDocuments', 'controlCodes', 'teams'
+            'shareOthersDocs', 'existingDocuments', 'controlCodes', 'teams',
+            'upload_folders'
         );
 
         if ($id === 'others') {

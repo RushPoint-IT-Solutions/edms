@@ -100,6 +100,7 @@ Route::group(['middleware' => 'auth'], function () {
         //ChangeRequest
         Route::post('change-request/record-view', 'HomeController@recordChangeRequestView')->name('change-request.record-view');
         Route::get('change-request/visitors/{id}', 'HomeController@changeRequestVisitors')->name('change-request.visitors');
+        Route::post('/change-request/private-user-view', 'MonitoringController@privateUserView');
         Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::prefix('change-request')->group(function() {
             Route::get('/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
@@ -312,7 +313,6 @@ Route::group(['middleware' => 'auth'], function () {
 
 Route::get('document/{id}', 'DocumentController@publicDocument');
 Route::get('/change-request/{id}', 'DocumentController@viewChangeRequest')->name('change-request.view');
-Route::post('/change-request/private-user-view', 'MonitoringController@privateUserView');
 // Route::get('/document/{documentId}', function($documentId) {
 //     return view('public.document');
 // })->name('document.public.view');

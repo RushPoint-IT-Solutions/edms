@@ -816,6 +816,11 @@
 
         $('#uploadDocument').on('shown.bs.modal', function () {
             initUploadModalPlugins();
+
+            var currentFolderId = '{{ $folder_data->id ?? "" }}';
+            if (currentFolderId && currentFolderId !== 'others') {
+                $('#folderField').val(currentFolderId);
+            }
         });
 
         $('#uploadDocument').on('hidden.bs.modal', function () {
