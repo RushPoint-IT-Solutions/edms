@@ -356,11 +356,11 @@
                 <span class="dblHint">&nbsp;— Click to select &bull; Double-click to open</span>
             </p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="toggleBtn" id="listViewBtn" title="List view">
+        <div class="d-flex gap-1">
+            <button class="btn btn-light btn-sm toggleBtn" id="listViewBtn" title="List view">
                 <i class="ri-list-check"></i>
             </button>
-            <button class="toggleBtn active" id="gridViewBtn" title="Grid view">
+            <button class="btn btn-light btn-sm toggleBtn active" id="gridViewBtn" title="Grid view">
                 <i class="ri-grid-fill"></i>
             </button>
         </div>

@@ -62,10 +62,10 @@
                 </div>
             </div>
             <div class="view-toggle">
-                <button class="view-toggle-btn" id="listViewBtn" title="List view">
+                <button class="btn btn-light btn-sm" id="listViewBtn" title="List view">
                     <i class="ri-list-check"></i>
                 </button>
-                <button class="view-toggle-btn active" id="gridViewBtn" title="Grid view">
+                <button class="btn btn-light btn-sm active" id="gridViewBtn" title="Grid view">
                     <i class="ri-grid-fill"></i>
                 </button>
             </div>

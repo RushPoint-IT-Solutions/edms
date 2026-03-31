@@ -37,7 +37,7 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">Users List</h5>
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new_account">
+                <button class="btn btn-first btn-sm" data-bs-toggle="modal" data-bs-target="#new_account">
                     <i class="fa fa-plus"></i> New Account
                 </button>
             </div>
@@ -122,8 +122,8 @@ $(document).ready(function () {
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy', text: 'Copy' },
-            { extend: 'excel', text: 'Excel', title: 'Users' },
+            { extend: 'copy', text: 'Copy', className: 'btn btn-sm btn-secondary' },
+            { extend: 'excel', text: 'Excel', title: 'Users', className: 'btn btn-sm btn-secondary' },
         ],
         order: [[0, 'desc']],
         language: {
