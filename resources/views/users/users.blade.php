@@ -69,7 +69,7 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Department</th>
+                                <th>Offices</th>
                                 <th>Role</th>
                                 <th>Status</th>
                                 <th>Action</th>
