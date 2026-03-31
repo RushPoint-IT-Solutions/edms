@@ -1508,9 +1508,13 @@
                                     </span>
                                 </span>
                             </button>
-                            <div class="dropdown-menu dropdown-menu-end">
+                            <div class="dropdown-menu dropdown-menu-end" style="width: 180px;">
                                 <h6 class="dropdown-header">Welcome {{current(explode(' ',auth()->user()->name))}}!</h6>
                                 <div class="dropdown-divider"></div>
+                                <a href="{{ url('/documents') }}" class="dropdown-item {{ Request::is('documents*') && !Request::is('shared*') ? 'active' : '' }}" data-key="t-all-documents"> 
+                                    <i class="mdi mdi-file-account-outline text-muted fs-16 align-middle me-1"></i> 
+                                    <span class="align-middle" data-key="t-personal">Personal</span>
+                                </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{{ route('logout') }}" onclick="logout(); show();"> 
                                     <i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> 
