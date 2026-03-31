@@ -51,117 +51,78 @@ class DocumentController extends Controller
         if (!canView('personal.view')) {
             return view('pages.403-error');
         }
-
-        $search = $request->search;
-        $department = $request->department;
-
-        $document_types = DocumentType::orderBy('name','desc')->get();
-        $document_folders = DocumentFolder::with('document','childrenFolder')
+    
+        $document_folders = DocumentFolder::with('document', 'childrenFolder')
             ->when(auth()->user()->role != 'Administrator', function ($q) {
                 $q->where('user_id', auth()->user()->id);
             })
             ->get();
-
-        $obsoletes = Obsolete::get();
-        $users = User::whereNull("status")->get();
-
-        $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
-        $controlCodes = ControlCode::with('documentType', 'department')
-            ->where('status', 1)
-            ->orderBy('code')
-            ->get();
-
+    
+        $users = User::whereNull('status')->get();
+    
         $documents = Document::with('change_requests', 'attachments', 'share_document')
             ->where('user_id', auth()->user()->id)
-            ->orderBy('control_code', 'desc')
+            ->orderBy('created_at', 'desc')
             ->get();
-
-        $existingDocuments = Document::with('document_type_list', 'document_tags')
-            ->where('user_id', auth()->user()->id)
-            ->selectRaw('
-                MAX(id) as id,
-                control_code,
-                MAX(title) as title,
-                MAX(category) as category,
-                MAX(folder_id) as folder_id,
-                MAX(other_category) as other_category,
-                MAX(type_of_request) as type_of_request,
-                MAX(office_id) as office_id,
-                MAX(version) AS latest_revision,
-                COUNT(*) AS upload_count
-            ')
-            ->groupBy('control_code')
-            ->orderBy('control_code', 'asc')
-            ->get();
-
-        $document_folders = $document_folders->map(function($folder) {
+    
+        $document_folders = $document_folders->map(function ($folder) {
             if ($folder->document) {
-                $folder->document = $folder->document->map(function($doc) {
+                $folder->document = $folder->document->map(function ($doc) {
                     $fileInfo = $this->getDocumentFileInfo($doc);
-                    $doc->fileType = $fileInfo['fileType'];
+                    $doc->fileType    = $fileInfo['fileType'];
                     $doc->previewClass = $fileInfo['previewClass'];
-                    $doc->iconClass = $fileInfo['iconClass'];
-                    $doc->badgeClass = $fileInfo['badgeClass'];
+                    $doc->iconClass   = $fileInfo['iconClass'];
+                    $doc->badgeClass  = $fileInfo['badgeClass'];
                     return $doc;
                 });
             }
             return $folder;
         });
-
-        $documents = $documents->map(function($doc) {
+    
+        $documents = $documents->map(function ($doc) {
             $fileInfo = $this->getDocumentFileInfo($doc);
-            $doc->fileType = $fileInfo['fileType'];
+            $doc->fileType    = $fileInfo['fileType'];
             $doc->previewClass = $fileInfo['previewClass'];
-            $doc->iconClass = $fileInfo['iconClass'];
-            $doc->badgeClass = $fileInfo['badgeClass'];
+            $doc->iconClass   = $fileInfo['iconClass'];
+            $doc->badgeClass  = $fileInfo['badgeClass'];
             return $doc;
         });
-
-        $allFolders = $document_folders->where('parent_id', null);
-        $hasOthers = $documents->where('folder_id', null)->count() > 0;
+    
+        $allFolders  = $document_folders->where('parent_id', null);
+        $hasOthers   = $documents->where('folder_id', null)->count() > 0;
         $totalFolders = $allFolders->count() + ($hasOthers ? 1 : 0);
-
-        $folderData = $document_folders->map(function($f) {
+    
+        $folderData = $document_folders->map(function ($f) {
             return [
-                'id' => $f->id,
+                'id'   => $f->id,
                 'name' => $f->name,
-                'docs' => $f->document->map(function($d) {
-                    return [
-                        'id' => $d->id,
-                        'title' => $d->control_code . ' - ' . $d->title,
-                    ];
+                'docs' => $f->document->map(function ($d) {
+                    return ['id' => $d->id, 'title' => $d->title];
                 })->values(),
             ];
         })->values();
-
+    
         $shareTree = $this->buildShareTree($document_folders, $documents);
         $shareOthersDocs = $documents->filter(fn($d) => is_null($d->folder_id))->map(fn($d) => [
             'id'    => $d->id,
-            'label' => $d->control_code . ' - ' . $d->title,
+            'label' => $d->title,
         ])->values()->toArray();
-
+    
         $upload_folders = DocumentFolder::with('document', 'childrenFolder')
             ->where('user_id', auth()->user()->id)
             ->get();
-
+    
         return view('documents.documents', [
-            'documents' => $documents,
-            'obsoletes' => $obsoletes,
-            'document_types' => $document_types,
-            'search' => $search,
-            'dep' => $department,
+            'documents'        => $documents,
             'document_folders' => $document_folders,
-            'totalFolders' => $totalFolders,
-            'allFolders' => $allFolders,
-            'hasOthers' => $hasOthers,
-            'existingDocuments' => $existingDocuments,
-            'users' => $users,
-            'folderData' => $folderData,
-            'shareTree' => $shareTree,
-            'shareOthersDocs' => $shareOthersDocs,
-            'teams' => $teams,
-            'controlCodes' => $controlCodes,
-            'upload_folders' => $upload_folders,
+            'totalFolders'     => $totalFolders,
+            'allFolders'       => $allFolders,
+            'hasOthers'        => $hasOthers,
+            'users'            => $users,
+            'folderData'       => $folderData,
+            'shareTree'        => $shareTree,
+            'shareOthersDocs'  => $shareOthersDocs,
+            'upload_folders'   => $upload_folders,
         ]);
     }
 
@@ -954,98 +915,35 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $isRevision = $request->input('is_revision', '0') === '1';
-
-        try {
-            $controlCode = DB::transaction(function () use ($request, $isRevision) {
-
-                if ($isRevision) {
-                    $code = trim($request->control_code_existing ?? '');
-                    if (empty($code)) {
-                        throw new \InvalidArgumentException('Please select an existing document.');
-                    }
-                    return $code;
-                }
-
-                $preview = trim($request->control_code ?? '');
-                if (empty($preview)) {
-                    throw new \InvalidArgumentException('Please select a control code.');
-                }
-
-                if (!preg_match('/^(.*-)(\d+)$/', $preview, $matches)) {
-                    throw new \InvalidArgumentException('Invalid control code format.');
-                }
-
-                $base = $matches[1];
-                $padLength = strlen($matches[2]);
-
-                $latestDoc = Document::where('control_code', 'like', $base . '%')
-                    ->lockForUpdate()
-                    ->orderByRaw('CAST(SUBSTRING_INDEX(control_code, "-", -1) AS UNSIGNED) DESC')
-                    ->first();
-
-                $nextNumber = 1;
-                if ($latestDoc) {
-                    preg_match('/-(\d+)$/', $latestDoc->control_code, $m);
-                    $nextNumber = isset($m[1]) ? ((int)$m[1] + 1) : 1;
-                }
-
-                return $base . str_pad($nextNumber, $padLength, '0', STR_PAD_LEFT);
-            });
-
-        } catch (\InvalidArgumentException $e) {
-            return back()->withErrors(['control_code' => $e->getMessage()]);
-        } catch (\Exception $e) {
-            Log::error('Control code generation failed', ['error' => $e->getMessage()]);
-            Alert::error('Error generating control code. Please try again.')->persistent('Dismiss');
-            return back();
-        }
+        $request->validate([
+            'title'         => 'required|string|max:255',
+            'attachments'   => 'required|array|min:1',
+            'attachments.*' => 'required|file',
+            'folder'        => 'nullable|exists:document_folders,id',
+        ]);
 
         try {
             DB::beginTransaction();
 
-            $document = new Document;
-            $document->control_code = $controlCode;
-            $document->title = $request->title;
-            $document->other_category = $request->other;
-            $document->effective_date = $request->effective_date;
-            $document->user_id = auth()->user()->id;
-            $document->version = $request->version;
-            $document->public = $request->has('public') ? 1 : null;
-            $document->folder_id = $request->folder;
-            $document->type_of_request = $request->type_of_request;
-            $document->office_id = $request->office_id;
-            $document->save();
+            foreach ($request->file('attachments') as $file) {
+                $document            = new Document;
+                $document->title     = $request->title;
+                $document->user_id   = auth()->user()->id;
+                $document->folder_id = $request->folder ?: null;
+                $document->save();
 
-            foreach ($request->document_type as $type) {
-                if (is_null($type)) continue;
-                $document_type = new DocumentTypeList;
-                $document_type->document_id = $document->id;
-                $document_type->type = $type;
-                $document_type->save();
-            }
-
-            foreach ($request->file('attachment') as $key => $file) {
                 $name = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path() . '/document_attachments/', $name);
-                $file_name = '/document_attachments/' . $name;
+                $file->move(public_path('document_attachments/'), $name);
 
-                $doc_attachment = new DocumentAttachment;
+                $doc_attachment              = new DocumentAttachment;
                 $doc_attachment->document_id = $document->id;
-                $doc_attachment->attachment = $file_name;
-                $doc_attachment->type = $key;
+                $doc_attachment->attachment  = '/document_attachments/' . $name;
+                $doc_attachment->type        = 'file';
                 $doc_attachment->save();
-            }
 
-            foreach ($request->tags as $tag) {
-                $document_tag = new DocumentTag;
-                $document_tag->document_id = $document->id;
-                $document_tag->name = $tag;
-                $document_tag->save();
-            }
-
-            if ($document->folder_id) {
-                $this->propagateFolderShares($document->folder_id, $document->id);
+                if ($document->folder_id) {
+                    $this->propagateFolderShares($document->folder_id, $document->id);
+                }
             }
 
             DB::commit();
@@ -1055,7 +953,7 @@ class DocumentController extends Controller
 
         } catch (Exception $e) {
             DB::rollback();
-            Log::error("Cannot upload documents", ['error' => $e->getMessage()]);
+            Log::error('Cannot upload documents', ['error' => $e->getMessage()]);
             Alert::error('Error')->persistent('Dismiss');
             return back();
         }
