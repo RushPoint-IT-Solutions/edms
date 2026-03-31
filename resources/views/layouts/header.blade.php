@@ -213,91 +213,43 @@
         }
 
         .dashboard-card {
-            background: white;
-            border-radius: 10px;
+            border-radius: 5px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            min-height: 105px;
         }
-
-        .dashboard-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        }
-
+        
         .dashboard-card .icon-circle {
+            position: absolute;
+            right: 20px;
+            top: 20px;
             width: 45px;
             height: 45px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 12px;
+            background: #d07e0a;
+        }
+        
+        .dashboard-card .icon-circle i {
+            color: white;
             font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .dashboard-card.total .icon-circle { 
-            background: #e7f3ff; 
-            color: #0066cc; 
-        }
-
-        .dashboard-card.active .icon-circle { 
-            background: #d1e7dd; 
-            color: #0f5132; 
         }
         
-        .dashboard-card.renewal .icon-circle { 
-            background: #fff3cd; 
-            color: #856404; 
-        }
-        
-        .dashboard-card.overdue .icon-circle { 
-            background: #f8d7da; 
-            color: #842029; 
-        }
-
-        .dashboard-card.inactive .icon-circle { 
-            background: #f1f3f5; 
-            color: #6c757d; 
-        }
-
-        .dashboard-card.returned .icon-circle { 
-            background: #ffe5d0; 
-            color: #cc5500; 
-        }
-
-        .dashboard-card.pending .icon-circle {
-            background: #e8f5e9;
-            color: #4caf50;
-        }
-
-        .dashboard-card.declined .icon-circle {
-            background: #fff3e0;
-            color: #ff9800;
-        }
-
-        .dashboard-card.approved .icon-circle {
-            background: #e3f2fd;
-            color: #2196F3;
-        }
-
         .dashboard-card h2 {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
-            margin: 0 0 4px 0;
-            color: #2c3e50;
-            line-height: 1;
+            margin-bottom: 5px;
         }
-
+        
         .dashboard-card p {
-            margin: 0;
-            font-size: 13px;
             color: #6c757d;
-            font-weight: 500;
+            margin: 0;
+            font-size: 14px;
         }
 
         .top-controls-container {
