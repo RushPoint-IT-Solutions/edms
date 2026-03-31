@@ -155,7 +155,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('/teams/data', 'SystemConfigurationController@getTeamsData')->name('system-config.teams.data');
             Route::get('/document-types/data', 'SystemConfigurationController@getDocumentTypesData')->name('system-config.document-types.data');
             Route::get('/control-codes/data', 'SystemConfigurationController@getControlCodesData')->name('system-config.control-codes.data');
-            
+            Route::get('/tags/data', 'SystemConfigurationController@getTagsData')->name('system-config.tags.data');
         });
 
         Route::get('/access-control', 'AccessControlController@index')->name('settings');
@@ -182,6 +182,13 @@ Route::group(['middleware' => 'auth'], function () {
 
             //for offices
             Route::get('/list', 'CampusController@getCampusList')->name('campus.list');
+        });
+
+        Route::prefix('tags')->group(function() {
+            Route::post('/store', 'TagController@store')->name('tags.store');
+            Route::post('update/{id}', 'TagController@update')->name('tags.update');
+            Route::delete('/{id}', 'TagController@destroy')->name('tags.destroy');
+            Route::get('/list', 'TagController@getList')->name('tags.list');
         });
 
         // Departments
