@@ -31,7 +31,7 @@
     </div>
   </div>
   
-  <div class="col d-flex">
+  {{-- <div class="col d-flex">
     <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-teams">
       <div class="nav-icon"><i class="ri-folder-line"></i></div>
       <div class="nav-label">Offices</div>
@@ -40,7 +40,7 @@
         <i class="fa fa-plus"></i> New Office
       </button>
     </div>
-  </div>
+  </div> --}}
   
   <div class="col d-flex">
     <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-doctypes">
@@ -153,7 +153,7 @@
             </div>
         </div>
 
-        <div class="card shadow-sm config-panel" id="pane-teams">
+        {{-- <div class="card shadow-sm config-panel" id="pane-teams">
             <div class="panel-header">
                 <div class="panel-icon"><i class="ri-folder-line"></i></div>
                 <div>
@@ -190,7 +190,7 @@
                     <div id="teams-pagination-control"></div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <div class="card shadow-sm config-panel" id="pane-doctypes">
             <div class="panel-header">
