@@ -1895,7 +1895,7 @@
                         </li>
                         @endif
 
-                        {{-- @if((auth()->user()->role == 'Administrator')) --}}
+                        @if(canView("reports.view"))
                         <div>
                             <li class="nav-item @if(Request::is('reports')) active @endif">
                                 <a class="nav-link menu-link" href="{{url('reports')}}">
@@ -1904,7 +1904,7 @@
                                 </a>
                             </li>
                         </div>
-                        {{-- @endif --}}
+                        @endif
 
                         {{-- SSO Default Access --}}
                         {{-- @if(auth()->user()->google_id != null)

@@ -14,6 +14,10 @@ class ReportController extends Controller
 {
     public function index()
     {
+        if(!canView("reports.view")) {
+            return view("pages.403-error");
+        }
+
         $departments = Department::where('status', null)->orderBy('name')->get();
         $users = User::orderBy('name')->get();
 
