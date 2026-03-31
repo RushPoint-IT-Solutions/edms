@@ -16,6 +16,52 @@
         margin: 1cm;
     }
 }
+
+.approver-chain-list {
+    display: flex;
+    flex-direction: column;
+}
+.approver-step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+}
+.approver-step-row:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 36px;
+    width: 1px;
+    height: calc(100% - 6px);
+    background: #dee2e6;
+}
+.approver-step-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    z-index: 1;
+    font-size: 0.8rem;
+}
+.approver-step-body {
+    flex: 1;
+    padding-bottom: 18px;
+}
+.step-remark-box {
+    font-size: 0.78rem;
+    color: #6c757d;
+    margin-top: 5px;
+    padding: 5px 8px;
+    background: #fff8f0;
+    border-left: 2px solid #fd7e14;
+    border-radius: 0 4px 4px 0;
+}
 </style>
 @endsection
 
@@ -74,13 +120,30 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12 mb-5">
+    <div class="col-md-12">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h5 class="mb-0">My Files</h5>
+                @if((auth()->user()->role == "Administrator"))
+                <h4 class="mb-0">Files</h4>
+                @else
+                <h4 class="mb-0">My files</h4>
+                @endif
                 <a href="{{ route('documents.create') }}" class="btn btn-first btn-sm">
-                    <i class="ri-file-add-line me-2"></i>Create document
+                    <i class="ri-file-add-line me-2"></i>New Request Document
                 </a>
+                {{-- <div class="dropdown">
+                    <button type="button" class="btn btn-first btn-sm" data-bs-toggle="dropdown">
+                        <i class="ri-add-line"></i> New
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadRevisionModal">
+                            <i class="ri-upload-2-line me-2"></i>Upload file
+                        </a>
+                        <a href="{{ route('documents.create') }}" class="dropdown-item">
+                            <i class="ri-file-add-line me-2"></i>New Request Document
+                        </a>
+                    </div>
+                </div> --}}
             </div>
 
             <div class="card-body">
@@ -193,6 +256,8 @@
         </div>
     </div>
 </div>
+
+@include('change_request.upload_revision_modal')
 
 @endsection
 
@@ -381,6 +446,97 @@ $(document).ready(function () {
             location.reload();
         }, 500);
     });
+});
+
+$(document).on('click','.view-revision-status-btn',function(){
+    var crId=$(this).data('change-request-id'),
+        docId=$(this).data('doc-id'),
+        title=$(this).data('title'),
+        status=$(this).data('status'),
+        category=$(this).data('category'),
+        revision=$(this).data('revision'),
+        dateReq=$(this).data('date-requested'),
+        reqBy=$(this).data('requested-by'),
+        approvers=$(this).data('approvers-json');
+
+    $('#rsDocId').text(docId);
+    $('#rsTitle').text(title);
+    $('#rsCategory').text(category);
+    $('#rsRevision').text('Rev. '+revision);
+    $('#rsDateRequested').text(dateReq);
+    $('#rsRequestedBy').text(reqBy);
+
+    var statusMap={
+        'Approved':'bg-success',
+        'For Approval':'bg-primary',
+        'Returned':'bg-warning text-dark',
+        'Declined':'bg-danger',
+        'Draft':'bg-secondary'
+    };
+
+    $('#rsStatus').html('<span class="badge '+(statusMap[status]||'bg-secondary')+'">'+status+'</span>');
+
+    var chain='';
+    $.each(approvers,function(i,approver){
+        var icon,iconBg,iconBorder,badgeClass,badgeText;
+
+        switch(approver.status){
+            case 'Approved':
+                icon='<i class="ri-checkbox-circle-fill text-success" style="font-size:1rem;"></i>';
+                iconBg='#d1e7dd';iconBorder='#198754';
+                badgeClass='bg-success';badgeText='Approved';
+                break;
+            case 'Returned':
+                icon='<i class="ri-arrow-go-back-fill" style="font-size:1rem;color:#fd7e14;"></i>';
+                iconBg='#fff3cd';iconBorder='#fd7e14';
+                badgeClass='bg-warning text-dark';badgeText='Returned';
+                break;
+            case 'Pending':
+                icon='<i class="ri-time-line" style="font-size:1rem;color:#0d6efd;"></i>';
+                iconBg='#cfe2ff';iconBorder='#0d6efd';
+                badgeClass='bg-primary';badgeText='Pending';
+                break;
+            case 'Declined':
+                icon='<i class="ri-close-circle-fill text-danger" style="font-size:1rem;"></i>';
+                iconBg='#f8d7da';iconBorder='#dc3545';
+                badgeClass='bg-danger';badgeText='Declined';
+                break;
+            default:
+                icon='<i class="ri-checkbox-blank-circle-line text-muted" style="font-size:1rem;"></i>';
+                iconBg='#f8f9fa';iconBorder='#adb5bd';
+                badgeClass='bg-secondary';badgeText='Waiting';
+        }
+
+        var isCurrentApprover=(approver.status==='Returned'||approver.status==='Pending'),
+            remarkBox=(approver.remarks&&approver.status==='Returned')
+                ? '<div class="step-remark-box">'+approver.remarks+'</div>'
+                : '',
+            dateInfo=approver.date_approved
+                ? '<div class="small text-muted mt-1">'+approver.date_approved+'</div>'
+                : '<div class="small text-muted mt-1">Waiting for previous approval</div>';
+
+        chain+=`
+            <div class="approver-step-row">
+                <div class="approver-step-icon" style="background:${iconBg};border:1.5px solid ${iconBorder};">${icon}</div>
+                <div class="approver-step-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-semibold" style="font-size:0.875rem;">${approver.name}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">
+                                ${approver.role||''} · Level ${approver.level}
+                                ${isCurrentApprover?' · <strong class="text-dark">Current approver</strong>':''}
+                            </div>
+                        </div>
+                        <span class="badge ${badgeClass}" style="font-size:0.7rem;">${badgeText}</span>
+                    </div>
+                    ${dateInfo}
+                    ${remarkBox}
+                </div>
+            </div>`;
+    });
+
+    $('#rsApproverChain').html(chain);
+    new bootstrap.Modal(document.getElementById('revisionStatusModal')).show();
 });
 </script>
 @endsection

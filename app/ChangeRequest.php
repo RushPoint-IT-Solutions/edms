@@ -101,4 +101,8 @@ class ChangeRequest extends Model implements Auditable
     {
         return $this->hasMany(DocumentRequestAccess::class, 'change_request_id');
     }
+    public function departments()
+    {
+        return $this->belongsToMany(Department::class, 'change_request_departments');
+    }
 }

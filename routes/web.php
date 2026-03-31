@@ -106,6 +106,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('change-request/visitors/{id}', 'HomeController@changeRequestVisitors')->name('change-request.visitors');
         Route::post('/change-request/private-user-view', 'MonitoringController@privateUserView');
         Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
+        Route::post('change-request/upload-revision/{id}', 'RequestController@uploadRevision');
         Route::prefix('change-request')->group(function() {
             Route::get('/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
             Route::get('for_approval/{id}', 'RequestController@show');

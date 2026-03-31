@@ -200,9 +200,8 @@
                                 <label for="choices-category-input" class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category" class="form-select" data-choices data-choices-search-false id="choices-category-input" required>
                                     <option value="">-- Select Category --</option>
-                                    <option value="Departmental" @if(old('category', $change_request->category ?? '') == "Departmental") selected @endif>Departmental</option>
                                     <option value="Private" @if(old('category', $change_request->category ?? '') == "Private") selected @endif>Private</option>
-                                    {{-- <option value="Public" @if(old('category', $change_request->category ?? '') == "Public") selected @endif>Public</option> --}}
+                                    <option value="Public" @if(old('category', $change_request->category ?? '') == "Public") selected @endif>Public</option>
                                 </select>
                             </div>
                         </div>
@@ -235,29 +234,31 @@
                     </div>
 
                     <div class="mb-3" id="department-field" style="display: none;">
-                        <label for="department-select" class="form-label">Department <span class="text-danger">*</span></label>
-                        <select name="department_id" class="form-select" data-choices data-choices-search-false id="department-select">
-                            {{-- <option value="">-- Select Department --</option> --}}
-                            <option value="">All departments</option>
+                        <label for="department-select" class="form-label">
+                            Offices 
+                            <span class="text-muted" style="font-size:0.8rem;">(optional)</span>
+                        </label>
+                        <select name="department_id[]" class="form-select cat" id="department-select" multiple>
                             @foreach($departments as $department)
-                                <option value="{{ $department->id }}" @if(old('department_id', $change_request->department_id ?? '') == $department->id) selected @endif>
+                                <option value="{{ $department->id }}"
+                                    @if(in_array($department->id, old('department_id', $change_request ? $change_request->departments->pluck('id')->toArray() : []))) selected @endif>
                                     {{ $department->name }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div class="mb-3" id="team-field" style="display: none;">
+                    {{-- <div class="mb-3" id="team-field" style="display: none;">
                         <label for="team-select" class="form-label">Access</label>
                         <select name="privacy" class="form-select" data-choices data-choices-search-false id="team-select">
                             <option value="">-- Select Access --</option>
-                            {{-- @foreach($teams as $team)
+                            @foreach($teams as $team)
                                 <option value="{{ $team->id }}" @if(old('privacy', $change_request->privacy ?? '') == $team->id) selected @endif>
                                     {{ $team->name }}
                                 </option>
-                            @endforeach --}}
+                            @endforeach
                         </select>
-                    </div>
+                    </div> --}}
 
                     {{-- <div class="mb-3">
                         <label for="choices-privacy-status-input" class="form-label">Access</label>
@@ -890,102 +891,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
 <script>
-$(document).ready(function() {
-    const categorySelectElement = document.querySelector('select[name="category"]');
-    const departmentField = document.getElementById('department-field');
-    const departmentSelect = document.getElementById('department-select');
+    $(document).ready(function() {
+        $(".cat").chosen({
+            width: "100%"
+        });
 
-    function toggleDepartmentField() {
-        const categoryValue = categorySelectElement ? categorySelectElement.value : '';
-        console.log('Category value:', categoryValue);
-        
-        if (categoryValue === 'Departmental') {
-            departmentField.style.display = 'block';
-            departmentSelect.setAttribute('required', 'required');
-            document.getElementById('team-field').style.display = 'block';
-        } else {
-            departmentField.style.display = 'none';
-            departmentSelect.removeAttribute('required');
-            departmentSelect.value = '';
-            document.getElementById('team-field').style.display = 'none';
+        const categorySelectElement = document.querySelector('select[name="category"]');
+        const departmentField = document.getElementById('department-field');
+
+        function toggleDepartmentField() {
+            const categoryValue = categorySelectElement ? categorySelectElement.value : '';
+            
+            if (categoryValue === 'Public') {
+                departmentField.style.display = 'block';
+            } else {
+                departmentField.style.display = 'none';
+                $('#department-select').val([]).trigger('chosen:updated');
+            }
         }
-    }
 
-    toggleDepartmentField();
+        setTimeout(toggleDepartmentField, 100);
 
-    if (categorySelectElement) {
-        categorySelectElement.addEventListener('change', function() {
-            console.log('Category changed to:', this.value);
+        if (categorySelectElement) {
+            categorySelectElement.addEventListener('change', function() {
+                toggleDepartmentField();
+            });
+        }
+
+        $('select[name="category"]').on('change', function() {
             toggleDepartmentField();
         });
-    }
-
-    const categoryContainer = categorySelectElement ? categorySelectElement.closest('.mb-3') : null;
-    if (categoryContainer) {
-        categoryContainer.addEventListener('change', function(e) {
-            if (e.target.name === 'category') {
-                console.log('Category changed via bubble:', e.target.value); 
-                toggleDepartmentField();
-            }
-        });
-    }
-});
+    });
 </script>
-
-    <script>
-        $(document).ready(function() {
-            $(".cat").chosen({
-                width: "100%"
-            });
-
-            const categorySelectElement = document.querySelector('select[name="category"]');
-            const departmentField = document.getElementById('department-field');
-            const departmentSelect = document.getElementById('department-select');
-
-            function toggleDepartmentField() {
-                const categoryValue = categorySelectElement ? categorySelectElement.value : '';
-                console.log('Category value:', categoryValue);
-                
-                if (categoryValue === 'Departmental') {
-                    departmentField.style.display = 'block';
-                    departmentSelect.setAttribute('required', 'required');
-                } else {
-                    departmentField.style.display = 'none';
-                    departmentSelect.removeAttribute('required');
-                    departmentSelect.value = '';
-                }
-            }
-
-            setTimeout(toggleDepartmentField, 100);
-
-            if (categorySelectElement) {
-                categorySelectElement.addEventListener('change', function() {
-                    console.log('Category changed to:', this.value);
-                    toggleDepartmentField();
-                });
-            }
-
-            $('select[name="category"]').on('change', function() {
-                console.log('Category changed via jQuery:', this.value);
-                toggleDepartmentField();
-            });
-
-            $(document).on("change", "[name='department_id']", function() {
-                const value = $(this).val()
-                
-                $.ajax({
-                    type:"POST",
-                    url:"{{ url('documents/refresh-team') }}",
-                    data: {
-                        department: value,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success:function(response) {
-                        $("#team-select").html(response)
-                    }
-                })
-            })
-        });
-    </script>
 @endsection

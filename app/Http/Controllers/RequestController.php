@@ -223,36 +223,28 @@ class RequestController extends Controller
 
         $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
 
-        $query = ChangeRequest::with(['user.department', 'approvers.user'])
+        $query = ChangeRequest::with(['user.department', 'approvers.user', 'departments'])
             ->whereNull('is_draft')
-            ->when(!$isAdmin, function ($q) {
-                $q->where('user_id', auth()->user()->id);
-            });
+            ->when(!$isAdmin, fn($q) => $q->where('user_id', auth()->user()->id));
 
         $totalRecords = (clone $query)->count();
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                ->orWhere('description','like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")
                 ->orWhere('category', 'like', "%{$search}%")
                 ->orWhere('privacy', 'like', "%{$search}%")
                 ->orWhere('status', 'like', "%{$search}%");
             });
         }
 
-        if (!empty($statusFilter)) {
-            $query->where('status', $statusFilter);
-        }
+        if (!empty($statusFilter)) $query->where('status', $statusFilter);
 
         $totalFiltered = $query->count();
 
-        $allowed = ['title', 'description', 'category', 'privacy', 'revision', 'created_at', 'status'];
-        if (in_array($columnName, $allowed)) {
-            $query->orderBy($columnName, $columnSortOrder);
-        } else {
-            $query->orderBy('id', 'desc');
-        }
+        $allowed = ['title','description','category','privacy','revision','created_at','status'];
+        $query->orderBy(in_array($columnName, $allowed) ? $columnName : 'id', $columnSortOrder);
 
         $changeRequests = $query->skip($start)->take($length)->get();
 
@@ -267,9 +259,9 @@ class RequestController extends Controller
                 case 'Draft': $badgeClass = 'bg-secondary'; break;
                 default: $badgeClass = 'bg-secondary'; break;
             }
-            $statusBadge = '<span class="badge ' . $badgeClass . '">' . e($cr->status) . '</span>';
 
-            $docId = 'DOC-' . date('Y', strtotime($cr->created_at)) . '-' . str_pad($cr->id, 3, '0', STR_PAD_LEFT);
+            $statusBadge = '<span class="badge '.$badgeClass.'">'.e($cr->status).'</span>';
+            $docId = 'DOC-'.date('Y', strtotime($cr->created_at)).'-'.str_pad($cr->id, 3, '0', STR_PAD_LEFT);
 
             $approversChain = '<div class="approvers-chain">';
             foreach ($cr->approvers->sortBy('level') as $approver) {
@@ -277,54 +269,70 @@ class RequestController extends Controller
                 if (!$user) continue;
 
                 switch ($approver->status) {
-                    case 'Approved':
-                        $icon = 'ri-checkbox-circle-fill'; $color = '#198754'; $badgeClass = 'bg-success'; break;
-                    case 'Pending':
-                        $icon = 'ri-time-line'; $color = '#e67e22'; $badgeClass = 'bg-warning text-dark'; break;
-                    case 'Returned':
-                        $icon = 'ri-arrow-go-back-fill'; $color = '#dc3545'; $badgeClass = 'bg-danger'; break;
-                    case 'Declined':
-                        $icon = 'ri-close-circle-fill'; $color = '#dc3545'; $badgeClass = 'bg-danger'; break;
-                    case 'Waiting':
-                        $icon = 'ri-checkbox-blank-circle-line'; $color = '#6c757d'; $badgeClass = 'bg-secondary'; break;
-                    default:
-                        $icon = 'ri-question-line'; $color = '#adb5bd'; $badgeClass = 'bg-light text-dark'; break;
+                    case 'Approved': $icon='ri-checkbox-circle-fill'; $color='#198754'; $badgeClass='bg-success'; break;
+                    case 'Pending': $icon='ri-time-line'; $color='#e67e22'; $badgeClass='bg-warning text-dark'; break;
+                    case 'Returned': $icon='ri-arrow-go-back-fill'; $color='#dc3545'; $badgeClass='bg-danger'; break;
+                    case 'Declined': $icon='ri-close-circle-fill'; $color='#dc3545'; $badgeClass='bg-danger'; break;
+                    case 'Waiting': $icon='ri-checkbox-blank-circle-line'; $color='#6c757d'; $badgeClass='bg-secondary'; break;
+                    default: $icon='ri-question-line'; $color='#adb5bd'; $badgeClass='bg-light text-dark'; break;
                 }
 
-                $approversChain .= '
-                <div class="approver-step mb-1" style="white-space:nowrap;">
+                $approversChain .= '<div class="approver-step mb-1" style="white-space:nowrap;">
                     <div class="d-flex align-items-center gap-1" style="flex-wrap:nowrap;">
-                        <i class="' . $icon . '" style="color:' . $color . '; font-size:0.9rem; flex-shrink:0;"></i>
-                        <span style="font-size:0.78rem; font-weight:600; color:#212529; flex-shrink:0;">' . e($user->name) . '</span>
-                        <span class="badge ' . $badgeClass . '" style="font-size:0.65rem; flex-shrink:0;">' . e($approver->status) . '</span>
+                        <i class="'.$icon.'" style="color:'.$color.';font-size:0.9rem;flex-shrink:0;"></i>
+                        <span style="font-size:0.78rem;font-weight:600;color:#212529;flex-shrink:0;">'.e($user->name).'</span>
+                        <span class="badge '.$badgeClass.'" style="font-size:0.65rem;flex-shrink:0;">'.e($approver->status).'</span>
                     </div>
                 </div>';
 
                 if (!$cr->approvers->sortBy('level')->last()->is($approver)) {
-                    $approversChain .= '<div style="margin-left:8px; color:#adb5bd; font-size:0.7rem; margin-bottom:3px;">&#8595;</div>';
+                    $approversChain .= '<div style="margin-left:8px;color:#adb5bd;font-size:0.7rem;margin-bottom:3px;">&#8595;</div>';
                 }
             }
             $approversChain .= '</div>';
 
-            $actions = '
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                        <i class="ri-more-2-fill"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item" href="' . url('change-request/' . $cr->id) . '">
-                                <i class="ri-information-line me-2"></i> View Status
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="' . url('change-request/view-change-request/' . $cr->id) . '">
-                                <i class="ri-eye-line me-2"></i> View Request
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            ';
+            $approversJson = $cr->approvers->sortBy('level')->map(fn($a) => [
+                'name' => $a->user->name ?? 'N/A',
+                'role' => $a->request_type ?? '',
+                'level' => $a->level,
+                'status' => $a->status,
+                'remarks' => $a->remarks,
+                'date_approved' => $a->date_approved
+                    ? \Carbon\Carbon::parse($a->date_approved)->format('M d, Y h:i A')
+                    : null,
+            ])->values()->toJson();
+
+            $actions = '<div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="ri-more-2-fill"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="'.url('change-request/'.$cr->id).'">
+                            <i class="ri-information-line me-2"></i> View Status
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="'.url('change-request/view-change-request/'.$cr->id).'">
+                            <i class="ri-eye-line me-2"></i> View Request
+                        </a>
+                    </li>
+                    '.($cr->status === 'For Revision' ? '
+                    <li>
+                        <a class="dropdown-item view-revision-status-btn" href="#"
+                            data-doc-id="'.$docId.'"
+                            data-title="'.e($cr->title).'"
+                            data-status="'.e($cr->status).'"
+                            data-category="'.e($cr->category).'"
+                            data-revision="'.e($cr->revision).'"
+                            data-date-requested="'.($cr->created_at ? $cr->created_at->format('Y-m-d') : '-').'"
+                            data-requested-by="'.e($cr->user->name ?? 'N/A').'"
+                            data-approvers-json=\''.htmlspecialchars($approversJson, ENT_QUOTES, 'UTF-8').'\'>
+                            <i class="ri-git-branch-line me-2"></i> Revision Status
+                        </a>
+                    </li>' : '').'
+                </ul>
+            </div>';
 
             $data[] = [
                 'action' => $actions,
@@ -332,20 +340,18 @@ class RequestController extends Controller
                 'title' => e($cr->title),
                 'description' => e($cr->description),
                 'category' => e($cr->category),
-                'privacy' => e($cr->privacy),
+                'privacy' => $cr->departments->pluck('name')->implode(', ') ?: e($cr->privacy),
                 'revision' => e($cr->revision),
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'created_at' => $cr->created_at ? $cr->created_at->format('Y-m-d') : '-',
-                'approvers'  => $approversChain,
+                'approvers' => $approversChain,
                 'status' => $statusBadge,
-                'qr_code' => '
-                    <button class="btn btn-sm btn-outline-primary view-qr-btn"
-                        data-doc-id="' . $docId . '"
-                        data-doc-title="' . e($cr->title) . '"
-                        data-change-request-id="' . $cr->id . '">
-                        <i class="ri-qr-code-line"></i> View QR
-                    </button>
-                ',
+                'qr_code' => '<button class="btn btn-sm btn-outline-primary view-qr-btn"
+                    data-doc-id="'.$docId.'"
+                    data-doc-title="'.e($cr->title).'"
+                    data-change-request-id="'.$cr->id.'">
+                    <i class="ri-qr-code-line"></i> View QR
+                </button>',
             ];
         }
 
@@ -672,7 +678,7 @@ class RequestController extends Controller
             if ($request->has('id'))
             {
                 $change_request = ChangeRequest::findOrFail($request->id);
-                $change_request->department_id = $request->department_id;
+                $change_request->departments()->sync($request->department_id ?? []);
                 $change_request->title = $request->title;
                 // $change_request->type = $request->type;
                 $change_request->description = $request->description;
@@ -701,6 +707,7 @@ class RequestController extends Controller
                 }
                 $change_request->save();
 
+                $change_request->departments()->sync($request->department_id ?? []);
                 $approvers = RequestApprover::where('change_request_id', $change_request->id)->delete();
                 foreach($request->approvers as $key=>$approver)
                 {
@@ -764,7 +771,6 @@ class RequestController extends Controller
                 $change_request = new ChangeRequest;
                 $change_request->title = $request->title;
                 // $change_request->type = $request->type;
-                $change_request->department_id = $request->department_id;
                 $change_request->description = $request->description;
                 $change_request->category = $request->category;
                 $change_request->status = $request->status;
@@ -786,6 +792,8 @@ class RequestController extends Controller
                     $change_request->file = '/attachment/'.$name;
                 }
                 $change_request->save();
+
+                $change_request->departments()->sync($request->department_id ?? []);
         
                 if ($request->has('approvers'))
                 {
