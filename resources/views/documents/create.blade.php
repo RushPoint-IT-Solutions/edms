@@ -293,7 +293,7 @@
     
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Approvers <span class="text-danger">*</span></h5>
+                    <h5 class="card-title mb-0">Signatories <span class="text-danger">*</span></h5>
                 </div>
                 <div class="card-body">
                     <div id="approvers-wrapper">
@@ -310,6 +310,10 @@
                                     <option value="{{ $user->id }}">{{ $user->name }}</option>
                                 @endforeach
                                 @endif
+                            </select>
+                            <select name="approver_roles[]" class="form-select" style="width: 140px; flex-shrink: 0;">
+                                <option value="For Signature">For Signature</option>
+                                <option value="For Receiving">For Receiving</option>
                             </select>
                             <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="1">
                                 <i class="ri-add-circle-line"></i>
@@ -811,6 +815,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 @foreach($approvers as $user)
                     <option value="{{ $user->id }}">{{ $user->name }}</option>
                 @endforeach
+            </select>
+            <select name="approver_roles[]" class="form-select" style="width: 140px; flex-shrink: 0;">
+                <option value="For Signature">For Signature</option>
+                <option value="For Receiving">For Receiving</option>
             </select>
             <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="${level}">
                 <i class="ri-add-circle-line"></i>

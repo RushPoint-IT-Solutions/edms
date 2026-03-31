@@ -22,7 +22,11 @@
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
-        <h4 class="mb-0">My Files</h4>
+        @if((auth()->user()->role == "Administrator"))
+        <h4 class="mb-0">Files</h4>
+        @else
+        <h4 class="mb-0">My files</h4>
+        @endif
         <p class="text-muted mb-0">Manage and track document change requests</p>
     </div>
 </div>
@@ -74,6 +78,9 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">My Files</h5>
+                <a href="{{ route('documents.create') }}" class="btn btn-first btn-sm">
+                    <i class="ri-file-add-line me-2"></i>Create document
+                </a>
             </div>
 
             <div class="card-body">
@@ -232,8 +239,8 @@ $(document).ready(function () {
         responsive: true,
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy',  text: 'Copy',  titleAttr: 'Copy to clipboard' },
-            { extend: 'excel', text: 'Excel', title: 'Change Requests' }
+            { extend: 'copy',  text: 'Copy',  titleAttr: 'Copy to clipboard', className: 'btn btn-secondary btn-sm'  },
+            { extend: 'excel', text: 'Excel', title: 'Change Requests', className: 'btn btn-secondary btn-sm' }
         ],
         order: [[8, 'desc']],
         language: {

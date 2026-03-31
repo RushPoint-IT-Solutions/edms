@@ -240,7 +240,17 @@
                     <div class="mb-4">
                         <h6 class="text-muted mb-3">Main Document</h6>
                         <div class="card border file-preview-card">
-                            <a href='{{ url($change_request->file) }}' class="text-decoration-none" target="_blank">
+                            @php
+                                $url = "";
+                                if($change_request->status == "Approved") {
+                                    $attachment = ($change_request->document->attachments)->where("type","pdf_copy")->first();
+                                    $url = '/documents/view-pdf/'.$attachment->id;
+                                }
+                                else {
+                                    $url = $change_request->file;
+                                }
+                            @endphp
+                            <a href='{{ url($url) }}' class="text-decoration-none" target="_blank">
                                 <div class="position-relative"
                                     style="height: 200px; overflow: hidden; background: #f8f9fa;">
                                     <iframe

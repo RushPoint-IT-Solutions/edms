@@ -286,10 +286,10 @@ class HomeController extends Controller
             'date' => 'required|date'
         ]);
 
-        $document_request_access = DocumentRequestAccess::where("document_id", $id)->where("status", 0)->first();
+        $document_request_access = DocumentRequestAccess::where("change_request_id", $id)->where("status", 0)->first();
         if (empty($document_request_access)) {
             $document_request_access = new DocumentRequestAccess;
-            $document_request_access->document_id = $id;
+            $document_request_access->change_request_id = $id;
             $document_request_access->reason = $request->reason;
             $document_request_access->user_id = $request->user_id;
             $document_request_access->request_date = $request->date;
@@ -315,18 +315,18 @@ class HomeController extends Controller
         $base = DocumentRequestAccess::where('user_id', auth()->id());
 
         $forApproval = (clone $base)->where('status', 0)->count();
-        $approved    = (clone $base)->where('status', 1)->count();
-        $declined    = (clone $base)->where('status', 3)->count();
+        $approved = (clone $base)->where('status', 1)->count();
+        $declined = (clone $base)->where('status', 3)->count();
 
         return view('for_request_access', compact('forApproval', 'approved', 'declined'));
     }
 
     public function getRequestAccessData(Request $request)
     {
-        $draw         = $request->get('draw');
-        $start        = $request->get('start');
-        $length       = $request->get('length');
-        $search       = $request->get('search')['value'] ?? '';
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
         $statusFilter = $request->get('status_filter');
 
         $query = DocumentRequestAccess::with(['document', 'requestor.department'])

@@ -62,6 +62,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('share','DocumentController@share');
             Route::post("/share-document", "DocumentController@shareDocument");
             Route::post('/share-folder', 'DocumentController@shareFolder');
+            Route::get('/next-control-code', 'DocumentController@previewNextControlCode');
         });
 
         Route::get('/shared-with-me', 'DocumentController@sharedWithMe')->name('shared-with-me');
@@ -103,6 +104,7 @@ Route::group(['middleware' => 'auth'], function () {
         //ChangeRequest
         Route::post('change-request/record-view', 'HomeController@recordChangeRequestView')->name('change-request.record-view');
         Route::get('change-request/visitors/{id}', 'HomeController@changeRequestVisitors')->name('change-request.visitors');
+        Route::post('/change-request/private-user-view', 'MonitoringController@privateUserView');
         Route::get('/change-requests','RequestController@changeRequests')->name('change-requests');
         Route::prefix('change-request')->group(function() {
             Route::get('/data', 'RequestController@getChangeRequestsData')->name('change-requests.data');
@@ -150,6 +152,15 @@ Route::group(['middleware' => 'auth'], function () {
 
         Route::get('/system-configuration', 'SystemConfigurationController@index')->name('settings');
 
+        Route::prefix('system-configuration')->group(function () {
+            Route::get('/campus/data', 'SystemConfigurationController@getCampusData')->name('system-config.campus.data');
+            Route::get('/departments/data', 'SystemConfigurationController@getDepartmentsData')->name('system-config.departments.data');
+            Route::get('/teams/data', 'SystemConfigurationController@getTeamsData')->name('system-config.teams.data');
+            Route::get('/document-types/data', 'SystemConfigurationController@getDocumentTypesData')->name('system-config.document-types.data');
+            Route::get('/control-codes/data', 'SystemConfigurationController@getControlCodesData')->name('system-config.control-codes.data');
+            Route::get('/tags/data', 'SystemConfigurationController@getTagsData')->name('system-config.tags.data');
+        });
+
         Route::get('/access-control', 'AccessControlController@index')->name('settings');
         Route::post('/access-control/update', 'AccessControlController@update')->name('access-control.update');
         
@@ -165,6 +176,22 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('/store', 'PermitController@store')->name('permits');
             Route::post('/upload/{id}', 'PermitController@upload')->name('permits');
             Route::post('change-type/{id}', 'PermitController@change_type')->name('permits');
+        });
+
+        Route::prefix('campus')->group(function() {
+            Route::post('/store', 'CampusController@storeCampus')->name('campus.store');
+            Route::post('update/{id}', 'CampusController@updateCampus')->name('campus.update');
+            Route::delete('/{id}', 'CampusController@destroyCampus')->name('campus.destroy');
+
+            //for offices
+            Route::get('/list', 'CampusController@getCampusList')->name('campus.list');
+        });
+
+        Route::prefix('tags')->group(function() {
+            Route::post('/store', 'TagController@store')->name('tags.store');
+            Route::post('update/{id}', 'TagController@update')->name('tags.update');
+            Route::delete('/{id}', 'TagController@destroy')->name('tags.destroy');
+            Route::get('/list', 'TagController@getList')->name('tags.list');
         });
 
         // Departments

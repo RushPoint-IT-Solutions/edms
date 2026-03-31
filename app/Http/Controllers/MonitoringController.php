@@ -8,6 +8,7 @@ use App\Document;
 use App\Office;
 use App\RequestApprover;
 use App\DocumentRequestAccess;
+use App\PrivateDocsVisitor;
 use Illuminate\Http\Request;
 
 class MonitoringController extends Controller
@@ -72,10 +73,10 @@ class MonitoringController extends Controller
 
     public function index(Request $request)
     {
-        if(!canView('monitoring.view')) {
+        if (!canView('monitoring.view')) {
             return view('pages.403-error');
         }
-        
+
         $today = now()->startOfDay();
 
         $departments = Department::where('status', 'active')
@@ -86,7 +87,8 @@ class MonitoringController extends Controller
             ->orderBy('name')
             ->get();
 
-        $documentQuery = Document::with('attachments', 'department', 'visitor')->where('public', 1);
+        $documentQuery = Document::with('attachments', 'department', 'visitor')
+            ->where('public', 1);
 
         $docRaw       = $request->get('public_search', '');
         $docDateParts = $this->parseDateFromSearch($docRaw);
@@ -99,26 +101,26 @@ class MonitoringController extends Controller
                         $dq->where('code', 'like', '%' . $docRaw . '%')
                            ->orWhere('name', 'like', '%' . $docRaw . '%');
                     });
-
                 $this->applyDateFilter($q, $docDateParts);
             });
         }
 
         $documents = $documentQuery->orderBy('created_at', 'desc')->get();
 
-        $privateRaw       = $request->get('private_search', '');
+        $privateRaw = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
-        $privateQuery = Document::with('attachments', 'department', 'visitor', 'owner', 'document_request_access')
-            ->where('public', null);
+        $privateQuery = ChangeRequest::with(['department', 'department.office', 'user', 'document_request_access', 'document.attachments'])
+            ->whereIn('status', ['Approved', 'For Approval'])
+            ->where('category', 'Private');
 
         if ($privateRaw) {
             $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
                 $q->where('title', 'like', '%' . $privateRaw . '%')
-                  ->orWhere('file', 'like', '%' . $privateRaw . '%')
-                  ->orWhereHas('department', function ($dq) use ($privateRaw) {
+                ->orWhere('control_code', 'like', '%' . $privateRaw . '%')
+                ->orWhereHas('department', function ($dq) use ($privateRaw) {
                         $dq->where('code', 'like', '%' . $privateRaw . '%')
-                           ->orWhere('name', 'like', '%' . $privateRaw . '%');
+                        ->orWhere('name', 'like', '%' . $privateRaw . '%');
                     });
                 $this->applyDateFilter($q, $privateDateParts);
             });
@@ -142,13 +144,11 @@ class MonitoringController extends Controller
                         $expiry = \Carbon\Carbon::parse($approvedAccess->access_until)->startOfDay();
                         $document->has_valid_access = $today->lte($expiry);
                         $document->access_expiry    = $approvedAccess->access_until;
-                    }
-                    elseif (!is_null($approvedAccess->request_date)) {
+                    } elseif (!is_null($approvedAccess->request_date)) {
                         $expiry = \Carbon\Carbon::parse($approvedAccess->request_date)->startOfDay();
                         $document->has_valid_access = $today->lte($expiry);
                         $document->access_expiry    = $approvedAccess->request_date;
-                    }
-                    else {
+                    } else {
                         $document->has_valid_access = true;
                         $document->access_expiry    = null;
                     }
@@ -162,7 +162,8 @@ class MonitoringController extends Controller
                 return $document;
             });
 
-        $pending_query = RequestApprover::where("user_id", auth()->id())->where("status", "Pending");
+        $pending_query = RequestApprover::where('user_id', auth()->id())
+            ->where('status', 'Pending');
 
         $pendingRaw       = $request->get('pending_search', '');
         $pendingDateParts = $this->parseDateFromSearch($pendingRaw);
@@ -175,7 +176,6 @@ class MonitoringController extends Controller
                         $dq->where('code', 'like', '%' . $pendingRaw . '%')
                            ->orWhere('name', 'like', '%' . $pendingRaw . '%');
                     });
-
                 $this->applyDateFilter($q, $pendingDateParts);
             });
         }
@@ -185,15 +185,25 @@ class MonitoringController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(8, ['*'], 'pending_page');
 
-        $change_requests = ChangeRequest::with("approvers.user")->where("user_id", auth()->id())->get();
+        $change_requests = ChangeRequest::with(['approvers.user', 'department', 'department.office'])
+            ->where('user_id', auth()->id())
+            ->get();
 
         return view('monitoring', [
-            'documents'         => $documents,
+            'documents' => $documents,
             'private_documents' => $private_documents,
-            'pending_cards'     => $pending_cards,
-            'departments'       => $departments,
-            'offices'           => $offices,
-            'change_requests'   => $change_requests,
+            'pending_cards' => $pending_cards,
+            'departments' => $departments,
+            'offices' => $offices,
+            'change_requests' => $change_requests,
+        ]);
+    }
+
+    public function privateUserView(Request $request)
+    {
+        PrivateDocsVisitor::create([
+            'change_request_id' => $request->change_request_id,
+            'user_id' => auth()->id(),
         ]);
     }
 }

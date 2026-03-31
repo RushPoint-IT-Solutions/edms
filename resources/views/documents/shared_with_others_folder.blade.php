@@ -505,7 +505,7 @@
                 <span class="dblHint">&nbsp;— Click to select &bull; Double-click to open</span>
             </p>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-1">
             @if($sharedUsers->count() > 0)
             <div class="d-flex align-items-center gap-2 me-2"
                 style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;padding:5px 10px;">
@@ -521,8 +521,12 @@
                 </span>
             </div>
             @endif
-            <button class="toggleBtn active" id="listViewBtn" title="List view"><i class="ri-list-check"></i></button>
-            <button class="toggleBtn" id="gridViewBtn" title="Grid view"><i class="ri-grid-fill"></i></button>
+            <button class="btn btn-light btn-sm toggleBtn active" id="listViewBtn" title="List view">
+                <i class="ri-list-check"></i>
+            </button>
+            <button class="btn btn-light btn-sm toggleBtn" id="gridViewBtn" title="Grid view">
+                <i class="ri-grid-fill"></i>
+            </button>
         </div>
     </div>
 </div>

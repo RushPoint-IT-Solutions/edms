@@ -25,7 +25,9 @@
 
                     <div class="mb-3">
                         <label class="form-label">Campus <span class="text-danger">*</span></label>
-                        <input type="text" id="campus" name="campus" class="form-control" placeholder="Enter Campus" required>
+                        <select id="campus" name="campus" class="form-select" required>
+                            <option value="">Select campus...</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-2">

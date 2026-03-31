@@ -25,7 +25,10 @@
 
                     <div class="mb-3">
                         <label class="form-label">Campus <span class="text-danger">*</span></label>
-                        <input type="text" name="campus" class="form-control" value="{{ $team->campus }}" required>
+                        <select name="campus" class="form-select edit-campus-select" 
+                            data-current="{{ $team->campus }}" required>
+                            <option value="">Select campus...</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-2">

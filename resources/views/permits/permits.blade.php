@@ -70,7 +70,7 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">Permits & Licenses</h5>
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new_permit">
+                <button class="btn btn-first btn-sm" data-bs-toggle="modal" data-bs-target="#new_permit">
                     <i class="fa fa-plus"></i> New
                 </button>
             </div>
@@ -125,14 +125,16 @@
 
 @include('permits.new_permit')
 
-@foreach($permits as $permit)
+{{-- @foreach($permits as $permit)
     @include('permits.upload_permit')
     @include('permits.edit_type')
-@endforeach
+@endforeach --}}
 
 @endsection
 
 @section('js')
+<script src="{{ asset('js/ajaxRequest.js') }}"></script>
+<script src="{{ asset('js/errorDisplay.js') }}"></script>
 <script>
 $(document).ready(function () {
 
@@ -168,9 +170,9 @@ $(document).ready(function () {
         responsive: true,
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy', text: 'Copy' },
-            { extend: 'excel', text: 'Excel', title: 'Permits & Licenses' },
-            { extend: 'pdf', text: 'PDF', title: 'Permits & Licenses' },
+            { extend: 'copy', text: 'Copy', className: 'btn btn-sm btn-secondary' },
+            { extend: 'excel', text: 'Excel', title: 'Permits & Licenses', className: 'btn btn-sm btn-secondary' },
+            // { extend: 'pdf', text: 'PDF', title: 'Permits & Licenses', className: 'btn btn-sm btn-danger' },
         ],
         order: [[0, 'desc']],
         language: {
@@ -266,6 +268,36 @@ $(document).ready(function () {
         }, function () { form.submit(); });
     });
 
+    $("#AddPermitForm").on("submit", function(e) {
+        e.preventDefault()
+
+        var formData = new FormData($(this)[0])
+        
+        ajaxRequest({
+            type:"POST",
+            url:"{{ url('/permits/store') }}",
+            data: formData, 
+            contentType: false,
+            processData: false,
+            beforeSend: function() {
+                $("#AddPermitBtn").prop("disabled", true).text("Submiting...")
+            },
+            success: function(response) {
+                if (response.status == "success") {
+                    swal("Success", response.message, response.status)
+                    table.ajax.reload()
+                    $("#new_permit").modal("hide")
+                }
+            },
+            complete: function() {
+                $("#AddPermitBtn").prop("disabled", false).text("Submit")
+            },
+            error: function(error) {
+                var errors = error.responseJSON
+                displayError("AddPermitForm", errors.errors)
+            }
+        })
+    })
 });
 </script>
 @endsection

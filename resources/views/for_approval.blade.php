@@ -97,26 +97,24 @@
 <div class="modal fade" id="sharedConfirmPasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" action="{{ url('change-request/confirm-password') }}">
-                @csrf
-                <div class="modal-header border-bottom">
-                    <h5 class="modal-title mb-3"><i class="ri-lock-line me-2"></i>Confirm Password</h5>
-                    <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title mb-3"><i class="ri-lock-line me-2"></i>Confirm Password</h5>
+                <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="signChangeRequestId">
+                <div class="mb-3">
+                    <label class="form-label">Enter your password to proceed</label>
+                    <input type="password" id="signPassword" class="form-control" placeholder="Password">
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" name="change_request_id" id="signChangeRequestId">
-                    <div class="mb-3">
-                        <label class="form-label">Enter your password to proceed</label>
-                        <input type="password" name="password" class="form-control" placeholder="Password" required>
-                    </div>
-                </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary mt-3">
-                        <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
-                    </button>
-                </div>
-            </form>
+                <div id="signError" class="text-danger small d-none">Incorrect password. Please try again.</div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary mt-3" id="signConfirmBtn">
+                    <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -206,8 +204,8 @@ $(document).ready(function () {
         responsive: true,
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy',  text: 'Copy'  },
-            { extend: 'excel', text: 'Excel' }
+            { extend: 'copy',  text: 'Copy', className: 'btn btn-secondary btn-sm', titleAttr: 'Copy to clipboard' },
+            { extend: 'excel', text: 'Excel', className: 'btn btn-secondary btn-sm', title: 'Change Requests' }
         ],
         language: {
             processing: '<div style="text-align:center;"><i class="fa fa-spinner fa-spin fa-2x"></i><br><span style="margin-top:10px;display:block;">Loading...</span></div>',
@@ -304,9 +302,44 @@ $(document).ready(function () {
 
 function openSignModal(changeRequestId) {
     document.getElementById('signChangeRequestId').value = changeRequestId;
+    document.getElementById('signPassword').value = '';
+    document.getElementById('signError').classList.add('d-none');
     var modal = new bootstrap.Modal(document.getElementById('sharedConfirmPasswordModal'));
     modal.show();
 }
+
+document.getElementById('signConfirmBtn').addEventListener('click', function () {
+    const changeRequestId = document.getElementById('signChangeRequestId').value;
+    const password = document.getElementById('signPassword').value;
+
+    if (!password) {
+        document.getElementById('signError').textContent = 'Please enter your password.';
+        document.getElementById('signError').classList.remove('d-none');
+        return;
+    }
+
+    fetch("{{ url('change-request/confirm-password') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ password: password, change_request_id: changeRequestId })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            document.getElementById('signError').textContent = data.message ?? 'Incorrect password. Please try again.';
+            document.getElementById('signError').classList.remove('d-none');
+        }
+    })
+    .catch(() => {
+        document.getElementById('signError').textContent = 'An error occurred. Please try again.';
+        document.getElementById('signError').classList.remove('d-none');
+    });
+});
 
 function openReturnModal(changeRequestId) {
     document.getElementById('returnForm').action = '/change-request/change-request-action/' + changeRequestId;

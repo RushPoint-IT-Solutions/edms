@@ -66,33 +66,31 @@ class DocumentController extends Controller
         $users = User::whereNull("status")->get();
 
         $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
-        $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
+        $controlCodes = ControlCode::with('documentType', 'department')
+            ->where('status', 1)
+            ->orderBy('code')
+            ->get();
 
         $documents = Document::with('change_requests', 'attachments', 'share_document')
+            ->where('user_id', auth()->user()->id)
             ->orderBy('control_code', 'desc')
             ->get();
 
-        if (auth()->user()->role != "Administrator") {
-            $documents = Document::with('change_requests', 'attachments', 'share_document')
-                ->where('user_id', auth()->user()->id)
-                ->orderBy('control_code', 'desc')
-                ->get();
-        }
-
         $existingDocuments = Document::with('document_type_list', 'document_tags')
+            ->where('user_id', auth()->user()->id)
             ->selectRaw('
                 MAX(id) as id,
                 control_code,
-                title,
-                category,
-                folder_id,
-                other_category,
-                type_of_request,
-                office_id,
+                MAX(title) as title,
+                MAX(category) as category,
+                MAX(folder_id) as folder_id,
+                MAX(other_category) as other_category,
+                MAX(type_of_request) as type_of_request,
+                MAX(office_id) as office_id,
                 MAX(version) AS latest_revision,
                 COUNT(*) AS upload_count
             ')
-            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request', 'office_id')
+            ->groupBy('control_code')
             ->orderBy('control_code', 'asc')
             ->get();
 
@@ -142,6 +140,10 @@ class DocumentController extends Controller
             'label' => $d->control_code . ' - ' . $d->title,
         ])->values()->toArray();
 
+        $upload_folders = DocumentFolder::with('document', 'childrenFolder')
+            ->where('user_id', auth()->user()->id)
+            ->get();
+
         return view('documents.documents', [
             'documents' => $documents,
             'obsoletes' => $obsoletes,
@@ -159,6 +161,7 @@ class DocumentController extends Controller
             'shareOthersDocs' => $shareOthersDocs,
             'teams' => $teams,
             'controlCodes' => $controlCodes,
+            'upload_folders' => $upload_folders,
         ]);
     }
 
@@ -169,15 +172,9 @@ class DocumentController extends Controller
                     ->get();
 
         $documents = Document::with('change_requests', 'attachments')
+            ->where('user_id', auth()->user()->id)
             ->orderBy('control_code', 'desc')
             ->get();
-
-        if (auth()->user()->role != "Administrator") {
-            $documents = Document::with('change_requests', 'attachments')
-                ->where('user_id', auth()->user()->id)
-                ->orderBy('control_code', 'desc')
-                ->get();
-        }
 
         $documents = $documents->map(function ($doc) {
             $fileInfo = $this->getDocumentFileInfo($doc);
@@ -251,7 +248,7 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>Document</td>
-                    <td>—</td>
+                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">';
 
@@ -372,11 +369,9 @@ class DocumentController extends Controller
         $search = $request->input('search');
 
         if ($id === 'others') {
-            $documentsQuery = Document::with('change_requests', 'attachments')->whereNull('folder_id');
-
-            if (auth()->user()->role != "Administrator") {
-                $documentsQuery->where('user_id', auth()->user()->id);
-            }
+            $documentsQuery = Document::with('change_requests', 'attachments')
+                ->whereNull('folder_id')
+                ->where('user_id', auth()->user()->id);
 
             if ($search) {
                 $documentsQuery->where(function ($q) use ($search) {
@@ -442,7 +437,7 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>' . strtoupper($doc->fileType) . '</td>
-                    <td>—</td>
+                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
                 </tr>';
@@ -502,7 +497,7 @@ class DocumentController extends Controller
             ]);
         }
 
-        $all_document_folders = DocumentFolder::with('document', 'childrenFolder')->get();
+        $all_document_folders = DocumentFolder::where('user_id', auth()->user()->id)->get();
 
         $foldersQuery = DocumentFolder::where('parent_id', $id);
         $documentsQuery = Document::where('folder_id', $id);
@@ -573,7 +568,7 @@ class DocumentController extends Controller
                     </div>
                 </td>
                 <td>' . strtoupper($doc->fileType) . '</td>
-                <td>—</td>
+                <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                 <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                 <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
             </tr>';
@@ -811,7 +806,7 @@ class DocumentController extends Controller
                     $html .= '<span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>';
                     $html .= '</div></td>';
                     $html .= '<td>' . strtoupper($fileInfo['fileType']) . '</td>';
-                    $html .= '<td>—</td>';
+                    $html .= '<td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
                         <div class="dropdown">
@@ -890,8 +885,8 @@ class DocumentController extends Controller
     {
         $approvers = User::all();
         $document_types = DocumentType::get();
-        $departments = Department::where('status', null)->orderBy('name', 'asc')->get();
-        $teams = Team::where('status', null)->orderBy('name', 'asc')->get();
+        $departments = Department::where('status', 1)->orderBy('name', 'asc')->get();
+        $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
 
         $change_request = null;
         if ($id)
@@ -915,6 +910,41 @@ class DocumentController extends Controller
         );
     }
 
+    public function previewNextControlCode(Request $request)
+    {
+        $docTypeId = $request->input('doc_type_id');
+        $officeId = $request->input('office_id');
+
+        if (!$docTypeId || !$officeId) {
+            return response()->json(['preview' => null]);
+        }
+
+        $docType = DocumentType::find($docTypeId);
+        $office = Team::find($officeId);
+
+        if (!$docType || !$office) {
+            return response()->json(['preview' => null]);
+        }
+
+        $year = date('Y');
+        $base = 'MarSU-' . $office->name . '-' . $docType->code . '-' . $year . '-';
+        $padLen = 4;
+
+        $latest = Document::where('control_code', 'like', $base . '%')
+            ->orderByRaw('CAST(SUBSTRING_INDEX(control_code, "-", -1) AS UNSIGNED) DESC')
+            ->first();
+
+        $nextNumber = 1;
+        if ($latest) {
+            preg_match('/-(\d+)$/', $latest->control_code, $m);
+            $nextNumber = isset($m[1]) ? ((int)$m[1] + 1) : 1;
+        }
+
+        $preview = $base . str_pad($nextNumber, $padLen, '0', STR_PAD_LEFT);
+
+        return response()->json(['preview' => $preview, 'next_number' => $nextNumber]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -926,27 +956,49 @@ class DocumentController extends Controller
 
         $isRevision = $request->input('is_revision', '0') === '1';
 
-        if ($isRevision) {
-            $controlCode = trim($request->control_code_existing ?? '');
+        try {
+            $controlCode = DB::transaction(function () use ($request, $isRevision) {
 
-            if (empty($controlCode)) {
-                return back()->withErrors(['control_code_existing' => 'Please select an existing document.']);
-            }
+                if ($isRevision) {
+                    $code = trim($request->control_code_existing ?? '');
+                    if (empty($code)) {
+                        throw new \InvalidArgumentException('Please select an existing document.');
+                    }
+                    return $code;
+                }
 
-        } else {
-            $controlCode = trim($request->control_code ?? '');
+                $preview = trim($request->control_code ?? '');
+                if (empty($preview)) {
+                    throw new \InvalidArgumentException('Please select a control code.');
+                }
 
-            if (empty($controlCode)) {
-                return back()->withErrors(['control_code' => 'Please select a control code.']);
-            }
+                if (!preg_match('/^(.*-)(\d+)$/', $preview, $matches)) {
+                    throw new \InvalidArgumentException('Invalid control code format.');
+                }
 
-            $controlCodeRecord = ControlCode::where('code', $controlCode)
-                ->where('status', 1)
-                ->first();
+                $base = $matches[1];
+                $padLength = strlen($matches[2]);
 
-            if (!$controlCodeRecord) {
-                return back()->withErrors(['control_code' => 'The selected control code is invalid or no longer available.']);
-            }
+                $latestDoc = Document::where('control_code', 'like', $base . '%')
+                    ->lockForUpdate()
+                    ->orderByRaw('CAST(SUBSTRING_INDEX(control_code, "-", -1) AS UNSIGNED) DESC')
+                    ->first();
+
+                $nextNumber = 1;
+                if ($latestDoc) {
+                    preg_match('/-(\d+)$/', $latestDoc->control_code, $m);
+                    $nextNumber = isset($m[1]) ? ((int)$m[1] + 1) : 1;
+                }
+
+                return $base . str_pad($nextNumber, $padLength, '0', STR_PAD_LEFT);
+            });
+
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['control_code' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            Log::error('Control code generation failed', ['error' => $e->getMessage()]);
+            Alert::error('Error generating control code. Please try again.')->persistent('Dismiss');
+            return back();
         }
 
         try {
@@ -967,7 +1019,6 @@ class DocumentController extends Controller
 
             foreach ($request->document_type as $type) {
                 if (is_null($type)) continue;
-
                 $document_type = new DocumentTypeList;
                 $document_type->document_id = $document->id;
                 $document_type->type = $type;
@@ -997,11 +1048,6 @@ class DocumentController extends Controller
                 $this->propagateFolderShares($document->folder_id, $document->id);
             }
 
-            if (!$isRevision && isset($controlCodeRecord)) {
-                $controlCodeRecord->status = 0;
-                $controlCodeRecord->save();
-            }
-
             DB::commit();
 
             Alert::success('Successfully Uploaded')->persistent('Dismiss');
@@ -1010,12 +1056,10 @@ class DocumentController extends Controller
         } catch (Exception $e) {
             DB::rollback();
             Log::error("Cannot upload documents", ['error' => $e->getMessage()]);
-
             Alert::error('Error')->persistent('Dismiss');
             return back();
         }
     }
-
 
     /**
      * Display the specified resource.
@@ -1269,18 +1313,35 @@ class DocumentController extends Controller
         $perPage = $request->input('per_page', 10);
 
         $document_types = DocumentType::orderBy('name', 'desc')->get();
-        $all_document_folders = DocumentFolder::get();
+
+        $all_document_folders = DocumentFolder::where('user_id', auth()->user()->id)->get();
+
         $users = User::whereNull('status')->get();
-        $controlCodes = ControlCode::where('status', 1)->orderBy('code')->get();
+        $controlCodes = ControlCode::with('documentType', 'department')
+            ->where('status', 1)
+            ->orderBy('code')
+            ->get();
         $teams = Team::where('status', 1)->orderBy('name', 'asc')->get();
 
+        $upload_folders = DocumentFolder::with('document', 'childrenFolder')
+            ->where('user_id', auth()->user()->id)
+            ->get();
+
         $existingDocuments = Document::with('document_type_list', 'document_tags')
+            ->where('user_id', auth()->user()->id)
             ->selectRaw('
-                MAX(id) as id, control_code, title, category, folder_id,
-                other_category, type_of_request, office_id,
-                MAX(version) AS latest_revision, COUNT(*) AS upload_count
+                MAX(id) as id,
+                control_code,
+                MAX(title) as title,
+                MAX(category) as category,
+                MAX(folder_id) as folder_id,
+                MAX(other_category) as other_category,
+                MAX(type_of_request) as type_of_request,
+                MAX(office_id) as office_id,
+                MAX(version) AS latest_revision,
+                COUNT(*) AS upload_count
             ')
-            ->groupBy('control_code', 'title', 'category', 'folder_id', 'other_category', 'type_of_request', 'office_id')
+            ->groupBy('control_code')
             ->orderBy('control_code', 'asc')
             ->get();
 
@@ -1313,16 +1374,14 @@ class DocumentController extends Controller
 
         $sharedData = compact(
             'document_types', 'users', 'folderData', 'shareTree',
-            'shareOthersDocs', 'existingDocuments', 'controlCodes', 'teams'
+            'shareOthersDocs', 'existingDocuments', 'controlCodes', 'teams',
+            'upload_folders'
         );
 
         if ($id === 'others') {
             $documentsQuery = Document::with('change_requests', 'attachments')
-                ->whereNull('folder_id');
-
-            if (auth()->user()->role !== 'Administrator') {
-                $documentsQuery->where('user_id', auth()->id());
-            }
+                ->whereNull('folder_id')
+                ->where('user_id', auth()->id());
 
             if ($search) {
                 $documentsQuery->where(fn($q) => $q
