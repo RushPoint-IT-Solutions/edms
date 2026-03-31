@@ -11,6 +11,8 @@ use App\User;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Http\Request;
 use App\Notifications\ForRenewal;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class PermitController extends Controller
 {
@@ -274,34 +276,47 @@ class PermitController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
-        $this->validate($request, [
+        $validator = Validator::make($request->all(),[
             'title' => 'required',
             'description' => 'required',
-            // 'company' => 'required',
-            // 'department' => 'required',
             'type' => 'required|in:License,Permit,Certification',
             'file' => 'required',
             'expiration_date' => 'required|date',
         ]);
 
-        $attachment = $request->file('file');
-        $name = time() . '_' . $attachment->getClientOriginalName();
-        $attachment->move(public_path() . '/permits_attachments/', $name);
-        $file_name = '/permits_attachments/' . $name;
+        if($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
 
-        $permit = new Permit;
-        $permit->title = $request->title;
-        $permit->description = $request->description;
-        // $permit->company_id = $request->company;
-        // $permit->department_id = $request->department;
-        $permit->type = $request->type;
-        $permit->file = $file_name;
-        $permit->expiration_date = $request->expiration_date;
-        $permit->user_id = auth()->user()->id;
-        $permit->save();
+        try {
+            $attachment = $request->file('file');
+            $name = time() . '_' . $attachment->getClientOriginalName();
+            $attachment->move(public_path() . '/permits_attachments/', $name);
+            $file_name = '/permits_attachments/' . $name;
 
-        Alert::success('Successfully Save')->persistent('Dismiss');
-        return back();
+            $permit = new Permit;
+            $permit->title = $request->title;
+            $permit->description = $request->description;
+            // $permit->company_id = $request->company;
+            // $permit->department_id = $request->department;
+            $permit->type = $request->type;
+            $permit->file = $file_name;
+            $permit->expiration_date = $request->expiration_date;
+            $permit->user_id = auth()->user()->id;
+            $permit->save();
+
+            return response()->json(['status' => 'success', 'message' => 'Successfully Saved'], 200);
+        }
+        catch (\Throwable $e) {
+            Log::error("Error in creating permits ". $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Something went wrong'], 500);
+        }
+
+        // Alert::success('Successfully Save')->persistent('Dismiss');
+        // return back();
     }
 
     public function show($id)

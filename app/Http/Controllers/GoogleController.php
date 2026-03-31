@@ -34,23 +34,21 @@ class GoogleController extends Controller
 
         // ✅ Send welcome email only the first time they register
         if ($user->wasRecentlyCreated) {
-  
             // Mail::to($user->email)->send(new WelcomeEmail($user));
-           
+
+             // Default access
+            $access = [
+                'monitoring.view',
+                'files.view',
+                'personal.view',
+                'share_with_me.view',
+                'share_with_others.view',
+            ];
+
+            $user->syncPermissions($access);
         }
 
         Auth::login($user);
-
-        // Default access
-        $access = [
-            'monitoring.view',
-            'files.view',
-            'personal.view',
-            'share_with_me.view',
-            'share_with_others.view',
-        ];
-
-        $user->syncPermissions($access);
 
         return redirect('/')->with('success', 'Welcome, ' . $user->name . '!');
     }
