@@ -74,10 +74,14 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12 mb-5">
+    <div class="col-md-12">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h5 class="mb-0">My Files</h5>
+                @if((auth()->user()->role == "Administrator"))
+                <h4 class="mb-0">Files</h4>
+                @else
+                <h4 class="mb-0">My files</h4>
+                @endif
                 <a href="{{ route('documents.create') }}" class="btn btn-first btn-sm">
                     <i class="ri-file-add-line me-2"></i>Create document
                 </a>
