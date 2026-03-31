@@ -200,7 +200,6 @@
                                 <label for="choices-category-input" class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category" class="form-select" data-choices data-choices-search-false id="choices-category-input" required>
                                     <option value="">-- Select Category --</option>
-                                    <option value="Offices" @if(old('category', $change_request->category ?? '') == "Offices") selected @endif>Offices</option>
                                     <option value="Private" @if(old('category', $change_request->category ?? '') == "Private") selected @endif>Private</option>
                                     <option value="Public" @if(old('category', $change_request->category ?? '') == "Public") selected @endif>Public</option>
                                 </select>
@@ -235,7 +234,10 @@
                     </div>
 
                     <div class="mb-3" id="department-field" style="display: none;">
-                        <label for="department-select" class="form-label">Offices <span class="text-danger">*</span></label>
+                        <label for="department-select" class="form-label">
+                            Offices 
+                            <span class="text-muted" style="font-size:0.8rem;">(optional)</span>
+                        </label>
                         <select name="department_id[]" class="form-select cat" id="department-select" multiple>
                             @foreach($departments as $department)
                                 <option value="{{ $department->id }}"
@@ -889,48 +891,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-<script>
-$(document).ready(function() {
-    const categorySelectElement = document.querySelector('select[name="category"]');
-    const departmentField = document.getElementById('department-field');
-    const departmentSelect = document.getElementById('department-select');
-
-    function toggleDepartmentField() {
-        const categoryValue = categorySelectElement ? categorySelectElement.value : '';
-        console.log('Category value:', categoryValue);
-        
-        if (categoryValue === 'Offices') {
-            departmentField.style.display = 'block';
-            departmentSelect.setAttribute('required', 'required');
-            document.getElementById('team-field').style.display = 'block';
-        } else {
-            departmentField.style.display = 'none';
-            departmentSelect.removeAttribute('required');
-            departmentSelect.value = '';
-            document.getElementById('team-field').style.display = 'none';
-        }
-    }
-
-    toggleDepartmentField();
-
-    if (categorySelectElement) {
-        categorySelectElement.addEventListener('change', function() {
-            console.log('Category changed to:', this.value);
-            toggleDepartmentField();
-        });
-    }
-
-    const categoryContainer = categorySelectElement ? categorySelectElement.closest('.mb-3') : null;
-    if (categoryContainer) {
-        categoryContainer.addEventListener('change', function(e) {
-            if (e.target.name === 'category') {
-                console.log('Category changed via bubble:', e.target.value); 
-                toggleDepartmentField();
-            }
-        });
-    }
-});
-</script>
 
 <script>
     $(document).ready(function() {
@@ -944,7 +904,7 @@ $(document).ready(function() {
         function toggleDepartmentField() {
             const categoryValue = categorySelectElement ? categorySelectElement.value : '';
             
-            if (categoryValue === 'Offices') {
+            if (categoryValue === 'Public') {
                 departmentField.style.display = 'block';
             } else {
                 departmentField.style.display = 'none';
