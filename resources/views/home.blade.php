@@ -56,9 +56,9 @@
                         <small class="text-muted">Jan – Dec {{ date('Y') }}</small>
                     </div>
                     <div class="d-flex gap-3 flex-wrap justify-content-end">
-                        <span class="legend-dot" style="--dot:#8B0000;">Submitted</span>
-                        <span class="legend-dot" style="--dot:#c0392b;">Approved</span>
-                        <span class="legend-dot" style="--dot:#e0b0b0;">Declined</span>
+                        <span class="legend-dot" style="--dot:#17a2b8;">Submitted</span>
+                        <span class="legend-dot" style="--dot:#ffc107;">Approved</span>
+                        <span class="legend-dot" style="--dot:#dc3545;">Declined</span>
                     </div>
                 </div>
                 <div class="chart-wrap" style="height:240px;">
@@ -79,9 +79,9 @@
                     <canvas id="chartStatus"></canvas>
                 </div>
                 <div class="donut-legend mt-3">
-                    <div class="donut-item"><span style="background:#8B0000"></span>Approved <strong>{{ $approvedPct }}%</strong></div>
-                    <div class="donut-item"><span style="background:#e67e22"></span>Pending <strong>{{ $pendingPct }}%</strong></div>
-                    <div class="donut-item"><span style="background:#c0392b"></span>Declined <strong>{{ $declinedPct }}%</strong></div>
+                    <div class="donut-item"><span style="background:#17a2b8"></span>Approved <strong>{{ $approvedPct }}%</strong></div>
+                    <div class="donut-item"><span style="background:#ffc107"></span>Pending <strong>{{ $pendingPct }}%</strong></div>
+                    <div class="donut-item"><span style="background:#dc3545"></span>Declined <strong>{{ $declinedPct }}%</strong></div>
                     <div class="donut-item"><span style="background:#bdc3c7"></span>Other <strong>{{ $otherPct }}%</strong></div>
                 </div>
             </div>
@@ -162,12 +162,25 @@
 
         JsBarcode(".barcode").init();
 
-        const MAROON   = '#8B0000';
-        const MAROON_L = 'rgba(139,0,0,0.08)';
-        const RED2     = '#c0392b';
-        const ORANGE   = '#e67e22';
-        const GREEN    = '#27ae60';
-        const GRAY     = '#bdc3c7';
+        const TEAL = '#17a2b8';
+        const TEAL_L = 'rgba(23,162,184,0.10)';
+        const YELLOW = '#ffc107';
+        const YELLOW_L = 'rgba(255,193,7,0.10)';
+        const RED = '#dc3545';
+        const RED_L = 'rgba(220,53,69,0.10)';
+        const BLUE = '#3b82f6';
+        const GRAY = '#bdc3c7';
+
+        const DEPT_COLORS = [TEAL, YELLOW, RED, BLUE, TEAL, YELLOW, RED, BLUE];
+
+        const POLAR_COLORS = [
+            'rgba(23,162,184,0.80)',
+            'rgba(255,193,7,0.80)',
+            'rgba(220,53,69,0.80)',
+            'rgba(59,130,246,0.80)',
+            'rgba(23,162,184,0.45)',
+            'rgba(189,195,199,0.80)',
+        ];
 
         Chart.defaults.font.family = "'Helvetica Neue', Arial, sans-serif";
         Chart.defaults.color       = '#6c757d';
@@ -180,25 +193,29 @@
                     {
                         label: 'Submitted',
                         data: @json($monthlySubmitted),
-                        backgroundColor: MAROON,
-                        borderRadius: 4, borderSkipped: false,
+                        backgroundColor: TEAL,
+                        borderRadius: 4,
+                        borderSkipped: false,
                     },
                     {
                         label: 'Approved',
                         data: @json($monthlyApproved),
-                        backgroundColor: RED2,
-                        borderRadius: 4, borderSkipped: false,
+                        backgroundColor: YELLOW,
+                        borderRadius: 4,
+                        borderSkipped: false,
                     },
                     {
                         label: 'Declined',
                         data: @json($monthlyDeclined),
-                        backgroundColor: '#e0b0b0',
-                        borderRadius: 4, borderSkipped: false,
+                        backgroundColor: RED,
+                        borderRadius: 4,
+                        borderSkipped: false,
                     }
                 ]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
                     tooltip: { mode: 'index', intersect: false }
@@ -207,7 +224,7 @@
                     x: { grid: { display: false }, border: { display: false } },
                     y: {
                         grid: { color: '#f0f0f0' },
-                        border: { display: false, dash: [4,4] },
+                        border: { display: false, dash: [4, 4] },
                         ticks: { stepSize: 10 }
                     }
                 }
@@ -217,19 +234,31 @@
         new Chart(document.getElementById('chartStatus'), {
             type: 'doughnut',
             data: {
-                labels: ['Approved','Pending','Declined','Other'],
+                labels: ['Approved', 'Pending', 'Declined', 'Other'],
                 datasets: [{
-                    data: [{{ $approvedCount }}, {{ $pendingCount }}, {{ $declinedCount }}, {{ max(0, $totalCount - $approvedCount - $pendingCount - $declinedCount) }}],
-                    backgroundColor: [MAROON, ORANGE, RED2, GRAY],
-                    borderWidth: 2, borderColor: '#fff', hoverOffset: 8,
+                    data: [
+                        {{ $approvedCount }},
+                        {{ $pendingCount }},
+                        {{ $declinedCount }},
+                        {{ max(0, $totalCount - $approvedCount - $pendingCount - $declinedCount) }}
+                    ],
+                    backgroundColor: [TEAL, YELLOW, RED, GRAY],
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    hoverOffset: 8,
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 cutout: '72%',
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} docs` } }
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.label}: ${ctx.parsed} docs`
+                        }
+                    }
                 }
             }
         });
@@ -241,24 +270,27 @@
                 datasets: [{
                     label: 'Documents',
                     data: @json($deptCounts),
-                    backgroundColor: [
-                        '#8B0000','#9a1010','#a92020','#8B0000',
-                        '#9a1010','#a92020','#b83030','#8B0000'
-                    ],
-                    borderRadius: 4, borderSkipped: false,
+                    backgroundColor: DEPT_COLORS,
+                    borderRadius: 4,
+                    borderSkipped: false,
                 }]
             },
             options: {
                 indexAxis: 'y',
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: c => ` ${c.parsed.x} documents` } }
+                    tooltip: {
+                        callbacks: {
+                            label: c => ` ${c.parsed.x} documents`
+                        }
+                    }
                 },
                 scales: {
                     x: {
                         grid: { color: '#f0f0f0' },
-                        border: { display: false, dash: [4,4] },
+                        border: { display: false, dash: [4, 4] },
                         ticks: { stepSize: 15 }
                     },
                     y: {
@@ -276,52 +308,68 @@
                 labels: @json($typeLabels),
                 datasets: [{
                     data: @json($typeCounts),
-                    backgroundColor: [
-                        'rgba(139,0,0,.75)','rgba(192,57,43,.75)',
-                        'rgba(230,126,34,.75)','rgba(39,174,96,.75)',
-                        'rgba(52,152,219,.75)','rgba(149,165,166,.75)'
-                    ],
-                    borderColor: '#fff', borderWidth: 2,
+                    backgroundColor: POLAR_COLORS,
+                    borderColor: '#fff',
+                    borderWidth: 2,
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } }
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 10 }, padding: 8 }
+                    }
                 },
-                scales: { r: { ticks: { display: false }, grid: { color: '#eee' } } }
+                scales: {
+                    r: { ticks: { display: false }, grid: { color: '#eee' } }
+                }
             }
         });
 
         new Chart(document.getElementById('chartWeekly'), {
             type: 'line',
             data: {
-                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 datasets: [
                     {
                         label: 'Uploaded',
                         data: @json($weeklyUploadedByDay),
-                        borderColor: MAROON, backgroundColor: MAROON_L,
-                        fill: true, tension: .4, pointRadius: 3,
-                        pointBackgroundColor: MAROON, borderWidth: 2,
+                        borderColor: TEAL,
+                        backgroundColor: TEAL_L,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: TEAL,
+                        borderWidth: 2,
                     },
                     {
                         label: 'Approved',
                         data: @json($weeklyApprovedByDay),
-                        borderColor: GREEN, backgroundColor: 'rgba(39,174,96,0.07)',
-                        fill: true, tension: .4, pointRadius: 3,
-                        pointBackgroundColor: GREEN, borderWidth: 2,
+                        borderColor: YELLOW,
+                        backgroundColor: YELLOW_L,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: YELLOW,
+                        borderWidth: 2,
                     }
                 ]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
                     tooltip: { mode: 'index', intersect: false }
                 },
                 scales: {
-                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } },
+                    x: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { font: { size: 10 } }
+                    },
                     y: { display: false }
                 }
             }

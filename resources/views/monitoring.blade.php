@@ -16,10 +16,10 @@
                         <h5 class="fw-semibold text-dark mb-0">For Approval</h5>
                         <div class="d-flex align-items-center gap-2">
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-secondary btn-sm view-toggle active" data-view="grid">
+                                <button type="button" class="btn btn-light btn-sm view-toggle active" data-view="grid">
                                     <i class="ri-grid-line"></i>
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm view-toggle" data-view="list">
+                                <button type="button" class="btn btn-light btn-sm view-toggle" data-view="list">
                                     <i class="ri-list-check"></i>
                                 </button>
                             </div>
@@ -51,7 +51,7 @@
                             <input type="hidden" name="pending_date" value="">
                             <input type="hidden" name="pending_dept" value="">
                             <input type="hidden" name="pending_office" value="">
-                            <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                            <button type="submit" class="btn btn-first btn-sm flex-shrink-0">
                                 <i class="ri-search-line"></i>
                             </button>
                         </div>
@@ -318,7 +318,7 @@
                             </a>
                             @endif
                         </div>
-                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                        <button type="submit" class="btn btn-first btn-sm flex-shrink-0">
                             <i class="ri-search-line"></i>
                         </button>
                     </div>
@@ -515,7 +515,7 @@
                             </a>
                             @endif
                         </div>
-                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                        <button type="submit" class="btn btn-first btn-sm flex-shrink-0">
                             <i class="ri-search-line"></i>
                         </button>
                     </div>
@@ -626,7 +626,7 @@
                             </a>
                             @endif
                         </div>
-                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                        <button type="submit" class="btn btn-first btn-sm flex-shrink-0">
                             <i class="ri-search-line"></i>
                         </button>
                     </div>
@@ -751,8 +751,8 @@
         JsBarcode(".barcode").init();
 
         const viewToggles = document.querySelectorAll('.view-toggle');
-        const gridView    = document.getElementById('gridView');
-        const listView    = document.getElementById('listView');
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
 
         const savedView = localStorage.getItem('monitoringDocsView') || 'grid';
         setActiveView(savedView);

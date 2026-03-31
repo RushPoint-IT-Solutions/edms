@@ -70,7 +70,7 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">Permits & Licenses</h5>
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new_permit">
+                <button class="btn btn-first btn-sm" data-bs-toggle="modal" data-bs-target="#new_permit">
                     <i class="fa fa-plus"></i> New
                 </button>
             </div>
@@ -170,9 +170,9 @@ $(document).ready(function () {
         responsive: true,
         dom: 'lBfrtip',
         buttons: [
-            { extend: 'copy', text: 'Copy' },
-            { extend: 'excel', text: 'Excel', title: 'Permits & Licenses' },
-            { extend: 'pdf', text: 'PDF', title: 'Permits & Licenses' },
+            { extend: 'copy', text: 'Copy', className: 'btn btn-sm btn-secondary' },
+            { extend: 'excel', text: 'Excel', title: 'Permits & Licenses', className: 'btn btn-sm btn-secondary' },
+            // { extend: 'pdf', text: 'PDF', title: 'Permits & Licenses', className: 'btn btn-sm btn-danger' },
         ],
         order: [[0, 'desc']],
         language: {
