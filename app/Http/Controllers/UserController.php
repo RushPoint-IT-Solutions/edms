@@ -30,6 +30,7 @@ class UserController extends Controller
         $totalUsers = User::count();
         $activeUsers = User::where('status', '')->orWhereNull('status')->count();
         $inactiveUsers = User::where('status', '1')->count();
+        $ssoUsers = User::whereNotNull('google_id', '')->count();
         
         return view('users.users', array(
             'companies' => $companies,
@@ -38,6 +39,7 @@ class UserController extends Controller
             'totalUsers' => $totalUsers,
             'activeUsers' => $activeUsers,
             'inactiveUsers' => $inactiveUsers,
+            'ssoUsers' => $ssoUsers,
         ));
     }
 
@@ -52,7 +54,8 @@ class UserController extends Controller
         $columnName = $request->get('columns')[$columnIndex]['data'];
         $columnSortOrder = $order['dir'];
 
-        $query = User::select("name","email","department_id","role","status","id")->with(['department', 'company', 'departments.dep']);
+        // $query = User::select("name","email","department_id","role","status","id")->with(['department', 'company', 'departments.dep']);
+        $query = User::with(['department', 'company', 'departments.dep']);
 
         $totalRecords = User::count();
 
