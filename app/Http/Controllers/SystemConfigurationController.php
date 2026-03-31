@@ -7,6 +7,7 @@ use App\Department;
 use App\DocumentType;
 use App\Team;
 use App\User;
+use App\Tag;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -339,6 +340,56 @@ class SystemConfigurationController extends Controller
             ];
         }
 
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
+    }
+
+    public function getTagsData(Request $request)
+    {
+        $draw = $request->get('draw');
+        $start = $request->get('start');
+        $length = $request->get('length');
+        $search = $request->get('search')['value'] ?? '';
+        $query = Tag::with('user');
+        $totalRecords = (clone $query)->count();
+        if (!empty($search)) {
+            $query->where('name', 'like', "%$search%");
+        }
+        $totalFiltered = $query->count();
+        $items = $query->orderBy('name')->skip($start)->take($length)->get();
+        $data = [];
+        foreach ($items as $tags) {
+            $data[] = [
+                'action' => '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                            <i class="ri-more-2-fill"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button class="dropdown-item edit-tags"
+                                    data-id="' . $tags->id . '"
+                                    data-name="' . e($tags->name) . '">
+                                    <i class="ri-pencil-line me-2"></i>Edit
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item text-danger delete-tags"
+                                    data-id="' . $tags->id . '"
+                                    data-name="' . e($tags->name) . '">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete
+                                </button>
+                            </li>
+                        </ul>
+                    </div>',
+                'name' => '<strong>' . e($tags->name) . '</strong>',
+                'created_by' => '<strong>' . e($tags->user->name) . '</strong>',
+            ];
+        }
         return response()->json([
             'draw' => intval($draw),
             'recordsTotal' => $totalRecords,

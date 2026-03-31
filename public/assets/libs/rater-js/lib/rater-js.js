@@ -124,7 +124,7 @@ module.exports = function(options) {
 				currentRating = Math.ceil((percent / 100) * stars); 
 			}else {
 				let rat = (percent / 100) * stars; 
-				for (let i = 0; ; i += step) {
+				for (let i = 0; i += step) {
 					if (i >= rat) {
 						currentRating = i; 
 						break; 

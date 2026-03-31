@@ -10,7 +10,7 @@
 
 <div class="row g-4 mb-3">
   <div class="col d-flex">
-    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-campus">
+    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column active" data-target="pane-campus">
       <div class="nav-icon"><i class="ri-map-pin-line"></i></div>
       <div class="nav-label">Campus</div>
       <div class="nav-count">Manage campuses</div>
@@ -21,7 +21,7 @@
   </div>
   
   <div class="col d-flex">
-    <div class="section-nav-card shadow-sm active flex-fill d-flex flex-column" data-target="pane-departments">
+    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-departments">
       <div class="nav-icon"><i class="ri-community-line"></i></div>
       <div class="nav-label">Departments</div>
       <div class="nav-count">Manage departments</div>
@@ -52,6 +52,17 @@
       </button>
     </div>
   </div>
+
+  <div class="col d-flex">
+    <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-tag">
+      <div class="nav-icon"><i class="ri-map-pin-line"></i></div>
+      <div class="nav-label">Tags</div>
+      <div class="nav-count">Manage tags</div>
+      <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#newTagModal">
+        <i class="fa fa-plus"></i> New Tag
+      </button>
+    </div>
+  </div>
   
   <div class="col d-flex">
     <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-controlcodes">
@@ -68,7 +79,7 @@
 <div class="row">
     <div class="col-12">
 
-        <div class="card shadow-sm config-panel" id="pane-campus">
+        <div class="card shadow-sm config-panel active" id="pane-campus">
             <div class="panel-header">
                 <div class="panel-icon"><i class="ri-map-pin-line"></i></div>
                 <div>
@@ -104,7 +115,7 @@
             </div>
         </div>
 
-        <div class="card shadow-sm config-panel active" id="pane-departments">
+        <div class="card shadow-sm config-panel" id="pane-departments">
             <div class="panel-header">
                 <div class="panel-icon"><i class="ri-community-line"></i></div>
                 <div>
@@ -255,11 +266,50 @@
             </div>
         </div>
 
+        <div class="card shadow-sm config-panel" id="pane-tag">
+            <div class="panel-header">
+                <div class="panel-icon"><i class="ri-map-pin-line"></i></div>
+                <div>
+                    <h6>Tags</h6>
+                    <p>View and manage all tags</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div id="tag-filter-control"></div>
+                        <div id="tag-length-control"></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div id="tag-buttons-control"></div>
+                    </div>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table table-hover table-bordered" id="tagsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Action</th>
+                                <th>Tag Name</th>
+                                <th>Created By</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="bottom-controls-container">
+                    <div id="tag-info-control"></div>
+                    <div id="tag-pagination-control"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-@include('settings.campus.new');
-@include('settings.campus.edit');
+@include('settings.campus.new')
+@include('settings.campus.edit')
+
+@include('settings.tags.new')
+@include('settings.tags.edit')
 
 @include('departments.new_department')
 @foreach($departments as $department)
@@ -896,6 +946,181 @@ $(document).ready(function () {
             });
         });
     });
+
+    // tags
+    var moveTagControls = makeMoveControls('tagsTable', 'tag');
+
+    var tagsTable = makeTable(
+        'tagsTable',
+        '{{ route("system-config.tags.data") }}',
+        [
+            { data: 'action', orderable: false, searchable: false },
+            { data: 'name', name: 'name' },
+            { data: 'created_by', orderable: false, searchable: false }
+        ],
+        null,
+        {
+            excelTitle: 'Tags',
+            emptyTable: 'No tags found',
+            zeroRecords: 'No matching tags found',
+            moveControls: moveTagControls
+        }
+    );
+
+    setTimeout(moveTagControls, 100);
+
+    $('#newTagForm').on('submit', function (e) {
+        e.preventDefault();
+
+        var name = $('#new_tag_name').val().trim();
+        if (!name) {
+            swal('Error!', 'Please enter a tag name.', 'error');
+            return;
+        }
+
+        var btn = $('#createTagBtn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Creating...');
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ route("tags.store") }}',
+            data: { name: name },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function () {
+                swal('Success!', 'Tag created successfully!', 'success');
+                $('#newTagModal').modal('hide');
+                $('#newTagForm')[0].reset();
+                tagsTable.ajax.reload();
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Tag');
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Create Tag');
+                swal('Error!', xhr.responseJSON?.message || 'Something went wrong.', 'error');
+            }
+        });
+    });
+
+    $('#tagsTable tbody').on('click', '.edit-tags', function () {
+        $('#edit_tag_id').val($(this).data('id'));
+        $('#edit_tag_name').val($(this).data('name'));
+        $('#editTagModal').modal('show');
+    });
+
+    $('#editTagForm').on('submit', function (e) {
+        e.preventDefault();
+
+        var id   = $('#edit_tag_id').val();
+        var name = $('#edit_tag_name').val().trim();
+        if (!name) {
+            swal('Error!', 'Please enter a tag name.', 'error');
+            return;
+        }
+
+        var btn = $('#updateTagBtn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ url("tags/update") }}/' + id,
+            data: { name: name },
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function () {
+                swal('Success!', 'Tag updated successfully!', 'success');
+                $('#editTagModal').modal('hide');
+                tagsTable.ajax.reload();
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Tag');
+            },
+            error: function (xhr) {
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Update Tag');
+                swal('Error!', xhr.responseJSON?.message || 'Something went wrong.', 'error');
+            }
+        });
+    });
+
+    $(document).on('click', '.delete-tags', function () {
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var btn = $('#updateTagBtn');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+        swal({
+            title: 'Delete "' + name + '"?',
+            text: 'This action cannot be undone.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false
+        }, function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ url("tags") }}/' + id,
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    _method: 'DELETE'
+                },
+                success: function () {
+                    swal('Deleted!', 'Tag deleted successfully!', 'success');
+                    tagsTable.ajax.reload();
+                },
+                error: function () {
+                    swal('Error!', 'Failed to delete tag.', 'error');
+                }
+            });
+        });
+    });
+
+    // $('#tagsTable tbody').on('click', '.delete-tags', function () {
+    //     var id   = $(this).data('id');
+    //     var name = $(this).data('name');
+
+    //     swal({
+    //         title: 'Delete "' + name + '"?',
+    //         text: 'This action cannot be undone.',
+    //         type: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#d33',
+    //         confirmButtonText: 'Yes, delete it!',
+    //         cancelButtonText: 'Cancel',
+    //         closeOnConfirm: false
+    //     }, function () {
+    //         $.ajax({
+    //             type: 'POST',
+    //             url: '{{ url("tags") }}/' + id,
+    //             data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+    //             success: function () {
+    //                 swal('Deleted!', 'Tag deleted successfully!', 'success');
+    //                 tagsTable.ajax.reload();
+    //             },
+    //             error: function () {
+    //                 swal('Error!', 'Failed to delete tag.', 'error');
+    //             }
+    //         });
+    //     });
+    // });
+
+    // $('#tagsTable tbody').on('click', '.delete-tags', function () {
+    //     var id = $(this).data('id');
+    //     var name = $(this).data('name');
+
+    //     swal({
+    //         title: 'Delete "' + name + '"?',
+    //         text: 'This action cannot be undone.',
+    //         type: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#d33',
+    //         confirmButtonText: 'Yes, delete it!',
+    //         cancelButtonText: 'Cancel',
+    //         closeOnConfirm: false
+    //     }, function () {
+    //         var form = $('<form method="POST" style="display:none;"></form>');
+    //         form.append('<input type="hidden" name="_token" value="{{ csrf_token() }}">');
+    //         form.append('<input type="hidden" name="_method" value="DELETE">');
+    //         form.attr('action', '{{ url("system-configuration/tags") }}/' + id);
+    //         $('body').append(form);
+    //         form.submit();
+    //     });
+    // });
 });
 </script>
 @endsection
