@@ -9,21 +9,28 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-xl-4 col-md-6">
+    <div class="col-xl-3 col-md-6">
         <div class="dashboard-card total">
             <div class="icon-circle"><i class="fa fa-users"></i></div>
             <h2 class="mb-0 font-weight-bold">{{ $totalUsers }}</h2>
             <p>Total Users</p>
         </div>
     </div>
-    <div class="col-xl-4 col-md-6">
+    <div class="col-xl-3 col-md-6">
         <div class="dashboard-card active">
             <div class="icon-circle"><i class="fa fa-check-circle"></i></div>
             <h2 class="mb-0 font-weight-bold">{{ $activeUsers }}</h2>
             <p>Active Users</p>
         </div>
     </div>
-    <div class="col-xl-4 col-md-6">
+    <div class="col-xl-3 col-md-6">
+        <div class="dashboard-card active">
+            <div class="icon-circle"><i class="fa fa-shield" aria-hidden="true"></i></div>
+            <h2 class="mb-0 font-weight-bold">{{ $ssoUsers }}</h2>
+            <p>SSO Connected</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
         <div class="dashboard-card inactive">
             <div class="icon-circle"><i class="fa fa-times-circle"></i></div>
             <h2 class="mb-0 font-weight-bold">{{ $inactiveUsers }}</h2>
@@ -56,7 +63,7 @@
                     <div id="table-buttons-control"></div>
                 </div>
 
-                <div class="table-scroll-container">
+                <div class="table-responsive">
                     <table class="table table-hover table-bordered" id="usersTable">
                         <thead class="table-light">
                             <tr>
