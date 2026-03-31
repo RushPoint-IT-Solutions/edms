@@ -83,7 +83,7 @@
                 <h4 class="mb-0">My files</h4>
                 @endif
                 <a href="{{ route('documents.create') }}" class="btn btn-first btn-sm">
-                    <i class="ri-file-add-line me-2"></i>Create document
+                    <i class="ri-file-add-line me-2"></i>New Request Document
                 </a>
             </div>
 

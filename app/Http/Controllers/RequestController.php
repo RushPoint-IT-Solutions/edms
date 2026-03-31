@@ -223,7 +223,7 @@ class RequestController extends Controller
 
         $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
 
-        $query = ChangeRequest::with(['user.department', 'approvers.user'])
+        $query = ChangeRequest::with(['user.department', 'approvers.user', 'departments'])
             ->whereNull('is_draft')
             ->when(!$isAdmin, function ($q) {
                 $q->where('user_id', auth()->user()->id);
@@ -332,7 +332,7 @@ class RequestController extends Controller
                 'title' => e($cr->title),
                 'description' => e($cr->description),
                 'category' => e($cr->category),
-                'privacy' => e($cr->privacy),
+                'privacy' => $cr->departments->pluck('name')->implode(', ') ?: e($cr->privacy),
                 'revision' => e($cr->revision),
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'created_at' => $cr->created_at ? $cr->created_at->format('Y-m-d') : '-',
@@ -672,7 +672,7 @@ class RequestController extends Controller
             if ($request->has('id'))
             {
                 $change_request = ChangeRequest::findOrFail($request->id);
-                $change_request->department_id = $request->department_id;
+                $change_request->departments()->sync($request->department_id ?? []);
                 $change_request->title = $request->title;
                 // $change_request->type = $request->type;
                 $change_request->description = $request->description;
@@ -701,6 +701,7 @@ class RequestController extends Controller
                 }
                 $change_request->save();
 
+                $change_request->departments()->sync($request->department_id ?? []);
                 $approvers = RequestApprover::where('change_request_id', $change_request->id)->delete();
                 foreach($request->approvers as $key=>$approver)
                 {
@@ -764,7 +765,6 @@ class RequestController extends Controller
                 $change_request = new ChangeRequest;
                 $change_request->title = $request->title;
                 // $change_request->type = $request->type;
-                $change_request->department_id = $request->department_id;
                 $change_request->description = $request->description;
                 $change_request->category = $request->category;
                 $change_request->status = $request->status;
@@ -786,6 +786,8 @@ class RequestController extends Controller
                     $change_request->file = '/attachment/'.$name;
                 }
                 $change_request->save();
+
+                $change_request->departments()->sync($request->department_id ?? []);
         
                 if ($request->has('approvers'))
                 {
