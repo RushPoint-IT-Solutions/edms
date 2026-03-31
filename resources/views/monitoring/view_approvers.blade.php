@@ -31,7 +31,7 @@
                         <tr>
                             <th>Level</th>
                             <th>Name</th>
-                            <th>Department</th>
+                            <th>Offices</th>
                             <th>Start Date</th>
                             <th>Transaction Date</th>
                             <th>Remarks</th>
