@@ -23,10 +23,10 @@
   <div class="col d-flex">
     <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-departments">
       <div class="nav-icon"><i class="ri-community-line"></i></div>
-      <div class="nav-label">Departments</div>
-      <div class="nav-count">Manage departments</div>
+      <div class="nav-label">Offices</div>
+      <div class="nav-count">Manage offices</div>
       <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_department">
-        <i class="fa fa-plus"></i> New Department
+        <i class="fa fa-plus"></i> New Office
       </button>
     </div>
   </div>
@@ -119,8 +119,8 @@
             <div class="panel-header">
                 <div class="panel-icon"><i class="ri-community-line"></i></div>
                 <div>
-                    <h6>Departments</h6>
-                    <p>View and manage all departments</p>
+                    <h6>Offices</h6>
+                    <p>View and manage all offices</p>
                 </div>
             </div>
             <div class="card-body">
