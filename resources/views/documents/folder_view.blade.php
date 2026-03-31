@@ -257,166 +257,7 @@
     let currentView = 'list';
     let dragCounter = 0;
 
-    var uploadSelect2Inited = false;
-    var uploadChosenInited  = false;
-
     const FOLDER_ID = '{{ $folder_data->id ?? "others" }}';
-
-    function initUploadModalPlugins() {
-        if (!uploadSelect2Inited) {
-            $('#newControlCodePicker').select2({
-                dropdownParent: $('#uploadDocument'),
-                placeholder: '— Select a control code —',
-                allowClear: true,
-                width: '100%',
-            });
-
-            $('#existingControlCodePicker').select2({
-                dropdownParent: $('#uploadDocument'),
-                placeholder: '— Search or select a control code —',
-                allowClear: true,
-                width: '100%',
-            });
-
-            $('#newControlCodePicker').on('select2:select', function () {
-                var val = $(this).val();
-                $('#selectedControlCode').val('');
-                $('#finalNewControlCode').val(val || '');
-            });
-
-            $('#newControlCodePicker').on('select2:clear', function () {
-                $('#selectedControlCode').val('');
-                $('#finalNewControlCode').val('');
-            });
-
-            $('#existingControlCodePicker').on('select2:select', function () {
-                var val = $(this).val();
-                var $selected = $(this).find('option[value="' + val + '"]');
-                if (!val) return;
-
-                var title = $selected.data('title') || '';
-                var folderId = $selected.data('folder') || '';
-                var curRevision = parseInt($selected.data('revision') || 0);
-                var nextRevision = curRevision + 1;
-                var officeId = $selected.data('office') || '';
-                var docTypes = $selected.data('doctypes') || '';
-                var tags = $selected.data('tags') || '';
-
-                $('#selectedControlCode').val(val);
-                $('#finalNewControlCode').val('');
-                $('#titleField').val(title).prop('readonly', true);
-                $('#newDocDeptField').val(officeId);
-
-                if (docTypes) {
-                    var typeIds = String(docTypes).split(',').map(function (t) { return t.trim(); });
-                    $('#documentTypeField').val(typeIds).trigger('chosen:updated');
-                } else {
-                    $('#documentTypeField').val([]).trigger('chosen:updated');
-                }
-
-                if (tags) {
-                    var tagValues = String(tags).split(',').map(function(t) { return t.trim(); });
-                    $('select[name="tags[]"]', '#uploadDocument').val(tagValues).trigger('chosen:updated');
-                } else {
-                    $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
-                }
-
-                $('#folderField').val(folderId);
-                $('#typeOfRequestField').val('Revision');
-                $('#revisionField').val(nextRevision)
-                    .prop('readonly', true)
-                    .css({ background: '#f8f9fa', cursor: 'not-allowed' });
-                $('#revisionAutoIcon').show();
-                $('#revisionInfoText').html(
-                    'You are uploading <strong>Revision ' + nextRevision + '</strong> of ' +
-                    '<strong>' + val + '</strong>. ' +
-                    'Previous revision: <strong>' + curRevision + '</strong>.'
-                );
-                $('#revisionInfoBox').show();
-            });
-
-            $('#existingControlCodePicker').on('select2:clear', function () {
-                $('#selectedControlCode').val('');
-                $('#titleField').val('').prop('readonly', false);
-                $('#revisionField').val(0).css({ background: '#f8f9fa', cursor: 'not-allowed' });
-                $('#revisionAutoIcon').hide();
-                $('#revisionInfoBox').hide();
-                $('#newDocDeptField').val('');
-                $('#documentTypeField').val([]).trigger('chosen:updated');
-                $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
-                $('#folderField').val('');
-                $('#typeOfRequestField').val('Revision');
-            });
-
-            uploadSelect2Inited = true;
-        }
-
-        if (!uploadChosenInited) {
-            $('#documentTypeField').chosen({ width: '100%' });
-            $('select[name="tags[]"]', '#uploadDocument').chosen({ width: '100%' });
-            uploadChosenInited = true;
-        }
-    }
-
-    function resetUploadForm() {
-        resetUploadFormFields();
-
-        $('#titleField').val('').prop('readonly', false);
-        $('#revisionField').val(0)
-            .prop('readonly', true)
-            .css({ background: '#f8f9fa', cursor: 'not-allowed' });
-        $('#revisionAutoIcon').hide();
-        $('#revisionInfoBox').hide();
-        $('#controlCodeResultField').hide();
-        $('#newDocCodeDisplay').hide();
-        $('#existingDocCodeDisplay').hide();
-
-        if ($('#newControlCodePicker').data('select2')) {
-            $('#newControlCodePicker').val(null).trigger('change');
-        }
-        if ($('#existingControlCodePicker').data('select2')) {
-            $('#existingControlCodePicker').val(null).trigger('change');
-        }
-
-        $('#controlCodeTypePicker').val('');
-        $('#isRevision').val('0');
-        $('#selectedControlCode').val('');
-        $('#finalNewControlCode').val('');
-        $('#selectedControlCode').attr('name', 'control_code_existing');
-        $('#finalNewControlCode').attr('name', 'control_code');
-        $('#newDocBadge').hide();
-        $('#revisionBadge').hide();
-        $('#folderField').val('');
-        $('#typeOfRequestField').val('');
-    }
-
-    function resetUploadFormFields() {
-        $('#titleField').val('').prop('readonly', false);
-        $('#revisionField').val(0)
-            .prop('readonly', true)
-            .css({ background: '#f8f9fa', cursor: 'not-allowed' });
-        $('#revisionAutoIcon').hide();
-        $('#revisionInfoBox').hide();
-
-        if ($('#newControlCodePicker').data('select2')) {
-            $('#newControlCodePicker').val(null).trigger('change');
-        }
-        if ($('#existingControlCodePicker').data('select2')) {
-            $('#existingControlCodePicker').val(null).trigger('change');
-        }
-
-        $('#isRevision').val('0');
-        $('#selectedControlCode').val('');
-        $('#finalNewControlCode').val('');
-        $('#selectedControlCode').attr('name', 'control_code_existing');
-        $('#finalNewControlCode').attr('name', 'control_code');
-        $('#folderField').val('');
-        $('#typeOfRequestField').val('');
-        $('#documentTypeField').val([]).trigger('chosen:updated');
-        $('#newDocDeptField').val('');
-        $('select[name="tags[]"]', '#uploadDocument').val([]).trigger('chosen:updated');
-    }
-
 
     function loadFolderContents() {
         $('#loadingState').show();
@@ -579,7 +420,6 @@
 
     function handleFolderClick(element, hasChildren) {
         event.stopPropagation();
-
         const row = $(element).closest('tr');
         $('.folder-tree-row').removeClass('selected-row');
         row.addClass('selected-row');
@@ -673,12 +513,12 @@
 
         if (currentView === 'list') {
             $('.document-row, .folder-tree-row').each(function () {
-                const $row    = $(this);
+                const $row   = $(this);
                 if (parseInt($row.data('level') || 0) > 0) return;
 
                 const rowType = $row.data('type');
-                const rowMod = new Date($row.data('modified'));
-                const typeOk = filters.types.includes('all') || filters.types.includes(rowType);
+                const rowMod  = new Date($row.data('modified'));
+                const typeOk  = filters.types.includes('all') || filters.types.includes(rowType);
                 let modOk = true;
 
                 if (filters.modifiedDays !== 'all') {
@@ -696,9 +536,9 @@
             });
         } else {
             $('.grid-item').each(function () {
-                const $item = $(this);
-                const iType = $item.data('type');
-                const iMod = new Date($item.data('modified'));
+                const $item  = $(this);
+                const iType  = $item.data('type');
+                const iMod   = new Date($item.data('modified'));
                 const typeOk = filters.types.includes('all') || filters.types.includes(iType);
                 let modOk = true;
 
@@ -723,7 +563,7 @@
 
     function updateActiveFilters() {
         const $container = $('#activeFiltersContainer');
-        const $filters = $('#activeFilters');
+        const $filters   = $('#activeFilters');
         $filters.empty();
         let hasActive = false;
 
@@ -766,26 +606,13 @@
         const isOthers = {{ isset($is_others_folder) && $is_others_folder ? 'true' : 'false' }};
         if (isOthers) { alert('Cannot upload files to this folder'); return; }
 
-        const softCopyInput = $('input[name="attachment[soft_copy]"]')[0];
-        if (!softCopyInput) { alert('Upload form not found'); return; }
-
-        const supported = [
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-        ];
-
-        const valid = Array.from(files).filter(f => supported.includes(f.type));
-        if (!valid.length) { alert('Please drop supported file types (.doc, .docx, .xls, .xlsx, .ppt, .pptx)'); return; }
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput) { alert('Upload form not found'); return; }
 
         const dt = new DataTransfer();
-        dt.items.add(valid[0]);
-        softCopyInput.files = dt.files;
-        $(softCopyInput).next('.file-selected-indicator').remove()
-            .end().after('<small class="file-selected-indicator text-success d-block mt-1">✓ ' + valid[0].name + '</small>');
+        Array.from(files).forEach(f => dt.items.add(f));
+        fileInput.files = dt.files;
+        fileInput.dispatchEvent(new Event('change'));
         $('#uploadDocument').modal('show');
     }
 
@@ -794,6 +621,70 @@
 
         if (localStorage.getItem('folderViewPreference') === 'grid') currentView = 'grid';
         loadFolderContents();
+
+        var fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                var files   = this.files;
+                var list    = document.getElementById('filePreviewItems');
+                var wrapper = document.getElementById('filePreviewList');
+
+                list.innerHTML = '';
+
+                if (!files || files.length === 0) {
+                    wrapper.style.display = 'none';
+                    return;
+                }
+
+                wrapper.style.display = 'block';
+
+                var iconMap = {
+                    'pdf'  : 'ri-file-pdf-line',
+                    'doc'  : 'ri-file-word-line',
+                    'docx' : 'ri-file-word-line',
+                    'xls'  : 'ri-file-excel-line',
+                    'xlsx' : 'ri-file-excel-line',
+                    'ppt'  : 'ri-file-ppt-line',
+                    'pptx' : 'ri-file-ppt-line',
+                    'png'  : 'ri-image-line',
+                    'jpg'  : 'ri-image-line',
+                    'jpeg' : 'ri-image-line',
+                    'gif'  : 'ri-image-line',
+                    'zip'  : 'ri-folder-zip-line',
+                    'rar'  : 'ri-folder-zip-line',
+                    'txt'  : 'ri-file-text-line',
+                };
+
+                Array.from(files).forEach(function (file) {
+                    var ext  = file.name.split('.').pop().toLowerCase();
+                    var icon = iconMap[ext] || 'ri-file-line';
+                    var size = file.size < 1024 * 1024
+                        ? (file.size / 1024).toFixed(1) + ' KB'
+                        : (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+                    var li = document.createElement('li');
+                    li.className = 'list-group-item d-flex align-items-center gap-2 py-2';
+                    li.innerHTML = '<i class="' + icon + ' fs-5 text-muted"></i>'
+                        + '<span class="flex-grow-1 text-truncate" style="font-size:0.875rem;">' + file.name + '</span>'
+                        + '<small class="text-muted text-nowrap">' + size + '</small>';
+                    list.appendChild(li);
+                });
+            });
+        }
+
+        $('#uploadDocument').on('shown.bs.modal', function () {
+            var currentFolderId = '{{ $folder_data->id ?? "" }}';
+            if (currentFolderId && currentFolderId !== 'others') {
+                $('#folderField').val(currentFolderId);
+            }
+        });
+
+        $('#uploadDocument').on('hidden.bs.modal', function () {
+            $('#uploadDocumentForm')[0].reset();
+            $('#titleField').val('');
+            $('#filePreviewItems').html('');
+            $('#filePreviewList').hide();
+        });
 
         var searchTimer = null;
         $('#folderSearch').on('input', function () {
@@ -813,68 +704,6 @@
 
         $('#listViewBtn').on('click', switchToListView);
         $('#gridViewBtn').on('click', switchToGridView);
-
-        $('#uploadDocument').on('shown.bs.modal', function () {
-            initUploadModalPlugins();
-
-            var currentFolderId = '{{ $folder_data->id ?? "" }}';
-            if (currentFolderId && currentFolderId !== 'others') {
-                $('#folderField').val(currentFolderId);
-            }
-        });
-
-        $('#uploadDocument').on('hidden.bs.modal', function () {
-            resetUploadForm();
-        });
-
-        $('#uploadDocumentForm').on('submit', function (e) {
-            var type = $('#controlCodeTypePicker').val();
-
-            if (type === 'new') {
-                if (!$('#newControlCodePicker').val()) {
-                    e.preventDefault();
-                    alert('Please select a control code for the new document.');
-                    return false;
-                }
-                $('#selectedControlCode').removeAttr('name');
-            } else if (type === 'existing') {
-                if (!$('#existingControlCodePicker').val()) {
-                    e.preventDefault();
-                    alert('Please select an existing document.');
-                    return false;
-                }
-                $('#finalNewControlCode').removeAttr('name');
-            } else {
-                e.preventDefault();
-                alert('Please select New or Existing.');
-                return false;
-            }
-        });
-
-        $(document).on('change', '#controlCodeTypePicker', function () {
-            var val = $(this).val();
-            $('#controlCodeResultField').hide();
-            $('#newDocCodeDisplay').hide();
-            $('#existingDocCodeDisplay').hide();
-            $('#newDocBadge').hide();
-            $('#revisionBadge').hide();
-            resetUploadFormFields();
-
-            if (!val) return;
-            $('#controlCodeResultField').show();
-
-            if (val === 'new') {
-                $('#newDocBadge').show();
-                $('#newDocCodeDisplay').show();
-                $('#isRevision').val('0');
-                $('#typeOfRequestField').val('New');
-            } else if (val === 'existing') {
-                $('#revisionBadge').show();
-                $('#existingDocCodeDisplay').show();
-                $('#isRevision').val('1');
-                $('#typeOfRequestField').val('Revision');
-            }
-        });
 
         $(document).on('keydown', function (e) {
             if (e.key === 'Escape') clearAllSelections();
@@ -899,7 +728,7 @@
         });
 
         $(document).on('change', '#documentTableBody .form-check-input', function () {
-            const $row = $(this).closest('tr');
+            const $row    = $(this).closest('tr');
             const checked = $(this).is(':checked');
             $row.toggleClass('row-selected', checked);
 
@@ -907,7 +736,7 @@
                 checkAllDescendants($row.data('folder-id'), checked);
             }
 
-            const total = $('#documentTableBody tr .item-checkbox').length;
+            const total    = $('#documentTableBody tr .item-checkbox').length;
             const checkedN = $('#documentTableBody tr .item-checkbox:checked').length;
             $('#selectAll')
                 .prop('indeterminate', checkedN > 0 && checkedN < total)
@@ -921,7 +750,7 @@
             if ($('.grid-item.selected-item').length > 0 || $('#bulkActionToolbar').is(':visible')) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                const $item = $(this);
+                const $item    = $(this);
                 const selected = $item.toggleClass('selected-item').hasClass('selected-item');
                 $item.find('.item-checkbox').prop('checked', selected);
                 updateBulkToolbar();
@@ -932,10 +761,10 @@
         $('#bulkCancelBtn').on('click', clearAllSelections);
 
         $('#bulkDeleteBtn').on('click', function () {
-            const selected = getSelectedItems();
+            const selected    = getSelectedItems();
             if (!selected.length) return;
 
-            const folderIds = selected.filter(i => i.type === 'folder').map(i => i.id);
+            const folderIds   = selected.filter(i => i.type === 'folder').map(i => i.id);
             const documentIds = selected.filter(i => i.type === 'document').map(i => i.id);
             let msg = 'You are about to delete ' + selected.length + ' item(s)';
             if (folderIds.length) msg += ' including ' + folderIds.length + ' folder(s) and all their contents';
@@ -977,7 +806,7 @@
             e.stopPropagation();
             e.preventDefault();
 
-            const id = $(this).data('id');
+            const id   = $(this).data('id');
             const name = $(this).data('name');
 
             swal({
@@ -1018,7 +847,7 @@
         });
 
         $('#typeFilterDropdown .filter-option').on('click', function () {
-            const $cb = $(this).find('input[type="checkbox"]');
+            const $cb  = $(this).find('input[type="checkbox"]');
             const type = $(this).data('type');
 
             if (type === 'all') {
@@ -1122,9 +951,9 @@
     };
 
     (function () {
-        var fullTree = window._shareDocTree || [];
+        var fullTree   = window._shareDocTree   || [];
         var othersDocs = window._shareOthersDocs || [];
-        var navStack = [];
+        var navStack   = [];
         var selectedDocs = {};
         var folderData = {!! json_encode($folderData) !!};
 
@@ -1141,31 +970,18 @@
             ? findNodeInTree(fullTree, FOLDER_ID)
             : null;
 
-        var docTree = scopedNode ? (scopedNode.children || []) : fullTree;
-        var rootDocs = scopedNode ? (scopedNode.docs || []) : [];
+        var docTree  = scopedNode ? (scopedNode.children || []) : fullTree;
+        var rootDocs = scopedNode ? (scopedNode.docs    || []) : [];
 
-        function currentNode() {
-            return navStack.length ? navStack[navStack.length - 1].node : null;
-        }
-
-        function currentChildren() {
-            var n = currentNode();
-            return n ? (n.children || []) : docTree;
-        }
-
-        function currentDocs() {
-            var n = currentNode();
-            return n ? (n.docs || []) : rootDocs;
-        }
+        function currentNode()     { return navStack.length ? navStack[navStack.length - 1].node : null; }
+        function currentChildren() { var n = currentNode(); return n ? (n.children || []) : docTree; }
+        function currentDocs()     { var n = currentNode(); return n ? (n.docs || []) : rootDocs; }
 
         function escHtml(str) {
             return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
-
         function escAttr(str) { return escHtml(str); }
 
         function countAllDocs(node) {
@@ -1177,8 +993,8 @@
         }
 
         function renderBrowser() {
-            var pane = document.getElementById('docBrowserPane');
-            var crumb = document.getElementById('docBrowserCrumb');
+            var pane      = document.getElementById('docBrowserPane');
+            var crumb     = document.getElementById('docBrowserCrumb');
             var rootLabel = scopedNode ? escHtml(scopedNode.name) : 'Root';
 
             var crumbHtml = '<span class="crumb-item" style="cursor:pointer;font-weight:600;" data-crumb="-1">'
@@ -1192,9 +1008,9 @@
             });
             crumb.innerHTML = crumbHtml;
 
-            var html = '';
+            var html    = '';
             var folders = currentChildren();
-            var docs = currentDocs();
+            var docs    = currentDocs();
 
             if (navStack.length) {
                 html += '<div class="doc-browser-row is-folder" data-nav="back">'
@@ -1265,16 +1081,11 @@
                     if (cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
                 });
             });
-
             container.querySelectorAll('.doc-browser-cb').forEach(function (cb) {
                 cb.addEventListener('change', function () {
-                    var id = cb.getAttribute('data-doc-id');
+                    var id    = cb.getAttribute('data-doc-id');
                     var label = cb.getAttribute('data-doc-label');
-                    if (cb.checked) {
-                        selectedDocs[id] = label;
-                    } else {
-                        delete selectedDocs[id];
-                    }
+                    if (cb.checked) { selectedDocs[id] = label; } else { delete selectedDocs[id]; }
                     renderChips();
                     checkShareReady();
                 });
@@ -1298,10 +1109,7 @@
             });
 
             pane.querySelectorAll('[data-nav="back"]').forEach(function (el) {
-                el.addEventListener('click', function () {
-                    navStack.pop();
-                    renderBrowser();
-                });
+                el.addEventListener('click', function () { navStack.pop(); renderBrowser(); });
             });
 
             bindBrowserCheckboxes(pane);
@@ -1317,12 +1125,12 @@
 
         function renderChips() {
             var container = document.getElementById('docSelectedChips');
-            var noSel = document.getElementById('docNoSelected');
-            var hidden = document.getElementById('docHiddenInputs');
-            var ids = Object.keys(selectedDocs);
+            var noSel     = document.getElementById('docNoSelected');
+            var hidden    = document.getElementById('docHiddenInputs');
+            var ids       = Object.keys(selectedDocs);
 
             container.innerHTML = '';
-            hidden.innerHTML = '';
+            hidden.innerHTML    = '';
 
             if (!ids.length) {
                 noSel.style.display = 'block';
@@ -1344,8 +1152,8 @@
                     container.appendChild(chip);
 
                     var inp = document.createElement('input');
-                    inp.type = 'hidden';
-                    inp.name = 'documents[]';
+                    inp.type  = 'hidden';
+                    inp.name  = 'documents[]';
                     inp.value = id;
                     hidden.appendChild(inp);
                 });
@@ -1353,7 +1161,7 @@
         }
 
         function resetDocBrowser() {
-            navStack = [];
+            navStack     = [];
             selectedDocs = {};
             $('#docBrowserSearch').val('');
             $('#docSearchPane').hide();
@@ -1364,7 +1172,7 @@
 
         function flattenAllDocs(tree, folderPath) {
             var results = [];
-            folderPath = folderPath || 'Root';
+            folderPath  = folderPath || 'Root';
             tree.forEach(function (node) {
                 (node.docs || []).forEach(function (d) {
                     results.push({ id: d.id, label: d.label, path: folderPath + ' / ' + node.name });
@@ -1436,11 +1244,11 @@
         }
 
         function checkShareReady() {
-            var type = document.querySelector('input[name="share_type"]:checked');
+            var type    = document.querySelector('input[name="share_type"]:checked');
             var usersOk = $('#shareUsersSelect').val() && $('#shareUsersSelect').val().length > 0;
             var targetOk = false;
 
-            if (type && type.value === 'folder') targetOk = !!$('#shareFolderSelect').val();
+            if (type && type.value === 'folder')   targetOk = !!$('#shareFolderSelect').val();
             if (type && type.value === 'document') targetOk = Object.keys(selectedDocs).length > 0;
 
             $('#shareSubmitBtn').prop('disabled', !(usersOk && targetOk));
