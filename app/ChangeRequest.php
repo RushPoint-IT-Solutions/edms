@@ -103,6 +103,6 @@ class ChangeRequest extends Model implements Auditable
     }
     public function departments()
     {
-        return $this->belongsToMany(Department::class, 'change_request_departments');
+        return $this->belongsToMany(Department::class, 'change_request_departments', 'change_request_id', 'department_id');
     }
 }

@@ -22,7 +22,6 @@ class MonitoringController extends Controller
             $result['exact'] = $m[1];
             return $result;
         }
-
         if (preg_match('/\b(\d{2}\/\d{2}\/\d{4})\b/', $raw, $m)) {
             $result['exact'] = date('Y-m-d', strtotime($m[1]));
             return $result;
@@ -35,18 +34,15 @@ class MonitoringController extends Controller
             $result['year']  = $m[2];
             return $result;
         }
-
         if (preg_match('/\b(\d{4})\s+(' . $monthNames . ')\w*\b/i', $raw, $m)) {
             $result['year']  = $m[1];
             $result['month'] = date('m', strtotime('01 ' . $m[2] . ' 2000'));
             return $result;
         }
-
         if (preg_match('/^(' . $monthNames . ')\w*$/i', trim($raw), $m)) {
             $result['month'] = date('m', strtotime('01 ' . $m[1] . ' 2000'));
             return $result;
         }
-
         if (preg_match('/^\s*(\d{4})\s*$/', $raw, $m)) {
             $result['year'] = $m[1];
             return $result;
@@ -77,102 +73,39 @@ class MonitoringController extends Controller
             return view('pages.403-error');
         }
 
+        $departments = Department::where('status', 'active')->orderBy('code')->get();
+        $offices = Office::where('status', 'Active')->orderBy('name')->get();
+
         $today = now()->startOfDay();
-
-        $departments = Department::where('status', 'active')
-            ->orderBy('code')
-            ->get();
-
-        $offices = Office::where('status', 'Active')
-            ->orderBy('name')
-            ->get();
-
-        $userDeptId = auth()->user()->department_id;
-
-        $documentQuery = ChangeRequest::with(['department', 'department.office', 'user', 'visitors'])
-            ->where('category', 'Public')
-            ->where(function ($q) {
-                $q->whereNotNull('published_at')
-                ->orWhere(function ($q2) {
-                    $q2->whereNotNull('publish_at')
-                        ->where('publish_at', '<=', now());
-                });
-            })
-            ->where(function ($q) use ($userDeptId) {
-                $q->whereNull('publish_office_ids')
-                ->orWhere('publish_office_ids', '[]')
-                ->orWhere('publish_office_ids', '')
-                ->orWhereRaw('JSON_CONTAINS(publish_office_ids, ?)', [json_encode((string) $userDeptId)])
-                ->orWhereRaw('JSON_CONTAINS(publish_office_ids, ?)', [json_encode((int) $userDeptId)]);
-            });
-
-        $docRaw       = $request->get('public_search', '');
-        $docDateParts = $this->parseDateFromSearch($docRaw);
-
-        if ($docRaw) {
-            $documentQuery->where(function ($q) use ($docRaw, $docDateParts) {
-                $q->where('title', 'like', '%' . $docRaw . '%')
-                ->orWhere('control_code', 'like', '%' . $docRaw . '%')
-                ->orWhereHas('department', function ($dq) use ($docRaw) {
-                    $dq->where('code', 'like', '%' . $docRaw . '%')
-                        ->orWhere('name', 'like', '%' . $docRaw . '%');
-                });
-                $this->applyDateFilter($q, $docDateParts);
-            });
-        }
-
-        $documents = $documentQuery->orderBy('published_at', 'desc')->get();
-
-        $privateRaw = $request->get('private_search', '');
-        $privateDateParts = $this->parseDateFromSearch($privateRaw);
-
         $privateQuery = ChangeRequest::with([
-                'department',
-                'department.office',
-                'user',
-                'document_request_access',
-                'document.attachments',
-            ])
+            'department', 'department.office', 'user',
+            'document_request_access', 'document.attachments',
+        ])
             ->whereIn('status', ['Approved', 'For Approval'])
             ->where('category', 'Private');
 
-        if ($privateRaw) {
-            $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
-                $q->where('title', 'like', '%' . $privateRaw . '%')
-                  ->orWhere('control_code', 'like', '%' . $privateRaw . '%')
-                  ->orWhereHas('department', function ($dq) use ($privateRaw) {
-                      $dq->where('code', 'like', '%' . $privateRaw . '%')
-                         ->orWhere('name', 'like', '%' . $privateRaw . '%');
-                  });
-                $this->applyDateFilter($q, $privateDateParts);
-            });
-        }
-
-        $private_documents = $privateQuery
-            ->orderBy('created_at', 'desc')
-            ->get()
+        $private_documents = $privateQuery->orderBy('created_at', 'desc')->get()
             ->map(function ($document) use ($today) {
-
                 $approvedAccess = $document->document_request_access
                     ->where('requestor_id', auth()->id())
                     ->where('status', 1)
                     ->first();
 
                 $document->has_valid_access = false;
-                $document->access_expiry    = null;
+                $document->access_expiry = null;
 
                 if ($approvedAccess) {
                     if (!is_null($approvedAccess->access_until)) {
                         $expiry = \Carbon\Carbon::parse($approvedAccess->access_until)->startOfDay();
                         $document->has_valid_access = $today->lte($expiry);
-                        $document->access_expiry    = $approvedAccess->access_until;
+                        $document->access_expiry = $approvedAccess->access_until;
                     } elseif (!is_null($approvedAccess->request_date)) {
                         $expiry = \Carbon\Carbon::parse($approvedAccess->request_date)->startOfDay();
                         $document->has_valid_access = $today->lte($expiry);
-                        $document->access_expiry    = $approvedAccess->request_date;
+                        $document->access_expiry = $approvedAccess->request_date;
                     } else {
                         $document->has_valid_access = true;
-                        $document->access_expiry    = null;
+                        $document->access_expiry = null;
                     }
                 }
 
@@ -184,42 +117,297 @@ class MonitoringController extends Controller
                 return $document;
             });
 
-        $pendingRaw       = $request->get('pending_search', '');
-        $pendingDateParts = $this->parseDateFromSearch($pendingRaw);
+        return view('monitoring', [
+            'departments' => $departments,
+            'offices' => $offices,
+            'private_documents' => $private_documents,
+        ]);
+    }
 
-        $pending_query = RequestApprover::where('user_id', auth()->id())
+    public function getPendingCards(Request $request)
+    {
+        $raw = $request->get('pending_search', '');
+        $dateParts = $this->parseDateFromSearch($raw);
+        $page = max(1, (int) $request->get('page', 1));
+        $perPage = 8;
+
+        $query = RequestApprover::where('user_id', auth()->id())
             ->where('status', 'Pending');
 
-        if ($pendingRaw) {
-            $pending_query->where(function ($q) use ($pendingRaw, $pendingDateParts) {
-                $q->where('title', 'like', '%' . $pendingRaw . '%')
-                  ->orWhere('file', 'like', '%' . $pendingRaw . '%')
-                  ->orWhereHas('change_request.department', function ($dq) use ($pendingRaw) {
-                      $dq->where('code', 'like', '%' . $pendingRaw . '%')
-                         ->orWhere('name', 'like', '%' . $pendingRaw . '%');
+        if ($raw) {
+            $query->where(function ($q) use ($raw, $dateParts) {
+                $q->where('title', 'like', '%' . $raw . '%')
+                  ->orWhere('file', 'like', '%' . $raw . '%')
+                  ->orWhereHas('change_request.department', function ($dq) use ($raw) {
+                      $dq->where('code', 'like', '%' . $raw . '%')
+                         ->orWhere('name', 'like', '%' . $raw . '%');
                   });
-                $this->applyDateFilter($q, $pendingDateParts);
+                $this->applyDateFilter($q, $dateParts);
             });
         }
 
-        $pending_cards = $pending_query
-            ->with(['change_request', 'user'])
+        $paginator = $query
+            ->with(['change_request.department.office', 'change_request.approvers', 'user'])
             ->orderBy('created_at', 'desc')
-            ->paginate(8, ['*'], 'pending_page');
+            ->paginate($perPage, ['*'], 'page', $page);
 
-        $change_requests = ChangeRequest::with(['approvers.user', 'department', 'department.office'])
-            ->where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $userId = auth()->id();
 
-        return view('monitoring', [
-            'documents' => $documents,
-            'private_documents' => $private_documents,
-            'pending_cards' => $pending_cards,
-            'departments' => $departments,
-            'offices' => $offices,
-            'change_requests' => $change_requests,
+        $items = $paginator->map(function ($approver) use ($userId) {
+            $cr = $approver->change_request;
+            $myApprover = $cr->approvers->firstWhere('user_id', $userId);
+            $myStatus = $myApprover ? $myApprover->status : null;
+
+            $fileParts = explode('/', $cr->file);
+            $filename  = end($fileParts);
+
+            return [
+                'id' => $cr->id,
+                'file' => $cr->file,
+                'filename' => $filename,
+                'my_status' => $myStatus,
+                'dept_code' => optional($cr->department)->code,
+                'office_name' => optional(optional($cr->department)->office)->name
+                              ?? optional(optional($cr->department)->office)->code,
+                'created_at' => date('M d, Y', strtotime($cr->created_at)),
+                'days_ago' => (new \DateTime($cr->updated_at))->diff(new \DateTime())->d,
+            ];
+        });
+
+        return response()->json([
+            'data' => $items,
+            'total' => $paginator->total(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'first_item' => $paginator->firstItem(),
+            'last_item' => $paginator->lastItem(),
         ]);
+    }
+
+    public function getPrivateDocuments(Request $request)
+    {
+        $today = now()->startOfDay();
+        $raw = $request->get('private_search', '');
+        $dateParts = $this->parseDateFromSearch($raw);
+
+        $query = ChangeRequest::with([
+            'department', 'department.office', 'user',
+            'document_request_access',
+        ])
+            ->whereIn('status', ['Approved', 'For Approval'])
+            ->where('category', 'Private');
+
+        if ($raw) {
+            $query->where(function ($q) use ($raw, $dateParts) {
+                $q->where('title', 'like', '%' . $raw . '%')
+                  ->orWhere('control_code', 'like', '%' . $raw . '%')
+                  ->orWhereHas('department', function ($dq) use ($raw) {
+                      $dq->where('code', 'like', '%' . $raw . '%')
+                         ->orWhere('name', 'like', '%' . $raw . '%');
+                  });
+                $this->applyDateFilter($q, $dateParts);
+            });
+        }
+
+        $userId = auth()->id();
+
+        $documents = $query->orderBy('created_at', 'desc')->get()
+
+            ->map(function ($document) use ($today, $userId) {
+            if ($document->user_id === $userId) {
+                return [
+                    'id' => $document->id,
+                    'title' => $document->title,
+                    'control_code' => $document->control_code,
+                    'owner_name' => optional($document->user)->name,
+                    'created_at' => date('M d, Y', strtotime($document->created_at)),
+                    'file' => $document->file,
+                    'has_valid_access' => true,
+                    'has_pending_request' => false,
+                    'access_expiry' => null,
+                    'visitor_count' => optional($document->visitors)->count() ?? 0,
+                ];
+            }
+
+            $approvedAccess = $document->document_request_access
+                ->where('requestor_id', $userId)
+                ->where('status', 1)
+                ->first();
+
+            $hasValidAccess = false;
+            $accessExpiry   = null;
+
+            if ($approvedAccess) {
+                if (!is_null($approvedAccess->access_until)) {
+                    $expiry = \Carbon\Carbon::parse($approvedAccess->access_until)->startOfDay();
+                    $hasValidAccess = $today->lte($expiry);
+                    $accessExpiry = $approvedAccess->access_until;
+                } elseif (!is_null($approvedAccess->request_date)) {
+                    $expiry = \Carbon\Carbon::parse($approvedAccess->request_date)->startOfDay();
+                    $hasValidAccess = $today->lte($expiry);
+                    $accessExpiry = $approvedAccess->request_date;
+                } else {
+                    $hasValidAccess = true;
+                    $accessExpiry = null;
+                }
+            }
+
+            $hasPendingRequest = $document->document_request_access
+                ->where('requestor_id', $userId)
+                ->where('status', 0)
+                ->isNotEmpty();
+
+            return [
+                'id' => $document->id,
+                'title' => $document->title,
+                'control_code' => $document->control_code,
+                'owner_name' => optional($document->user)->name,
+                'created_at' => date('M d, Y', strtotime($document->created_at)),
+                'file' => $document->file,
+                'has_valid_access' => $hasValidAccess,
+                'has_pending_request' => $hasPendingRequest,
+                'access_expiry' => $accessExpiry
+                    ? \Carbon\Carbon::parse($accessExpiry)->format('M d, Y')
+                    : null,
+                'visitor_count' => optional($document->visitors)->count() ?? 0,
+            ];
+        });
+
+        return response()->json(['data' => $documents]);
+    }
+
+    public function getPublicDocuments(Request $request)
+    {
+        $userDeptId = auth()->user()->department_id;
+        $raw = $request->get('public_search', '');
+        $dateParts = $this->parseDateFromSearch($raw);
+
+        $query = ChangeRequest::with(['department', 'department.office', 'user', 'visitors', 'departments'])
+            ->where('category', 'Public')
+            ->where(function ($q) {
+                $q->whereNotNull('published_at')
+                ->orWhere(function ($q2) {
+                    $q2->whereNotNull('publish_at')
+                        ->where('publish_at', '<=', now());
+                });
+            })
+            ->where(function ($q) use ($userDeptId) {
+                $q->whereDoesntHave('departments')
+                ->orWhereHas('departments', function ($dq) use ($userDeptId) {
+                    $dq->where('department_id', $userDeptId);
+                });
+            });
+
+        if ($raw) {
+            $query->where(function ($q) use ($raw, $dateParts) {
+                $q->where('title', 'like', '%' . $raw . '%')
+                ->orWhere('control_code', 'like', '%' . $raw . '%')
+                ->orWhereHas('department', function ($dq) use ($raw) {
+                    $dq->where('code', 'like', '%' . $raw . '%')
+                        ->orWhere('name', 'like', '%' . $raw . '%');
+                });
+                $this->applyDateFilter($q, $dateParts);
+            });
+        }
+
+        $documents = $query->orderBy('published_at', 'desc')->get()->map(function ($document) {
+            return [
+                'id' => $document->id,
+                'title' => $document->title,
+                'control_code' => $document->control_code
+                    ?? 'DOC-' . str_pad($document->id, 3, '0', STR_PAD_LEFT),
+                'file' => $document->file,
+                'file_url' => $document->file ? url($document->file) : null,
+                'published_at' => date('M d, Y', strtotime($document->published_at ?? $document->created_at)),
+                'visitor_count' => $document->visitors->count(),
+                'dept_code' => optional($document->department)->code,
+                'office_name' => optional(optional($document->department)->office)->name
+                                    ?? optional(optional($document->department)->office)->code,
+                'is_restricted' => $document->departments->isNotEmpty(),
+                'access_departments' => $document->departments->isNotEmpty()
+                    ? $document->departments->map(fn($d) => $d->code ?? $d->name)->values()->toArray()
+                    : [],
+            ];
+        });
+
+        return response()->json(['data' => $documents]);
+    }
+
+    public function getChangeRequests(Request $request)
+    {
+        $raw = $request->get('tracking_search', '');
+        $dateParts = $this->parseDateFromSearch($raw);
+
+        $query = ChangeRequest::with([
+            'approvers.user.department',
+            'department',
+            'office',
+            'user',
+            'supporting_documents',
+        ])
+            ->where('user_id', auth()->id());
+
+        if ($raw) {
+            $query->where(function ($q) use ($raw, $dateParts) {
+                $q->where('title', 'like', '%' . $raw . '%')
+                  ->orWhere('status', 'like', '%' . $raw . '%')
+                  ->orWhere('control_code', 'like', '%' . $raw . '%')
+                  ->orWhere('description', 'like', '%' . $raw . '%')
+                  ->orWhereHas('department', function ($dq) use ($raw) {
+                      $dq->where('code', 'like', '%' . $raw . '%')
+                         ->orWhere('name', 'like', '%' . $raw . '%');
+                  });
+                $this->applyDateFilter($q, $dateParts);
+            });
+        }
+
+        $changeRequests = $query->orderBy('created_at', 'desc')->get()->map(function ($cr) {
+            $pageCount = 0;
+            if ($cr->file && file_exists(public_path($cr->file))) {
+                try {
+                    $pdf = new \setasign\Fpdi\Fpdi();
+                    $pageCount = $pdf->setSourceFile(public_path($cr->file));
+                } catch (\Exception $e) {
+                    $pageCount = 0;
+                }
+            }
+
+            return [
+                'id' => $cr->id,
+                'title' => $cr->title,
+                'status' => $cr->status,
+                'category' => $cr->category,
+                'doc_code' => 'DOC-' . str_pad($cr->id, 3, '0', STR_PAD_LEFT),
+                'control_code' => $cr->control_code,
+                'description' => $cr->description,
+                'file_url' => $cr->file ? url($cr->file) : null,
+                'filename' => $cr->file ? basename($cr->file) : null,
+                'page_count' => $pageCount,
+                'supporting_doc_count' => $cr->supporting_documents->count(),
+                'office_name' => optional($cr->department)->name,
+                'dept_code' => optional($cr->department)->code,
+                'submitter' => optional($cr->user)->name,
+                'created_at' => date('M d, Y', strtotime($cr->created_at)),
+                'updated_at' => date('M d, Y h:i A', strtotime($cr->updated_at)),
+                'approvers' => $cr->approvers->map(function ($a) {
+                    return [
+                        'level' => $a->level,
+                        'name' => optional($a->user)->name,
+                        'office' => optional(optional($a->user)->department)->name ?? '—',
+                        'start_date' => $a->start_date
+                            ? date('M d Y h:i A', strtotime($a->start_date))
+                            : '—',
+                        'transaction_date' => $a->status === 'Approved'
+                            ? date('M d Y h:i A', strtotime($a->updated_at))
+                            : '',
+                        'remarks' => $a->remarks ?? '',
+                        'status' => $a->status,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json(['data' => $changeRequests]);
     }
 
     public function privateUserView(Request $request)
