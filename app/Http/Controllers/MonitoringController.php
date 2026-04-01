@@ -123,7 +123,7 @@ class MonitoringController extends Controller
 
         $documents = $documentQuery->orderBy('published_at', 'desc')->get();
 
-        $privateRaw       = $request->get('private_search', '');
+        $privateRaw = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
         $privateQuery = ChangeRequest::with([
@@ -134,7 +134,7 @@ class MonitoringController extends Controller
                 'document.attachments',
             ])
             ->whereIn('status', ['Approved', 'For Approval'])
-            ->where('privacy', 'Private');
+            ->where('category', 'Private');
 
         if ($privateRaw) {
             $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
