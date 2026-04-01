@@ -307,7 +307,7 @@ class RequestController extends Controller
             $publishIcon  = $isPublished ? 'ri-refresh-line' : 'ri-send-plane-line';
             
             $publishBtn = '';
-            if ($cr->status === 'Approved') {
+            if ($cr->status === 'Approved' && $cr->category === 'Public') {
                 $publishBtn = '
                 <li><hr class="dropdown-divider"></li>
                 <li>
