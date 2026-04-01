@@ -212,35 +212,9 @@ class MonitoringController extends Controller
         $userId = auth()->id();
 
         $documents = $query->orderBy('created_at', 'desc')->get()
+
             ->map(function ($document) use ($today, $userId) {
-                $approvedAccess = $document->document_request_access
-                    ->where('requestor_id', $userId)
-                    ->where('status', 1)
-                    ->first();
-
-                $hasValidAccess = false;
-                $accessExpiry   = null;
-
-                if ($approvedAccess) {
-                    if (!is_null($approvedAccess->access_until)) {
-                        $expiry = \Carbon\Carbon::parse($approvedAccess->access_until)->startOfDay();
-                        $hasValidAccess = $today->lte($expiry);
-                        $accessExpiry = $approvedAccess->access_until;
-                    } elseif (!is_null($approvedAccess->request_date)) {
-                        $expiry = \Carbon\Carbon::parse($approvedAccess->request_date)->startOfDay();
-                        $hasValidAccess = $today->lte($expiry);
-                        $accessExpiry = $approvedAccess->request_date;
-                    } else {
-                        $hasValidAccess = true;
-                        $accessExpiry = null;
-                    }
-                }
-
-                $hasPendingRequest = $document->document_request_access
-                    ->where('requestor_id', $userId)
-                    ->where('status', 0)
-                    ->isNotEmpty();
-
+            if ($document->user_id === $userId) {
                 return [
                     'id' => $document->id,
                     'title' => $document->title,
@@ -248,14 +222,56 @@ class MonitoringController extends Controller
                     'owner_name' => optional($document->user)->name,
                     'created_at' => date('M d, Y', strtotime($document->created_at)),
                     'file' => $document->file,
-                    'has_valid_access' => $hasValidAccess,
-                    'has_pending_request' => $hasPendingRequest,
-                    'access_expiry' => $accessExpiry
-                        ? \Carbon\Carbon::parse($accessExpiry)->format('M d, Y')
-                        : null,
-                    'visitor_count'       => optional($document->visitors)->count() ?? 0,
+                    'has_valid_access' => true,
+                    'has_pending_request' => false,
+                    'access_expiry' => null,
+                    'visitor_count' => optional($document->visitors)->count() ?? 0,
                 ];
-            });
+            }
+
+            $approvedAccess = $document->document_request_access
+                ->where('requestor_id', $userId)
+                ->where('status', 1)
+                ->first();
+
+            $hasValidAccess = false;
+            $accessExpiry   = null;
+
+            if ($approvedAccess) {
+                if (!is_null($approvedAccess->access_until)) {
+                    $expiry = \Carbon\Carbon::parse($approvedAccess->access_until)->startOfDay();
+                    $hasValidAccess = $today->lte($expiry);
+                    $accessExpiry = $approvedAccess->access_until;
+                } elseif (!is_null($approvedAccess->request_date)) {
+                    $expiry = \Carbon\Carbon::parse($approvedAccess->request_date)->startOfDay();
+                    $hasValidAccess = $today->lte($expiry);
+                    $accessExpiry = $approvedAccess->request_date;
+                } else {
+                    $hasValidAccess = true;
+                    $accessExpiry = null;
+                }
+            }
+
+            $hasPendingRequest = $document->document_request_access
+                ->where('requestor_id', $userId)
+                ->where('status', 0)
+                ->isNotEmpty();
+
+            return [
+                'id' => $document->id,
+                'title' => $document->title,
+                'control_code' => $document->control_code,
+                'owner_name' => optional($document->user)->name,
+                'created_at' => date('M d, Y', strtotime($document->created_at)),
+                'file' => $document->file,
+                'has_valid_access' => $hasValidAccess,
+                'has_pending_request' => $hasPendingRequest,
+                'access_expiry' => $accessExpiry
+                    ? \Carbon\Carbon::parse($accessExpiry)->format('M d, Y')
+                    : null,
+                'visitor_count' => optional($document->visitors)->count() ?? 0,
+            ];
+        });
 
         return response()->json(['data' => $documents]);
     }
@@ -264,33 +280,32 @@ class MonitoringController extends Controller
     {
         $userDeptId = auth()->user()->department_id;
         $raw = $request->get('public_search', '');
-        $dateParts  = $this->parseDateFromSearch($raw);
+        $dateParts = $this->parseDateFromSearch($raw);
 
-        $query = ChangeRequest::with(['department', 'department.office', 'user', 'visitors'])
+        $query = ChangeRequest::with(['department', 'department.office', 'user', 'visitors', 'departments'])
             ->where('category', 'Public')
             ->where(function ($q) {
                 $q->whereNotNull('published_at')
-                  ->orWhere(function ($q2) {
-                      $q2->whereNotNull('publish_at')
-                         ->where('publish_at', '<=', now());
-                  });
+                ->orWhere(function ($q2) {
+                    $q2->whereNotNull('publish_at')
+                        ->where('publish_at', '<=', now());
+                });
             })
             ->where(function ($q) use ($userDeptId) {
-                $q->whereNull('publish_office_ids')
-                  ->orWhere('publish_office_ids', '[]')
-                  ->orWhere('publish_office_ids', '')
-                  ->orWhereRaw('JSON_CONTAINS(publish_office_ids, ?)', [json_encode((string) $userDeptId)])
-                  ->orWhereRaw('JSON_CONTAINS(publish_office_ids, ?)', [json_encode((int) $userDeptId)]);
+                $q->whereDoesntHave('departments')
+                ->orWhereHas('departments', function ($dq) use ($userDeptId) {
+                    $dq->where('department_id', $userDeptId);
+                });
             });
 
         if ($raw) {
             $query->where(function ($q) use ($raw, $dateParts) {
                 $q->where('title', 'like', '%' . $raw . '%')
-                  ->orWhere('control_code', 'like', '%' . $raw . '%')
-                  ->orWhereHas('department', function ($dq) use ($raw) {
-                      $dq->where('code', 'like', '%' . $raw . '%')
-                         ->orWhere('name', 'like', '%' . $raw . '%');
-                  });
+                ->orWhere('control_code', 'like', '%' . $raw . '%')
+                ->orWhereHas('department', function ($dq) use ($raw) {
+                    $dq->where('code', 'like', '%' . $raw . '%')
+                        ->orWhere('name', 'like', '%' . $raw . '%');
+                });
                 $this->applyDateFilter($q, $dateParts);
             });
         }
@@ -307,8 +322,11 @@ class MonitoringController extends Controller
                 'visitor_count' => $document->visitors->count(),
                 'dept_code' => optional($document->department)->code,
                 'office_name' => optional(optional($document->department)->office)->name
-                                     ?? optional(optional($document->department)->office)->code,
-                'publish_office_ids' => $document->publish_office_ids,
+                                    ?? optional(optional($document->department)->office)->code,
+                'is_restricted' => $document->departments->isNotEmpty(),
+                'access_departments' => $document->departments->isNotEmpty()
+                    ? $document->departments->map(fn($d) => $d->code ?? $d->name)->values()->toArray()
+                    : [],
             ];
         });
 

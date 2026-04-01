@@ -589,10 +589,15 @@ function loadPublicDocs() {
         list.innerHTML = res.data.map(doc => {
             const metaDept = doc.dept_code ? `<span class="meta-tag"><i class="ri-building-line"></i> ${doc.dept_code}</span>` : '';
             const metaOffice = doc.office_name ? `<span class="meta-tag"><i class="ri-home-office-line"></i> ${doc.office_name}</span>` : '';
-            const officeBadge = doc.publish_office_ids
-                ? `<span class="priv-status-badge ms-1" style="--bc:#fef9c3;--tc:#854d0e;"><i class="ri-building-line"></i> Office Restricted</span>`
-                : '';
+            const officeBadge = doc.is_restricted
+                    ? `<span class="priv-status-badge ms-1" style="--bc:#fef9c3;--tc:#854d0e;"><i class="ri-building-line"></i> Department Restricted</span>`
+                    : '';
             const cursor = doc.file_url ? 'pointer' : 'default';
+            const accessDepts = doc.access_departments && doc.access_departments.length
+                ? doc.access_departments.map(d => 
+                    `<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem;">${d}</span>`
+                ).join(' ')
+                : `<span class="badge bg-success-subtle text-success" style="font-size:0.62rem;">All Users</span>`;
 
             return `
             <li class="list-group-item px-2 py-2 priv-item pub-item"
@@ -610,12 +615,10 @@ function loadPublicDocs() {
                         <h6 class="fs-14 mb-0 text-truncate fw-semibold text-dark">${doc.title}</h6>
                         <div class="mt-1">
                             <span class="priv-status-badge" style="--bc:#dbeafe;--tc:#1e40af;"><i class="ri-global-line"></i> Public</span>
-                            ${officeBadge}
                         </div>
                         <small class="text-muted d-block text-truncate mt-1">${doc.control_code}</small>
-                        <div class="d-flex flex-wrap gap-1 mt-1">${metaDept}${metaOffice}</div>
                     </div>
-                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width:70px;">
+                    <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1" style="min-width:80px;">
                         <small class="text-muted" style="font-size:0.65rem;white-space:nowrap;">
                             <i class="ri-calendar-line"></i> ${doc.published_at}
                         </small>
@@ -625,6 +628,9 @@ function loadPublicDocs() {
                                 <i class="ri-eye-line"></i> ${doc.visitor_count}
                             </span>
                         </a>
+                        <div class="d-flex flex-wrap justify-content-end gap-1 mt-1">
+                            ${accessDepts}
+                        </div>
                     </div>
                 </div>
             </li>`;
