@@ -4,7 +4,7 @@
             <div class="modal-header">
                 <h5 class="modal-title">Before proceeding with your signature, please confirm your password first.</h5>
             </div>
-            <form method="POST" action="{{ url('/change-request/confirm-password') }}" onsubmit="show()">
+            <form method="POST" id="ConfirmPasswordForm">
                 @csrf
 
                 <input type="hidden" name="change_request_id" value="{{ $change_request->id }}">
@@ -13,11 +13,12 @@
                     <div class="row">
                         Password :
                         <input type="password" name="password" class="form-control" required>
+                        <div class="invalid-feedback"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-success">Confirm</button>
+                    <button type="submit" class="btn btn-success" id="ChangePassBtn">Confirm</button>
                 </div>
 
             </form>

@@ -107,6 +107,10 @@
                             <div class="info-label">Requested By</div>
                             <div class="info-value">{{ $change_request->user->name }}</div>
                         </div>
+                        <div class="col-6">
+                            <div class="info-label">Remarks</div>
+                            <div class="info-value">{{ $change_request->remarks }}</div>
+                        </div>
                     </div>
                 </div>
             </div>

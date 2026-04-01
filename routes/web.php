@@ -113,6 +113,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('comments', 'RequestController@comments');
             Route::post('change-request-action/{id}','RequestController@action');
             Route::post('confirm-password','RequestController@confirmPassword');
+            Route::post("upload-sign-documents",'RequestController@uploadSignDocuments');
         });
 
         // Copy Request

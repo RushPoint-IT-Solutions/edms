@@ -683,6 +683,7 @@ class RequestController extends Controller
                 $change_request->revision = 0;
                 $change_request->request_status = "Pending";
                 $change_request->due_date = $request->due_date ?: null;
+                $change_request->remarks = $request->notes;
                 if($request->has('save_as_draft'))
                 {
                     $change_request->is_draft = 1;
@@ -772,6 +773,7 @@ class RequestController extends Controller
                 $change_request->revision = 0;
                 $change_request->request_status = "Pending";
                 $change_request->due_date = $request->due_date ?: null;
+                $change_request->remarks = $request->notes;
                 if($request->has('save_as_draft'))
                 {
                     $change_request->is_draft = 1;
@@ -793,6 +795,7 @@ class RequestController extends Controller
                         $approvers->change_request_id = $change_request->id;
                         $approvers->user_id = $approver;
                         $approvers->level = $key+1;
+                        $approvers->request_type = $request->approver_roles[$key];
                         if($key == 0)
                         {
                             $approvers->status = "Pending";
@@ -1346,16 +1349,70 @@ class RequestController extends Controller
         if (Hash::check($request->password, $password))
         {
             return response()->json([
-                'success' => true,
+                'status' => "success",
                 'redirect' => url('documents/signature/' . $request->change_request_id)
-            ]);
+            ], 200);
         }
         else 
         {
             return response()->json([
-                'success' => false,
+                'status' => "error",
                 'message' => 'The password you provided does not match our records.'
+            ], 500);
+        }
+    }
+
+    public function uploadSignDocuments(Request $request) {
+        // dd($request->all());
+        try {
+            $validator = Validator::make($request->all(), [
+                'sign_document' => 'required|max:5120'
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            $attachment = $request->file("sign_document");
+            $name = time()."_".$attachment->getClientOriginalName();
+            $attachment->move(public_path("uploaded_sign_documents"),$name);
+            $file_name = "/uploaded_sign_documents/".$name;
+
+            $change_request = ChangeRequest::findOrFail($request->id);
+            $change_request->file = $file_name;
+            $change_request->save();
+
+            $approver = RequestApprover::where("change_request_id", $request->id)->where("status", "Pending")->where('user_id', auth()->id())->first();
+            $approver->status = "Approved";
+            $approver->save();
+
+            $next_approvers = RequestApprover::where("change_request_id", $request->id)->where("status", "Waiting")->orderBy("id","asc")->get();
+            if(count($next_approvers) > 0) {
+                foreach($next_approvers as $key => $approver) {
+                    if ($key == 0) {
+                        $approver->status = "Pending";
+                    }
+                    else {
+                        $approver->status = "Waiting";
+                    }
+
+                    $approver->save();
+                }
+            }
+
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Uploaded successfully'], 200);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error("Error when uploading document ". $e->getMessage());
+            return response()->json(['status' => 'errors', 'message' => 'Something went wrong'], 500);
         }
     }
 }

@@ -267,6 +267,10 @@
                             <option value="Public" @if(old('privacy', $change_request->privacy ?? '') == "Public") selected @endif>Public</option>
                         </select>
                     </div> --}}
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea name="notes" id="notes" class="form-control" cols="30" rows="10" placeholder="Enter remarks of document"></textarea>
+                    </div>
                 </div>
             </div>
 

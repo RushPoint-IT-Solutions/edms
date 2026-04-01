@@ -97,6 +97,10 @@
                             <div class="info-label">Requested By</div>
                             <div class="info-value">{{ $change_request->user->name }}</div>
                         </div>
+                        <div class="col-6">
+                            <div class="info-label">Remarks</div>
+                            <div class="info-value">{{ $change_request->remarks }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -202,20 +206,28 @@
                         @php
                         $request = ($change_request->approvers)->where('user_id', auth()->user()->id)->where('status', 'Pending');
                         $if_return = ($change_request->approvers)->whereIn('status', 'Returned');
+                        $approver = ($change_request->approvers)->where('user_id', auth()->user()->id)->where('status', 'Pending')->first();
                         @endphp
 
                         @if(count($request) > 0)
                         {{-- <a href="{{ url('documents/signature/'.$change_request->id) }}" target="_blank" class="btn btn-primary">
                             <i class="ri-quill-pen-line me-1"></i> Sign Documents
                         </a> --}}
+                        @if($approver->request_type == "For Receiving")
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadSignDocument{{ $change_request->id }}">
+                            <i class="ri-quill-pen-line me-1"></i> Upload sign documents
+                        </button>
+                        @else
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmPassword{{ $change_request->id }}">
                             <i class="ri-quill-pen-line me-1"></i> Sign Documents
                         </button>
+                        @endif
 
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#return{{ $change_request->id }}">
                             <i class="ri-arrow-go-back-line me-1"></i> Return Documents
                         </button>
                         @include('change_request.return_modal')
+                        @include("change_request.upload_sign_document")
                         @endif
 
                         @if(count($if_return) > 0 && (auth()->user()->id == $change_request->user_id))
@@ -372,6 +384,66 @@
                     getComments()
                 }
             })
+        })
+
+        $("#uploadSignDocumentForm").on("submit", function(e) {
+            e.preventDefault()
+
+            var formData = new FormData($(this)[0])
+
+            ajaxRequest({
+                type:"POST",
+                url:"{{ url('change-request/upload-sign-documents') }}",
+                data: formData,
+                contentType: false,
+                processData: false,
+                beforeSend: function() {
+                    $("#UploadSignDocsBtn").prop("disabled", true).text("Submiting...")
+                },
+                success: function(response) {
+                    if (response.status == "success") {
+                        swal("Success", response.message, response.status)
+                        $("#uploadSignDocument"+"{{ $change_request->id }}").modal("hide")
+                    }
+                },
+                complete: function() {
+                    $("#UploadSignDocsBtn").prop("disabled", false).text("Submit")
+                },
+                error: function(error) {
+                    var errors = error.responseJSON
+                    displayError("uploadSignDocumentForm", errors.errors)
+                }
+            })
+            
+        })
+
+        $("#ConfirmPasswordForm").on("submit", function(e) {
+            e.preventDefault()
+
+            var formData = $(this).serializeArray()
+
+            ajaxRequest({
+                type:"POST",
+                url:"{{ url('change-request/confirm-password') }}",
+                data: formData,
+                beforeSend: function() {
+                    $("#ChangePassBtn").prop("disabled", true).text("Submiting...")
+                },
+                success: function(response) {
+                    if (response.status == "success") {
+                        window.location.href = response.redirect
+                    }
+                },
+                complete: function() {
+                    $("#ChangePassBtn").prop("disabled", false).text("Submit")
+                },
+                error: function(error) {
+                    var errors = error.responseJSON
+                    
+                    swal("Error", errors.message, errors.status)
+                }
+            })
+            
         })
     });
 </script>
