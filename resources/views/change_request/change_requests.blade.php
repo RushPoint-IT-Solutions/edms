@@ -245,7 +245,7 @@
                                 <th>Title</th>
                                 <th>Description</th>
                                 <th>Category</th>
-                                <th>Privacy</th>
+                                <th>Offices</th>
                                 <th>Revision</th>
                                 <th>Requested&nbsp;By</th>
                                 <th>Date&nbsp;Requested</th>
@@ -499,34 +499,43 @@ $(document).ready(function () {
             search:      "Search:",
             paginate:    { first: "First", last: "Last", next: "Next", previous: "Previous" }
         },
-        drawCallback: function () { moveControls(); },
+        drawCallback: function () {
+            setTimeout(function () { moveControls(); }, 0);
+        },
         initComplete: function () {
-            var searchInput = $('#changeRequestsTable_filter input');
-            searchInput.unbind();
-            var searchTimer;
-            searchInput.on('input', function () {
+            setTimeout(function () { moveControls(); }, 0);
+
+            $(document).on('input', '#table-filter-control input', function () {
                 var val = $(this).val();
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(function () { table.search(val).draw(); }, 500);
+                clearTimeout(window._searchTimer);
+                window._searchTimer = setTimeout(function () {
+                    table.search(val).draw();
+                }, 500);
             });
         }
     });
 
     function moveControls() {
-        var searchInput = $('#changeRequestsTable_filter input');
-        var searchHasFocus = searchInput.is(':focus');
-        var cursorPos = searchInput[0] ? searchInput[0].selectionStart : null;
+        var $filter   = $('#changeRequestsTable_wrapper .dataTables_filter');
+        var $length   = $('#changeRequestsTable_wrapper .dataTables_length');
+        var $buttons  = $('#changeRequestsTable_wrapper .dt-buttons');
+        var $info     = $('#changeRequestsTable_wrapper .dataTables_info');
+        var $paginate = $('#changeRequestsTable_wrapper .dataTables_paginate');
 
-        $('#table-length-control').empty().append($('.dataTables_length').detach());
-        $('#table-filter-control').empty().append($('.dataTables_filter').detach());
-        $('#table-buttons-control').empty().append($('.dt-buttons').detach());
-        $('#table-info-control').empty().append($('.dataTables_info').detach());
-        $('#table-pagination-control').empty().append($('.dataTables_paginate').detach());
+        var searchInput  = $filter.find('input');
+        var searchHasFocus = searchInput.is(':focus');
+        var cursorPos    = searchInput[0] ? searchInput[0].selectionStart : null;
+
+        if ($filter.length)   $('#table-filter-control').empty().append($filter.detach());
+        if ($length.length)   $('#table-length-control').empty().append($length.detach());
+        if ($buttons.length)  $('#table-buttons-control').empty().append($buttons.detach());
+        if ($info.length)     $('#table-info-control').empty().append($info.detach());
+        if ($paginate.length) $('#table-pagination-control').empty().append($paginate.detach());
 
         if (searchHasFocus) {
-            var newSearchInput = $('#changeRequestsTable_filter input');
-            newSearchInput.focus();
-            if (cursorPos !== null) newSearchInput[0].setSelectionRange(cursorPos, cursorPos);
+            var newInput = $('#table-filter-control input');
+            newInput.focus();
+            if (cursorPos !== null) newInput[0].setSelectionRange(cursorPos, cursorPos);
         }
     }
 
@@ -805,7 +814,6 @@ function renderSelectedTags() {
     });
 }
 
-/** Live search in office list */
 $('#officeSearch').on('input', function () {
     renderOfficeList(_publishOffices, $(this).val());
 });
