@@ -1149,10 +1149,9 @@ class RequestController extends Controller
                 $histories->user_id = auth()->user()->id;
                 $histories->save();
 
-                // $user = User::where('id',$changeRequest->user_id)->first();
-                // Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
-                // Alert::success('Successfully Approved')->persistent('Dismiss');
-                // return redirect('/for-approval');
+                $user = User::where('id',$changeRequest->user_id)->first();
+                Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
+                
                 DB::commit();
 
                 return response()->json([
@@ -1179,8 +1178,8 @@ class RequestController extends Controller
                 $history->user_id = auth()->user()->id;
                 $history->save();
 
-                // $user = User::where('id',$changeRequest->user_id)->first();
-                // Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
+                $user = User::where('id',$changeRequest->user_id)->first();
+                Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
                 DB::commit();
 
                 Alert::success('Successfully Returned')->persistent('Dismiss');
