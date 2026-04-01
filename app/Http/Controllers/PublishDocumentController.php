@@ -20,8 +20,6 @@ class PublishDocumentController extends Controller
             'change_request_id' => 'required|exists:change_requests,id',
             'publish_type' => 'required|in:immediate,scheduled',
             'publish_date' => 'sometimes|nullable|date|after_or_equal:today',
-            'office_ids' => 'nullable|array',
-            'office_ids.*' => 'integer',
         ]);
 
         if ($request->publish_type === 'scheduled' && empty($request->publish_date)) {
@@ -43,24 +41,20 @@ class PublishDocumentController extends Controller
                 ], 422);
             }
 
-            $officeIds = array_values(array_filter((array) ($request->office_ids ?? [])));
-
             if ($request->publish_type === 'immediate') {
                 $cr->published_at = Carbon::now();
                 $cr->publish_at = null;
-                $cr->publish_office_ids = count($officeIds) ? json_encode($officeIds) : null;
                 $cr->save();
 
                 DB::commit();
 
                 return response()->json([
-                    'status'  => 'success',
+                    'status' => 'success',
                     'message' => 'Document published successfully! It is now visible in Monitoring.',
                 ]);
             } else {
                 $cr->published_at = null;
                 $cr->publish_at = Carbon::parse($request->publish_date)->startOfDay();
-                $cr->publish_office_ids = count($officeIds) ? json_encode($officeIds) : null;
                 $cr->save();
 
                 DB::commit();
