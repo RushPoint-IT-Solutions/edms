@@ -53,11 +53,9 @@ class DocumentController extends Controller
         }
     
         $document_folders = DocumentFolder::with('document', 'childrenFolder')
-            ->when(auth()->user()->role != 'Administrator', function ($q) {
-                $q->where('user_id', auth()->user()->id);
-            })
+            ->where('user_id', auth()->user()->id)
             ->get();
-    
+
         $users = User::whereNull('status')->get();
     
         $documents = Document::with('change_requests', 'attachments', 'share_document')
@@ -143,6 +141,7 @@ class DocumentController extends Controller
             $doc->previewClass = $fileInfo['previewClass'];
             $doc->iconClass = $fileInfo['iconClass'];
             $doc->badgeClass = $fileInfo['badgeClass'];
+            $doc->originalFileName = $fileInfo['originalFileName'];
             return $doc;
         });
 
@@ -188,6 +187,14 @@ class DocumentController extends Controller
             </tr>';
 
             foreach ($othersDocuments as $doc) {
+                $fileInfo    = $this->getDocumentFileInfo($doc);
+                $cleanFileName = $fileInfo['originalFileName']
+                    ? $doc->title . ' - ' . $fileInfo['originalFileName']
+                    : $doc->title;
+
+                $escapedDisplay = htmlspecialchars($cleanFileName, ENT_QUOTES);
+                $escapedForJs   = addslashes($escapedDisplay);
+
                 $listHtml .= '<tr class="child-row"
                     data-parent-id="others"
                     data-level="1"
@@ -197,7 +204,7 @@ class DocumentController extends Controller
                         <input type="checkbox" class="item-checkbox form-check-input"
                             data-type="document"
                             data-id="' . $doc->id . '"
-                            data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                            data-name="' . $escapedDisplay . '"
                             onchange="handleFolderCheckbox(this)">
                     </td>
                     <td>
@@ -205,11 +212,12 @@ class DocumentController extends Controller
                             <span class="folder-indent" style="width:24px;"></span>
                             <span style="width:20px;display:inline-block;"></span>
                             <i class="ri-file-text-line item-icon" style="color:#6b7280;"></i>
-                            <span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>
+                            <span class="item-name">' . $escapedDisplay . '</span>
                         </div>
                     </td>
-                    <td>Document</td>
+                    <td>' . strtoupper($fileInfo['fileType']) . '</td>
                     <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
+                    <td>—</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">';
 
@@ -221,7 +229,7 @@ class DocumentController extends Controller
                         <ul class="dropdown-menu">
                             <li>
                                 <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES)) . '\')">
+                                    onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedForJs . '\')">
                                     <i class="ri-delete-bin-line me-2"></i>Delete document
                                 </a>
                             </li>
@@ -354,12 +362,16 @@ class DocumentController extends Controller
             $gridHtml = '';
 
             foreach ($documents as $doc) {
-                $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
-                $docUrl = url('/documents/view-document/' . $doc->id);
+                $cleanFileName  = $doc->originalFileName
+                    ? $doc->title . ' - ' . $doc->originalFileName
+                    : $doc->title;
+                $escapedDisplay = htmlspecialchars($cleanFileName, ENT_QUOTES);
+                $escapedForJs   = addslashes($escapedDisplay);
+                $docUrl         = url('/documents/view-document/' . $doc->id);
 
                 $shareListItem = '<li>
                     <a class="dropdown-item" href="javascript:void(0)"
-                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedForJs . '\')">
                         <i class="ri-share-line me-2"></i>Share
                     </a>
                 </li>';
@@ -372,7 +384,7 @@ class DocumentController extends Controller
                         ' . $shareListItem .
                         ($canDelete ? '<li>
                             <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                                onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedForJs . '\')">
                                 <i class="ri-delete-bin-line me-2"></i>Delete document
                             </a>
                         </li>' : '') . '
@@ -389,30 +401,32 @@ class DocumentController extends Controller
                         <input type="checkbox" class="item-checkbox form-check-input"
                             data-type="document"
                             data-id="' . $doc->id . '"
-                            data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                            data-name="' . $escapedDisplay . '">
                     </td>
                     <td>
                         <div class="name-cell">
                             <i class="' . $doc->iconClass . ' item-icon" style="color:#6b7280;"></i>
-                            <span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>
+                            <span class="item-name">' . $escapedDisplay . '</span>
                         </div>
                     </td>
                     <td>' . strtoupper($doc->fileType) . '</td>
                     <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
+                    <td>—</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
                 </tr>';
 
+                // Grid item
                 $gridDropdown = '<ul class="dropdown-menu dropdown-menu-end">
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)"
-                            onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                            onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedForJs . '\')">
                             <i class="ri-share-line me-2"></i>Share
                         </a>
                     </li>' .
                     ($canDelete ? '<li>
                         <a class="dropdown-item text-danger" href="javascript:void(0)"
-                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedForJs . '\')">
                             <i class="ri-delete-bin-line me-2"></i>Delete document
                         </a>
                     </li>' : '') . '
@@ -428,7 +442,7 @@ class DocumentController extends Controller
                         <input type="checkbox" class="form-check-input grid-item-checkbox item-checkbox"
                             data-type="document"
                             data-id="' . $doc->id . '"
-                            data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                            data-name="' . $escapedDisplay . '"
                             onclick="event.stopPropagation(); handleGridCheckbox(this)">
                         <button class="grid-item-menu" onclick="event.stopPropagation()"
                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -440,7 +454,7 @@ class DocumentController extends Controller
                         <i class="' . $doc->iconClass . ' grid-item-icon"></i>
                     </div>
                     <div class="grid-item-info">
-                        <div class="grid-item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</div>
+                        <div class="grid-item-name">' . $escapedDisplay . '</div>
                         <div class="grid-item-meta">
                             <span class="file-type-badge ' . $doc->badgeClass . '">' . strtoupper($doc->fileType) . '</span>
                             <span>' . date('M d', strtotime($doc->updated_at)) . '</span>
@@ -478,6 +492,7 @@ class DocumentController extends Controller
             $doc->previewClass = $info['previewClass'];
             $doc->iconClass = $info['iconClass'];
             $doc->badgeClass = $info['badgeClass'];
+            $doc->originalFileName = $info['originalFileName'];
             return $doc;
         });
 
@@ -655,15 +670,15 @@ class DocumentController extends Controller
     private function renderFolderTreeView($allFolders, $documents, $currentFolderId, $level = 0, $parentId = null)
     {
         $html = '';
-        $canEdit = canEdit('documents');
+        $canEdit   = canEdit('documents');
         $canDelete = canDelete('documents');
 
         $filteredFolders = $allFolders->where('parent_id', $parentId);
 
         foreach ($filteredFolders as $folder) {
-            $childFolders = $allFolders->where('parent_id', $folder->id);
+            $childFolders    = $allFolders->where('parent_id', $folder->id);
             $folderDocuments = $documents->where('folder_id', $folder->id);
-            $hasChildren = count($folderDocuments) > 0 || count($childFolders) > 0;
+            $hasChildren     = count($folderDocuments) > 0 || count($childFolders) > 0;
 
             $rowClass = 'folder-tree-row document-row ' . ($hasChildren ? 'has-children' : '');
             if ($level > 0) {
@@ -681,13 +696,13 @@ class DocumentController extends Controller
                         data-level="' . $level . '">';
 
             $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
-                        <input type="checkbox" 
-                            class="item-checkbox form-check-input" 
-                            data-type="folder" 
-                            data-id="' . $folder->id . '" 
+                        <input type="checkbox"
+                            class="item-checkbox form-check-input"
+                            data-type="folder"
+                            data-id="' . $folder->id . '"
                             data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '"
                             onchange="handleFolderCheckbox(this)">
-                      </td>';
+                    </td>';
 
             $html .= '<td class="folder-name-cell" data-folder-url="' . url('documents/folder/' . $folder->id) . '" onclick="handleFolderClick(this, ' . ($hasChildren ? 'true' : 'false') . ')">';
             $html .= '<div class="name-cell">';
@@ -703,6 +718,7 @@ class DocumentController extends Controller
             $html .= '<span class="item-name">' . htmlspecialchars($folder->name) . '</span>';
             $html .= '</div></td>';
             $html .= '<td>Folder</td>';
+            $html .= '<td>—</td>';
             $html .= '<td>—</td>';
             $html .= '<td>' . date('M d, Y', strtotime($folder->updated_at)) . '</td>';
             $html .= '<td class="actions-cell">
@@ -721,7 +737,6 @@ class DocumentController extends Controller
                             </a>
                         </li>';
             }
-
             if ($canDelete) {
                 $html .= '<li>
                             <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
@@ -745,6 +760,13 @@ class DocumentController extends Controller
                 foreach ($folderDocuments as $doc) {
                     $fileInfo = $this->getDocumentFileInfo($doc);
 
+                    $cleanFileName = $fileInfo['originalFileName']
+                        ? $doc->title . ' - ' . $fileInfo['originalFileName']
+                        : $doc->title;
+
+                    $escapedDisplay = htmlspecialchars($cleanFileName, ENT_QUOTES);
+                    $escapedForJs   = addslashes($escapedDisplay);
+
                     $html .= '<tr class="child-row document-row"
                                 data-parent-id="' . $folder->id . '"
                                 data-document-id="' . $doc->id . '"
@@ -752,20 +774,23 @@ class DocumentController extends Controller
                                 data-type="' . $fileInfo['fileType'] . '"
                                 data-modified="' . $doc->updated_at . '"
                                 onclick="window.open(\'' . url('/documents/view-document/' . $doc->id) . '\', \'_blank\')">';
+
                     $html .= '<td class="checkbox-cell" onclick="event.stopPropagation()">
                                 <input type="checkbox"
                                     class="item-checkbox form-check-input"
                                     data-type="document"
                                     data-id="' . $doc->id . '"
-                                    data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                                    data-name="' . $escapedDisplay . '"
                                     onchange="handleFolderCheckbox(this)">
-                              </td>';
+                            </td>';
+
                     $html .= '<td><div class="name-cell">';
                     $html .= '<span class="folder-indent" style="width: ' . (($level + 1) * 24) . 'px;"></span>';
                     $html .= '<span style="width: 20px; display: inline-block;"></span>';
                     $html .= '<i class="' . $fileInfo['iconClass'] . ' item-icon" style="color: #6b7280;"></i>';
-                    $html .= '<span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>';
+                    $html .= '<span class="item-name">' . $escapedDisplay . '</span>';
                     $html .= '</div></td>';
+
                     $html .= '<td>' . strtoupper($fileInfo['fileType']) . '</td>';
                     $html .= '<td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
@@ -779,15 +804,15 @@ class DocumentController extends Controller
                     if ($canDelete) {
                         $html .= '<li>
                                     <a class="dropdown-item text-danger" href="javascript:void(0)"
-                                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES)) . '\')">
+                                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedForJs . '\')">
                                         <i class="ri-delete-bin-line me-2"></i>Delete document
                                     </a>
                                 </li>';
                     }
 
-                    $html .= '</ul>
-                        </div>
-                    </td>';
+                    $html .= '  </ul>
+                            </div>
+                        </td>';
                     $html .= '</tr>';
                 }
             }
@@ -1170,13 +1195,17 @@ class DocumentController extends Controller
         $previewClass = 'default-preview';
         $iconClass = 'ri-file-list-line';
         $badgeClass = '';
-        
+        $originalFileName = null;
+
         if ($document && $document->attachments->count() > 0) {
             $attachment = $document->attachments->first()->attachment;
             $extension = pathinfo($attachment, PATHINFO_EXTENSION);
             $fileType = strtolower($extension);
-            
-            switch($fileType) {
+
+            $rawName = basename($attachment);
+            $originalFileName = preg_replace('/^\d+_/', '', $rawName);
+
+            switch ($fileType) {
                 case 'pdf':
                     $previewClass = 'pdf-preview';
                     $iconClass = 'ri-file-pdf-line';
@@ -1198,10 +1227,11 @@ class DocumentController extends Controller
         }
 
         return [
-            'fileType' => $fileType,
-            'previewClass' => $previewClass,
-            'iconClass' => $iconClass,
-            'badgeClass' => $badgeClass,
+            'fileType'         => $fileType,
+            'previewClass'     => $previewClass,
+            'iconClass'        => $iconClass,
+            'badgeClass'       => $badgeClass,
+            'originalFileName' => $originalFileName,
         ];
     }
 
@@ -1353,6 +1383,7 @@ class DocumentController extends Controller
             $doc->previewClass = $info['previewClass'];
             $doc->iconClass = $info['iconClass'];
             $doc->badgeClass = $info['badgeClass'];
+            $doc->originalFileName = $info['originalFileName'];
             return $doc;
         });
 
@@ -1377,7 +1408,7 @@ class DocumentController extends Controller
         foreach ($childDocuments as $doc) {
             $items->push((object)[
                 'id' => $doc->id,
-                'name' => $doc->control_code . ' - ' . $doc->title,
+                'name' => $doc->originalFileName ?: $doc->title,
                 'title' => $doc->title,
                 'control_code' => $doc->control_code,
                 'type' => 'document',
@@ -1941,7 +1972,7 @@ class DocumentController extends Controller
         foreach ($sharedDocs as $doc) {
             if (in_array($doc->id, $coveredDocIds)) continue;
 
-            $fileInfo    = $this->getDocumentFileInfo($doc);
+            $fileInfo = $this->getDocumentFileInfo($doc);
             $shareRecord = ShareDocument::where('user_id', $userId)
                 ->where('document_id', $doc->id)
                 ->first();
@@ -1962,7 +1993,7 @@ class DocumentController extends Controller
 
             $items->push([
                 'id' => $doc->id,
-                'name' => $doc->control_code . ' - ' . $doc->title,
+                'name' => $fileInfo['originalFileName'] ?: $doc->title,
                 'type' => 'document',
                 'ownerName' => $ownerName,
                 'ownerEmail' => $ownerEmail,
@@ -2053,6 +2084,7 @@ class DocumentController extends Controller
                 $doc->badgeClass = $fileInfo['badgeClass'];
                 $doc->ownerName = ($doc->user && $doc->user->name) ? $doc->user->name : '—';
                 $doc->ownerColor = $this->avatarColor($doc->ownerName);
+                $doc->originalFileName = $fileInfo['originalFileName'];
                 return $doc;
             });
     
@@ -2175,105 +2207,119 @@ class DocumentController extends Controller
 
         $userId = auth()->id();
         $me = User::find($userId);
-    
-        $ownerName = $me ? $me->name  : '—';
+
+        $ownerName  = $me ? $me->name  : '—';
         $ownerColor = $this->avatarColor($ownerName);
-    
-        $sharedDocuments = Document::with(['attachments', 'share_document.user', 'folder.parent'])
-            ->where('user_id', $userId)
-            ->whereHas('share_document')
-            ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(function ($doc) {
-                $fileInfo = $this->getDocumentFileInfo($doc);
-                $doc->fileType  = $fileInfo['fileType'];
-                $doc->previewClass = $fileInfo['previewClass'];
-                $doc->iconClass  = $fileInfo['iconClass'];
-                $doc->badgeClass  = $fileInfo['badgeClass'];
-                return $doc;
-            });
-    
-        $items = collect();
+
+        $items          = collect();
         $addedFolderIds = [];
-    
-        foreach ($sharedDocuments as $doc) {
-            if ($doc->folder_id) {
-                $topFolder = $doc->folder;
-                $checkedFolder = $topFolder;
-    
-                while ($checkedFolder && $checkedFolder->parent_id) {
-                    $parent = DocumentFolder::find($checkedFolder->parent_id);
-                    if ($parent) {
-                        $checkedFolder = $parent;
-                        $topFolder = $parent;
-                    } else {
-                        break;
-                    }
-                }
-    
-                if ($topFolder && !in_array($topFolder->id, $addedFolderIds)) {
-                    $addedFolderIds[] = $topFolder->id;
-    
-                    $folderDocIds = $this->getAllDocumentIdsInFolder($topFolder->id);
-                    $sharedUsers  = ShareDocument::with('user')
-                        ->whereIn('document_id', $folderDocIds)
-                        ->get()
-                        ->unique('user_id')
-                        ->values()
-                        ->map(function ($share) {
-                            $name = ($share->user && $share->user->name) ? $share->user->name : '';
-                            $share->avatarColor = $this->avatarColor($name);
-                            return $share;
-                        });
-    
-                    $sharedWithNames = $sharedUsers->pluck('user.name')->filter()->implode(', ');
-    
-                    $items->push([
-                        'id' => $topFolder->id,
-                        'name' => $topFolder->name,
-                        'type' => 'folder',
-                        'ownerName' => $ownerName,
-                        'ownerColor' => $ownerColor,
-                        'sharedUsers' => $sharedUsers,
-                        'sharedWithNames' => $sharedWithNames,
-                        'sortDate' => $doc->updated_at,
-                        'dateLabel' => $doc->updated_at->format('M d, Y'),
-                        'iconClass' => 'ri-folder-2-fill',
-                        'previewClass' => 'folder-preview',
-                    ]);
-                }
-            } else {
-                $sharedUsers = $doc->share_document->map(function ($share) {
+        $coveredDocIds  = [];
+
+        $folderShareRecords = ShareDocument::where('shared_by', $userId)
+            ->whereNotNull('folder_id')
+            ->with('user')
+            ->get();
+
+        $sharedFolderIds = $folderShareRecords->pluck('folder_id')->unique()->toArray();
+
+        foreach ($sharedFolderIds as $sharedFolderId) {
+            $folder = DocumentFolder::find($sharedFolderId);
+            if (!$folder) continue;
+
+            if (in_array($folder->id, $addedFolderIds)) continue;
+            $addedFolderIds[] = $folder->id;
+
+            $allUnder = $this->getAllDocumentIdsInFolder($folder->id);
+            $coveredDocIds = array_merge($coveredDocIds, $allUnder);
+
+            $sharedUsers = ShareDocument::with('user')
+                ->where('folder_id', $folder->id)
+                ->get()
+                ->unique('user_id')
+                ->values()
+                ->map(function ($share) {
                     $name = ($share->user && $share->user->name) ? $share->user->name : '';
                     $share->avatarColor = $this->avatarColor($name);
                     return $share;
                 });
-    
-                $sharedWithNames = $sharedUsers->pluck('user.name')->filter()->implode(', ');
-    
-                $items->push([
-                    'id' => $doc->id,
-                    'name' => $doc->control_code . ' - ' . $doc->title,
-                    'type' => 'document',
-                    'ownerName' => $ownerName,
-                    'ownerColor' => $ownerColor,
-                    'sharedUsers' => $sharedUsers,
-                    'sharedWithNames' => $sharedWithNames,
-                    'sortDate' => $doc->updated_at,
-                    'dateLabel' => $doc->updated_at->format('M d, Y'),
-                    'iconClass' => $doc->iconClass,
-                    'previewClass' => $doc->previewClass,
-                    'docId' => $doc->id,
-                    'docTitle' => $doc->title,
-                ]);
-            }
+
+            $sharedWithNames = $sharedUsers->pluck('user.name')->filter()->implode(', ');
+
+            $latestShare = ShareDocument::where('folder_id', $folder->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $items->push([
+                'id' => $folder->id,
+                'name' => $folder->name,
+                'type' => 'folder',
+                'ownerName' => $ownerName,
+                'ownerColor' => $ownerColor,
+                'sharedUsers' => $sharedUsers,
+                'sharedWithNames'=> $sharedWithNames,
+                'sortDate' => $latestShare ? $latestShare->created_at : $folder->updated_at,
+                'dateLabel' => $latestShare ? $latestShare->created_at->format('M d, Y') : $folder->updated_at->format('M d, Y'),
+                'iconClass' => 'ri-folder-2-fill',
+                'previewClass' => 'folder-preview',
+            ]);
         }
-    
+
+        $docShareRecords = ShareDocument::where('shared_by', $userId)
+            ->whereNull('folder_id')
+            ->pluck('document_id')
+            ->unique()
+            ->toArray();
+
+        $individualDocIds = array_diff($docShareRecords, $coveredDocIds);
+
+        $individualDocs = Document::with(['attachments', 'share_document.user'])
+            ->whereIn('id', $individualDocIds)
+            ->where('user_id', $userId)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        foreach ($individualDocs as $doc) {
+            $fileInfo = $this->getDocumentFileInfo($doc);
+
+            $sharedUsers = $doc->share_document
+            ->filter(function ($share) {
+                return is_null($share->folder_id);
+            })
+            ->map(function ($share) {
+                $name = ($share->user && $share->user->name) ? $share->user->name : '';
+                $share->avatarColor = $this->avatarColor($name);
+                return $share;
+            })->values();
+
+            $sharedWithNames = $sharedUsers->pluck('user.name')->filter()->implode(', ');
+
+            $latestShare = ShareDocument::where('document_id', $doc->id)
+                ->whereNull('folder_id')
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $items->push([
+                'id' => $doc->id,
+                'name' => $fileInfo['originalFileName'] ?: $doc->title,
+                'type' => 'document',
+                'ownerName' => $ownerName,
+                'ownerColor' => $ownerColor,
+                'sharedUsers' => $sharedUsers,
+                'sharedWithNames'=> $sharedWithNames,
+                'sortDate' => $latestShare ? $latestShare->created_at : $doc->updated_at,
+                'dateLabel' => $latestShare ? $latestShare->created_at->format('M d, Y') : $doc->updated_at->format('M d, Y'),
+                'iconClass' => $fileInfo['iconClass'],
+                'previewClass' => $fileInfo['previewClass'],
+                'docId' => $doc->id,
+                'docTitle' => $doc->title,
+            ]);
+        }
+
         $items = $items->sortByDesc('sortDate')->unique('id')->values();
-    
+
         $groupedByDate = $items->groupBy(function ($item) {
             $date = $item['sortDate'];
-            $now = now();
+            $now  = now();
             if ($date->isToday()) return 'Today';
             if ($date->isYesterday()) return 'Yesterday';
             if ($date->greaterThanOrEqualTo($now->copy()->subDays(7))) return 'Last 7 days';
@@ -2281,7 +2327,7 @@ class DocumentController extends Controller
             if ($date->year === $now->year) return 'Earlier this year';
             return 'Older';
         });
-    
+
         return view('documents.shared_with_others', compact('groupedByDate'));
     }
 
@@ -2323,6 +2369,7 @@ class DocumentController extends Controller
                 $doc->previewClass = $fileInfo['previewClass'];
                 $doc->iconClass = $fileInfo['iconClass'];
                 $doc->badgeClass = $fileInfo['badgeClass'];
+                $doc->originalFileName = $fileInfo['originalFileName'];
                 return $doc;
             });
     
