@@ -87,8 +87,24 @@ class MonitoringController extends Controller
             ->orderBy('name')
             ->get();
 
-        $documentQuery = Document::with('attachments', 'department', 'visitor')
-            ->where('public', 1);
+        $userDeptId = auth()->user()->department_id;
+
+        $documentQuery = ChangeRequest::with(['department', 'department.office', 'user', 'visitors'])
+            ->where('category', 'Public')
+            ->where(function ($q) {
+                $q->whereNotNull('published_at')
+                ->orWhere(function ($q2) {
+                    $q2->whereNotNull('publish_at')
+                        ->where('publish_at', '<=', now());
+                });
+            })
+            ->where(function ($q) use ($userDeptId) {
+                $q->whereNull('publish_office_ids')
+                ->orWhere('publish_office_ids', '[]')
+                ->orWhere('publish_office_ids', '')
+                ->orWhereRaw('JSON_CONTAINS(publish_office_ids, ?)', [json_encode((string) $userDeptId)])
+                ->orWhereRaw('JSON_CONTAINS(publish_office_ids, ?)', [json_encode((int) $userDeptId)]);
+            });
 
         $docRaw       = $request->get('public_search', '');
         $docDateParts = $this->parseDateFromSearch($docRaw);
@@ -96,32 +112,38 @@ class MonitoringController extends Controller
         if ($docRaw) {
             $documentQuery->where(function ($q) use ($docRaw, $docDateParts) {
                 $q->where('title', 'like', '%' . $docRaw . '%')
-                  ->orWhere('control_code', 'like', '%' . $docRaw . '%')
-                  ->orWhereHas('department', function ($dq) use ($docRaw) {
-                        $dq->where('code', 'like', '%' . $docRaw . '%')
-                           ->orWhere('name', 'like', '%' . $docRaw . '%');
-                    });
+                ->orWhere('control_code', 'like', '%' . $docRaw . '%')
+                ->orWhereHas('department', function ($dq) use ($docRaw) {
+                    $dq->where('code', 'like', '%' . $docRaw . '%')
+                        ->orWhere('name', 'like', '%' . $docRaw . '%');
+                });
                 $this->applyDateFilter($q, $docDateParts);
             });
         }
 
-        $documents = $documentQuery->orderBy('created_at', 'desc')->get();
+        $documents = $documentQuery->orderBy('published_at', 'desc')->get();
 
-        $privateRaw = $request->get('private_search', '');
+        $privateRaw       = $request->get('private_search', '');
         $privateDateParts = $this->parseDateFromSearch($privateRaw);
 
-        $privateQuery = ChangeRequest::with(['department', 'department.office', 'user', 'document_request_access', 'document.attachments'])
+        $privateQuery = ChangeRequest::with([
+                'department',
+                'department.office',
+                'user',
+                'document_request_access',
+                'document.attachments',
+            ])
             ->whereIn('status', ['Approved', 'For Approval'])
-            ->where('category', 'Private');
+            ->where('privacy', 'Private');
 
         if ($privateRaw) {
             $privateQuery->where(function ($q) use ($privateRaw, $privateDateParts) {
                 $q->where('title', 'like', '%' . $privateRaw . '%')
-                ->orWhere('control_code', 'like', '%' . $privateRaw . '%')
-                ->orWhereHas('department', function ($dq) use ($privateRaw) {
-                        $dq->where('code', 'like', '%' . $privateRaw . '%')
-                        ->orWhere('name', 'like', '%' . $privateRaw . '%');
-                    });
+                  ->orWhere('control_code', 'like', '%' . $privateRaw . '%')
+                  ->orWhereHas('department', function ($dq) use ($privateRaw) {
+                      $dq->where('code', 'like', '%' . $privateRaw . '%')
+                         ->orWhere('name', 'like', '%' . $privateRaw . '%');
+                  });
                 $this->applyDateFilter($q, $privateDateParts);
             });
         }
@@ -162,20 +184,20 @@ class MonitoringController extends Controller
                 return $document;
             });
 
-        $pending_query = RequestApprover::where('user_id', auth()->id())
-            ->where('status', 'Pending');
-
         $pendingRaw       = $request->get('pending_search', '');
         $pendingDateParts = $this->parseDateFromSearch($pendingRaw);
+
+        $pending_query = RequestApprover::where('user_id', auth()->id())
+            ->where('status', 'Pending');
 
         if ($pendingRaw) {
             $pending_query->where(function ($q) use ($pendingRaw, $pendingDateParts) {
                 $q->where('title', 'like', '%' . $pendingRaw . '%')
                   ->orWhere('file', 'like', '%' . $pendingRaw . '%')
-                  ->orWhereHas('department', function ($dq) use ($pendingRaw) {
-                        $dq->where('code', 'like', '%' . $pendingRaw . '%')
-                           ->orWhere('name', 'like', '%' . $pendingRaw . '%');
-                    });
+                  ->orWhereHas('change_request.department', function ($dq) use ($pendingRaw) {
+                      $dq->where('code', 'like', '%' . $pendingRaw . '%')
+                         ->orWhere('name', 'like', '%' . $pendingRaw . '%');
+                  });
                 $this->applyDateFilter($q, $pendingDateParts);
             });
         }
@@ -187,6 +209,7 @@ class MonitoringController extends Controller
 
         $change_requests = ChangeRequest::with(['approvers.user', 'department', 'department.office'])
             ->where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view('monitoring', [

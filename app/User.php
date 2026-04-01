@@ -51,6 +51,9 @@ class User extends Authenticatable implements Auditable
     {
         return $this->belongsTo(Department::class, 'department_id');
     }
+    public function office() {
+        return $this->belongsTo(Office::class);
+    }
     public function department_head()
     {
         return $this->hasMany(Department::class,'user_id','id');

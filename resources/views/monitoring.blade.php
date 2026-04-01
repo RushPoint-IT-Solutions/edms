@@ -531,8 +531,7 @@
                     <ul class="list-group list-group-flush">
                         @forelse ($documents as $document)
                         @php
-                            $pubAttachment = $document->attachments->where('type', 'pdf_copy')->first();
-                            $pubUrl = $pubAttachment ? url($pubAttachment->attachment) : null;
+                            $pubUrl = $document->file ? url($document->file) : null;
                         @endphp
                         <li class="list-group-item px-2 py-2 priv-item pub-item"
                             style="border-left: 4px solid #3b82f6; border-radius: 6px; margin-bottom: 4px; cursor: {{ $pubUrl ? 'pointer' : 'default' }};"
@@ -557,9 +556,14 @@
                                         <span class="priv-status-badge" style="--bc:#dbeafe;--tc:#1e40af;">
                                             <i class="ri-global-line"></i> Public
                                         </span>
+                                        @if($document->publish_office_ids)
+                                            <span class="priv-status-badge ms-1" style="--bc:#fef9c3;--tc:#854d0e;">
+                                                <i class="ri-building-line"></i> Office Restricted
+                                            </span>
+                                        @endif
                                     </div>
-                                    <small class="text-muted d-block text-truncate mt-1" title="{{ $document->control_code }}">
-                                        {{ $document->control_code }}
+                                    <small class="text-muted d-block text-truncate mt-1">
+                                        {{ $document->control_code ?? 'DOC-' . str_pad($document->id, 3, "0", STR_PAD_LEFT) }}
                                     </small>
                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                         @if($document->department)
@@ -572,16 +576,16 @@
                                 </div>
 
                                 <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1"
-                                     style="min-width:70px;">
+                                    style="min-width:70px;">
                                     <small class="text-muted" style="font-size:0.65rem;white-space:nowrap;">
-                                        <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->created_at)) }}
+                                        <i class="ri-calendar-line"></i> {{ date('M d, Y', strtotime($document->published_at ?? $document->created_at)) }}
                                     </small>
-                                    <a href="{{ url('/documents/visitors/'.$document->id) }}"
+                                    <a href="{{ url('/change-request/visitors/'.$document->id) }}"
                                         target="_blank"
                                         class="text-decoration-none"
                                         onclick="event.stopPropagation();">
                                         <span class="badge bg-primary-subtle text-primary" style="font-size:0.6rem;">
-                                            <i class="ri-eye-line"></i> {{ $document->visitor->count() }}
+                                            <i class="ri-eye-line"></i> {{ $document->visitors->count() }}
                                         </span>
                                     </a>
                                 </div>
@@ -942,7 +946,14 @@
                 const url   = this.dataset.pubUrl;
                 const docId = this.dataset.pubDocId;
                 if (url) {
-                    userView(docId);
+                    fetch("{{ url('/change-request/private-user-view') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ change_request_id: docId })
+                    });
                     window.open(url, '_blank');
                 }
             });

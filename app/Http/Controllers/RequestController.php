@@ -302,6 +302,25 @@ class RequestController extends Controller
                     : null,
             ])->values()->toJson();
 
+            $isPublished = $cr->document && $cr->document->public;
+            $publishLabel = $isPublished ? 'Re-publish / Update' : 'Publish Document';
+            $publishIcon  = $isPublished ? 'ri-refresh-line' : 'ri-send-plane-line';
+            
+            $publishBtn = '';
+            if ($cr->status === 'Approved') {
+                $publishBtn = '
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-success publish-doc-btn" href="#"
+                        data-change-request-id="'.$cr->id.'"
+                        data-document-id="'.($cr->document_id ?? '').'"
+                        data-doc-title="'.e($cr->title).'"
+                        data-is-published="'.($isPublished ? '1' : '0').'">
+                        <i class="'.$publishIcon.' me-2"></i> '.$publishLabel.'
+                    </a>
+                </li>';
+            }
+            
             $actions = '<div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
                     <i class="ri-more-2-fill"></i>
@@ -331,6 +350,7 @@ class RequestController extends Controller
                             <i class="ri-git-branch-line me-2"></i> Revision Status
                         </a>
                     </li>' : '').'
+                    '.$publishBtn.'
                 </ul>
             </div>';
 
