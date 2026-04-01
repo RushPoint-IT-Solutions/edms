@@ -197,8 +197,6 @@
     let selectedRow = null;
     let currentView = 'grid';
 
-    // ─── Folder tree loading ────────────────────────────────────────────────────
-
     function loadFolderTree() {
         $('#listView').show();
         $('#gridView').hide();
@@ -248,8 +246,6 @@
         });
     }
 
-    // ─── Document delete ────────────────────────────────────────────────────────
-
     function deleteDocument(id, name) {
         swal({
             title: 'Are you sure?',
@@ -285,8 +281,6 @@
             });
         });
     }
-
-    // ─── Selection helpers ──────────────────────────────────────────────────────
 
     function selectItem(type, id, name) {
         selectedItems[type + '_' + id] = { type, id, name };
@@ -403,8 +397,6 @@
         }
     }
 
-    // ─── Folder click / expand ──────────────────────────────────────────────────
-
     function handleFolderClick(element, hasChildren) {
         event.stopPropagation();
         var row = $(element).closest('tr');
@@ -462,8 +454,6 @@
         });
     }
 
-    // ─── View switching ─────────────────────────────────────────────────────────
-
     function switchToListView() {
         currentView = 'list';
         var hasItems = $('#foldersTableBody tr:not(#tableLoadingRow)').length > 0;
@@ -483,8 +473,6 @@
         $('#gridViewBtn').addClass('active');
         localStorage.setItem('documentViewPreference', 'grid');
     }
-
-    // ─── Upload modal ────────────────────────────────────────────────────────────
 
     document.addEventListener('DOMContentLoaded', function () {
         var fileInput = document.getElementById('fileInput');
@@ -536,8 +524,6 @@
             $('#filePreviewList').hide();
         });
     });
-
-    // ─── Document ready ──────────────────────────────────────────────────────────
 
     $(document).ready(function () {
         var savedView = localStorage.getItem('documentViewPreference');
@@ -734,8 +720,6 @@
             });
         });
 
-        // ─── Search ───────────────────────────────────────────────────────────────
-
         var searchInput    = $('#folderSearch');
         var clearBtn       = $('#clearSearch');
         var noResults      = $('#noResults');
@@ -781,8 +765,6 @@
         searchInput.on('keydown', function (e) { if (e.key === 'Escape') { $(this).val('').trigger('input'); } });
 
     });
-
-    // ─── Share modal ─────────────────────────────────────────────────────────────
 
     (function () {
         var docTree    = window._shareDocTree  || [];
