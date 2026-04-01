@@ -640,9 +640,9 @@
     
                 <div style="overflow-y:scroll;flex-grow:1;min-height:0;">
                     <ul class="list-group list-group-flush">
-                        @forelse ($change_requests->where("status", "!=","Approved") as $change_request)
+                        @forelse ($change_requests as $change_request)
                         <li class="list-group-item px-2 py-2 priv-item pub-item" 
-                            style="border-left: 4px solid #e0f0e3; border-radius: 6px; margin-bottom: 4px; cursor: {{ $pubUrl ? 'pointer' : 'default' }};" 
+                            style="border-left: 4px solid #e0f0e3; border-radius: 6px; margin-bottom: 4px; cursor: {{ isset($pubUrl) ? 'pointer' : 'default' }};" 
                             data-bs-toggle="modal" data-bs-target="#viewApprovers{{ $change_request->id }}">
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-shrink-0 pt-1">

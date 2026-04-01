@@ -1051,6 +1051,7 @@ class RequestController extends Controller
 
             $changeRequestApprover = RequestApprover::where('change_request_id', $id)->where('user_id', auth()->user()->id)->first();
             $changeRequestApprover->status = $request->action;
+            $changeRequestApprover->remarks = $request->remarks;
             $changeRequestApprover->save();
 
             $requestApprover = RequestApprover::where('change_request_id',$changeRequestApprover->change_request_id)
@@ -1118,6 +1119,7 @@ class RequestController extends Controller
                 {
                     $requestApprover->start_date = date('Y-m-d H:i:s');
                     $requestApprover->status = "Pending";
+                    $requestApprover->date_approved = date("Y-m-d H:i:s");
                     $requestApprover->save();
 
                     if ($request->hasFile('file'))
@@ -1389,6 +1391,8 @@ class RequestController extends Controller
 
             $approver = RequestApprover::where("change_request_id", $request->id)->where("status", "Pending")->where('user_id', auth()->id())->first();
             $approver->status = "Approved";
+            $approver->date_approved = date("Y-m-d H:i:s");
+            $approver->remarks = $request->remarks;
             $approver->save();
 
             $next_approvers = RequestApprover::where("change_request_id", $request->id)->where("status", "Waiting")->orderBy("id","asc")->get();
@@ -1396,6 +1400,7 @@ class RequestController extends Controller
                 foreach($next_approvers as $key => $approver) {
                     if ($key == 0) {
                         $approver->status = "Pending";
+                        $approver->start_date = date("Y-m-d H:i:s");
                     }
                     else {
                         $approver->status = "Waiting";

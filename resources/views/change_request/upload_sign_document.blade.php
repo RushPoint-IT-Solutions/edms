@@ -11,10 +11,15 @@
                 <input type="hidden" name="id" value="{{ $change_request->id }}">
 
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-12">
                             <label for="">Attachments</label>
                             <input type="file" name="sign_document" class="form-control">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="">Remarks</label>
+                            <textarea name="remarks" class="form-control" cols="30" rows="10"></textarea>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>

@@ -180,6 +180,8 @@
           <i class="bi bi-cursor"></i> Place Signature
         </button> --}}
 
+        <textarea name="remarks" class="form-control mb-3" cols="30" placeholder="Enter remarks"></textarea>
+
         <button id="savePdf" class="btn btn-primary w-100">
           <i class="bi bi-file-earmark-pdf"></i> Approved PDF
         </button>
@@ -748,6 +750,7 @@
             const formData = new FormData()
             formData.append("old_status", "Pending")
             formData.append("action", "Approved")
+            formData.append("remarks", $("[name='remarks']").val())
             formData.append("file", new Blob([signedPdf],{type:"application/pdf"}), filename)
 
             $.ajax({

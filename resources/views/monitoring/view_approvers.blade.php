@@ -15,7 +15,9 @@
                     }
                     // dd($page_count);
                 @endphp 
-                <p><b>Number of pages:</b> {{$page_count}}</p>
+                <p><b>Total pages of documents:</b> {{$page_count}}</p>
+                <p><b>Office:</b> {{optional($change_request->department)->name}}</p>
+                <p><b>Number of supporting documents:</b> {{count($change_request->supporting_documents)}}</p>
                 <div class="card" style="border: 1px solid #842029;">
                     <div class="card-header" style="background-color: #842029;">
                         <h6 class="card-title" style="color:white;">Description</h6>
@@ -32,6 +34,7 @@
                             <th>Department</th>
                             <th>Start Date</th>
                             <th>Transaction Date</th>
+                            <th>Remarks</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -49,6 +52,7 @@
                                         {{date("M d Y h:i A", strtotime($approver->updated_at))}}
                                     @endif
                                 </td>
+                                <td>{!! nl2br(e($approver->remarks)) !!}</td>
                                 <td>
                                     @if($approver->status == "Pending")
                                         <span class="badge bg-warning">{{$approver->status}}</span>
