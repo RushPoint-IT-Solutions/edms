@@ -158,7 +158,8 @@ $(document).ready(function () {
                     displayError("ApproverForm", res.errors)
                 }
                 else {
-
+                    swal("Success", res.message, res.status)
+                    table.ajax.reload()
                 }
             },
             complete: function() {

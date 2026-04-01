@@ -107,7 +107,7 @@ class ApproverStampController extends Controller
                 $approver_stamp->user_id = auth()->id();
                 $approver_stamp->save();
 
-                return response()->json(['status' => 'success', 'message' => 'Successfully Updated']);
+                return response()->json(['status' => 'success', 'message' => 'Successfully Updated'], 200);
             }
             else
             {
@@ -123,7 +123,7 @@ class ApproverStampController extends Controller
                 $approver_stamp->user_id = auth()->id();
                 $approver_stamp->save();
 
-                return response()->json(['status' => 'success', 'message' => 'Successfully Saved']);
+                return response()->json(['status' => 'success', 'message' => 'Successfully Saved'], 200);
             }
         } catch (\Exception $e) {
             Log::error("Error in upload stamp " . $e->getMessage());
