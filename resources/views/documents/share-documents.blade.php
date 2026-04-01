@@ -54,7 +54,7 @@
                             <select name="folder_id" class="cat form-control" id="shareFolderSelect">
                                 <option value="">— Select a folder —</option>
 
-                                @if(isset($folder_data) && $folder_data)
+                                @if(isset($folder_data) && $folder_data && isset($folder_data->user_id) && $folder_data->user_id == auth()->id())
                                     <option value="{{ $folder_data->id }}">
                                         {{ $folder_data->name }} ({{ $folder_data->document->count() }} file{{ $folder_data->document->count() !== 1 ? 's' : '' }})
                                     </option>
@@ -62,18 +62,18 @@
                                         <option value="{{ $child->id }}">
                                             &nbsp;&nbsp;&nbsp;↳ {{ $child->name }} ({{ $child->document->count() }} file{{ $child->document->count() !== 1 ? 's' : '' }})
                                         </option>
-                                        @foreach ($child->childrenFolder as $grandchild)
+                                        @foreach ($child->childrenFolder->where('user_id', auth()->id()) as $grandchild)
                                             <option value="{{ $grandchild->id }}">
                                                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ {{ $grandchild->name }} ({{ $grandchild->document->count() }} file{{ $grandchild->document->count() !== 1 ? 's' : '' }})
                                             </option>
                                         @endforeach
                                     @endforeach
                                 @else
-                                    @foreach ($document_folders->where('parent_id', null) as $folder)
+                                    @foreach ($document_folders->where('parent_id', null)->where('user_id', auth()->id()) as $folder)
                                         <option value="{{ $folder->id }}">
                                             {{ $folder->name }} ({{ $folder->document->count() }} file{{ $folder->document->count() !== 1 ? 's' : '' }})
                                         </option>
-                                        @foreach ($folder->childrenFolder as $child)
+                                        @foreach ($folder->childrenFolder->where('user_id', auth()->id()) as $child)
                                             <option value="{{ $child->id }}">
                                                 &nbsp;&nbsp;&nbsp;↳ {{ $child->name }} ({{ $child->document->count() }} file{{ $child->document->count() !== 1 ? 's' : '' }})
                                             </option>

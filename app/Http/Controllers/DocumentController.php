@@ -53,11 +53,8 @@ class DocumentController extends Controller
         }
     
         $document_folders = DocumentFolder::with('document', 'childrenFolder')
-            ->when(auth()->user()->role != 'Administrator', function ($q) {
-                $q->where('user_id', auth()->user()->id);
-            })
+            ->where('user_id', auth()->user()->id)
             ->get();
-    
         $users = User::whereNull('status')->get();
     
         $documents = Document::with('change_requests', 'attachments', 'share_document')
