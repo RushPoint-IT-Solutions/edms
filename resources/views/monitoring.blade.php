@@ -876,7 +876,7 @@
                         })
                         .then(r => r.json())
                         .then(data => {
-                            if (data.success) {
+                            if (data.status == "success") {
                                 signModal.hide();
                                 window.location.href = "{{ route('documents.signature', '') }}/" + changeRequestId;
                             } else {

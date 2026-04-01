@@ -328,7 +328,7 @@ document.getElementById('signConfirmBtn').addEventListener('click', function () 
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) {
+        if (data.status == "success") {
             window.location.href = data.redirect;
         } else {
             document.getElementById('signError').textContent = data.message ?? 'Incorrect password. Please try again.';
