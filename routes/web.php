@@ -244,7 +244,13 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/for-request-access', 'HomeController@forRequestAccess')->name('for-request-access');
         Route::get('/request_access/data', 'HomeController@getRequestAccessData')->name('request_access.data');
 
-        Route::get('/monitoring', 'MonitoringController@index')->name('monitoring');
+        Route::prefix('monitoring')->group(function() {
+            Route::get('/', 'MonitoringController@index')->name('monitoring');
+            Route::get('/pending',  'MonitoringController@getPendingCards')   ->name('monitoring.pending');
+            Route::get('/private',  'MonitoringController@getPrivateDocuments')->name('monitoring.private');
+            Route::get('/public',   'MonitoringController@getPublicDocuments') ->name('monitoring.public');
+            Route::get('/tracking', 'MonitoringController@getChangeRequests')  ->name('monitoring.tracking');
+        });
     
         Route::get('/request', 'RequestController@index')->name('requests');
         Route::post('change-request-edit/{id}','RequestController@editRequest')->name('change-requests');
