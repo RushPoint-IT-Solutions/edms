@@ -182,7 +182,7 @@
                     <span class="flex-grow-1">Comments</span>
                 </div>
                 <div class="card-body">
-                    <div data-simplebar style="max-height: 400px;" class="mb-3">
+                    {{-- <div data-simplebar style="max-height: 400px;" class="mb-3">
                         @if(count($change_request->comments) > 0)
                             @foreach ($change_request->comments as $comment)
                             <div class="comment-item">
@@ -201,6 +201,9 @@
                         @else
                         <p class="text-muted text-center py-4" style="font-style: italic;">No comments yet...</p>
                         @endif
+                    </div> --}}
+                    <div data-simplebar style="max-height: 400px; overflow-y:auto;" class="mb-3" id="CommentContainer">
+                        
                     </div>
 
                     @php
@@ -208,7 +211,7 @@
                     @endphp
 
                     @if(count($if_return) > 0 && (auth()->user()->id == $change_request->user_id))
-                        <form method="POST" action="{{ url('change-request/comments') }}" class="mb-3" onsubmit="show()">
+                        {{-- <form method="POST" action="{{ url('change-request/comments') }}" class="mb-3" onsubmit="show()">
                             @csrf
                             <input type="hidden" name="change_request_id" value="{{ $change_request->id }}">
                             
@@ -222,7 +225,21 @@
                             <button type="submit" class="btn btn-primary w-100 mt-3">
                                 <i class="ri-send-plane-fill me-1"></i> Post Comment
                             </button>
+                        </form> --}}
+                        
+                        <form method="POST" id="CommentForm" class="mb-3">
+                            @csrf
+                            <input type="hidden" name="change_request_id" value="{{ $change_request->id }}">
+                            
+                            <label class="form-label small fw-semibold">Add a Comment</label>
+                            <textarea name="comment" class="form-control" id="summernote" rows="3" placeholder="Write your comment..."></textarea>
+                            <div class="invalid-feedback"></div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mt-3" id="CommentBtn">
+                                <i class="ri-send-plane-fill me-1"></i> Post Comment
+                            </button>
                         </form>
+
                         <form action="{{ url('change-request/change-request-action/'.$change_request->id) }}" method="POST">
                             @csrf
                             <input type="hidden" name="action" value="Submit">
@@ -323,12 +340,72 @@
 @section('js')
 <script src="{{ asset('assets/js/pages/form-editor.init.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.js"></script>
+<script src="{{ asset('js/ajaxRequest.js') }}"></script>
 <script>
+    function getComments() {
+        ajaxRequest({
+            type:"GET",
+            url: "{{ url('change-request/get-comments') }}",
+            data: {
+                change_request_id: "{{ $change_request->id }}"
+            },
+            success: function(response) {
+                var commentList = ''
+                response.forEach(comment => {
+                    commentList += `
+                        <div class="comment-item">
+                            <div class="d-flex align-items-start gap-2">
+                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle" style="width: 32px; height: 32px;">
+                                <div class="flex-grow-1">
+                                    <div class="comment-author">${comment.user.name}</div>
+                                    <div class="comment-time">${comment.created_at}</div>
+                                    <div class="mt-2 text-muted">${comment.user_comment}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                })
+                
+                $("#CommentContainer").html(commentList)
+            }
+        })
+    }
+
     $(document).ready(function() {
+        getComments()
+        
         $('#summernote').summernote({
             height: 200,
             placeholder: "Write a comment..."
         });
+
+        $("#CommentForm").on("submit", function(e) {
+            e.preventDefault()
+
+            if ($('#summernote').summernote('isEmpty')) {
+                swal("Error", "Comment cannot be empty", "error");
+                return;
+            }
+
+            var form = $(this).serializeArray()
+
+            ajaxRequest({
+                type:"POST",
+                url:"{{ url('change-request/comments') }}",
+                data: form,
+                beforeSend: function() {
+                    $("#CommentBtn").prop("disabled", true).text("Commenting...")
+                },
+                success: function(response) {
+                    swal("Success", response.message, response.status)
+                    $('#summernote').summernote('reset'); // clear editor
+                }, 
+                complete: function() {
+                    $("#CommentBtn").prop("disabled", false).text("Comment")
+                    getComments()
+                }
+            })
+        })
     });
 </script>
 @endsection

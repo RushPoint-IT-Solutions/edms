@@ -1045,6 +1045,12 @@ class RequestController extends Controller
                 $changeRequestApprover->status = "Pending";
                 $changeRequestApprover->save();
 
+                $changeRequest = ChangeRequest::with("requestTypeList")->findOrfail($id);
+                $changeRequest->status = "Pending";
+                $changeRequest->save();
+
+                DB::commit();
+
                 Alert::success('Successfully Submitted')->persistent('Dismiss');
                 return redirect('/change-requests');
             }
@@ -1157,7 +1163,7 @@ class RequestController extends Controller
             elseif($request->action == "Returned")
             {
                 $changeRequest->status = "Returned";
-                $changeRequest->level = 1;
+                // $changeRequest->level = 1;
                 $changeRequest->save(); 
 
                 $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
@@ -1173,14 +1179,14 @@ class RequestController extends Controller
                 $history->user_id = auth()->user()->id;
                 $history->save();
 
-                $user = User::where('id',$changeRequest->user_id)->first();
-                Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
+                // $user = User::where('id',$changeRequest->user_id)->first();
+                // Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
                 DB::commit();
 
                 Alert::success('Successfully Returned')->persistent('Dismiss');
                 return redirect('/for-approval');
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error("There is an error in action of change request: ". $e->getMessage());
             

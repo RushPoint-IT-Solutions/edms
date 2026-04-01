@@ -1,5 +1,5 @@
 <div class="modal" id="return{{ $change_request->id }}">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Are you sure you want to return?</h5>
@@ -15,9 +15,9 @@
                 <input type="hidden" name="old_status" value="{{ $status->status }}">
                 
                 <div class="modal-body">
-                    <div class="row">
-                        Remarks :
+                    <div class="row g-3">
                         <div class="col-md-12">
+                            <label for="" class="form-label">Remarks</label>
                             <textarea name="remarks" class="form-control" cols="30" rows="10" placeholder="Write your remarks"></textarea>
                         </div>
                     </div>
