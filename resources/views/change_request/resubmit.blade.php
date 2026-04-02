@@ -74,7 +74,6 @@
         border-radius: 4px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
     #pdf-container {
         max-width: 100%;
         margin: 0 auto;
@@ -87,19 +86,16 @@
         color: #adb5bd;
         font-size: 16px;
     }
-
     #pdf-container {
         position: relative;
         display: inline-block;
         width: 100%;
     }
-
     canvas.pdf-page {
         display: block;
         margin: 10px auto;
         box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
     }
-
     .signature-box {
         position: absolute;
         border: 2px dashed #0d6efd;
@@ -112,13 +108,11 @@
         align-items: center;
         justify-content: center;
     }
-
     .signature-box .box-number {
         font-size: 24px;
         color: #0d6efd;
         font-weight: bold;
     }
-
     .remove-btn {
         position: absolute;
         top: -10px;
@@ -147,6 +141,20 @@
             flex: 0 0 55%;
         }
     }
+    /* Returned banner */
+    .returned-banner {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-left: 4px solid #fd7e14;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+    }
+    .returned-banner .remarks-text {
+        font-size: 0.875rem;
+        color: #664d03;
+        margin-bottom: 0;
+    }
 </style>
 @endsection
 
@@ -154,14 +162,29 @@
 <form method="POST" action="{{ url('change-request/store') }}" enctype="multipart/form-data" onsubmit="return prepareSubmit(event)">
     @csrf
 
-    @if($change_request)
-        <input type="hidden" name="id" value="{{ $change_request->id }}">
-    @endif
-
+    <input type="hidden" name="id" value="{{ $change_request->id }}">
     <input type="hidden" name="signature_positions" id="signature-positions-input">
 
     <div class="row">
         <div class="col-lg-5 form-column">
+
+            @php
+                $returnedApprover = $change_request->approvers->where('status', 'Returned')->sortByDesc('level')->first();
+            @endphp
+            @if($returnedApprover && $returnedApprover->remarks)
+            <div class="returned-banner">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="ri-arrow-go-back-fill text-warning" style="font-size:1.1rem;"></i>
+                    <strong style="color:#664d03;">Returned by {{ $returnedApprover->user->name ?? 'Approver' }}</strong>
+                    @if($returnedApprover->date_approved)
+                        <span class="text-muted" style="font-size:0.78rem;">
+                            · {{ \Carbon\Carbon::parse($returnedApprover->date_approved)->format('M d, Y h:i A') }}
+                        </span>
+                    @endif
+                </div>
+                <p class="remarks-text"><i class="ri-chat-quote-line me-1"></i>{{ $returnedApprover->remarks }}</p>
+            </div>
+            @endif
 
             <div class="card">
                 @if ($errors->any())
@@ -174,11 +197,17 @@
                     </div>
                 @endif
 
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-edit-2-line me-2 text-warning"></i>Resubmit Document
+                    </h5>
+                </div>
+
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label" for="document-title-input">Document Title <span class="text-danger">*</span></label>
                         <input type="text" name="title" class="form-control" id="document-title-input"
-                            value="{{ old('title', $change_request->title ?? '') }}"
+                            value="{{ old('title', $change_request->title) }}"
                             placeholder="Enter document title" required>
                     </div>
 
@@ -187,7 +216,8 @@
                         <select name="type[]" class="form-select cat" data-choices data-choices-search-false id="choices-category-input" multiple required>
                             <option value=""></option>
                             @foreach ($document_types as $type)
-                                <option value="{{ $type->id }}" @if(old('type', $change_request->type ?? '') == $type->id) selected @endif>
+                                <option value="{{ $type->id }}"
+                                    @if(in_array($type->id, old('type', $selectedTypes))) selected @endif>
                                     {{ $type->name }}
                                 </option>
                             @endforeach
@@ -197,7 +227,7 @@
                     <div class="mb-3">
                         <label class="form-label">Document Description <span class="text-danger">*</span></label>
                         <textarea name="description" class="form-control" cols="30" rows="5"
-                            placeholder="Enter document description" required>{{ old('description', $change_request->description ?? '') }}</textarea>
+                            placeholder="Enter document description" required>{{ old('description', $change_request->description) }}</textarea>
                         <p class="mt-1 text-end"><small><span id="countPerWord">0</span>/1000</small></p>
                     </div>
 
@@ -207,8 +237,8 @@
                                 <label for="choices-category-input" class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category" class="form-select" data-choices data-choices-search-false id="choices-category-input" required>
                                     <option value="">-- Select Category --</option>
-                                    <option value="Private" @if(old('category', $change_request->category ?? '') == 'Private') selected @endif>Private</option>
-                                    <option value="Public"  @if(old('category', $change_request->category ?? '') == 'Public')  selected @endif>Public</option>
+                                    <option value="Private" @if(old('category', $change_request->category) == 'Private') selected @endif>Private</option>
+                                    <option value="Public"  @if(old('category', $change_request->category) == 'Public')  selected @endif>Public</option>
                                 </select>
                             </div>
                         </div>
@@ -216,9 +246,9 @@
                             <div class="mb-3">
                                 <label for="choices-status-input" class="form-label">Status <span class="text-danger">*</span></label>
                                 <select name="status" class="form-select" data-choices data-choices-search-false id="choices-status-input" required>
-                                    <option value="Draft"        @if(old('status', $change_request->status ?? '') == 'Draft')        selected @endif>Draft</option>
-                                    <option value="For Approval" @if(old('status', $change_request->status ?? '') == 'For Approval') selected @endif>For Approval</option>
-                                    <option value="Approved"     @if(old('status', $change_request->status ?? '') == 'Approved')     selected @endif>Approved</option>
+                                    <option value="Draft"        @if(old('status', $change_request->status) == 'Draft')        selected @endif>Draft</option>
+                                    <option value="For Approval" @if(old('status', $change_request->status) == 'For Approval' || $change_request->status == 'Returned') selected @endif>For Approval</option>
+                                    <option value="Approved"     @if(old('status', $change_request->status) == 'Approved')     selected @endif>Approved</option>
                                 </select>
                             </div>
                         </div>
@@ -228,7 +258,7 @@
                                 Due Date <span class="text-muted" style="font-size:0.8rem;">(optional)</span>
                             </label>
                             <input type="date" name="due_date" id="due-date-input" class="form-control"
-                                value="{{ old('due_date', optional($change_request)->due_date ? \Carbon\Carbon::parse($change_request->due_date)->format('Y-m-d') : '') }}"
+                                value="{{ old('due_date', $change_request->due_date ? \Carbon\Carbon::parse($change_request->due_date)->format('Y-m-d') : '') }}"
                                 min="{{ date('Y-m-d') }}">
                             <div class="form-text text-muted">
                                 <i class="ri-information-line"></i>
@@ -244,7 +274,7 @@
                         <select name="department_id[]" class="form-select cat" id="department-select" multiple>
                             @foreach($departments as $department)
                                 <option value="{{ $department->id }}"
-                                    @if(in_array($department->id, old('department_id', $change_request ? $change_request->departments->pluck('id')->toArray() : []))) selected @endif>
+                                    @if(in_array($department->id, old('department_id', $change_request->departments->pluck('id')->toArray()))) selected @endif>
                                     {{ $department->name }}
                                 </option>
                             @endforeach
@@ -253,8 +283,8 @@
 
                     <div class="mb-3">
                         <label for="notes" class="form-label">Notes</label>
-                        <textarea name="notes" id="notes" class="form-control" cols="30" rows="10"
-                            placeholder="Enter remarks of document"></textarea>
+                        <textarea name="notes" id="notes" class="form-control" cols="30" rows="5"
+                            placeholder="Enter remarks of document">{{ old('notes', $change_request->remarks) }}</textarea>
                     </div>
                 </div>
             </div>
@@ -264,17 +294,42 @@
                     <h5 class="card-title mb-0">Attached Files <span class="text-danger">*</span></h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-3">Add PDF file to preview on the right</p>
+                    <p class="text-muted mb-3">Replace or keep the existing PDF. Leave blank to keep current file.</p>
 
                     <div class="mb-3">
                         <label class="form-label">Main Document (PDF)</label>
-                        <input name="file" type="file" class="form-control" id="pdf-file-input"
-                            accept=".pdf" @if(!$change_request) required @endif>
+                        @if($change_request->file)
+                        <div class="alert alert-info py-2 px-3 mb-2 d-flex align-items-center gap-2" style="font-size:0.85rem;">
+                            <i class="ri-file-pdf-line text-danger"></i>
+                            <span>Current file: <strong>{{ basename($change_request->file) }}</strong></span>
+                            <a href="{{ url($change_request->file) }}" target="_blank" class="ms-auto btn btn-outline-primary btn-xs py-0 px-2" style="font-size:11px;">
+                                <i class="ri-eye-line"></i> View
+                            </a>
+                        </div>
+                        @endif
+                        <input name="file" type="file" class="form-control" id="pdf-file-input" accept=".pdf">
+                        <div class="form-text text-muted">Upload a new PDF to replace the existing file, or leave blank to keep it.</div>
                     </div>
 
                     <div>
                         <label class="form-label">Supporting Documents</label>
-                        <p class="text-muted small mb-2">You can select multiple files (hold Ctrl/Cmd to select multiple)</p>
+                        @if($change_request->supporting_documents->count())
+                        <div class="mb-2">
+                            <small class="text-muted">Existing supporting documents:</small>
+                            <ul class="list-unstyled mb-2" style="font-size:0.82rem;">
+                                @foreach($change_request->supporting_documents as $sd)
+                                <li class="d-flex align-items-center gap-2 py-1 border-bottom">
+                                    <i class="ri-file-line text-secondary"></i>
+                                    <span>{{ basename($sd->file) }}</span>
+                                    <a href="{{ url($sd->file) }}" target="_blank" class="ms-auto text-primary" style="font-size:11px;">
+                                        <i class="ri-eye-line"></i> View
+                                    </a>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+                        <p class="text-muted small mb-2">You can select multiple files (hold Ctrl/Cmd to select multiple). Uploading new files will replace the existing supporting documents.</p>
                         <input type="file" name="supporting_documents[]" class="form-control"
                             id="supporting-docs-input"
                             accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" multiple>
@@ -289,19 +344,39 @@
                 </div>
                 <div class="card-body">
                     <div id="approvers-wrapper">
+                        @foreach($change_request->approvers->sortBy('level') as $key => $approver)
+                        <div class="approver-row mb-2 d-flex align-items-center gap-2" data-old-level="{{ $loop->iteration }}">
+                            <span class="approver-level badge bg-primary">{{ $loop->iteration }}</span>
+                            <select name="approvers[]" class="form-select approver-select chosen-select-{{ $loop->iteration }} approver-select-wrap">
+                                <option value="">-- Select Signatories --</option>
+                                @foreach($approvers as $user)
+                                    <option value="{{ $user->id }}" @if($user->id == $approver->user_id) selected @endif>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <select name="approver_roles[]" class="form-select approver-role-select">
+                                <option value="For Signature" @if($approver->request_type == 'For Signature') selected @endif>For Signature</option>
+                                <option value="For Receiving" @if($approver->request_type == 'For Receiving') selected @endif>For Receiving</option>
+                            </select>
+                            <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="{{ $loop->iteration }}"
+                                @if($approver->request_type == 'For Receiving') style="display:none;" @endif>
+                                <i class="ri-add-circle-line"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm remove-approver">
+                                <i class="ri-delete-bin-2-line"></i>
+                            </button>
+                        </div>
+                        @endforeach
+
+                        @if($change_request->approvers->count() == 0)
                         <div class="approver-row mb-2 d-flex align-items-center gap-2" data-old-level="1">
                             <span class="approver-level badge bg-primary">1</span>
                             <select name="approvers[]" class="form-select approver-select chosen-select approver-select-wrap">
                                 <option value="">-- Select Signatories --</option>
-                                @if($change_request)
-                                    @foreach ($change_request->approvers as $approver)
-                                        <option value="{{ $approver->user_id }}" selected>{{ $approver->user->name }}</option>
-                                    @endforeach
-                                @else
-                                    @foreach($approvers as $user)
-                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                    @endforeach
-                                @endif
+                                @foreach($approvers as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                @endforeach
                             </select>
                             <select name="approver_roles[]" class="form-select approver-role-select">
                                 <option value="For Signature">For Signature</option>
@@ -314,6 +389,7 @@
                                 <i class="ri-delete-bin-2-line"></i>
                             </button>
                         </div>
+                        @endif
                     </div>
                     <button type="button" id="add-approver" class="btn btn-outline-primary btn-sm mt-2">
                         <i class="ri-add-line"></i> Add Approver
@@ -322,8 +398,9 @@
             </div>
 
             <div class="text-end mb-4">
+                <a href="{{ url('/change-requests') }}" class="btn btn-outline-secondary w-sm me-1">Cancel</a>
                 <button type="submit" class="btn btn-secondary w-sm" name="save_as_draft">Save as Draft</button>
-                <button type="submit" class="btn btn-success w-sm">Upload</button>
+                <button type="submit" class="btn btn-success w-sm">Resubmit</button>
             </div>
         </div>
 
@@ -341,26 +418,25 @@
                 </div>
                 <div class="pdf-preview-content">
                     <div class="tab-content-item active" id="main-doc-content">
-                        @if($change_request)
-                            <div id="pdf-container">
-                                <iframe src="{{ url($change_request->file) }}" type="application/pdf"></iframe>
-                            </div>
-                        @else
-                            <div class="no-preview" id="main-doc-preview">
-                                <div>
-                                    <i class="ri-file-pdf-line" style="font-size:48px;"></i>
-                                    <p class="mt-2">Upload a PDF to preview</p>
-                                </div>
-                            </div>
-                            <div id="pdf-container" style="display:none;"></div>
-                        @endif
+                        <div id="pdf-container">
+                            {{-- Existing file shown by default, replaced when user picks new file --}}
+                        </div>
                     </div>
 
                     <div class="tab-content-item" id="supporting-docs-content">
-                        @if($change_request)
-                            @foreach ($change_request->supporting_documents as $supporting_docs)
-                                <iframe src="{{ url($supporting_docs->file) }}" type="application/pdf"></iframe>
-                            @endforeach
+                        @if($change_request->supporting_documents->count())
+                            <div id="existing-supporting-docs">
+                                @foreach ($change_request->supporting_documents as $sd)
+                                    @if(pathinfo($sd->file, PATHINFO_EXTENSION) === 'pdf')
+                                    <div class="supporting-doc-viewer mb-3" style="height:600px;">
+                                        <div class="mb-2 px-3 py-2 bg-light rounded">
+                                            <small class="text-muted"><i class="ri-file-pdf-line me-1"></i>{{ basename($sd->file) }}</small>
+                                        </div>
+                                        <iframe src="{{ url($sd->file) }}" type="application/pdf"></iframe>
+                                    </div>
+                                    @endif
+                                @endforeach
+                            </div>
                         @else
                             <div class="no-preview" id="supporting-docs-empty">
                                 <div>
@@ -389,11 +465,13 @@ let pdfDoc = null;
 let scale = 1.0;
 let placingLevel = null;
 let approverBoxes = {};
-let approverCount = 1;
+let approverCount = {{ $change_request->approvers->count() ?: 1 }};
 
 $("[name='description']").on("input", function () {
     countToWords($(this).val());
 });
+
+countToWords($("[name='description']").val());
 
 function countToWords(value) {
     const trimVal = value.trim();
@@ -406,18 +484,12 @@ function countToWords(value) {
 function prepareSubmit(event) {
     event.preventDefault();
 
-    $('select[name="approvers[]"]').trigger('chosen:updated');
-
     const selectedStatus = document.querySelector('select[name="status"]').value;
     const isApproved = selectedStatus === 'Approved';
 
     const approverSelects = document.querySelectorAll('[name="approvers[]"]');
     let hasApprover = false;
     approverSelects.forEach(s => { if (s.value) hasApprover = true; });
-
-    $('.chosen-select, [class^="chosen-select-"]').each(function() {
-        $(this).trigger('chosen:updated');
-    });
 
     if (isApproved) {
         if (!hasApprover) {
@@ -447,20 +519,10 @@ function prepareSubmit(event) {
     const signatureData = [];
     const pdfContainer  = document.getElementById('pdf-container');
 
-    document.querySelectorAll('[name="approvers[]"]').forEach(sel => {
-        $(sel).trigger('chosen:updated');
-    });
-
     Object.keys(approverBoxes).forEach(level => {
         approverBoxes[level].forEach(box => {
-            const btn = document.querySelector(`.place-signature-btn[data-level="${level}"]`);
-            if (!btn) return;
-            const approverRow = btn.closest('.approver-row');
-            const selectEl = approverRow.querySelector('[name="approvers[]"]');
-            
-            const userId = selectEl.value || $(selectEl).val();
-            
-            if (!userId) return;
+            const approverRow = document.querySelector(`[data-level="${level}"]`).closest('.approver-row');
+            const userId = approverRow.querySelector('[name="approvers[]"]').value;
             const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
             let pageNumber = 1, cumulativeHeight = 0;
             const boxTop = parseFloat(box.style.top);
@@ -497,13 +559,14 @@ function prepareSubmit(event) {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    const pdfInput = document.getElementById('pdf-file-input');
+    const pdfInput            = document.getElementById('pdf-file-input');
     const supportingDocsInput = document.getElementById('supporting-docs-input');
-    const mainDocPreview = document.getElementById('main-doc-preview');
     const supportingDocsGrid  = document.getElementById('supporting-docs-list');
     const supportingDocsEmpty = document.getElementById('supporting-docs-empty');
-    const pdfContainer = document.getElementById('pdf-container');
-    const selectedFilesList = document.getElementById('selected-files-list');
+    const existingSupporting  = document.getElementById('existing-supporting-docs');
+    const pdfContainer        = document.getElementById('pdf-container');
+    const selectedFilesList   = document.getElementById('selected-files-list');
+    const existingSignaturePositions = @json($change_request->signaturePositions ?? []);
     let supportingFiles = [];
 
     document.querySelectorAll('.preview-tab').forEach(tab => {
@@ -516,27 +579,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    @if($change_request->file)
+     loadPdf('{{ url($change_request->file) }}', true);
+    @endif
+
     pdfInput.addEventListener('change', async function (e) {
         const file = e.target.files[0];
         if (file && file.type === 'application/pdf') {
-            if (mainDocPreview) mainDocPreview.style.display = 'none';
             pdfContainer.style.display = 'block';
             await loadPdf(URL.createObjectURL(file));
-        } else {
-            if (mainDocPreview) { mainDocPreview.style.display = 'flex'; pdfContainer.style.display = 'none'; }
         }
     });
 
-    async function loadPdf(url) {
+    async function loadPdf(url, restorePositions = false) {
         try {
             pdfDoc = await pdfjsLib.getDocument(url).promise;
             pdfContainer.innerHTML = "";
             approverBoxes = {};
 
             const containerWidth = pdfContainer.offsetWidth;
-
             for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
                 await renderPage(pageNum, containerWidth);
+            }
+
+            if (restorePositions && existingSignaturePositions.length > 0) {
+                restoreSignatureBoxes();
             }
 
             pdfContainer.onclick = (e) => {
@@ -616,9 +683,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
             document.onmousemove = (mv) => {
                 el.style.left = (mv.clientX - rect.left  + pdfContainer.parentElement.scrollLeft - offsetX) + "px";
-                el.style.top = (mv.clientY - rect.top   + pdfContainer.parentElement.scrollTop  - offsetY) + "px";
+                el.style.top  = (mv.clientY - rect.top   + pdfContainer.parentElement.scrollTop  - offsetY) + "px";
             };
             document.onmouseup = () => { document.onmousemove = null; document.onmouseup = null; };
+        });
+    }
+
+    function restoreSignatureBoxes() {
+        const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
+
+        existingSignaturePositions.forEach(pos => {
+            let level = null;
+            document.querySelectorAll('.approver-row').forEach(row => {
+                const userSelect = row.querySelector('[name="approvers[]"]');
+                if (userSelect && String(userSelect.value) === String(pos.user_id)) {
+                    level = row.querySelector('.place-signature-btn').dataset.level;
+                }
+            });
+
+            if (!level) return;
+
+            let cumulativeTop = 0;
+            for (let i = 0; i < canvases.length; i++) {
+                if (i + 1 === pos.page_number) break;
+                cumulativeTop += canvases[i].height + 10;
+            }
+
+            const x = pos.x_position * scale;
+            const y = (pos.y_position * scale) + cumulativeTop;
+
+            const rect = pdfContainer.getBoundingClientRect();
+            const fakeEvent = {
+                clientX: rect.left + x + 90,
+                clientY: rect.top + y + 40,
+            };
+
+            placingLevel = level;
+            addSignatureBox(fakeEvent, level);
+            placingLevel = null;
         });
     }
 
@@ -632,12 +734,13 @@ document.addEventListener('DOMContentLoaded', function () {
         supportingDocsGrid.innerHTML = '';
 
         if (supportingFiles.length === 0) {
-            if (supportingDocsEmpty) supportingDocsEmpty.style.display = 'flex';
             supportingDocsGrid.style.display = 'none';
             selectedFilesList.innerHTML = '';
+            if (existingSupporting) existingSupporting.style.display = 'block';
             return;
         }
 
+        if (existingSupporting) existingSupporting.style.display = 'none';
         if (supportingDocsEmpty) supportingDocsEmpty.style.display = 'none';
         supportingDocsGrid.style.display = 'block';
 
@@ -704,9 +807,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     const wrapper = document.getElementById('approvers-wrapper');
-    const addBtn = document.getElementById('add-approver');
+    const addBtn  = document.getElementById('add-approver');
 
-    $('.chosen-select').chosen({ width: "100%", placeholder_text_single: "-- Select Approver --" });
+    wrapper.querySelectorAll('.approver-row').forEach((row, index) => {
+        const level = index + 1;
+        const selectEl = row.querySelector('.approver-select');
+        if (selectEl) {
+            $(selectEl).chosen({ width: "100%", placeholder_text_single: "-- Select Approver --" });
+        }
+        row.dataset.oldLevel = level;
+    });
 
     function updateLevels() {
         wrapper.querySelectorAll('.approver-row').forEach((row, index) => {
@@ -736,7 +846,7 @@ document.addEventListener('DOMContentLoaded', function () {
         newRow.dataset.oldLevel = level;
         newRow.innerHTML = `
             <span class="approver-level badge bg-primary">${level}</span>
-            <select name="approvers[]" class="form-select approver-select chosen-select-${approverCount} approver-select-wrap">
+            <select name="approvers[]" class="form-select approver-select chosen-select-new-${approverCount} approver-select-wrap">
                 <option value="">-- Select Approver --</option>
                 @foreach($approvers as $user)
                     <option value="{{ $user->id }}">{{ $user->name }}</option>
@@ -754,19 +864,20 @@ document.addEventListener('DOMContentLoaded', function () {
             </button>`;
         wrapper.appendChild(newRow);
 
-        $(`.chosen-select-${approverCount}`).chosen({ width: "100%", placeholder_text_single: "-- Select Approver --" });
+        $(`.chosen-select-new-${approverCount}`).chosen({ width: "100%", placeholder_text_single: "-- Select Approver --" });
         updateLevels();
     });
 
     wrapper.addEventListener('click', function (e) {
         if (e.target.closest('.remove-approver')) {
-            const row = e.target.closest('.approver-row');
+            const row   = e.target.closest('.approver-row');
             const level = row.querySelector('.place-signature-btn').dataset.level;
             if (approverBoxes[level]) {
                 approverBoxes[level].forEach(box => { if (box.parentElement) box.parentElement.removeChild(box); });
                 delete approverBoxes[level];
             }
-            $(row.querySelector('.approver-select')).chosen('destroy');
+            const sel = row.querySelector('.approver-select');
+            if (sel) $(sel).chosen('destroy');
             row.remove();
             updateLevels();
         }
@@ -787,8 +898,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    wrapper.querySelectorAll('.approver-row').forEach((row, index) => { row.dataset.oldLevel = index + 1; });
-
     const categorySelect  = document.querySelector('select[name="category"]');
     const departmentField = document.getElementById('department-field');
 
@@ -807,11 +916,14 @@ document.addEventListener('DOMContentLoaded', function () {
         $(this).val() === "For Receiving" ? btn.hide() : btn.show();
     });
 
-    $(".cat").chosen({ width: "100%" });
+    wrapper.querySelectorAll('.approver-row').forEach(row => {
+        const roleVal = row.querySelector('[name="approver_roles[]"]').value;
+        if (roleVal === 'For Receiving') {
+            row.querySelector('.place-signature-btn').style.display = 'none';
+        }
+    });
 
-    @if($change_request)
-    loadPdf('{{ url($change_request->file) }}');
-    @endif
+    $(".cat").chosen({ width: "100%" });
 });
 </script>
 @endsection

@@ -342,7 +342,7 @@ document.getElementById('signConfirmBtn').addEventListener('click', function () 
 });
 
 function openReturnModal(changeRequestId) {
-    document.getElementById('returnForm').action = '/change-request/change-request-action/' + changeRequestId;
+    document.getElementById('returnForm').action = '{{ url("change-request/change-request-action") }}/' + changeRequestId
     var modal = new bootstrap.Modal(document.getElementById('sharedReturnModal'));
     modal.show();
 }

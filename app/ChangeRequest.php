@@ -105,4 +105,8 @@ class ChangeRequest extends Model implements Auditable
     {
         return $this->belongsToMany(Department::class, 'change_request_departments', 'change_request_id', 'department_id');
     }
+    public function signaturePositions()
+    {
+        return $this->hasMany(DocumentSignaturePosition::class, 'change_request_id');
+    }
 }

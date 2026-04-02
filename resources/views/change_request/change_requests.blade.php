@@ -78,7 +78,7 @@
 </div>
 
 <div class="row g-3 mb-4 h-100">
-    <div class="col-xl-3 col-md-4">
+    <div class="col-xl-4 col-md-4">
         <div class="dashboard-card pending">
             <div class="icon-circle">
                 <i class="fa fa-clock-o"></i>
@@ -88,7 +88,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-4">
+    {{-- <div class="col-xl-3 col-md-4">
         <div class="dashboard-card declined">
             <div class="icon-circle">
                 <i class="fa fa-times-circle"></i>
@@ -96,9 +96,9 @@
             <h2 class="mb-0 font-weight-bold">{{ $declinedCount ?? 0 }}</h2>
             <p>Declined</p>
         </div>
-    </div>
+    </div> --}}
 
-    <div class="col-xl-3 col-md-4">
+    <div class="col-xl-4 col-md-4">
         <div class="dashboard-card approved">
             <div class="icon-circle">
                 <i class="fa fa-check-circle"></i>
@@ -108,7 +108,7 @@
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-4">
+    <div class="col-xl-4 col-md-4">
         <div class="dashboard-card returned">
             <div class="icon-circle">
                 <i class="fa fa-undo"></i>
@@ -140,7 +140,7 @@
                         <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:140px;">
                             <option value="">All Status</option>
                             <option value="For Approval">For Approval</option>
-                            <option value="Declined">Declined</option>
+                            {{-- <option value="Declined">Declined</option> --}}
                             <option value="Approved">Approved</option>
                             <option value="Draft">Draft</option>
                             <option value="Returned">Returned</option>
@@ -476,11 +476,11 @@ $(document).on('click', '.view-revision-status-btn', function () {
     $('#rsRequestedBy').text(reqBy);
 
     var statusMap = {
-        'Approved'   : 'bg-success',
+        'Approved' : 'bg-success',
         'For Approval': 'bg-primary',
-        'Returned'   : 'bg-warning text-dark',
-        'Declined'   : 'bg-danger',
-        'Draft'      : 'bg-secondary'
+        'Returned' : 'bg-warning text-dark',
+        // 'Declined'   : 'bg-danger',
+        'Draft' : 'bg-secondary'
     };
     $('#rsStatus').html('<span class="badge ' + (statusMap[status] || 'bg-secondary') + '">' + status + '</span>');
 
@@ -497,9 +497,9 @@ $(document).on('click', '.view-revision-status-btn', function () {
             case 'Pending':
                 icon='<i class="ri-time-line" style="font-size:1rem;color:#0d6efd;"></i>';
                 iconBg='#cfe2ff'; iconBorder='#0d6efd'; badgeClass='bg-primary'; badgeText='Pending'; break;
-            case 'Declined':
-                icon='<i class="ri-close-circle-fill text-danger" style="font-size:1rem;"></i>';
-                iconBg='#f8d7da'; iconBorder='#dc3545'; badgeClass='bg-danger'; badgeText='Declined'; break;
+            // case 'Declined':
+            //     icon='<i class="ri-close-circle-fill text-danger" style="font-size:1rem;"></i>';
+            //     iconBg='#f8d7da'; iconBorder='#dc3545'; badgeClass='bg-danger'; badgeText='Declined'; break;
             default:
                 icon='<i class="ri-checkbox-blank-circle-line text-muted" style="font-size:1rem;"></i>';
                 iconBg='#f8f9fa'; iconBorder='#adb5bd'; badgeClass='bg-secondary'; badgeText='Waiting';

@@ -41,14 +41,14 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <div id="table-length-control"></div>
+                        <div id="table-filter-control"></div>
                         <select id="statusFilter" class="form-select form-select-sm" style="width:auto;min-width:160px;">
                             <option value="">All Status</option>
                             <option value="0">For Approval</option>
                             <option value="1">Approved</option>
                             <option value="3">Declined</option>
                         </select>
-                        <div id="table-filter-control"></div>
+                        <div id="table-length-control"></div>
                     </div>
                     <div id="table-buttons-control"></div>
                 </div>
@@ -99,13 +99,13 @@ $(document).ready(function () {
             error: function (xhr) { console.error(xhr.status, xhr.responseText); }
         },
         columns: [
-            { data: 'action',       orderable: false, searchable: false },
+            { data: 'action', orderable: false, searchable: false },
             { data: 'requested_by', name: 'requestor.name' },
             { data: 'department',   orderable: false, searchable: false },
-            { data: 'title',        name: 'document.title' },
-            { data: 'date',         name: 'request_date' },
-            { data: 'reason',       name: 'reason' },
-            { data: 'status',       orderable: false, searchable: false },
+            { data: 'title', name: 'document.title' },
+            { data: 'date', name: 'request_date' },
+            { data: 'reason', name: 'reason' },
+            { data: 'status', orderable: false, searchable: false },
         ],
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],

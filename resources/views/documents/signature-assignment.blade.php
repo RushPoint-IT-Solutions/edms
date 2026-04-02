@@ -227,6 +227,7 @@
   let currentSignatureData = null;
   let currentSignatureType = 'text';
   let signaturePosition = []
+  let signedPdfBlob = null;
   
   const pdfUrl = '{{ url($change_request->file) }}';
   // const approveStampUrl = "{{asset('assets/images/approved.png')}}";
@@ -326,6 +327,7 @@
                 _token:"{{ csrf_token() }}"
             },
             success: async function(res) {
+                signaturePosition = [];
                 const signature = res
                 const text = document.getElementById("textSignatureInput").value.trim();
                 
@@ -349,7 +351,7 @@
                 const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
                 const font = await pdfLibDoc.embedFont(PDFLib.StandardFonts.Helvetica)
 
-                signature.forEach((element) => {
+                for (const element of signature) {
                     // const canvases = document.querySelectorAll(".pdf-page");
                     // let pageOffsetTop = 0;
                     let pageIndex = Number(element.page_number) - 1;
@@ -384,11 +386,11 @@
                     });
 
                     signaturePosition.push(element)
-                })
+                }
 
                 const signedPdf = await pdfLibDoc.save();
-                const blob = new Blob([signedPdf], { type: "application/pdf" });
-                const url = URL.createObjectURL(blob);
+                signedPdfBlob = new Blob([signedPdf], { type: "application/pdf" });
+                const url = URL.createObjectURL(signedPdfBlob);
                 document.getElementById('pdf-container').src = url
             }
         })
@@ -428,6 +430,7 @@
                 _token:"{{ csrf_token() }}"
             },
             success: async function(res) {
+                signaturePosition = [];
                 var signature = res
                 
                 const img = document.getElementById("approveStamp");
@@ -458,7 +461,7 @@
                 const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
                 const font = await pdfLibDoc.embedFont(PDFLib.StandardFonts.Helvetica)
 
-                signature.forEach(async (element) => {
+                for (const element of signature) {
                     // const canvases = document.querySelectorAll(".pdf-page");
                     // let pageOffsetTop = 0;
                     let pageIndex = Number(element.page_number) - 1;
@@ -493,11 +496,11 @@
                     });
 
                     signaturePosition.push(element)
-                })
+                }
 
                 const signedPdf = await pdfLibDoc.save();
-                const blob = new Blob([signedPdf], { type: "application/pdf" });
-                const url = URL.createObjectURL(blob);
+                signedPdfBlob = new Blob([signedPdf], { type: "application/pdf" });
+                const url = URL.createObjectURL(signedPdfBlob);
                 document.getElementById('pdf-container').src = url
             }
         })
@@ -542,6 +545,7 @@
                 // ctx.drawImage(img, (canvas.width - drawWidth) / 2, (canvas.height - drawHeight) / 2, drawWidth, drawHeight);
                 // const canvases = document.querySelectorAll(".pdf-page");
 
+                signaturePosition = [];
                 const signature = res 
 
                 const sigData = sigCanvas.toDataURL("image/png");
@@ -553,7 +557,7 @@
                 const pngImage = await pdfLibDoc.embedPng(currentSignatureData);
                 const font = await pdfLibDoc.embedFont(PDFLib.StandardFonts.Helvetica)
 
-                signature.forEach(element => {
+                for (const element of signature) {
                     
                     let pageIndex = Number(element.page_number) - 1;
                     let pageOffsetTop = 0;
@@ -590,12 +594,11 @@
                     });
 
                     signaturePosition.push(element)
-                })
+                }
 
                 const signedPdf = await pdfLibDoc.save();
-                const blob = new Blob([signedPdf], { type: "application/pdf" });
-                const url = URL.createObjectURL(blob);
-                
+                signedPdfBlob = new Blob([signedPdf], { type: "application/pdf" });
+                const url = URL.createObjectURL(signedPdfBlob);
                 document.getElementById('pdf-container').src = url
             }
         })
@@ -653,6 +656,15 @@
             // }
             // });
 
+            if (!signedPdfBlob) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'No Signature',
+                    text: 'Please generate a signature first.',
+                    confirmButtonColor: '#0d6efd'
+                });
+            }
+
             const response = await fetch(pdfUrl);
             const pdfBytes = await response.arrayBuffer();
             const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
@@ -665,7 +677,7 @@
             // let pageIndex = 0;
             // let pageOffsetTop = 0;
 
-            signaturePosition.forEach(element => {
+            for (const element of signaturePosition) {
                 const signaturePositionArray = element
                 const pageIndex = Number(signaturePositionArray.page_number) - 1
     
@@ -699,7 +711,7 @@
                     font: font,
                     color: PDFLib.rgb(0, 0, 0)
                 });
-            })
+            }
             
             // const boxTop = parseFloat(box.style.top);
             
@@ -734,6 +746,8 @@
             // });
 
             const signedPdf = await pdfLibDoc.save({useObjectStreams:false, compress:false});
+            signedPdfBlob = new Blob([signedPdf], { type: "application/pdf" });
+
             // const blob = new Blob([signedPdf], { type: "application/pdf" });
             // const url = URL.createObjectURL(blob);
             
@@ -749,7 +763,7 @@
             formData.append("old_status", "Pending")
             formData.append("action", "Approved")
             formData.append("remarks", $("[name='remarks']").val())
-            formData.append("file", new Blob([signedPdf],{type:"application/pdf"}), filename)
+            formData.append("file", signedPdfBlob, filename)
 
             $.ajax({
                 type:"POST",
