@@ -534,8 +534,8 @@ class RequestController extends Controller
             $approvers .= '</div>';
 
             $myApprover = $cr->approvers->firstWhere('user_id', auth()->user()->id);
-            $myStatus   = $myApprover ? $myApprover->status : null;
-            $isMyTurn   = $myStatus === 'Pending';
+            $myStatus = $myApprover ? $myApprover->status : null;
+            $isMyTurn = $myStatus === 'Pending';
 
             $disabledAttr  = $isMyTurn ? '' : 'disabled';
             $disabledClass = $isMyTurn ? '' : 'text-muted pe-none opacity-50';
@@ -552,7 +552,7 @@ class RequestController extends Controller
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>';
-                if ($myApprover->request_type == "For Signature") {
+                if ($myApprover && $myApprover->request_type == "For Signature") {
                     $action .= '
                         <li>
                             <a class="dropdown-item ' . $disabledClass . '" 
