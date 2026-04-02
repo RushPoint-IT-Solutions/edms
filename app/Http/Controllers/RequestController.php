@@ -1080,8 +1080,6 @@ class RequestController extends Controller
                 $changeRequest->status = "Pending";
                 $changeRequest->save();
 
-                DB::commit();
-
                 Alert::success('Successfully Submitted')->persistent('Dismiss');
                 return redirect('/change-requests');
             }
@@ -1141,16 +1139,6 @@ class RequestController extends Controller
                         $document_type_list->type = $requestTypeList->type;
                         $document_type_list->save();
                     }
-
-                    // $approvedRequestsNotif = User::where('id',$copyRequest->user_id)->first();
-                    // $approvedRequestsNotif->notify(new ApprovedRequest($copyRequest,"DICR-","Document Information Change Request","request"));
-
-                    // $approvers_all = RequestApprover::where('change_request_id',$copyRequestApprover->change_request_id)->orderBy('level','asc')->get();
-                    // foreach($approvers_all as $user_approver)
-                    // {
-                    //     $app = User::where('id',$user_approver->user_id)->first();
-                    //     $app->notify(new NewPolicy($copyRequest,"DICR-","Document Information Change Request","request"));
-                    // }
                 }
                 else
                 {
@@ -1179,11 +1167,9 @@ class RequestController extends Controller
                 $histories->user_id = auth()->user()->id;
                 $histories->save();
 
-                // $user = User::where('id',$changeRequest->user_id)->first();
-                // Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
-                
-                DB::commit();
-
+                $user = User::where('id',$changeRequest->user_id)->first();
+                Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
+            
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Successfully Approved'
@@ -1208,13 +1194,15 @@ class RequestController extends Controller
                 $history->user_id = auth()->user()->id;
                 $history->save();
 
-                // $user = User::where('id',$changeRequest->user_id)->first();
-                // Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
-                // DB::commit();
+                $user = User::where('id',$changeRequest->user_id)->first();
+                Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
 
                 Alert::success('Successfully Returned')->persistent('Dismiss');
                 return redirect('/for-approval');
             }
+
+            DB::commit();
+            
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error("There is an error in action of change request: ". $e->getMessage());
