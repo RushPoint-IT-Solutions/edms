@@ -379,15 +379,11 @@ $(document).ready(function () {
                 btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Changing...');
             },
             success: function(response) {
-                console.log(response);
-
                 if (response.status == "error") {
                     $('#changePasswordForm .form-control').removeClass('is-invalid is-valid');
                     $('#changePasswordForm .invalid-feedback').text('');
                     
                     $.each(response.errors, function (key, value) {
-                        console.log(value);
-                        
                         let input = $('[name="' + key + '"]');
                         input.addClass('is-invalid');
                         input.next('.invalid-feedback').text(value[0]);
@@ -395,14 +391,13 @@ $(document).ready(function () {
                 }
                 else {
                     swal("Success", response.message, response.status);
-                    form[0].reset();
-                    form.find('.cat').trigger('chosen:updated');
+                    $("#changePasswordForm").trigger("reset")
                     table.ajax.reload(null, false);
                     $("#change_pass").modal("hide")
                 }
             },
             complete: function() {
-                btn.prop('disabled', false).html('Change');
+                btn.prop('disabled', false).text('Change');
             }
         })
     })
