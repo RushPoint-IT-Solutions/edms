@@ -289,7 +289,7 @@
                 </div>
                 <div class="card-body">
                     <div id="approvers-wrapper">
-                        <div class="approver-row mb-2 d-flex align-items-center gap-2">
+                        <div class="approver-row mb-2 d-flex align-items-center gap-2" data-old-level="1">
                             <span class="approver-level badge bg-primary">1</span>
                             <select name="approvers[]" class="form-select approver-select chosen-select approver-select-wrap">
                                 <option value="">-- Select Signatories --</option>
@@ -406,12 +406,18 @@ function countToWords(value) {
 function prepareSubmit(event) {
     event.preventDefault();
 
+    $('select[name="approvers[]"]').trigger('chosen:updated');
+
     const selectedStatus = document.querySelector('select[name="status"]').value;
     const isApproved = selectedStatus === 'Approved';
 
     const approverSelects = document.querySelectorAll('[name="approvers[]"]');
     let hasApprover = false;
     approverSelects.forEach(s => { if (s.value) hasApprover = true; });
+
+    $('.chosen-select, [class^="chosen-select-"]').each(function() {
+        $(this).trigger('chosen:updated');
+    });
 
     if (isApproved) {
         if (!hasApprover) {
@@ -441,10 +447,20 @@ function prepareSubmit(event) {
     const signatureData = [];
     const pdfContainer  = document.getElementById('pdf-container');
 
+    document.querySelectorAll('[name="approvers[]"]').forEach(sel => {
+        $(sel).trigger('chosen:updated');
+    });
+
     Object.keys(approverBoxes).forEach(level => {
         approverBoxes[level].forEach(box => {
-            const approverRow = document.querySelector(`[data-level="${level}"]`).closest('.approver-row');
-            const userId = approverRow.querySelector('[name="approvers[]"]').value;
+            const btn = document.querySelector(`.place-signature-btn[data-level="${level}"]`);
+            if (!btn) return;
+            const approverRow = btn.closest('.approver-row');
+            const selectEl = approverRow.querySelector('[name="approvers[]"]');
+            
+            const userId = selectEl.value || $(selectEl).val();
+            
+            if (!userId) return;
             const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
             let pageNumber = 1, cumulativeHeight = 0;
             const boxTop = parseFloat(box.style.top);

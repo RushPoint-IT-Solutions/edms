@@ -320,7 +320,18 @@ class RequestController extends Controller
                     </a>
                 </li>';
             }
-            
+
+            $resubmitBtn = '';
+            if ($cr->status === 'Returned' && (auth()->user()->role === 'Administrator' || $cr->user_id === auth()->id())) {
+                $resubmitBtn = '
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-warning" href="' . url('change-request/' . $cr->id . '/resubmit') . '">
+                        <i class="ri-edit-2-line me-2"></i> Resubmit Document
+                    </a>
+                </li>';
+            }
+
             $actions = '<div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
                     <i class="ri-more-2-fill"></i>
@@ -351,6 +362,7 @@ class RequestController extends Controller
                         </a>
                     </li>' : '').'
                     '.$publishBtn.'
+                    '.$resubmitBtn.'
                 </ul>
             </div>';
 
@@ -754,6 +766,7 @@ class RequestController extends Controller
                     $approvers->change_request_id = $change_request->id;
                     $approvers->user_id = $approver;
                     $approvers->level = $key+1;
+                    $approvers->request_type = $request->approver_roles[$key];
                     if($key == 0)
                     {
                         $approvers->status = "Pending";
@@ -784,6 +797,8 @@ class RequestController extends Controller
                         }
                     }
                 }
+
+                DocumentSignaturePosition::where('change_request_id', $change_request->id)->delete();
 
                 foreach(json_decode($request->signature_positions) as $signature_position)
                 {
@@ -839,6 +854,8 @@ class RequestController extends Controller
                 {
                     foreach($request->approvers as $key=>$approver)
                     {
+                        if (empty($approver)) continue;
+
                         $approvers = new RequestApprover;
                         $approvers->change_request_id = $change_request->id;
                         $approvers->user_id = $approver;
@@ -880,7 +897,7 @@ class RequestController extends Controller
                 }
             }
 
-            if ($request->has('signature_positions'))
+            if (!$request->has('id') && $request->has('signature_positions'))
             {
                 foreach(json_decode($request->signature_positions) as $signature_position)
                 {
@@ -911,6 +928,42 @@ class RequestController extends Controller
             return redirect("/change-requests");
         }
 
+    }
+
+    public function resubmit($id)
+    {
+        $change_request = ChangeRequest::with([
+            'approvers.user',
+            'departments',
+            'requestTypeList',
+            'supporting_documents',
+            'signaturePositions',
+        ])->findOrFail($id);
+    
+        if ($change_request->status !== 'Returned') {
+            Alert::error('Only returned documents can be resubmitted.')->persistent('Dismiss');
+            return redirect('/change-requests');
+        }
+    
+        if (
+            auth()->user()->role !== 'Administrator' &&
+            $change_request->user_id !== auth()->id()
+        ) {
+            return view('pages.403-error');
+        }
+    
+        $document_types = DocumentType::get();
+        $approvers = User::whereNull('status')->get();
+        $departments = Department::get();
+        $selectedTypes = $change_request->requestTypeList->pluck('type')->toArray();
+    
+        return view('change_request.resubmit', compact(
+            'change_request',
+            'document_types',
+            'approvers',
+            'departments',
+            'selectedTypes'
+        ));
     }
 
     // public function new_request(Request $request)
