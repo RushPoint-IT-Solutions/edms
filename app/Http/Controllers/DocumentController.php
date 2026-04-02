@@ -92,19 +92,40 @@ class DocumentController extends Controller
     
         $folderData = $document_folders->map(function ($f) {
             return [
-                'id'   => $f->id,
+                'id' => $f->id,
                 'name' => $f->name,
                 'docs' => $f->document->map(function ($d) {
-                    return ['id' => $d->id, 'title' => $d->title];
+                    $fileInfo = $this->getDocumentFileInfo($d);
+                    $originalFileName = $fileInfo['originalFileName'];
+
+                    $label = $d->title;
+                    if ($originalFileName) {
+                        $label .= ' - ' . $originalFileName;
+                    }
+
+                    return [
+                        'id'    => $d->id,
+                        'label' => $label,
+                    ];
                 })->values(),
             ];
         })->values();
     
         $shareTree = $this->buildShareTree($document_folders, $documents);
-        $shareOthersDocs = $documents->filter(fn($d) => is_null($d->folder_id))->map(fn($d) => [
-            'id'    => $d->id,
-            'label' => $d->title,
-        ])->values()->toArray();
+        $shareOthersDocs = $documents->filter(fn($d) => is_null($d->folder_id))->map(function($d) {
+            $fileInfo = $this->getDocumentFileInfo($d);
+            $originalFileName = $fileInfo['originalFileName'];
+
+            $label = $d->title;
+            if ($originalFileName) {
+                $label .= ' - ' . $originalFileName;
+            }
+
+            return [
+                'id' => $d->id,
+                'label' => $label,
+            ];
+        })->values()->toArray();
     
         $upload_folders = DocumentFolder::with('document', 'childrenFolder')
             ->where('user_id', auth()->user()->id)
@@ -216,7 +237,6 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>' . strtoupper($fileInfo['fileType']) . '</td>
-                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>—</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">';
@@ -345,7 +365,7 @@ class DocumentController extends Controller
             if ($search) {
                 $documentsQuery->where(function ($q) use ($search) {
                     $q->where('title', 'like', '%' . $search . '%')
-                      ->orWhere('control_code', 'like', '%' . $search . '%');
+                    ->orWhere('control_code', 'like', '%' . $search . '%');
                 });
             }
 
@@ -355,6 +375,7 @@ class DocumentController extends Controller
                 $doc->previewClass = $info['previewClass'];
                 $doc->iconClass = $info['iconClass'];
                 $doc->badgeClass = $info['badgeClass'];
+                $doc->originalFileName = $info['originalFileName'];
                 return $doc;
             });
 
@@ -366,8 +387,8 @@ class DocumentController extends Controller
                     ? $doc->title . ' - ' . $doc->originalFileName
                     : $doc->title;
                 $escapedDisplay = htmlspecialchars($cleanFileName, ENT_QUOTES);
-                $escapedForJs   = addslashes($escapedDisplay);
-                $docUrl         = url('/documents/view-document/' . $doc->id);
+                $escapedForJs = addslashes($escapedDisplay);
+                $docUrl = url('/documents/view-document/' . $doc->id);
 
                 $shareListItem = '<li>
                     <a class="dropdown-item" href="javascript:void(0)"
@@ -410,13 +431,11 @@ class DocumentController extends Controller
                         </div>
                     </td>
                     <td>' . strtoupper($doc->fileType) . '</td>
-                    <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
                     <td>—</td>
                     <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                     <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
                 </tr>';
 
-                // Grid item
                 $gridDropdown = '<ul class="dropdown-menu dropdown-menu-end">
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)"
@@ -481,11 +500,12 @@ class DocumentController extends Controller
             $foldersQuery->where('name', 'like', '%' . $search . '%');
             $documentsQuery->where(function ($q) use ($search) {
                 $q->where('title', 'like', '%' . $search . '%')
-                  ->orWhere('control_code', 'like', '%' . $search . '%');
+                ->orWhere('control_code', 'like', '%' . $search . '%');
             });
         }
 
         $childFolders = $foldersQuery->orderBy('name', 'asc')->get();
+
         $childDocuments = $documentsQuery->orderBy('control_code', 'desc')->get()->map(function ($doc) {
             $info = $this->getDocumentFileInfo($doc);
             $doc->fileType = $info['fileType'];
@@ -500,12 +520,16 @@ class DocumentController extends Controller
         $listHtml = $this->renderFolderTreeView($all_document_folders, $allDocuments, $id, 0, $id);
 
         foreach ($childDocuments as $doc) {
-            $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
+            $cleanFileName  = $doc->originalFileName
+                ? $doc->title . ' - ' . $doc->originalFileName
+                : $doc->title;
+            $escapedDisplay = htmlspecialchars($cleanFileName, ENT_QUOTES);
+            $escapedForJs = addslashes($escapedDisplay);
             $docUrl = url('/documents/view-document/' . $doc->id);
 
             $shareListItem = '<li>
                 <a class="dropdown-item" href="javascript:void(0)"
-                    onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                    onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedForJs . '\')">
                     <i class="ri-share-line me-2"></i>Share
                 </a>
             </li>';
@@ -518,7 +542,7 @@ class DocumentController extends Controller
                     ' . $shareListItem .
                     ($canDelete ? '<li>
                         <a class="dropdown-item text-danger" href="javascript:void(0)"
-                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                            onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedForJs . '\')">
                             <i class="ri-delete-bin-line me-2"></i>Delete document
                         </a>
                     </li>' : '') . '
@@ -535,16 +559,16 @@ class DocumentController extends Controller
                     <input type="checkbox" class="item-checkbox form-check-input"
                         data-type="document"
                         data-id="' . $doc->id . '"
-                        data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '">
+                        data-name="' . $escapedDisplay . '">
                 </td>
                 <td>
                     <div class="name-cell">
                         <i class="' . $doc->iconClass . ' item-icon" style="color:#6b7280;"></i>
-                        <span class="item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</span>
+                        <span class="item-name">' . $escapedDisplay . '</span>
                     </div>
                 </td>
                 <td>' . strtoupper($doc->fileType) . '</td>
-                <td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>
+                <td>—</td>
                 <td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>
                 <td class="actions-cell" onclick="event.stopPropagation()">' . $actionHtml . '</td>
             </tr>';
@@ -561,8 +585,7 @@ class DocumentController extends Controller
             </li>';
 
             if ($canEdit) {
-                $dropdownItems .= '
-                <li>
+                $dropdownItems .= '<li>
                     <a class="dropdown-item" href="javascript:void(0)"
                         data-bs-toggle="modal"
                         data-bs-target="#renameFolderModal' . $folder->id . '"
@@ -572,8 +595,7 @@ class DocumentController extends Controller
                 </li>';
             }
             if ($canDelete) {
-                $dropdownItems .= '
-                <li>
+                $dropdownItems .= '<li>
                     <a class="dropdown-item text-danger delete-folder-btn" href="javascript:void(0)"
                         data-id="' . $folder->id . '"
                         data-name="' . htmlspecialchars($folder->name, ENT_QUOTES) . '">
@@ -609,19 +631,23 @@ class DocumentController extends Controller
         }
 
         foreach ($childDocuments as $doc) {
-            $escapedName = addslashes(htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES));
+            $cleanFileName  = $doc->originalFileName
+                ? $doc->title . ' - ' . $doc->originalFileName
+                : $doc->title;
+            $escapedDisplay = htmlspecialchars($cleanFileName, ENT_QUOTES);
+            $escapedForJs = addslashes($escapedDisplay);
             $docUrl = url('/documents/view-document/' . $doc->id);
 
             $gridDropdown = '<ul class="dropdown-menu dropdown-menu-end">
                 <li>
                     <a class="dropdown-item" href="javascript:void(0)"
-                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedName . '\')">
+                        onclick="event.stopPropagation(); preSingleDocShare(' . $doc->id . ', \'' . $escapedForJs . '\')">
                         <i class="ri-share-line me-2"></i>Share
                     </a>
                 </li>' .
                 ($canDelete ? '<li>
                     <a class="dropdown-item text-danger" href="javascript:void(0)"
-                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedName . '\')">
+                        onclick="event.stopPropagation(); deleteDocument(' . $doc->id . ', \'' . $escapedForJs . '\')">
                         <i class="ri-delete-bin-line me-2"></i>Delete document
                     </a>
                 </li>' : '') . '
@@ -637,7 +663,7 @@ class DocumentController extends Controller
                     <input type="checkbox" class="form-check-input grid-item-checkbox item-checkbox"
                         data-type="document"
                         data-id="' . $doc->id . '"
-                        data-name="' . htmlspecialchars($doc->control_code . ' - ' . $doc->title, ENT_QUOTES) . '"
+                        data-name="' . $escapedDisplay . '"
                         onclick="event.stopPropagation(); handleGridCheckbox(this)">
                     <button class="grid-item-menu" onclick="event.stopPropagation()"
                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -649,7 +675,7 @@ class DocumentController extends Controller
                     <i class="' . $doc->iconClass . ' grid-item-icon"></i>
                 </div>
                 <div class="grid-item-info">
-                    <div class="grid-item-name">' . htmlspecialchars($doc->control_code . ' - ' . $doc->title) . '</div>
+                    <div class="grid-item-name">' . $escapedDisplay . '</div>
                     <div class="grid-item-meta">
                         <span class="file-type-badge ' . $doc->badgeClass . '">' . strtoupper($doc->fileType) . '</span>
                         <span>' . date('M d', strtotime($doc->updated_at)) . '</span>
@@ -792,7 +818,6 @@ class DocumentController extends Controller
                     $html .= '</div></td>';
 
                     $html .= '<td>' . strtoupper($fileInfo['fileType']) . '</td>';
-                    $html .= '<td>' . ($doc->version !== null ? 'Rev. ' . $doc->version : '—') . '</td>';
                     $html .= '<td>' . date('M d, Y', strtotime($doc->updated_at)) . '</td>';
                     $html .= '<td class="actions-cell" onclick="event.stopPropagation()">
                         <div class="dropdown">
@@ -1284,10 +1309,20 @@ class DocumentController extends Controller
         $folderData = $allUserFolders->map(fn($f) => [
             'id' => $f->id,
             'name' => $f->name,
-            'docs' => $f->document->map(fn($d) => [
-                'id' => $d->id,
-                'title' => $d->control_code . ' - ' . $d->title,
-            ])->values(),
+            'docs' => $f->document->map(function($d) {
+                $fileInfo = $this->getDocumentFileInfo($d);
+                $originalFileName = $fileInfo['originalFileName'];
+
+                $label = $d->title;
+                if ($originalFileName) {
+                    $label .= ' - ' . $originalFileName;
+                }
+
+                return [
+                    'id'    => $d->id,
+                    'label' => $label,
+                ];
+            })->values(),
         ])->values();
 
         $shareTree = $this->buildShareTree($allUserFolders, $allUserDocuments);
@@ -1993,7 +2028,9 @@ class DocumentController extends Controller
 
             $items->push([
                 'id' => $doc->id,
-                'name' => $fileInfo['originalFileName'] ?: $doc->title,
+                'name' => $fileInfo['originalFileName'] 
+                        ? $doc->title . ' - ' . $fileInfo['originalFileName'] 
+                        : $doc->title,
                 'type' => 'document',
                 'ownerName' => $ownerName,
                 'ownerEmail' => $ownerEmail,
@@ -2084,7 +2121,9 @@ class DocumentController extends Controller
                 $doc->badgeClass = $fileInfo['badgeClass'];
                 $doc->ownerName = ($doc->user && $doc->user->name) ? $doc->user->name : '—';
                 $doc->ownerColor = $this->avatarColor($doc->ownerName);
-                $doc->originalFileName = $fileInfo['originalFileName'];
+                $doc->displayName = $fileInfo['originalFileName']
+                    ? $doc->title . ' - ' . $fileInfo['originalFileName']
+                    : $doc->title;
                 return $doc;
             });
     
@@ -2190,10 +2229,20 @@ class DocumentController extends Controller
                 'id'       => $folder->id,
                 'name'     => $folder->name,
                 'children' => $this->buildShareTree($folders, $documents, $folder->id),
-                'docs'     => $documents->where('folder_id', $folder->id)->map(fn($d) => [
-                    'id'    => $d->id,
-                    'label' => $d->control_code . ' - ' . $d->title,
-                ])->values()->toArray(),
+                'docs' => $documents->where('folder_id', $folder->id)->map(function($d) {
+                    $fileInfo = $this->getDocumentFileInfo($d);
+                    $originalFileName = $fileInfo['originalFileName'];
+
+                    $label = $d->title;
+                    if ($originalFileName) {
+                        $label .= ' - ' . $originalFileName;
+                    }
+
+                    return [
+                        'id' => $d->id,
+                        'label' => $label,
+                    ];
+                })->values()->toArray(),
             ];
         }
         return $result;
@@ -2300,7 +2349,9 @@ class DocumentController extends Controller
 
             $items->push([
                 'id' => $doc->id,
-                'name' => $fileInfo['originalFileName'] ?: $doc->title,
+                'name' => $fileInfo['originalFileName'] 
+                        ? $doc->title . ' - ' . $fileInfo['originalFileName'] 
+                        : $doc->title,
                 'type' => 'document',
                 'ownerName' => $ownerName,
                 'ownerColor' => $ownerColor,
@@ -2364,12 +2415,14 @@ class DocumentController extends Controller
             ->orderBy('control_code', 'desc')
             ->get()
             ->map(function ($doc) {
-                $fileInfo = $this->getDocumentFileInfo($doc);
+                $fileInfo = $this->getDocumentFileInfo($doc);   
                 $doc->fileType = $fileInfo['fileType'];
                 $doc->previewClass = $fileInfo['previewClass'];
                 $doc->iconClass = $fileInfo['iconClass'];
                 $doc->badgeClass = $fileInfo['badgeClass'];
-                $doc->originalFileName = $fileInfo['originalFileName'];
+                $doc->displayName = $fileInfo['originalFileName']
+                    ? $doc->title . ' - ' . $fileInfo['originalFileName']
+                    : $doc->title;
                 return $doc;
             });
     
