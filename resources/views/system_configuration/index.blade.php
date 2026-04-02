@@ -64,7 +64,7 @@
     </div>
   </div>
   
-  <div class="col d-flex">
+  {{-- <div class="col d-flex">
     <div class="section-nav-card shadow-sm flex-fill d-flex flex-column" data-target="pane-controlcodes">
       <div class="nav-icon"><i class="ri-barcode-line"></i></div>
       <div class="nav-label">Control Codes</div>
@@ -73,7 +73,7 @@
         <i class="fa fa-plus"></i> New Control Code
       </button>
     </div>
-  </div>
+  </div> --}}
 </div>
 
 <div class="row">
@@ -229,7 +229,7 @@
             </div>
         </div>
 
-        <div class="card shadow-sm config-panel" id="pane-controlcodes">
+        {{-- <div class="card shadow-sm config-panel" id="pane-controlcodes">
             <div class="panel-header">
                 <div class="panel-icon"><i class="ri-barcode-line"></i></div>
                 <div>
@@ -264,7 +264,7 @@
                     <div id="cc-pagination-control"></div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <div class="card shadow-sm config-panel" id="pane-tag">
             <div class="panel-header">
@@ -324,8 +324,8 @@
 @include('settings.documents_type.edit')
 @include('settings.documents_type.new')
 
-@include('settings.control_codes.new')
-@include('settings.control_codes.edit')
+{{-- @include('settings.control_codes.new')
+@include('settings.control_codes.edit') --}}
 
 @endsection
 
