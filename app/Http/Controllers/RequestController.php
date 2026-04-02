@@ -217,11 +217,11 @@ class RequestController extends Controller
         $search = $request->get('search')['value'] ?? '';
         $order = $request->get('order')[0] ?? ['column' => 8, 'dir' => 'desc'];
         $columnIndex = $order['column'];
-        $columnName = $request->get('columns')[$columnIndex]['data'] ?? 'created_at';
+        $columnName = $request->get('columns')[$columnIndex]['data'] ?? 'updated_at';
         $columnSortOrder = $order['dir'];
         $statusFilter = $request->get('status', '');
 
-        $isAdmin = in_array(auth()->user()->role, ['Administrator', 'Approver']);
+        $isAdmin = auth()->user()->role === 'Administrator';
 
         $query = ChangeRequest::with(['user.department', 'approvers.user', 'departments'])
             ->whereNull('is_draft')
@@ -243,8 +243,13 @@ class RequestController extends Controller
 
         $totalFiltered = $query->count();
 
-        $allowed = ['title','description','category','privacy','revision','created_at','status'];
-        $query->orderBy(in_array($columnName, $allowed) ? $columnName : 'id', $columnSortOrder);
+        $allowed = ['title', 'description', 'category', 'privacy', 'revision', 'status'];
+        if (in_array($columnName, $allowed)) {
+            $query->orderBy($columnName, $columnSortOrder);
+        } else {
+            $query->orderByRaw('GREATEST(created_at, updated_at) ' . $columnSortOrder)
+                ->orderBy('id', $columnSortOrder);
+        }
 
         $changeRequests = $query->skip($start)->take($length)->get();
 
@@ -465,8 +470,7 @@ class RequestController extends Controller
             ->whereNotIn('status', ['Approved', 'Declined'])
             ->when(auth()->user()->role !== 'Administrator', function ($q) {
                 $q->whereHas('approvers', function ($aq) {
-                    $aq->where('user_id', auth()->user()->id)
-                    ->whereIn('status', ['Pending', 'Waiting']);
+                    $aq->where('user_id', auth()->user()->id);
                 });
             });
 
@@ -759,21 +763,40 @@ class RequestController extends Controller
                 $change_request->save();
 
                 $change_request->departments()->sync($request->department_id ?? []);
-                $approvers = RequestApprover::where('change_request_id', $change_request->id)->delete();
-                foreach($request->approvers as $key=>$approver)
+
+                $existingApprovers = RequestApprover::where('change_request_id', $change_request->id)
+                    ->orderBy('level')
+                    ->get()
+                    ->keyBy('level');
+
+                $returnedApprover = $existingApprovers->firstWhere('status', 'Returned');
+                $pendingApprover  = $existingApprovers->firstWhere('status', 'Pending');
+
+                $returnedLevel = $returnedApprover
+                    ? $returnedApprover->level
+                    : ($pendingApprover ? $pendingApprover->level : 1);
+
+                RequestApprover::where('change_request_id', $change_request->id)
+                    ->where('level', '>=', $returnedLevel)
+                    ->delete();
+
+                foreach($request->approvers as $key => $approver)
                 {
+                    $level = $key + 1;
+
+                    if ($level < $returnedLevel && $existingApprovers->has($level)) {
+                        continue;
+                    }
+
                     $approvers = new RequestApprover;
                     $approvers->change_request_id = $change_request->id;
                     $approvers->user_id = $approver;
-                    $approvers->level = $key+1;
+                    $approvers->level = $level;
                     $approvers->request_type = $request->approver_roles[$key];
-                    if($key == 0)
-                    {
+                    if ($level == $returnedLevel) {
                         $approvers->status = "Pending";
                         $approvers->start_date = date('Y-m-d H:i:s');
-                    }
-                    else
-                    {
+                    } else {
                         $approvers->status = "Waiting";
                     }
                     $approvers->save();
@@ -824,7 +847,6 @@ class RequestController extends Controller
             {
                 $change_request = new ChangeRequest;
                 $change_request->title = $request->title;
-                // $change_request->type = $request->type;
                 $change_request->description = $request->description;
                 $change_request->category = $request->category;
                 $change_request->status = $request->status;
@@ -913,9 +935,6 @@ class RequestController extends Controller
                 }
             }
 
-            // $users = User::whereIn('id', $request->approvers)->get()->pluck('email')->toArray();
-            // Mail::to($users)->send(new RequestDocumentApproval($change_request));
-
             DB::commit();
 
             Alert::success('Successfully Submitted')->persistent('Dismiss');
@@ -927,7 +946,6 @@ class RequestController extends Controller
             Alert::error('There is an error in creating request'. $e->getMessage())->persistent('Dismiss');
             return redirect("/change-requests");
         }
-
     }
 
     public function resubmit($id)

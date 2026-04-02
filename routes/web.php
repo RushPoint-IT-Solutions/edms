@@ -116,6 +116,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('get-comments','RequestController@getComments');
 
             Route::post('store','RequestController@store');
+            Route::get('/{id}/resubmit', 'RequestController@resubmit')->name('change-request.resubmit');
             Route::post('comments', 'RequestController@comments');
             Route::post('change-request-action/{id}','RequestController@action');
             Route::post('confirm-password','RequestController@confirmPassword');
