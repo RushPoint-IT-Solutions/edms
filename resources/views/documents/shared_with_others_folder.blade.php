@@ -669,8 +669,8 @@
                             <div class="d-flex align-items-center gap-2">
                                 <i class="{{ $doc->iconClass }}" style="font-size:1.2rem;color:#6b7280;flex-shrink:0;"></i>
                                 <div style="overflow:hidden;">
-                                    <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;" title="{{ $doc->control_code }} - {{ $doc->title }}">{{ $doc->title }}</div>
-                                    <div style="font-size:0.72rem;color:#9ca3af;">{{ $doc->control_code }}</div>
+                                    <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;" title="{{ $doc->displayName }}">{{ $doc->displayName }}</div>
+                                    <div style="font-size:0.72rem;color:#9ca3af;">{{ $doc->id }}</div>
                                 </div>
                             </div>
                         </td>
@@ -716,7 +716,7 @@
                                             onclick="event.stopPropagation(); openInfoPanel(this)"
                                             data-item-type="document"
                                             data-item-id="{{ $doc->id }}"
-                                            data-item-name="{{ $doc->control_code }} - {{ $doc->title }}"
+                                            data-item-name="{{ $doc->displayName }}"
                                             data-item-owner="{{ $ownerName }}"
                                             data-item-owner-color="{{ $ownerColor }}"
                                             data-item-date="{{ $doc->updated_at->format('M d, Y') }}"
@@ -815,7 +815,7 @@
                                         onclick="event.stopPropagation(); openInfoPanel(this)"
                                         data-item-type="document"
                                         data-item-id="{{ $doc->id }}"
-                                        data-item-name="{{ $doc->control_code }} - {{ $doc->title }}"
+                                        data-item-name="{{ $doc->displayName }}"
                                         data-item-owner="{{ $ownerName }}"
                                         data-item-owner-color="{{ $ownerColor }}"
                                         data-item-date="{{ $doc->updated_at->format('M d, Y') }}"
@@ -832,7 +832,7 @@
                         <i class="{{ $doc->iconClass }}"></i>
                     </div>
                     <div class="cardBottom">
-                        <div class="cardName" title="{{ $doc->control_code }} - {{ $doc->title }}">{{ $doc->control_code }} - {{ $doc->title }}</div>
+                        <div class="cardName" title="{{ $doc->displayName }}">{{ $doc->displayName }}</div>
                         <div class="cardMeta">
                             <div class="d-flex align-items-center gap-1 mt-1">
                                 <div style="background:{{ $ownerColor }};width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:#fff;flex-shrink:0;">

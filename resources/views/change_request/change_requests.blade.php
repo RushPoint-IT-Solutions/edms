@@ -62,92 +62,6 @@
     border-left: 2px solid #fd7e14;
     border-radius: 0 4px 4px 0;
 }
-
-.publish-option-card {
-    border: 2px solid #dee2e6;
-    border-radius: 10px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: #fff;
-}
-.publish-option-card:hover {
-    border-color: #0d6efd;
-    background: #f0f6ff;
-}
-.publish-option-card.selected {
-    border-color: #0d6efd;
-    background: #e7f0ff;
-    box-shadow: 0 0 0 3px rgba(13,110,253,.15);
-}
-.publish-option-card .option-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    margin-bottom: 10px;
-}
-.publish-option-card h6 {
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-.publish-option-card p {
-    font-size: 0.78rem;
-    color: #6c757d;
-    margin: 0;
-}
-.office-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: #e7f0ff;
-    color: #0d6efd;
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid #b6d0fb;
-    transition: background 0.15s;
-}
-.office-tag:hover {
-    background: #cfe2ff;
-}
-.office-tag .remove-office {
-    font-size: 0.85rem;
-    color: #0d6efd;
-    margin-left: 2px;
-}
-#officeSearch {
-    border-radius: 8px;
-}
-.office-list-item {
-    cursor: pointer;
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 0.82rem;
-    transition: background 0.12s;
-}
-.office-list-item:hover {
-    background: #f0f6ff;
-}
-.office-list-item.selected-office {
-    background: #e7f0ff;
-    color: #0d6efd;
-    font-weight: 600;
-}
-.publish-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    border-radius: 20px;
-    padding: 2px 9px;
-}
 </style>
 @endsection
 
@@ -311,111 +225,42 @@
 </div>
 
 <div class="modal fade" id="publishDocModal" tabindex="-1" aria-labelledby="publishDocModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-bottom-0 pb-0">
-                <div>
-                    <h5 class="modal-title fw-bold" id="publishDocModalLabel">
-                        <i class="ri-send-plane-line me-2 text-success"></i>Publish Document
-                    </h5>
-                    <p class="text-muted mb-0" style="font-size:0.82rem;" id="publishDocSubtitle"></p>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title mb-2" id="publishDocModalLabel">Publish Document</h5>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <div class="modal-body pt-3">
+            <div class="modal-body">
 
                 <input type="hidden" id="publishChangeRequestId">
                 <input type="hidden" id="publishDocumentId">
 
-                <div class="mb-4">
-                    <label class="form-label fw-semibold mb-2">
-                        <span class="badge bg-primary me-1" style="font-size:0.7rem;">1</span>
-                        When should this document be published?
-                    </label>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="publish-option-card selected" id="publishOptionImmediate" onclick="selectPublishOption('immediate')">
-                                <div class="option-icon bg-success bg-opacity-10 text-success">
-                                    <i class="ri-flashlight-line"></i>
-                                </div>
-                                <h6>Publish Now</h6>
-                                <p>Make the document publicly visible immediately in the Monitoring module.</p>
-                                <div class="mt-2">
-                                    <span class="publish-status-pill" style="background:#d1fae5;color:#065f46;">
-                                        <i class="ri-check-line"></i> Effective today
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="publish-option-card" id="publishOptionScheduled" onclick="selectPublishOption('scheduled')">
-                                <div class="option-icon bg-primary bg-opacity-10 text-primary">
-                                    <i class="ri-calendar-schedule-line"></i>
-                                </div>
-                                <h6>Schedule for Later</h6>
-                                <p>Pick a future date — the document will auto-publish overnight on that date.</p>
-                                <div class="mt-2">
-                                    <span class="publish-status-pill" style="background:#e0e7ff;color:#3730a3;">
-                                        <i class="ri-time-line"></i> Set a date below
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                Title: <span class="text-muted" id="publishDocSubtitle" style="font-size:0.85rem;"></span>
 
-                    <div id="scheduledDateWrap" class="mt-3 d-none">
-                        <label class="form-label fw-semibold" for="publishDate">Publish Date</label>
-                        <input type="date"
-                               id="publishDate"
-                               class="form-control"
-                               min="{{ date('Y-m-d', strtotime('+1 day')) }}">
-                        <div class="form-text">The document will become visible at the start of this day.</div>
-                    </div>
+                <div class="mt-4 mb-3">
+                    <label class="form-label fw-semibold" for="publishTimingSelect">Publish When?</label>
+                    <select class="form-select form-select-sm" id="publishTimingSelect" onchange="selectPublishOption(this.value)">
+                        <option value="immediate">Publish Now</option>
+                        <option value="scheduled">Schedule for Later</option>
+                    </select>
                 </div>
 
-                <hr class="my-3">
-
-                <div class="mb-2">
-                    <label class="form-label fw-semibold mb-1">
-                        <span class="badge bg-primary me-1" style="font-size:0.7rem;">2</span>
-                        Target Offices <span class="text-muted fw-normal">(optional)</span>
-                    </label>
-                    <p class="text-muted mb-2" style="font-size:0.8rem;">
-                        Leave empty to make the document visible to <strong>all users</strong>.
-                        Select specific offices to restrict visibility to only users in those offices.
-                    </p>
-
-                    <div id="selectedOfficesTags" class="d-flex flex-wrap gap-2 mb-2 min-height: 28px;"></div>
-
-                    <div class="position-relative mb-2">
-                        <i class="ri-search-line position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index:2;"></i>
-                        <input type="text"
-                               id="officeSearch"
-                               class="form-control form-control-sm ps-5"
-                               placeholder="Search offices..."
-                               autocomplete="off">
-                    </div>
-
-                    <div id="officeListWrap"
-                         style="max-height:180px;overflow-y:auto;border:1px solid #dee2e6;border-radius:8px;padding:6px;">
-                        <div class="text-center text-muted py-3" id="officeListLoading">
-                            <i class="fa fa-spinner fa-spin"></i> Loading offices...
-                        </div>
-                        <div id="officeList"></div>
-                    </div>
-
-                    <div class="form-text mt-1">
-                        <i class="ri-information-line"></i>
-                        Users are matched to offices via their assigned department.
-                    </div>
+                <div id="scheduledDateWrap" class="mb-3 d-none">
+                    <label class="form-label" for="publishDate">Publish Date</label>
+                    <input type="date"
+                        id="publishDate"
+                        class="form-control form-control-sm"
+                        min="{{ date('Y-m-d', strtotime('+1 day')) }}">
+                    <div class="form-text">The document will become visible on the date you set.</div>
                 </div>
 
             </div>
 
-            <div class="modal-footer border-top-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success px-4" id="publishConfirmBtn" onclick="submitPublish()">
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success mt-2" id="publishConfirmBtn" onclick="submitPublish()">
                     <i class="ri-send-plane-line me-1"></i>
                     <span id="publishBtnLabel">Publish Now</span>
                 </button>
@@ -466,18 +311,18 @@ $(document).ready(function () {
             }
         },
         columns: [
-            { data: 'action',       name: 'action',       orderable: false, searchable: false },
-            { data: 'doc_id',       name: 'doc_id',       orderable: false, searchable: false },
-            { data: 'title',        name: 'title' },
+            { data: 'action', name: 'action', orderable: false, searchable: false },
+            { data: 'doc_id', name: 'doc_id', orderable: false, searchable: false },
+            { data: 'title', name: 'title' },
             { data: 'description',  name: 'description' },
-            { data: 'category',     name: 'category' },
-            { data: 'privacy',      name: 'privacy' },
-            { data: 'revision',     name: 'revision' },
+            { data: 'category', name: 'category' },
+            { data: 'privacy', name: 'privacy' },
+            { data: 'revision', name: 'revision' },
             { data: 'requested_by', name: 'requested_by', orderable: false, searchable: false },
-            { data: 'created_at',   name: 'created_at' },
-            { data: 'approvers',    name: 'approvers',    orderable: false, searchable: false },
-            { data: 'qr_code',      name: 'qr_code',      orderable: false, searchable: false },
-            { data: 'status',       name: 'status' },
+            { data: 'created_at', name: 'created_at' },
+            { data: 'approvers', name: 'approvers', orderable: false, searchable: false },
+            { data: 'qr_code', name: 'qr_code', orderable: false, searchable: false },
+            { data: 'status', name: 'status' },
         ],
         pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
@@ -691,8 +536,6 @@ $(document).on('click', '.view-revision-status-btn', function () {
     new bootstrap.Modal(document.getElementById('revisionStatusModal')).show();
 });
 
-var _publishOffices = [];
-var _selectedOfficeIds = [];
 var _publishType = 'immediate';
 
 $(document).on('click', '.publish-doc-btn', function (e) {
@@ -703,124 +546,33 @@ $(document).on('click', '.publish-doc-btn', function (e) {
     var docTitle = $(this).data('doc-title');
     var isPublished = $(this).data('is-published') == '1';
 
-    _selectedOfficeIds = [];
     _publishType = 'immediate';
-    selectPublishOption('immediate');
+    $('#publishTimingSelect').val('immediate');
+    $('#scheduledDateWrap').addClass('d-none');
+    $('#publishBtnLabel').text('Publish Now');
     $('#publishDate').val('');
     $('#publishChangeRequestId').val(crId);
     $('#publishDocumentId').val(docId);
     $('#publishDocSubtitle').text(docTitle);
-    renderSelectedTags();
-
-    loadOffices();
 
     new bootstrap.Modal(document.getElementById('publishDocModal')).show();
 });
 
 function selectPublishOption(type) {
     _publishType = type;
+    $('#publishTimingSelect').val(type);
 
     if (type === 'immediate') {
-        $('#publishOptionImmediate').addClass('selected');
-        $('#publishOptionScheduled').removeClass('selected');
         $('#scheduledDateWrap').addClass('d-none');
         $('#publishBtnLabel').text('Publish Now');
     } else {
-        $('#publishOptionScheduled').addClass('selected');
-        $('#publishOptionImmediate').removeClass('selected');
         $('#scheduledDateWrap').removeClass('d-none');
         $('#publishBtnLabel').text('Schedule Publish');
     }
 }
 
-/** Load all offices from server (once) */
-function loadOffices() {
-    if (_publishOffices.length > 0) {
-        renderOfficeList(_publishOffices, '');
-        return;
-    }
-
-    $('#officeListLoading').show();
-    $('#officeList').html('');
-
-    $.get('{{ route("change-request.offices") }}', function (data) {
-        _publishOffices = data;
-        $('#officeListLoading').hide();
-        renderOfficeList(_publishOffices, '');
-    }).fail(function () {
-        $('#officeListLoading').hide();
-        $('#officeList').html('<div class="text-danger text-center py-2" style="font-size:0.8rem;">Failed to load offices.</div>');
-    });
-}
-
-/** Render filtered office list */
-function renderOfficeList(offices, search) {
-    var filtered = search
-        ? offices.filter(function (o) {
-            return o.name.toLowerCase().includes(search.toLowerCase()) ||
-                   (o.code && o.code.toLowerCase().includes(search.toLowerCase()));
-          })
-        : offices;
-
-    if (filtered.length === 0) {
-        $('#officeList').html('<div class="text-muted text-center py-2" style="font-size:0.8rem;">No offices found.</div>');
-        return;
-    }
-
-    var html = '';
-    filtered.forEach(function (o) {
-        var isSelected = _selectedOfficeIds.includes(o.id);
-        html += '<div class="office-list-item ' + (isSelected ? 'selected-office' : '') + '" data-office-id="' + o.id + '" data-office-name="' + o.name + '" onclick="toggleOffice(' + o.id + ', \'' + o.name.replace(/'/g,"\'") + '\')">'
-                + (isSelected ? '<i class="ri-checkbox-circle-fill me-2 text-primary"></i>' : '<i class="ri-checkbox-blank-circle-line me-2 text-muted"></i>')
-                + o.name
-                + (o.code ? ' <span class="text-muted" style="font-size:0.75rem;">(' + o.code + ')</span>' : '')
-                + '</div>';
-    });
-    $('#officeList').html(html);
-}
-
-/** Toggle office selection */
-function toggleOffice(id, name) {
-    var idx = _selectedOfficeIds.indexOf(id);
-    if (idx === -1) {
-        _selectedOfficeIds.push(id);
-    } else {
-        _selectedOfficeIds.splice(idx, 1);
-    }
-    renderSelectedTags();
-    renderOfficeList(_publishOffices, $('#officeSearch').val());
-}
-
-/** Render selected office tags above the list */
-function renderSelectedTags() {
-    var container = $('#selectedOfficesTags');
-    container.empty();
-
-    if (_selectedOfficeIds.length === 0) {
-        container.append('<span class="text-muted" style="font-size:0.78rem;"><i class="ri-global-line me-1"></i>All users (no restriction)</span>');
-        return;
-    }
-
-    _selectedOfficeIds.forEach(function (id) {
-        var office = _publishOffices.find(function (o) { return o.id === id; });
-        if (!office) return;
-        container.append(
-            '<span class="office-tag" onclick="toggleOffice(' + id + ', \'' + office.name.replace(/'/g,"\'") + '\')">'
-            + '<i class="ri-building-line"></i>'
-            + office.name
-            + '<span class="remove-office">&times;</span>'
-            + '</span>'
-        );
-    });
-}
-
-$('#officeSearch').on('input', function () {
-    renderOfficeList(_publishOffices, $(this).val());
-});
-
-/** Submit the publish form */
 function submitPublish() {
-    var crId     = $('#publishChangeRequestId').val();
+    var crId = $('#publishChangeRequestId').val();
     var publishType = _publishType;
     var publishDate = $('#publishDate').val();
 
@@ -837,10 +589,9 @@ function submitPublish() {
         method: 'POST',
         data: (function () {
             var payload = {
-                _token:            '{{ csrf_token() }}',
+                _token: '{{ csrf_token() }}',
                 change_request_id: crId,
-                publish_type:      publishType,
-                office_ids:        _selectedOfficeIds
+                publish_type: publishType,
             };
             if (publishDate) payload.publish_date = publishDate;
             return payload;

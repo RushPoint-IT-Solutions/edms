@@ -99,7 +99,6 @@
                         </th>
                         <th style="width:45%;">Name</th>
                         <th>File type</th>
-                        <th>Version</th>
                         <th>Size</th>
                         <th>Modified</th>
                         <th class="actions-cell"></th>
@@ -1062,9 +1061,9 @@
                         var listHtml = folder.docs.length
                             ? folder.docs.map(function (d) {
                                 return '<div class="d-flex align-items-center gap-2 py-1 border-bottom">'
-                                     + '<i class="ri-file-text-line text-muted"></i>'
-                                     + '<span class="text-truncate">' + d.title + '</span></div>';
-                              }).join('')
+                                    + '<i class="ri-file-text-line text-muted"></i>'
+                                    + '<span class="text-truncate">' + d.label + '</span></div>';
+                            }).join('')
                             : '<div class="text-muted fst-italic">This folder has no documents yet.</div>';
                         $('#folderPreviewList').html(listHtml);
                         $('#folderPreview').show();
