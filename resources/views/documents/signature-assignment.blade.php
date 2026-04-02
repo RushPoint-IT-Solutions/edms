@@ -203,9 +203,7 @@
 @endsection
 
 @php
-    $file = explode("_", $change_request->file);
-    $file_name = $file[1];
-
+    $file_name = $change_request->file;
     $approver_display = "";
     if ($approver_stamp) 
     {

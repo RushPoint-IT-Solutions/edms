@@ -923,6 +923,16 @@ document.addEventListener('DOMContentLoaded', function () {
         $('select[name="category"]').on('change', function() {
             toggleDepartmentField();
         });
+
+        $(document).on("change", "[name='approver_roles[]']", function() {
+            var value = $(this).val()
+            if (value == "For Receiving") {
+                $(this).closest(".approver-row").find(".place-signature-btn").hide()
+            }
+            else {
+                $(this).closest(".approver-row").find(".place-signature-btn").show()
+            }
+        })
     });
 </script>
 @endsection

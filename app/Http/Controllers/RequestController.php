@@ -686,10 +686,11 @@ class RequestController extends Controller
      */
     public function store(Request $request) 
     {
+        // dd($request->all());
         $team = Team::find($request->privacy);
         
         $request->validate([
-            'file' => 'mimes:pdf'
+            'file' => 'mimes:pdf|max:5120'
         ]);
 
         try {
@@ -722,8 +723,9 @@ class RequestController extends Controller
                 {
                     $file = $request->file('file');
                     $name = time().'_'.$file->getClientOriginalName();
-                    $file->move(public_path('attachment'),$name);
-                    $change_request->file = '/attachment/'.$name;
+                    $filename = str_replace(" ", "_", $name);
+                    $file->move(public_path('attachment'),$filename);
+                    $change_request->file = '/attachment/'.$filename;
                 }
                 $change_request->save();
 
@@ -808,8 +810,9 @@ class RequestController extends Controller
                 {
                     $file = $request->file('file');
                     $name = time().'_'.$file->getClientOriginalName();
-                    $file->move(public_path('attachment'),$name);
-                    $change_request->file = '/attachment/'.$name;
+                    $filename = str_replace(" ", "_", $name);
+                    $file->move(public_path('attachment'),$filename);
+                    $change_request->file = '/attachment/'.$filename;
                 }
                 $change_request->save();
 
@@ -1161,7 +1164,6 @@ class RequestController extends Controller
                         $modified_file = $request->file('file');
                         $name = time().'_'.$modified_file->getClientOriginalName();
                         $modified_file->move(public_path('attachment'),$name);
-
                         $attachment = '/attachment/'.$name;
 
                         $changeRequest->file = $attachment;
@@ -1177,8 +1179,8 @@ class RequestController extends Controller
                 $histories->user_id = auth()->user()->id;
                 $histories->save();
 
-                $user = User::where('id',$changeRequest->user_id)->first();
-                Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
+                // $user = User::where('id',$changeRequest->user_id)->first();
+                // Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
                 
                 DB::commit();
 
@@ -1206,9 +1208,9 @@ class RequestController extends Controller
                 $history->user_id = auth()->user()->id;
                 $history->save();
 
-                $user = User::where('id',$changeRequest->user_id)->first();
-                Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
-                DB::commit();
+                // $user = User::where('id',$changeRequest->user_id)->first();
+                // Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
+                // DB::commit();
 
                 Alert::success('Successfully Returned')->persistent('Dismiss');
                 return redirect('/for-approval');
