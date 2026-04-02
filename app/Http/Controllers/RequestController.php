@@ -1080,6 +1080,8 @@ class RequestController extends Controller
                 $changeRequest->status = "Pending";
                 $changeRequest->save();
 
+                DB::commit();
+
                 Alert::success('Successfully Submitted')->persistent('Dismiss');
                 return redirect('/change-requests');
             }
@@ -1169,7 +1171,9 @@ class RequestController extends Controller
 
                 $user = User::where('id',$changeRequest->user_id)->first();
                 Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
-            
+                
+                DB::commit();
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Successfully Approved'
@@ -1196,13 +1200,11 @@ class RequestController extends Controller
 
                 $user = User::where('id',$changeRequest->user_id)->first();
                 Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
+                DB::commit();
 
                 Alert::success('Successfully Returned')->persistent('Dismiss');
                 return redirect('/for-approval');
             }
-
-            DB::commit();
-            
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error("There is an error in action of change request: ". $e->getMessage());

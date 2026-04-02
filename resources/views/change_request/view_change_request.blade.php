@@ -351,22 +351,26 @@
             },
             success: function(response) {
                 var commentList = ''
-                response.forEach(comment => {
-                    commentList += `
-                        <div class="comment-item">
-                            <div class="d-flex align-items-start gap-2">
-                                <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle" style="width: 32px; height: 32px;">
-                                <div class="flex-grow-1">
-                                    <div class="comment-author">${comment.user.name}</div>
-                                    <div class="comment-time">${comment.created_at}</div>
-                                    <div class="mt-2 text-muted">${comment.user_comment}</div>
+                if (response.length > 0) {
+                    response.forEach(comment => {
+                        commentList += `
+                            <div class="comment-item">
+                                <div class="d-flex align-items-start gap-2">
+                                    <img src="{{ asset('images/no_image.png') }}" alt="" class="rounded-circle" style="width: 32px; height: 32px;">
+                                    <div class="flex-grow-1">
+                                        <div class="comment-author">${comment.user.name}</div>
+                                        <div class="comment-time">${comment.created_at}</div>
+                                        <div class="mt-2 text-muted">${comment.user_comment}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `
-                })
-                
-                $("#CommentContainer").html(commentList)
+                        `
+                    })
+                    
+                    $("#CommentContainer").html(commentList)
+                } else {
+                    $("#CommentContainer").html("<i>No comment...</i>")
+                }
             }
         })
     }

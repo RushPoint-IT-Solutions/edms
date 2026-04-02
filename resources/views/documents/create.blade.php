@@ -305,7 +305,7 @@
                         <div class="approver-row mb-2 d-flex align-items-center gap-2">
                             <span class="approver-level badge bg-primary">1</span>
                             <select name="approvers[]" class="form-select approver-select chosen-select" style="flex: 1;">
-                                <option value="">-- Select Approver --</option>
+                                <option value="">-- Select Signatories --</option>
                                 @if($change_request)
                                 @foreach ($change_request->approvers as $approver)
                                     <option value="{{ $approver->user_id }}" selected>{{ $approver->user->name }}</option>
