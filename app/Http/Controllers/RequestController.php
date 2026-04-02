@@ -540,28 +540,42 @@ class RequestController extends Controller
             $disabledAttr  = $isMyTurn ? '' : 'disabled';
             $disabledClass = $isMyTurn ? '' : 'text-muted pe-none opacity-50';
 
-            $data[] = [
-                'action' => '
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="' . url('change-request/for_approval/' . $cr->id) . '">
-                                    <i class="ri-eye-line me-2"></i>View Request
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item ' . $disabledClass . '" 
-                                    href="#"
-                                    ' . ($isMyTurn ? 'onclick="openSignModal(' . $cr->id . ')"' : '') . '
-                                    ' . $disabledAttr . '
-                                    title="' . (!$isMyTurn ? 'Not your turn yet' : 'Sign this document') . '">
-                                    <i class="ri-quill-pen-line me-2"></i>Sign Document
-                                </a>
-                            </li>
+            $action = '
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="' . url('change-request/for_approval/' . $cr->id) . '">
+                                <i class="ri-eye-line me-2"></i>View Request
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>';
+                if ($myApprover->request_type == "For Signature") {
+                    $action .= '
+                        <li>
+                            <a class="dropdown-item ' . $disabledClass . '" 
+                                href="#"
+                                ' . ($isMyTurn ? 'onclick="openSignModal(' . $cr->id . ')"' : '') . '
+                                ' . $disabledAttr . '
+                                title="' . (!$isMyTurn ? 'Not your turn yet' : 'Sign this document') . '">
+                                <i class="ri-quill-pen-line me-2"></i>Sign Document
+                            </a>
+                        </li>
+                    ';
+                }
+                else {
+                    $action .= '
+                        <li>
+                            <a href="javascript:void(0)" class="dropdown-item">
+                                <i class="ri-upload-line"></i>
+                                Upload Document
+                            </a>
+                        </li>
+                    ';
+                }
+                    $action .= '
                             <li>
                                 <a class="dropdown-item ' . $disabledClass . '"
                                     href="#"
@@ -572,8 +586,11 @@ class RequestController extends Controller
                                 </a>
                             </li>
                         </ul>
-                    </div>',
+                    </div>
+                    ';
 
+            $data[] = [
+                'action' => $action,
                 'reference' => '<span class="ref-badge">' . $docId . '</span>',
                 'date' => $cr->created_at ? $cr->created_at->format('M d, Y') : '-',
                 'title' => e($cr->title),
@@ -1432,6 +1449,35 @@ class RequestController extends Controller
                     }
 
                     $approver->save();
+                }
+            } else {
+                $new_document = new Document;
+                $new_document->title = $change_request->title;
+                $new_document->category = $change_request->category;
+                $new_document->effective_date = date('Y-m-d');
+                $new_document->user_id = $change_request->user_id;
+                $new_document->version = 0;
+                $new_document->date_approved = date('Y-m-d');
+                $new_document->control_code = "DOC-".date('Y', strtotime($change_request->created_at)).'-'.str_pad($change_request->id,3,'0',STR_PAD_LEFT);
+                $new_document->save();
+
+                $change_request->document_id = $new_document->id;
+                $change_request->control_code = $new_document->control_code;
+                $change_request->revision = 0;
+                $change_request->status = "Approved";
+                $change_request->save();
+
+                $document_attachment = new DocumentAttachment;
+                $document_attachment->document_id = $new_document->id;
+                $document_attachment->attachment = $change_request->file;
+                $document_attachment->type = "pdf_copy";
+                $document_attachment->save();
+
+                foreach($change_request->requestTypeList as $requestTypeList) {
+                    $document_type_list = new DocumentTypeList;
+                    $document_type_list->document_id = $new_document->id;
+                    $document_type_list->type = $requestTypeList->type;
+                    $document_type_list->save();
                 }
             }
 
