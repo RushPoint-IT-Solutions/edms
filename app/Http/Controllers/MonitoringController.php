@@ -330,10 +330,12 @@ class MonitoringController extends Controller
                             return null;
                         }
 
-                        $accessDepartments = collect($deptSnapshot)->map(fn($d) => (object)[
-                            'code' => $d['name'] ?? null,
-                            'name' => $d['name'] ?? null,
-                        ]);
+                        $accessDepartments = collect($deptSnapshot)->map(function ($d) {
+                            return (object)[
+                                'code' => isset($d['name']) ? $d['name'] : null,
+                                'name' => isset($d['name']) ? $d['name'] : null,
+                            ];
+                        });
                     }
                 }
 
@@ -342,6 +344,24 @@ class MonitoringController extends Controller
                     if (!in_array($userDeptId, $deptIds)) {
                         return null;
                     }
+                }
+
+                $officeName = null;
+                if ($document->department && $document->department->office) {
+                    $officeName = $document->department->office->name 
+                            ?? $document->department->office->code;
+                }
+
+                $accessDeptList = [];
+                if ($isRestricted) {
+                    foreach ($accessDepartments as $d) {
+                        if (is_object($d)) {
+                            $accessDeptList[] = $d->code ?? $d->name;
+                        } else {
+                            $accessDeptList[] = isset($d['code']) ? $d['code'] : (isset($d['name']) ? $d['name'] : '—');
+                        }
+                    }
+                    $accessDeptList = array_values(array_filter($accessDeptList));
                 }
 
                 return [
@@ -353,15 +373,10 @@ class MonitoringController extends Controller
                     'file_url' => $document->file ? url($document->file) : null,
                     'published_at' => date('M d, Y', strtotime($document->published_at ?? $document->created_at)),
                     'visitor_count' => $document->visitors->count(),
-                    'dept_code' => optional($document->department)->code,
-                    'office_name' => optional(optional($document->department)->office)->name
-                                ?? optional(optional($document->department)->office)->code,
+                    'dept_code' => $document->department ? $document->department->code : null,
+                    'office_name' => $officeName,
                     'is_restricted' => $isRestricted,
-                    'access_departments' => $isRestricted
-                        ? $accessDepartments->map(fn($d) =>
-                            is_object($d) ? ($d->code ?? $d->name) : ($d['code'] ?? $d['name'] ?? '—')
-                        )->filter()->values()->toArray()
-                        : [],
+                    'access_departments' => $accessDeptList,
                 ];
             })->filter()->values();
 
