@@ -617,6 +617,7 @@ class RequestController extends Controller
                     switch ($cr->status) {
                         case 'For Approval': $badgeClass = 'bg-primary'; break;
                         case 'Draft': $badgeClass = 'bg-secondary'; break;
+                        case 'Returned': $icon='ri-arrow-go-back-fill'; $color='#dc3545'; $badgeClass='bg-danger'; break;
                         default: $badgeClass = 'bg-secondary'; break;
                     }
                     return '<span class="badge ' . $badgeClass . '">' . e($cr->status) . '</span>';
@@ -847,6 +848,7 @@ class RequestController extends Controller
             {
                 $change_request = new ChangeRequest;
                 $change_request->title = $request->title;
+                // $change_request->type = $request->type;
                 $change_request->description = $request->description;
                 $change_request->category = $request->category;
                 $change_request->status = $request->status;
@@ -934,6 +936,9 @@ class RequestController extends Controller
                     $document_signature_position->save();
                 }
             }
+
+            // $users = User::whereIn('id', $request->approvers)->get()->pluck('email')->toArray();
+            // Mail::to($users)->send(new RequestDocumentApproval($change_request));
 
             DB::commit();
 
