@@ -577,11 +577,11 @@ function loadPublicDocs() {
     list.innerHTML = `<li class="list-group-item text-center text-muted py-4"><i class="fa fa-spinner fa-spin"></i> Loading...</li>`;
 
     ajaxGet(ROUTES.public, { public_search: search }).then(res => {
-        if (!res || !res.data) {
+        if (!res.data.length) {
             list.innerHTML = `
                 <li class="list-group-item text-center text-muted py-4">
-                    <i class="ri-error-warning-line d-block mb-1" style="font-size:1.5rem;"></i>
-                    Failed to load public documents.
+                    <i class="ri-folder-open-line d-block mb-1" style="font-size:1.5rem;"></i>
+                    No public documents found.
                 </li>`;
             return;
         }
