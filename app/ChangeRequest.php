@@ -109,4 +109,21 @@ class ChangeRequest extends Model implements Auditable
     {
         return $this->hasMany(DocumentSignaturePosition::class, 'change_request_id');
     }
+
+    public function submittedBy()
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
+    }
+     
+    public function revisions()
+    {
+        return $this->hasMany(ChangeRequestRevision::class)
+                    ->orderBy('revision_number', 'asc');
+    }
+    
+    public function latestRevision()
+    {
+        return $this->hasOne(ChangeRequestRevision::class)
+                    ->latestOfMany('revision_number');
+    }
 }

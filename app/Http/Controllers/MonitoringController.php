@@ -282,19 +282,20 @@ class MonitoringController extends Controller
         $raw = $request->get('public_search', '');
         $dateParts = $this->parseDateFromSearch($raw);
 
-        $query = ChangeRequest::with(['department', 'department.office', 'user', 'visitors', 'departments'])
+        $query = ChangeRequest::with([
+            'department',
+            'department.office',
+            'user',
+            'visitors',
+            'departments',
+            'revisions',
+        ])
             ->where('category', 'Public')
             ->where(function ($q) {
                 $q->whereNotNull('published_at')
                 ->orWhere(function ($q2) {
                     $q2->whereNotNull('publish_at')
                         ->where('publish_at', '<=', now());
-                });
-            })
-            ->where(function ($q) use ($userDeptId) {
-                $q->whereDoesntHave('departments')
-                ->orWhereHas('departments', function ($dq) use ($userDeptId) {
-                    $dq->where('department_id', $userDeptId);
                 });
             });
 
@@ -310,25 +311,59 @@ class MonitoringController extends Controller
             });
         }
 
-        $documents = $query->orderBy('published_at', 'desc')->get()->map(function ($document) {
-            return [
-                'id' => $document->id,
-                'title' => $document->title,
-                'control_code' => $document->control_code
-                    ?? 'DOC-' . str_pad($document->id, 3, '0', STR_PAD_LEFT),
-                'file' => $document->file,
-                'file_url' => $document->file ? url($document->file) : null,
-                'published_at' => date('M d, Y', strtotime($document->published_at ?? $document->created_at)),
-                'visitor_count' => $document->visitors->count(),
-                'dept_code' => optional($document->department)->code,
-                'office_name' => optional(optional($document->department)->office)->name
-                                    ?? optional(optional($document->department)->office)->code,
-                'is_restricted' => $document->departments->isNotEmpty(),
-                'access_departments' => $document->departments->isNotEmpty()
-                    ? $document->departments->map(fn($d) => $d->code ?? $d->name)->values()->toArray()
-                    : [],
-            ];
-        });
+        $documents = $query->orderBy('published_at', 'desc')->get()
+            ->map(function ($document) use ($userDeptId) {
+
+                $accessDepartments = $document->departments;
+                $isRestricted = $accessDepartments->isNotEmpty();
+
+                $latestRevision = $document->revisions->sortByDesc('revision_number')->first();
+
+                if (!$isRestricted && $latestRevision) {
+                    $deptSnapshot = $latestRevision->departments_snapshot ?? [];
+
+                    if (!empty($deptSnapshot)) {
+                        $isRestricted = true;
+                        $snapshotDeptIds = collect($deptSnapshot)->pluck('id')->toArray();
+
+                        if (!in_array($userDeptId, $snapshotDeptIds)) {
+                            return null;
+                        }
+
+                        $accessDepartments = collect($deptSnapshot)->map(fn($d) => (object)[
+                            'code' => $d['name'] ?? null,
+                            'name' => $d['name'] ?? null,
+                        ]);
+                    }
+                }
+
+                if ($isRestricted && $document->departments->isNotEmpty()) {
+                    $deptIds = $document->departments->pluck('id')->toArray();
+                    if (!in_array($userDeptId, $deptIds)) {
+                        return null;
+                    }
+                }
+
+                return [
+                    'id' => $document->id,
+                    'title' => $document->title,
+                    'control_code' => $document->control_code
+                        ?? 'DOC-' . str_pad($document->id, 3, '0', STR_PAD_LEFT),
+                    'file' => $document->file,
+                    'file_url' => $document->file ? url($document->file) : null,
+                    'published_at' => date('M d, Y', strtotime($document->published_at ?? $document->created_at)),
+                    'visitor_count' => $document->visitors->count(),
+                    'dept_code' => optional($document->department)->code,
+                    'office_name' => optional(optional($document->department)->office)->name
+                                ?? optional(optional($document->department)->office)->code,
+                    'is_restricted' => $isRestricted,
+                    'access_departments' => $isRestricted
+                        ? $accessDepartments->map(fn($d) =>
+                            is_object($d) ? ($d->code ?? $d->name) : ($d['code'] ?? $d['name'] ?? '—')
+                        )->filter()->values()->toArray()
+                        : [],
+                ];
+            })->filter()->values();
 
         return response()->json(['data' => $documents]);
     }
