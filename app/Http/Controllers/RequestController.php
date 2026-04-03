@@ -467,7 +467,7 @@ class RequestController extends Controller
                 $q->where('status', 'Pending')
                 ->orWhere('status', 'Waiting');
             })
-            ->whereNotIn('status', ['Approved', 'Declined'])
+            ->whereNotIn('status', ['Approved', 'Declined', 'Returned'])
             ->when(auth()->user()->role !== 'Administrator', function ($q) {
                 $q->whereHas('approvers', function ($aq) {
                     $aq->where('user_id', auth()->user()->id);

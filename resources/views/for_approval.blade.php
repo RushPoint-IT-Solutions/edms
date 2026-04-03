@@ -34,24 +34,6 @@
             <p>For Approval</p>
         </div>
     </div>
-    <div class="col-xl-4 col-md-4">
-        <div class="dashboard-card approved">
-            <div class="icon-circle"><i class="fa fa-check-circle"></i></div>
-            <h2 class="mb-0 font-weight-bold">
-                {{ count($change_for_approvals->where('status','Approved')) }}
-            </h2>
-            <p>Approved</p>
-        </div>
-    </div>
-    <div class="col-xl-4 col-md-4">
-        <div class="dashboard-card declined">
-            <div class="icon-circle"><i class="fa fa-times-circle"></i></div>
-            <h2 class="mb-0 font-weight-bold">
-                {{ count($change_for_approvals->where('status','Declined')) }}
-            </h2>
-            <p>Declined</p>
-        </div>
-    </div>
 </div>
 
 <div class="row">
