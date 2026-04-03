@@ -373,13 +373,22 @@ class RequestController extends Controller
                 </ul>
             </div>';
 
+            $privacy = $cr->departments->pluck('name')->implode(', ') ?: $cr->privacy;
+            $category = '<div class="fw-semibold">' . e($cr->category) . '</div>';
+
+            if (!empty($privacy)) {
+                $category .= '<small class="text-muted d-block" style="font-size:0.5rem;">
+                    Target Offices (' . e($privacy) . ')
+                </small>';
+            }
+
             $data[] = [
                 'action' => $actions,
                 'doc_id' => $docId,
                 'title' => e($cr->title),
                 'description' => e($cr->description),
-                'category' => e($cr->category),
-                'privacy' => $cr->departments->pluck('name')->implode(', ') ?: e($cr->privacy),
+                'category' => '<div>' . $category . '</div>',
+                'departments' => optional($cr->user->department)->name ?? '-',
                 'revision_count' => $cr->revision_count > 0
                         ? '<span class="badge bg-info text-white">Rev. ' . $cr->revision_count . '</span>'
                         : '<span class="text-muted">—</span>',
