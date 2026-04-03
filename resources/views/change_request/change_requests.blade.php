@@ -159,7 +159,7 @@
                                 <th>Title</th>
                                 <th>Description</th>
                                 <th>Category</th>
-                                <th>Offices</th>
+                                <th>Office</th>
                                 <th>Revision</th>
                                 <th>Requested&nbsp;By</th>
                                 <th>Date&nbsp;Requested</th>
@@ -316,7 +316,8 @@ $(document).ready(function () {
             { data: 'title', name: 'title' },
             { data: 'description',  name: 'description' },
             { data: 'category', name: 'category' },
-            { data: 'privacy', name: 'privacy' },
+            { data: 'departments', name: 'departments', orderable: false, searchable: false },
+            // { data: 'privacy', name: 'privacy' },
             { data: 'revision_count', orderable: false, searchable: false },
             { data: 'requested_by', name: 'requested_by', orderable: false, searchable: false },
             { data: 'created_at', name: 'created_at' },
