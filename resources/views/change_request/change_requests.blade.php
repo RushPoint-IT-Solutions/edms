@@ -317,7 +317,7 @@ $(document).ready(function () {
             { data: 'description',  name: 'description' },
             { data: 'category', name: 'category' },
             { data: 'privacy', name: 'privacy' },
-            { data: 'revision', name: 'revision' },
+            { data: 'revision_count', orderable: false, searchable: false },
             { data: 'requested_by', name: 'requested_by', orderable: false, searchable: false },
             { data: 'created_at', name: 'created_at' },
             { data: 'approvers', name: 'approvers', orderable: false, searchable: false },

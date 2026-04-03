@@ -59,7 +59,8 @@
                                 <th>Date</th>
                                 <th>Title</th>
                                 <th>Requested&nbsp;By</th>
-                                <th>Type</th>
+                                {{-- <th>Type</th> --}}
+                                <th>Revision</th>
                                 <th>Approvers</th>
                                 <th>Status</th>
                             </tr>
@@ -214,7 +215,8 @@ $(document).ready(function () {
             { data: 'date', name: 'created_at' },
             { data: 'title', name: 'title' },
             { data: 'requested_by', orderable: false, searchable: false },
-            { data: 'type', orderable: false, searchable: false },
+            // { data: 'type', orderable: false, searchable: false },
+            { data: 'revision_count', orderable: false, searchable: false },
             { data: 'approvers', orderable: false, searchable: false },
             { data: 'status', orderable: false, searchable: false },
         ],

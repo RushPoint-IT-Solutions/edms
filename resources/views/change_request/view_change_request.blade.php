@@ -101,7 +101,7 @@
                     <div class="row">
                         <div class="col-6">
                             <div class="info-label">Revision</div>
-                            <div class="info-value">{{ $change_request->revision }}</div>
+                            <div class="info-value">{{ $change_request->revision_count }}</div>
                         </div>
                         <div class="col-6">
                             <div class="info-label">Requested By</div>
@@ -331,6 +331,33 @@
                     @endif
                 </div>
             </div>
+
+            @if($change_request->revision_count > 0)
+            <div class="card section-card" id="revisionHistoryCard">
+                <div class="card-header text-uppercase d-flex align-items-center justify-content-between">
+                    <span><i class="ri-git-branch-line me-2"></i>Revision History</span>
+                    <span class="badge bg-warning text-dark">
+                        {{ $change_request->revision_count }} revision(s)
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="px-3 pt-3 pb-2 border-bottom d-flex align-items-center gap-2 flex-wrap" id="snapshotNav">
+                        <span class="text-muted small me-1">View:</span>
+                        <div class="d-flex gap-2 flex-wrap" id="snapshotNavBtns">
+                            <span class="spinner-border spinner-border-sm text-secondary"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-3" id="snapshotPane">
+                        <div class="text-center text-muted py-4" id="snapshotLoading">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p class="mt-2 mb-0">Loading revision history…</p>
+                        </div>
+                        <div id="snapshotContent" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
         
     </div>
@@ -402,7 +429,7 @@
                 },
                 success: function(response) {
                     swal("Success", response.message, response.status)
-                    $('#summernote').summernote('reset'); // clear editor
+                    $('#summernote').summernote('reset');
                 }, 
                 complete: function() {
                     $("#CommentBtn").prop("disabled", false).text("Comment")
@@ -411,5 +438,211 @@
             })
         })
     });
+
+    (function () {
+        var card = document.getElementById('revisionHistoryCard');
+        if (!card) return;
+
+        var navBtns = document.getElementById('snapshotNavBtns');
+        var paneLoading = document.getElementById('snapshotLoading');
+        var paneContent = document.getElementById('snapshotContent');
+        var docStatus = '{{ $change_request->status }}';
+        var allData = null;
+        var sortedSnaps = [];
+
+        fetch('{{ url("change-request/" . $change_request->id . "/revisions") }}', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            allData = data;
+            sortedSnaps = data.snapshots.slice().sort(function(a,b){ return a.revision_number - b.revision_number; });
+
+            paneLoading.style.display = 'none';
+            buildNav();
+
+            var btns = navBtns.querySelectorAll('button');
+            if (btns.length > 0) {
+                btns[btns.length - 1].click();
+            }
+        })
+        .catch(function(err) {
+            paneLoading.innerHTML = '<span class="text-danger">Failed to load history.</span>';
+            console.error(err);
+        });
+
+        function buildNav() {
+            navBtns.innerHTML = '';
+
+            var totalRevisions = sortedSnaps.length;
+
+            for (var i = 1; i <= totalRevisions; i++) {
+                (function(revNum) {
+                    var isLast = (revNum === totalRevisions);
+                    var isCurrent = isLast && docStatus !== 'Approved';
+
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-sm btn-outline-secondary';
+
+                    var icon = isCurrent ? 'ri-git-branch-line' : 'ri-file-text-line';
+                    var label = 'Revision ' + revNum + (isCurrent ? ' (Current)' : '');
+                    btn.innerHTML = '<i class="' + icon + ' me-1"></i>' + label;
+
+                    btn.addEventListener('click', function() {
+                        highlightBtn(this);
+
+                        var leftData, leftLabel, rightData, rightLabel;
+
+                        if (revNum === 1) {
+                            leftData = sortedSnaps[0];
+                            leftLabel = 'Original';
+                            if (totalRevisions > 1) {
+                                rightData = sortedSnaps[1];
+                                rightLabel = 'Revision 1';
+                            } else {
+                                rightData = allData.current;
+                                rightLabel = isCurrent ? 'Revision 1 (Current)' : 'Approved Version';
+                            }
+                        } else {
+                            leftData = sortedSnaps[revNum - 1];
+                            leftLabel = 'Revision ' + (revNum - 1);
+                            if (isLast) {
+                                rightData = allData.current;
+                                rightLabel = isCurrent ? 'Revision ' + revNum + ' (Current)' : 'Approved Version';
+                            } else {
+                                rightData = sortedSnaps[revNum];
+                                rightLabel = 'Revision ' + revNum;
+                            }
+                        }
+
+                        renderPanel(leftData, leftLabel, rightData, rightLabel);
+                    });
+
+                    navBtns.appendChild(btn);
+                })(i);
+            }
+        }
+
+        function highlightBtn(activeBtn) {
+            navBtns.querySelectorAll('button').forEach(function(b) {
+                b.className = 'btn btn-sm btn-outline-secondary';
+            });
+            activeBtn.className = 'btn btn-sm btn-warning';
+        }
+
+        function renderPanel(leftData, leftLabel, rightData, rightLabel) {
+        paneContent.style.display = 'block';
+
+        var isApprovedRight = (rightLabel === 'Approved Version');
+        var leftAlert = 'alert-secondary';
+        var leftIcon = 'ri-history-line';
+        var rightAlert = (isApprovedRight || rightData.is_current) ? 'alert-success' : 'alert-warning';
+        var rightIcon = (isApprovedRight || rightData.is_current) ? 'ri-checkbox-circle-line' : 'ri-git-branch-line';
+
+        var html = '<div class="row g-3">';
+
+        // Left
+        html += '<div class="col-md-6">';
+        html += '<div class="alert ' + leftAlert + ' py-2 mb-2 d-flex align-items-center gap-2">';
+        html += '<i class="' + leftIcon + '"></i><strong>' + escHtml(leftLabel) + '</strong>';
+        html += smallMuted('submitted ' + fmtDate(leftData.submitted_at) + ' by ' + escHtml(leftData.submitted_by));
+        html += '</div>';
+        html += revFields(leftData, null, false);
+        html += '</div>';
+
+        // Right
+        html += '<div class="col-md-6">';
+        html += '<div class="alert ' + rightAlert + ' py-2 mb-2 d-flex align-items-center gap-2">';
+        html += '<i class="' + rightIcon + '"></i><strong>' + escHtml(rightLabel) + '</strong>';
+        html += smallMuted('submitted ' + fmtDate(rightData.submitted_at) + ' by ' + escHtml(rightData.submitted_by));
+        html += '</div>';
+        html += revFields(rightData, leftData, rightData.is_current || isApprovedRight);
+        html += '</div>';
+
+        html += '</div>';
+        paneContent.innerHTML = html;
+    }
+
+    function revFields(rev, baseline, isNewest) {
+        var fields = [
+            { key: 'title', label: 'Title' },
+            { key: 'description', label: 'Description' },
+            { key: 'category', label: 'Category' },
+            { key: 'remarks', label: 'Notes / Remarks' },
+            { key: 'due_date', label: 'Due Date' },
+        ];
+
+        var html = '';
+        fields.forEach(function(f) {
+            var val = rev[f.key]      || '—';
+            var prev = baseline ? (baseline[f.key] || '—') : null;
+            var changed = prev !== null && String(val) !== String(prev);
+
+            html += '<div class="mb-2 pb-2 border-bottom">';
+            html += '<div class="text-muted" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;">' + f.label + '</div>';
+            html += '<div class="fw-semibold" style="font-size:0.88rem;' + (changed ? 'background:#fff3cd;border-radius:3px;padding:0 4px;' : '') + '">';
+            html += escHtml(String(val));
+            if (changed) html += ' <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;vertical-align:middle;">changed</span>';
+            html += '</div></div>';
+        });
+
+        var depts = (rev.departments || []).join(', ') || '—';
+        var prevDepts = baseline ? ((baseline.departments || []).join(', ') || '—') : null;
+        var deptsChanged = prevDepts !== null && depts !== prevDepts;
+        html += '<div class="mb-2 pb-2 border-bottom">';
+        html += '<div class="text-muted" style="font-size:0.75rem;text-transform:uppercase;">Offices</div>';
+        html += '<div class="fw-semibold" style="font-size:0.88rem;' + (deptsChanged ? 'background:#fff3cd;border-radius:3px;padding:0 4px;' : '') + '">';
+        html += escHtml(depts);
+        if (deptsChanged) html += ' <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">changed</span>';
+        html += '</div></div>';
+
+        html += '<div class="mb-2">';
+        html += '<div class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;">Approvers</div>';
+        var approvers = rev.approvers || [];
+        if (approvers.length === 0) {
+            html += '<span class="text-muted fst-italic">None</span>';
+        } else {
+            approvers.forEach(function(a) {
+                var name = a.user_name || a.name || 'N/A';
+                html += '<div class="d-flex align-items-center gap-2 mb-1">';
+                html += '<span class="badge bg-primary" style="font-size:0.65rem;">L' + a.level + '</span>';
+                html += '<span style="font-size:0.82rem;">' + escHtml(name) + '</span>';
+                html += '<span class="text-muted" style="font-size:0.75rem;">· ' + escHtml(a.request_type || '') + '</span>';
+                html += '</div>';
+            });
+        }
+        html += '</div>';
+
+        if (rev.file) {
+            var prevFile = baseline ? baseline.file : null;
+            var fileChanged = isNewest && prevFile !== null && rev.file !== prevFile;  // ← only show "new file" if isNewest
+            html += '<div class="mt-2 pt-2 border-top">';
+            html += '<div class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;">File</div>';
+            html += '<a href="/' + escHtml(rev.file.replace(/^\//, '')) + '" target="_blank" class="btn btn-outline-danger btn-sm">';
+            html += '<i class="ri-file-pdf-line me-1"></i>View PDF';
+            if (fileChanged) html += ' <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">new file</span>';
+            html += '</a></div>';
+        }
+
+        return html;
+    }
+
+        function escHtml(str) {
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(String(str)));
+            return d.innerHTML;
+        }
+
+        function smallMuted(txt) {
+            return '<span class="text-muted ms-auto" style="font-size:0.72rem;">' + txt + '</span>';
+        }
+
+        function fmtDate(dt) {
+            if (!dt) return '—';
+            var d = new Date(dt);
+            return isNaN(d) ? dt : d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        }
+    }());
 </script>
 @endsection

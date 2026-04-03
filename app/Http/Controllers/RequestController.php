@@ -7,6 +7,7 @@ use App\Company;
 use App\DepartmentApprover;
 use App\CopyRequest;
 use App\ChangeRequest;
+use App\ChangeRequestRevision;
 use App\Comment;
 use App\DocumentAttachment;
 use App\CopyApprover;
@@ -37,6 +38,7 @@ use App\PreAssessmentApprover;
 use App\RequestTypeList;
 use App\SupportingDocument;
 use App\UserNotification;
+use App\ChangeRequestSnapshot;
 use Carbon\Carbon;
 use RealRashid\SweetAlert\Facades\Alert;
 use Illuminate\Http\Request;
@@ -378,7 +380,9 @@ class RequestController extends Controller
                 'description' => e($cr->description),
                 'category' => e($cr->category),
                 'privacy' => $cr->departments->pluck('name')->implode(', ') ?: e($cr->privacy),
-                'revision' => e($cr->revision),
+                'revision_count' => $cr->revision_count > 0
+                        ? '<span class="badge bg-info text-white">Rev. ' . $cr->revision_count . '</span>'
+                        : '<span class="text-muted">—</span>',
                 'requested_by' => $cr->user->name ?? 'N/A',
                 'created_at' => $cr->created_at ? $cr->created_at->format('Y-m-d') : '-',
                 'approvers' => $approversChain,
@@ -611,7 +615,10 @@ class RequestController extends Controller
                 'date' => $cr->created_at ? $cr->created_at->format('M d, Y') : '-',
                 'title' => e($cr->title),
                 'requested_by' => $cr->user->name ?? 'N/A',
-                'type' => optional($cr->document_type)->name ?? '-',
+                // 'type' => optional($cr->document_type)->name ?? '-',
+                'revision_count' => $cr->revision_count > 0
+                        ? '<span class="badge bg-info text-white">Rev. ' . $cr->revision_count . '</span>'
+                        : '<span class="text-muted">—</span>',
                 'approvers' => $approvers,
                 'status' => (function() use ($cr) {
                     switch ($cr->status) {
@@ -733,6 +740,12 @@ class RequestController extends Controller
             if ($request->has('id'))
             {
                 $change_request = ChangeRequest::findOrFail($request->id);
+
+                if ($change_request->status === 'Returned') {
+                    $this->revisionsChangeRequest($change_request);
+                    $change_request->increment('revision_count');
+                }
+
                 $change_request->departments()->sync($request->department_id ?? []);
                 $change_request->title = $request->title;
                 // $change_request->type = $request->type;
@@ -855,6 +868,7 @@ class RequestController extends Controller
                 $change_request->privacy = $team ? $team->name : null;
                 $change_request->user_id = auth()->user()->id;
                 $change_request->revision = 0;
+                $change_request->revision_count = 0;
                 $change_request->request_status = "Pending";
                 $change_request->due_date = $request->due_date ?: null;
                 $change_request->remarks = $request->notes;
@@ -987,6 +1001,96 @@ class RequestController extends Controller
             'departments',
             'selectedTypes'
         ));
+    }
+
+    private function revisionsChangeRequest(ChangeRequest $cr): void
+    {
+        $approversSnapshot = $cr->approvers->sortBy('level')->map(fn($a) => [
+            'user_id' => $a->user_id,
+            'user_name' => $a->user->name ?? 'N/A',
+            'level' => $a->level,
+            'request_type' => $a->request_type,
+            'status' => $a->status,
+            'remarks' => $a->remarks,
+            'date_approved'=> $a->date_approved,
+        ])->values()->toArray();
+    
+        $departmentsSnapshot = $cr->departments->map(fn($d) => [
+            'id' => $d->id,
+            'name' => $d->name,
+        ])->values()->toArray();
+    
+        $docTypesSnapshot = $cr->requestTypeList->map(fn($t) => [
+            'type' => $t->type,
+        ])->values()->toArray();
+    
+        ChangeRequestRevision::create([
+            'change_request_id' => $cr->id,
+            'revision_number' => $cr->revision_count + 1,
+            'title' => $cr->title,
+            'description' => $cr->description,
+            'category' => $cr->category,
+            'privacy' => $cr->privacy,
+            'status' => $cr->status,
+            'file' => $cr->file,
+            'remarks' => $cr->remarks,
+            'due_date' => $cr->due_date,
+            'approvers_snapshot' => $approversSnapshot,
+            'departments_snapshot' => $departmentsSnapshot,
+            'document_types_snapshot' => $docTypesSnapshot,
+            'submitted_by' => auth()->id(),
+        ]);
+    }
+
+    public function revisions($id)
+    {
+        $changeRequest = ChangeRequest::with([
+            'revisions.submittedBy',
+        ])->findOrFail($id);
+    
+        $current = [
+            'revision_number' => $changeRequest->revision_count,
+            'label' => 'Current (Rev. ' . $changeRequest->revision_count . ')',
+            'title' => $changeRequest->title,
+            'description' => $changeRequest->description,
+            'category' => $changeRequest->category,
+            'file' => $changeRequest->file,
+            'remarks' => $changeRequest->remarks,
+            'due_date' => $changeRequest->due_date,
+            'approvers' => $changeRequest->approvers->sortBy('level')->map(fn($a) => [
+                'user_name' => $a->user->name ?? 'N/A',
+                'level' => $a->level,
+                'request_type' => $a->request_type,
+                'status' => $a->status,
+            ])->values(),
+            'departments' => $changeRequest->departments->pluck('name'),
+            'submitted_by' => auth()->user()->name,
+            'submitted_at' => $changeRequest->updated_at,
+            'is_current' => true,
+        ];
+    
+        $snapshots = $changeRequest->revisions
+            ->sortByDesc('revision_number')
+            ->map(fn($s) => [
+                'revision_number' => $s->revision_number,
+                'label' => 'Revision ' . $s->revision_number,
+                'title' => $s->title,
+                'description' => $s->description,
+                'category' => $s->category,
+                'file' => $s->file,
+                'remarks' => $s->remarks,
+                'due_date' => $s->due_date,
+                'approvers' => $s->approvers_snapshot,
+                'departments' => collect($s->departments_snapshot ?? [])->pluck('name'),
+                'submitted_by' => $s->submittedBy->name ?? 'N/A',
+                'submitted_at' => $s->created_at,
+                'is_current' => false,
+            ])->values();
+    
+        return response()->json([
+            'current' => $current,
+            'snapshots' => $snapshots,
+        ]);
     }
 
     // public function new_request(Request $request)
