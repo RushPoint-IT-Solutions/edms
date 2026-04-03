@@ -395,6 +395,8 @@ $("[name='description']").on("input", function () {
     countToWords($(this).val());
 });
 
+countToWords($("[name='description']").val());
+
 function countToWords(value) {
     const trimVal = value.trim();
     const wordsArray = trimVal.split(/\s+/);
@@ -456,9 +458,7 @@ function prepareSubmit(event) {
             const btn = document.querySelector(`.place-signature-btn[data-level="${level}"]`);
             if (!btn) return;
             const approverRow = btn.closest('.approver-row');
-            const selectEl = approverRow.querySelector('[name="approvers[]"]');
-            
-            const userId = selectEl.value || $(selectEl).val();
+            const userId = approverRow.querySelector('[name="approvers[]"]').value;
             
             if (!userId) return;
             const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
@@ -808,10 +808,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $(".cat").chosen({ width: "100%" });
-
-    @if($change_request)
-    loadPdf('{{ url($change_request->file) }}');
-    @endif
 });
+
+@if($change_request && $change_request->file)
+window.addEventListener('load', function () {
+    loadPdf('{{ url($change_request->file) }}');
+});
+@endif
 </script>
 @endsection

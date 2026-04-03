@@ -197,10 +197,19 @@
                     </div>
                 @endif
 
-                <div class="card-header">
+                <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="card-title mb-0">
                         <i class="ri-edit-2-line me-2 text-warning"></i>Resubmit Document
                     </h5>
+                    <span class="badge bg-warning text-dark d-flex align-items-center gap-1" style="font-size:0.8rem;">
+                        <i class="ri-git-branch-line"></i>
+                        Revision&nbsp;{{ $change_request->revision_count + 1 }}
+                        @if($change_request->revision_count > 0)
+                            <span class="text-muted ms-1" style="font-weight:400;">
+                                (was resubmitted {{ $change_request->revision_count }}x)
+                            </span>
+                        @endif
+                    </span>
                 </div>
 
                 <div class="card-body">

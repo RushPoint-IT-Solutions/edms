@@ -33,7 +33,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-12 mb-5">
+    <div class="col-md-12">
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">All Request Access</h5>
