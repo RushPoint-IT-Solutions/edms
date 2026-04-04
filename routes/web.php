@@ -354,12 +354,6 @@ Route::get('password/custom-reset', function () { return view('auth.passwords.re
 Route::post('password/custom-reset', [ForgotPasswordOtpController::class, 'resetPassword'])->name('password.reset.final');
 
 // Route::get('mailable', function () {
-//     $documents = App\Document::find(1);
-//     $request = $documents->change_requests->sortByDesc('id')->first();
-//     $approver = $request->approvers->first();
-//     // dd($approver);
-//     // $approver = App\RequestApprover::where()->find(1);
- 
-//     // return new App\Mail\RequestDocumentApproval($change_request,$user);
-//     return new App\Mail\ApprovedDateEmail($documents,$approver);
+//     // $change_request = ChangeRequest::where()
+//     return new App\Mail\PublishDocumentEmail();
 // });

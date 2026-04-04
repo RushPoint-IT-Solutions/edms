@@ -6,10 +6,13 @@ use App\ChangeRequest;
 use App\Document;
 use App\Office;
 use App\Department;
+use App\Mail\PublishDocumentEmail;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PublishDocumentController extends Controller
 {
@@ -46,6 +49,19 @@ class PublishDocumentController extends Controller
                 $cr->publish_at = null;
                 $cr->save();
 
+                if($cr->department_id == null) {
+                    $users = User::whereNull("status")->get();
+                    foreach($users as $user) {
+                        Mail::to($user)->send(new PublishDocumentEmail($cr));
+                    }
+                }
+                else {
+                    $users = User::whereNull("status")->where('department_id', $cr->department_id)->get();
+                    foreach($users as $user) {
+                        Mail::to($user)->send(new PublishDocumentEmail($cr));
+                    }
+                }
+
                 DB::commit();
 
                 return response()->json([
@@ -56,6 +72,19 @@ class PublishDocumentController extends Controller
                 $cr->published_at = null;
                 $cr->publish_at = Carbon::parse($request->publish_date)->startOfDay();
                 $cr->save();
+
+                if($cr->department_id == null) {
+                    $users = User::whereNull("status")->get();
+                    foreach($users as $user) {
+                        Mail::to($user)->later($cr->publish_at, new PublishDocumentEmail($cr));
+                    }
+                }
+                else {
+                    $users = User::whereNull("status")->where('department_id', $cr->department_id)->get();
+                    foreach($users as $user) {
+                        Mail::to($user)->later($cr->publish_at, new PublishDocumentEmail($cr));
+                    }
+                }
 
                 DB::commit();
 
