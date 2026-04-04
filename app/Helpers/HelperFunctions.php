@@ -92,30 +92,22 @@ function canView($permission)
     return false;
 }
 
-function canCreate($permissionKey)
+function canCreate($permission)
 {
-    if (!auth()->check()) return false;
+    if (auth()->user()->can($permission)) {
+        return true;
+    };
 
-    $role = auth()->user()->role ?? 'User';
-
-    $permission = RolePermission::where('role', $role)
-        ->where('permission_key', $permissionKey)
-        ->first();
-
-    return $permission && $permission->can_create === 'on';
+    return false;
 }
 
-function canEdit($permissionKey)
+function canEdit($permission)
 {
-    if (!auth()->check()) return false;
+    if (auth()->user()->can($permission)) {
+        return true;
+    };
 
-    $role = auth()->user()->role ?? 'User';
-
-    $permission = RolePermission::where('role', $role)
-        ->where('permission_key', $permissionKey)
-        ->first();
-
-    return $permission && $permission->can_edit === 'on';
+    return false;
 }
 
 function canApprove($permissionKey)

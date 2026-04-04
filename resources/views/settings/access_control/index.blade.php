@@ -27,7 +27,7 @@
                             <th>Module / Permission</th>
                             <th class="text-center" width="80">Create</th>
                             <th class="text-center" width="80">Read</th>
-                            <th class="text-center" width="80">Update</th>
+                            <th class="text-center" width="80">Edit</th>
                             <th class="text-center" width="80">Delete</th>
                         </tr>
                         {{-- All toggle row --}}
@@ -59,8 +59,12 @@
                         @foreach ($permissions as $module => $action)
                             @php
                                 $checkView = $user->hasPermissionTo($action['view']);
-                                // $checkCreate = $user->hasPermissionTo($action['create']);
-                                // $checkEdit   = $user->hasPermissionTo($action['edit']);
+                                if (isset($action['create'])) {
+                                    $checkCreate = $user->hasPermissionTo($action['create']);
+                                }
+                                if(isset($action['edit'])) {
+                                    $checkEdit   = $user->hasPermissionTo($action['edit']);
+                                }
                                 // $checkDelete = $user->hasPermissionTo($action['delete']);
                             @endphp
                             <tr>
@@ -70,27 +74,27 @@
                                 </td>
 
                                 <td class="text-center">
+                                    @if(isset($action['create']))
                                     <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                        <input class="form-check-input create-check" type="checkbox" role="switch">
-                                    </div>
-                                </td>
-
-                                <td class="text-center">
-                                    @if(isset($action['view']))
-                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                        <input class="form-check-input read-check"
-                                               type="checkbox" role="switch"
-                                               name="permission[]"
-                                               value="{{ $action['view'] }}"
-                                               {{ $action['view'] }}" @if($checkView) checked @endif>
+                                        <input class="form-check-input create-check" type="checkbox" role="switch" name="permission[]" value="{{ $action['create'] }}" {{ $action['create'] }} @if($checkCreate) checked @endif>
                                     </div>
                                     @endif
                                 </td>
 
                                 <td class="text-center">
+                                    @if(isset($action['view']))
                                     <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                        <input class="form-check-input update-check" type="checkbox" role="switch">
+                                        <input class="form-check-input read-check" type="checkbox" role="switch" name="permission[]" value="{{ $action['view'] }}" {{ $action['view'] }} @if($checkView) checked @endif>
                                     </div>
+                                    @endif
+                                </td>
+
+                                <td class="text-center">
+                                    @if(isset($action['edit']))
+                                        <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                            <input class="form-check-input update-check" type="checkbox" role="switch" name="permission[]" value="{{ $action['edit'] }}" {{ $action['edit'] }} @if($checkEdit) checked @endif>
+                                        </div>
+                                    @endif
                                 </td>
 
                                 <td class="text-center">
@@ -105,7 +109,7 @@
             </div>
 
             <div class="px-3 py-3 d-flex justify-content-end gap-2">
-                <a href="{{ url()->previous() }}" class="btn btn-secondary btn-sm">Cancel</a>
+                <a href="{{ url()->previous() }}" class="btn btn-danger btn-sm">Back</a>
                 <button type="submit" class="btn btn-success btn-sm" id="SaveBtn">
                     <i class="ri-save-line me-1"></i> Save Access
                 </button>

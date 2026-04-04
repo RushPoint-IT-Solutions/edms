@@ -50,13 +50,16 @@ class RoleController extends Controller
 
         $data = [];
         foreach ($items as $role) {
-            $actions = '
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
-                    <ul class="dropdown-menu">
-                        <li><button class="dropdown-item" id="EditBtn" data-bs-toggle="modal" data-bs-target="#edit' . $role->id . '" data-id="'.$role->id.'"><i class="ri-edit-box-line me-2"></i>Edit</button></li>
-                    </ul>
-                </div>';
+            $actions = '';
+            if(canEdit('roles.edit')) {
+                $actions = '
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                        <ul class="dropdown-menu">
+                            <li><button class="dropdown-item" id="EditBtn" data-bs-toggle="modal" data-bs-target="#edit' . $role->id . '" data-id="'.$role->id.'"><i class="ri-edit-box-line me-2"></i>Edit</button></li>
+                        </ul>
+                    </div>';
+            }
 
             $data[] = [
                 'action' => $actions,

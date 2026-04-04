@@ -23,9 +23,11 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0">Roles</h5>
+                @if(canCreate('roles.create'))
                 <button class="btn btn-first btn-sm" data-bs-toggle="modal" data-bs-target="#new">
                     <i class="fa fa-plus"></i> Add New Role
                 </button>
+                @endif
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">

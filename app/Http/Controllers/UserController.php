@@ -97,33 +97,45 @@ class UserController extends Controller
                 ? '<span class="badge-status inactive badge bg-danger">Inactive</span>' 
                 : '<span class="badge-status active badge bg-success">Active</span>';
 
-            $actions = '<div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                    <i class="ri-more-2-fill"></i>
-                </button>
-                <ul class="dropdown-menu">';
-            
-            if ($user->status) {
-                $actions .= '<li><button class="dropdown-item activate-user" data-id="'.$user->id.'">
-                    <i class="ri-check-line me-2"></i>Activate</button></li>';
-            } else {
-                $actions .= '<li><button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass'.$user->id.'" data-id='.$user->id.'>
-                    <i class="ri-key-line me-2"></i>Change Password</button></li>';
-                $actions .= '<li>
-                                <a href="' . url('/users/access-control/'.$user->id) . '" class="dropdown-item" id="accessControlBtn'.$user->id.'">
-                                    <i class="ri-user-settings-line"></i> Access Control
-                                </a>
-                            </li>';
-                $actions .= '<li><button class="dropdown-item edit" type="button" id="editUserBtn">
-                    <i class="ri-pencil-line me-2"></i>Edit</button></li>';
+            $actions = "";
+            if(canEdit('users.edit') || canView('access_control.view')) {
+                $actions = '<div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">';
                 
-                if(auth()->user()->id != $user->id) {
-                    $actions .= '<li><button class="dropdown-item deactivate-user" data-id="'.$user->id.'">
-                        <i class="ri-close-line me-2"></i>Deactivate</button></li>';
+                if ($user->status) {
+                    if(canEdit('users.edit')) {
+                        $actions .= '<li><button class="dropdown-item activate-user" data-id="'.$user->id.'">
+                            <i class="ri-check-line me-2"></i>Activate</button></li>';
+                    }
+                } else {
+                    if(canEdit('users.edit')) {
+                        $actions .= '<li><button class="dropdown-item change-pass" data-bs-toggle="modal" data-bs-target="#change_pass'.$user->id.'" data-id='.$user->id.'>
+                            <i class="ri-key-line me-2"></i>Change Password</button></li>';
+                    }
+                    if(canView('access_control.view')) {
+                        $actions .= '<li>
+                                        <a href="' . url('/users/access-control/'.$user->id) . '" class="dropdown-item" id="accessControlBtn'.$user->id.'">
+                                            <i class="ri-user-settings-line"></i> Access Control
+                                        </a>
+                                    </li>';
+                    }
+                    if(canEdit('users.edit')) {
+                        $actions .= '<li><button class="dropdown-item edit" type="button" id="editUserBtn">
+                            <i class="ri-pencil-line me-2"></i>Edit</button></li>';
+                    }
+                    if(canEdit('users.edit')) {
+                        if(auth()->user()->id != $user->id) {
+                            $actions .= '<li><button class="dropdown-item deactivate-user" data-id="'.$user->id.'">
+                                <i class="ri-close-line me-2"></i>Deactivate</button></li>';
+                        }
+                    }
                 }
+                
+                $actions .= '</ul></div>';
             }
-            
-            $actions .= '</ul></div>';
 
             $data[] = [
                 'name' => ($user->name ?? 'N/A'),
@@ -302,6 +314,7 @@ class UserController extends Controller
 
     public function updateAccessControl(Request $request)
     {
+        // dd($request->all());
         try {
             $user = User::findOrFail($request->user_id);
             if ($request->has('permission')) {
