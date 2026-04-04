@@ -1640,7 +1640,16 @@
 
                         @php
                             $forApprovalActive = Request::is('for-approval*') || Request::is('for-request-access*');
+
+                            $docApprovalsCount   = \App\RequestApprover::where('user_id', auth()->id())
+                                                        ->where('status', 'Pending')
+                                                        ->count();
+
+                            $accessRequestsCount = \App\DocumentRequestAccess::where('status', 'Pending')->count(); 
+
+                            $totalForApprovalCount = $docApprovalsCount + $accessRequestsCount;
                         @endphp
+
                         @if(canView('document_approvals.view') || canView("access_request.view"))
                         <li class="nav-item {{ $forApprovalActive ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ $forApprovalActive ? '' : 'collapsed' }}"
@@ -1649,6 +1658,9 @@
                             aria-controls="sidebarForApproval">
                                 <i class="ri-checkbox-line"></i>
                                 <span data-key="t-for-approval">For Approval</span>
+                                @if($totalForApprovalCount > 0)
+                                    <span class="badge bg-warning rounded-pill ms-2">{{ $totalForApprovalCount }}</span>
+                                @endif
                             </a>
                             <div class="menu-dropdown collapse {{ $forApprovalActive ? 'show' : '' }}" id="sidebarForApproval">
                                 <ul class="nav nav-sm flex-column">
@@ -1657,7 +1669,10 @@
                                         <a href="{{ url('/for-approval') }}"
                                         class="nav-link {{ Request::is('for-approval*') ? 'active' : '' }}"
                                         data-key="t-approval-documents">
-                                        Document Approvals
+                                            Document Approvals
+                                            @if($docApprovalsCount > 0)
+                                                <span class="badge bg-warning rounded-pill float-end">{{ $docApprovalsCount }}</span>
+                                            @endif
                                         </a>
                                     </li>
                                     @endif
@@ -1666,7 +1681,10 @@
                                         <a href="{{ url('/for-request-access') }}"
                                         class="nav-link {{ Request::is('for-request-access*') ? 'active' : '' }}"
                                         data-key="t-for-request-access">
-                                        Access Requests
+                                            Access Requests
+                                            @if($accessRequestsCount > 0)
+                                                <span class="badge bg-warning rounded-pill float-end">{{ $accessRequestsCount }}</span>
+                                            @endif
                                         </a>
                                     </li>
                                     @endif
