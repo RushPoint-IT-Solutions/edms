@@ -83,6 +83,17 @@ function getUnreadCommentNotifications()
         ->get();
 }
 
+function getUnreadPublishedNotifications()
+{
+    return UserNotification::with('change_request')
+        ->where('user_id', auth()->id())
+        ->where('type', 'published')
+        ->whereNull('read_at')
+        ->latest()
+        ->get()
+        ->filter(fn($n) => $n->change_request !== null);
+}
+
 function canView($permission)
 {
     if (auth()->user()->can($permission)) {

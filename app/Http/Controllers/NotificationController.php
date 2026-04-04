@@ -12,7 +12,7 @@ class NotificationController extends Controller
     public function markRead(Request $request)
     {
         $request->validate([
-            'type' => 'required|string|in:due_date,draft,pending_approval,comment',
+            'type' => 'required|string|in:due_date,draft,pending_approval,comment,published', // ADDED published
             'change_request_id' => 'required|integer',
         ]);
 
@@ -40,7 +40,7 @@ class NotificationController extends Controller
     public function markAllRead(Request $request)
     {
         $request->validate([
-            'type' => 'required|string|in:due_date,draft,pending_approval,comment,bell,all',
+            'type' => 'required|string|in:due_date,draft,pending_approval,comment,published,bell,all',
         ]);
 
         $userId = auth()->id();
@@ -48,10 +48,10 @@ class NotificationController extends Controller
 
         switch ($type) {
             case 'all':
-                $types = ['due_date', 'draft', 'pending_approval', 'comment'];
+                $types = ['due_date', 'draft', 'pending_approval', 'comment', 'published'];
                 break;
             case 'bell':
-                $types = ['due_date', 'draft', 'comment'];
+                $types = ['due_date', 'draft', 'comment', 'published'];
                 break;
             default:
                 $types = [$type];
@@ -85,6 +85,12 @@ class NotificationController extends Controller
             } elseif ($t === 'comment') {
                 $ids = UserNotification::where('user_id', $userId)
                     ->where('type', 'comment')
+                    ->whereNull('read_at')
+                    ->pluck('change_request_id');
+
+            } elseif ($t === 'published') {
+                $ids = UserNotification::where('user_id', $userId)
+                    ->where('type', 'published')
                     ->whereNull('read_at')
                     ->pluck('change_request_id');
             }
