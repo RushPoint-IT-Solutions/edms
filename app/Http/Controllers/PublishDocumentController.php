@@ -24,6 +24,7 @@ class PublishDocumentController extends Controller
             'change_request_id' => 'required|exists:change_requests,id',
             'publish_type' => 'required|in:immediate,scheduled',
             'publish_date' => 'sometimes|nullable|date|after_or_equal:today',
+            'display_until' => 'sometimes|nullable|date|after_or_equal:today',
         ]);
 
         if ($request->publish_type === 'scheduled' && empty($request->publish_date)) {
@@ -48,6 +49,9 @@ class PublishDocumentController extends Controller
             if ($request->publish_type === 'immediate') {
                 $cr->published_at = Carbon::now();
                 $cr->publish_at = null;
+                $cr->display_until = $request->display_until
+                    ? Carbon::parse($request->display_until)->endOfDay()
+                    : null;
                 $cr->save();
 
                 if($cr->department_id == null) {
@@ -77,6 +81,9 @@ class PublishDocumentController extends Controller
             } else {
                 $cr->published_at = null;
                 $cr->publish_at = Carbon::parse($request->publish_date)->startOfDay();
+                $cr->display_until = $request->display_until
+                    ? Carbon::parse($request->display_until)->endOfDay()
+                    : null;
                 $cr->save();
 
                 if($cr->department_id == null) {

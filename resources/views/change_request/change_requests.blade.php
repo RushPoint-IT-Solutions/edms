@@ -242,7 +242,13 @@
                 <input type="hidden" id="publishChangeRequestId">
                 <input type="hidden" id="publishDocumentId">
 
-                Title: <span class="text-muted" id="publishDocSubtitle" style="font-size:0.85rem;"></span>
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" 
+                        id="publishDocSubtitle" 
+                        class="form-control form-control-sm" 
+                        readonly>
+                </div>
 
                 <div class="mt-4 mb-3">
                     <label class="form-label fw-semibold" for="publishTimingSelect">Publish When?</label>
@@ -259,6 +265,17 @@
                         class="form-control form-control-sm"
                         min="{{ date('Y-m-d', strtotime('+1 day')) }}">
                     <div class="form-text">The document will become visible on the date you set.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="displayUntil">
+                        Display Until <small class="text-muted fw-normal">(optional)</small>
+                    </label>
+                    <input type="date"
+                        id="displayUntil"
+                        class="form-control form-control-sm"
+                        min="{{ date('Y-m-d', strtotime('+1 day')) }}">
+                    <div class="form-text">Leave blank to display indefinitely.</div>
                 </div>
 
             </div>
@@ -559,7 +576,8 @@ $(document).on('click', '.publish-doc-btn', function (e) {
     $('#publishDate').val('');
     $('#publishChangeRequestId').val(crId);
     $('#publishDocumentId').val(docId);
-    $('#publishDocSubtitle').text(docTitle);
+    $('#publishDocSubtitle').val(docTitle);
+    $('#displayUntil').val('');
 
     new bootstrap.Modal(document.getElementById('publishDocModal')).show();
 });
@@ -581,6 +599,7 @@ function submitPublish() {
     var crId = $('#publishChangeRequestId').val();
     var publishType = _publishType;
     var publishDate = $('#publishDate').val();
+    var displayUntil = $('#displayUntil').val();
 
     if (publishType === 'scheduled' && !publishDate) {
         Swal.fire({ icon: 'warning', title: 'Date required', text: 'Please select a publish date.', confirmButtonColor: '#0d6efd' });
@@ -598,6 +617,7 @@ function submitPublish() {
                 _token: '{{ csrf_token() }}',
                 change_request_id: crId,
                 publish_type: publishType,
+                display_until: displayUntil || null,
             };
             if (publishDate) payload.publish_date = publishDate;
             return payload;
