@@ -177,7 +177,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom">
-                <h5 class="modal-title mb-2"><i class="ri-upload-line me-2"></i>Upload Sign Document</h5>
+                <h5 class="modal-title mb-2"><i class="ri-upload-line me-2"></i>Upload Document</h5>
                 <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" id="sharedUploadSignDocumentForm">
@@ -191,7 +191,7 @@
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Remarks</label>
-                            <textarea name="remarks" class="form-control" rows="4" placeholder="Add any remarks..."></textarea>
+                            <textarea name="remarks" class="form-control" rows="20" placeholder="Add any remarks..."></textarea>
                         </div>
                     </div>
                 </div>

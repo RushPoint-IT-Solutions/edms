@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom">
-                <h5 class="modal-title mb-2">Upload sign document</h5>
+                <h5 class="modal-title mb-2"><i class="ri-upload-line me-2"></i>Upload Document</h5>
                 <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" id="uploadSignDocumentForm">
@@ -19,7 +19,7 @@
                         </div>
                         <div class="col-md-12">
                             <label for="">Remarks</label>
-                            <textarea name="remarks" class="form-control" cols="30" rows="10"></textarea>
+                            <textarea name="remarks" class="form-control" cols="20" rows="10"></textarea>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
