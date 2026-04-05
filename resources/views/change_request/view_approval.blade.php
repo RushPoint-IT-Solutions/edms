@@ -215,7 +215,7 @@
                         </a> --}}
                         @if($approver->request_type == "For Receiving")
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadSignDocument{{ $change_request->id }}">
-                            <i class="ri-quill-pen-line me-1"></i> Upload sign documents
+                            <i class="ri-quill-pen-line me-1"></i> Upload documents
                         </button>
                         @else
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmPassword{{ $change_request->id }}">
