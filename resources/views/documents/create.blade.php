@@ -408,17 +408,14 @@ function countToWords(value) {
 function prepareSubmit(event) {
     event.preventDefault();
 
-    $('select[name="approvers[]"]').trigger('chosen:updated');
-
     const selectedStatus = document.querySelector('select[name="status"]').value;
     const isApproved = selectedStatus === 'Approved';
 
-    const approverSelects = document.querySelectorAll('[name="approvers[]"]');
+    const approverRows = document.querySelectorAll('.approver-row');
     let hasApprover = false;
-    approverSelects.forEach(s => { if (s.value) hasApprover = true; });
-
-    $('.chosen-select, [class^="chosen-select-"]').each(function() {
-        $(this).trigger('chosen:updated');
+    approverRows.forEach(row => {
+        const userSelect = row.querySelector('[name="approvers[]"]');
+        if (userSelect && ($(userSelect).val() || userSelect.value)) hasApprover = true;
     });
 
     if (isApproved) {
@@ -447,29 +444,24 @@ function prepareSubmit(event) {
     }
 
     const signatureData = [];
-    const pdfContainer  = document.getElementById('pdf-container');
-
-    document.querySelectorAll('[name="approvers[]"]').forEach(sel => {
-        $(sel).trigger('chosen:updated');
-    });
+    const pdfContainer = document.getElementById('pdf-container');
 
     Object.keys(approverBoxes).forEach(level => {
         approverBoxes[level].forEach(box => {
             const btn = document.querySelector(`.place-signature-btn[data-level="${level}"]`);
             if (!btn) return;
             const approverRow = btn.closest('.approver-row');
-            const userId = approverRow.querySelector('[name="approvers[]"]').value;
-            
+            const userSelect = approverRow.querySelector('[name="approvers[]"]');
+            const userId = $(userSelect).val() || userSelect.value;
             if (!userId) return;
+
             const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
             let pageNumber = 1, cumulativeHeight = 0;
             const boxTop = parseFloat(box.style.top);
-
             for (let i = 0; i < canvases.length; i++) {
                 if (boxTop < cumulativeHeight + canvases[i].height) { pageNumber = i + 1; break; }
                 cumulativeHeight += canvases[i].height + 10;
             }
-
             signatureData.push({
                 user_id: userId, page_number: pageNumber,
                 x_position: parseFloat(box.style.left) / scale,
@@ -479,12 +471,52 @@ function prepareSubmit(event) {
         });
     });
 
-    const dataSignature = document.getElementById('signature-positions-input');
-    dataSignature.value = JSON.stringify(signatureData);
+    document.getElementById('signature-positions-input').value = JSON.stringify(signatureData);
 
-    if (dataSignature.value === '[]') {
+    let missingSignatureFor = null;
+
+    approverRows.forEach(row => {
+        if (missingSignatureFor) return;
+
+        const roleSelect = row.querySelector('[name="approver_roles[]"]');
+        const userSelect = row.querySelector('[name="approvers[]"]');
+        const btn = row.querySelector('.place-signature-btn');
+        const badge = row.querySelector('.approver-level');
+
+        if (!roleSelect || !userSelect) return;
+
+        const role = roleSelect.value;
+        const userId = $(userSelect).val() || userSelect.value;
+
+        if (role !== 'For Signature' || !userId) return;
+
+        const level = btn ? String(btn.dataset.level) : (badge ? badge.textContent.trim() : null);
+        if (!level) return;
+
+        const hasBox = approverBoxes[level] && approverBoxes[level].length > 0;
+        if (!hasBox) {
+            let userName = $(userSelect).find('option:selected').text().trim();
+            if (!userName || userName === '-- Select Signatories --' || userName === '-- Select Approver --') {
+                userName = `Approver ${level}`;
+            }
+            missingSignatureFor = userName;
+        }
+    });
+
+    if (missingSignatureFor) {
         Swal.fire({
-            icon: 'warning', title: 'Signature Placement Required',
+            icon: 'warning',
+            title: 'Signature Placement Required',
+            html: `Please place a signature box on the document for <strong>${missingSignatureFor}</strong> before submitting.`,
+            confirmButtonColor: '#0ab39c'
+        });
+        return false;
+    }
+
+    if (signatureData.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Signature Placement Required',
             text: 'Please place at least one signature box on the document before submitting.',
             confirmButtonColor: '#0ab39c'
         });
@@ -601,8 +633,8 @@ document.addEventListener('DOMContentLoaded', function () {
         makeDraggable(sigBox);
         pdfContainer.appendChild(sigBox);
 
-        if (!approverBoxes[level]) approverBoxes[level] = [];
-        approverBoxes[level].push(sigBox);
+        if (!approverBoxes[String(level)]) approverBoxes[String(level)] = [];
+        approverBoxes[String(level)].push(sigBox);
     }
 
     function makeDraggable(el) {
@@ -715,15 +747,16 @@ document.addEventListener('DOMContentLoaded', function () {
             row.querySelector('.approver-level').textContent = level;
             row.querySelector('.place-signature-btn').dataset.level = level;
 
-            if (oldLevel && approverBoxes[oldLevel]) {
-                approverBoxes[level] = approverBoxes[oldLevel];
+            if (oldLevel && String(oldLevel) !== String(level) && approverBoxes[oldLevel]) {
+                approverBoxes[String(level)] = approverBoxes[oldLevel];
                 delete approverBoxes[oldLevel];
-                approverBoxes[level].forEach(box => {
-                    box.dataset.level = level;
+                approverBoxes[String(level)].forEach(box => {
+                    box.dataset.level = String(level);
                     box.querySelector('.box-number').textContent = level;
                 });
             }
-            row.dataset.oldLevel = level;
+
+            row.dataset.oldLevel = String(level);
         });
     }
 
@@ -773,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (e.target.closest('.place-signature-btn')) {
             const btn = e.target.closest('.place-signature-btn');
-            placingLevel = btn.dataset.level;
+            placingLevel = String(btn.dataset.level);
             document.querySelectorAll('.place-signature-btn').forEach(b => {
                 b.classList.remove('btn-warning');
                 b.classList.add('btn-success');

@@ -658,6 +658,7 @@ class RequestController extends Controller
                             <li>
                                 <a href="javascript:void(0)" 
                                     class="dropdown-item ' . $disabledClass . '"
+                                    ' . ($isMyTurn ? 'onclick="openUploadModal(' . $cr->id . ')"' : '') . '
                                     ' . $disabledAttr . '
                                     title="' . (!$isMyTurn ? 'Not your turn yet' : 'Upload document') . '">
                                     <i class="ri-upload-line me-2"></i>Upload Document
