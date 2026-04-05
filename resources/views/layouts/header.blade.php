@@ -1829,7 +1829,7 @@
                         </li>
                         @endif
 
-                        @if((auth()->user()->role == 'Administrator'))
+                        @if(canView('users.view') || canView('roles.view') || canView('system_configuration.view'))
                             <li class="menu-title"><span data-key="t-menu">ADMIN</span></li>
                         @endif
 
