@@ -78,11 +78,11 @@
 </div>
 
 <div class="modal fade" id="sharedConfirmPasswordModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header border-bottom">
-                <h5 class="modal-title mb-3"><i class="ri-lock-line me-2"></i>Confirm Password</h5>
-                <button type="button" class="btn-close mb-3" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title mb-2"><i class="ri-lock-line me-2"></i>Confirm Password</h5>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="signChangeRequestId">
@@ -93,8 +93,8 @@
                 <div id="signError" class="text-danger small d-none">Incorrect password. Please try again.</div>
             </div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary mt-3" id="signConfirmBtn">
+                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary mt-2" id="signConfirmBtn">
                     <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
                 </button>
             </div>
@@ -103,13 +103,13 @@
 </div>
 
 <div class="modal fade" id="sharedReturnModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="POST" id="returnForm" action="">
                 @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="ri-arrow-go-back-line me-2"></i>Return Document</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title mb-2"><i class="ri-arrow-go-back-line me-2"></i>Return Document</h5>
+                    <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="action" value="Returned">
@@ -120,9 +120,9 @@
                             placeholder="Please provide reason for returning..." required></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary mt-2">
                         <i class="ri-arrow-go-back-line me-1"></i>Return Document
                     </button>
                 </div>
