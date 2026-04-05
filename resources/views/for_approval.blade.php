@@ -173,6 +173,38 @@
 @include('copy_request.view_approval_copy')
 @endforeach --}}
 
+<div class="modal fade" id="sharedUploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title mb-2"><i class="ri-upload-line me-2"></i>Upload Sign Document</h5>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="sharedUploadSignDocumentForm">
+                @csrf
+                <input type="hidden" name="id" value="">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Attachments <span class="text-danger">*</span></label>
+                            <input type="file" name="sign_document" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Remarks</label>
+                            <textarea name="remarks" class="form-control" rows="4" placeholder="Add any remarks..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-sm btn-secondary" id="UploadSignDocsBtn">
+                        <i class="ri-upload-line me-1"></i>Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('js')
@@ -322,6 +354,49 @@ document.getElementById('signConfirmBtn').addEventListener('click', function () 
     .catch(() => {
         document.getElementById('signError').textContent = 'An error occurred. Please try again.';
         document.getElementById('signError').classList.remove('d-none');
+    });
+});
+
+function openUploadModal(changeRequestId) {
+    $('#sharedUploadSignDocumentForm input[name="id"]').val(changeRequestId);
+    $('#sharedUploadSignDocumentForm input[name="sign_document"]').val('');
+    $('#sharedUploadSignDocumentForm textarea[name="remarks"]').val('');
+    $('#sharedUploadModal').modal('show');
+}
+
+$('#sharedUploadSignDocumentForm').on('submit', function(e) {
+    e.preventDefault();
+
+    var formData = new FormData(this);
+    var btn = $('#UploadSignDocsBtn');
+    btn.prop('disabled', true).text('Uploading...');
+
+    $.ajax({
+        url: "{{ url('change-request/upload-sign-documents') }}",
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            $('#sharedUploadModal').modal('hide');
+            Swal.fire({
+                icon: 'success',
+                title: 'Uploaded!',
+                text: res.message,
+                confirmButtonColor: '#0ab39c'
+            }).then(function() {
+                $('#changeApprovalTable').DataTable().ajax.reload(null, false);
+            });
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON?.errors?.sign_document?.[0] 
+                   ?? xhr.responseJSON?.message 
+                   ?? 'Something went wrong.';
+            Swal.fire({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#dc3545' });
+        },
+        complete: function() {
+            btn.prop('disabled', false).html('<i class="ri-upload-line me-1"></i>Upload');
+        }
     });
 });
 
