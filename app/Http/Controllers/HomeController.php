@@ -283,7 +283,7 @@ class HomeController extends Controller
         $request->validate([
             'user_id' => 'numeric',
             'reason' => 'string|required',
-            'date' => 'required|date'
+            'date' => 'nullable|date'
         ]);
 
         $document_request_access = DocumentRequestAccess::where("change_request_id", $id)->where("status", 0)->first();
