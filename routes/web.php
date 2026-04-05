@@ -97,6 +97,8 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('deactivate-user', 'UserController@deactivate_user')->name('settings');
             Route::post('activate-user', 'UserController@activate_user')->name('settings');
             Route::post('/access-control/update', 'UserController@updateAccessControl')->name('access-control.update');
+
+            Route::get('/access-control/{id}/json', 'UserController@accessControlJson')->name('access-control.json');
         });
 
         // Type of Documents
