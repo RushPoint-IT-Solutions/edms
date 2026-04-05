@@ -223,13 +223,12 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom">
-                <h5 class="modal-title fw-semibold" id="vatTitle"></h5>
+                <h3 class="modal-title fw-semibold" id="vatTitle"></h3>
                 <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="vatBody"></div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-danger mt-2" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success mt-2" data-bs-dismiss="modal">Okay</button>
+                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
