@@ -1310,7 +1310,7 @@ class RequestController extends Controller
         //
     }
 
-    public function action(Request $request,$id)
+    public function action(Request $request, $id)
     {
         // dd($request->all());
         try {
@@ -1318,11 +1318,13 @@ class RequestController extends Controller
 
             if ($request->action == "Submit")
             {
-                $changeRequestApprover = RequestApprover::where('change_request_id', $id)->where('status', 'Returned')->first();
+                $changeRequestApprover = RequestApprover::where('change_request_id', $id)
+                    ->where('status', 'Returned')
+                    ->first();
                 $changeRequestApprover->status = "Pending";
                 $changeRequestApprover->save();
 
-                $changeRequest = ChangeRequest::with("requestTypeList")->findOrfail($id);
+                $changeRequest = ChangeRequest::with("requestTypeList")->findOrFail($id);
                 $changeRequest->status = "Pending";
                 $changeRequest->save();
 
@@ -1332,22 +1334,27 @@ class RequestController extends Controller
                 return redirect('/change-requests');
             }
 
-            $changeRequestApprover = RequestApprover::where('change_request_id', $id)->where('user_id', auth()->user()->id)->first();
+            $changeRequestApprover = RequestApprover::where('change_request_id', $id)
+                ->where('user_id', auth()->user()->id)
+                ->first();
             $changeRequestApprover->status = $request->action;
             $changeRequestApprover->remarks = $request->remarks;
+            $changeRequestApprover->date_approved = date("Y-m-d H:i:s");
             $changeRequestApprover->save();
 
-            $requestApprover = RequestApprover::where('change_request_id',$changeRequestApprover->change_request_id)
-            ->where(function ($query) {
-                $query->where('status', 'Waiting')
-                    ->orWhere('status', 'Returned');
-            })
-            ->orderBy('level','asc')->first();
-            
-            $changeRequest = ChangeRequest::with("requestTypeList")->findOrfail($id);
-            if($request->action == "Approved")
+            $changeRequest = ChangeRequest::with("requestTypeList")->findOrFail($id);
+
+            if ($request->action == "Approved")
             {
-                if($requestApprover == null)
+                $requestApprover = RequestApprover::where('change_request_id', $changeRequestApprover->change_request_id)
+                    ->where(function ($query) {
+                        $query->where('status', 'Waiting')
+                            ->orWhere('status', 'Returned');
+                    })
+                    ->orderBy('level', 'asc')
+                    ->first();
+
+                if ($requestApprover == null)
                 {
                     $new_document = new Document;
                     $new_document->title = $changeRequest->title;
@@ -1356,22 +1363,20 @@ class RequestController extends Controller
                     $new_document->user_id = $changeRequest->user_id;
                     $new_document->version = 0;
                     $new_document->date_approved = date('Y-m-d');
-                    $new_document->control_code = "DOC-".date('Y', strtotime($changeRequest->created_at)).'-'.str_pad($changeRequest->id,3,'0',STR_PAD_LEFT);
+                    $new_document->control_code = "DOC-" . date('Y', strtotime($changeRequest->created_at)) . '-' . str_pad($changeRequest->id, 3, '0', STR_PAD_LEFT);
                     $new_document->save();
 
                     $changeRequest->document_id = $new_document->id;
                     $changeRequest->control_code = $new_document->control_code;
                     $changeRequest->revision = 0;
                     $changeRequest->status = "Approved";
+
                     if ($request->hasFile('file'))
                     {
                         $modified_file = $request->file('file');
-                        $name = time().'_'.$modified_file->getClientOriginalName();
-                        $modified_file->move(public_path('attachment'),$name);
-
-                        $attachment = '/attachment/'.$name;
-
-                        $changeRequest->file = $attachment;
+                        $name = time() . '_' . $modified_file->getClientOriginalName();
+                        $modified_file->move(public_path('attachment'), $name);
+                        $changeRequest->file = '/attachment/' . $name;
                     }
                     $changeRequest->save();
 
@@ -1381,57 +1386,81 @@ class RequestController extends Controller
                     $document_attachment->type = "pdf_copy";
                     $document_attachment->save();
 
-                    foreach($changeRequest->requestTypeList as $requestTypeList) {
+                    foreach ($changeRequest->requestTypeList as $requestTypeList)
+                    {
                         $document_type_list = new DocumentTypeList;
                         $document_type_list->document_id = $new_document->id;
                         $document_type_list->type = $requestTypeList->type;
                         $document_type_list->save();
                     }
+
+                    $comment = "<b>Update status: </b><span>" . $request->old_status . " &#x2192; " . $request->action . "</span> <br> Remarks : " . $request->remarks . "<br> ";
+                    $histories = new History;
+                    $histories->change_request_id = $changeRequest->id;
+                    $histories->comment = $comment;
+                    $histories->user_id = auth()->user()->id;
+                    $histories->save();
+
+                    DB::commit();
+
+                    try {
+                        $user = User::where('id', $changeRequest->user_id)->first();
+                        Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
+                    } catch (\Throwable $e) {
+                        Log::warning("Approval mail failed (non-critical): " . $e->getMessage());
+                    }
+
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Successfully Approved'
+                    ]);
                 }
                 else
                 {
                     $requestApprover->start_date = date('Y-m-d H:i:s');
                     $requestApprover->status = "Pending";
-                    $requestApprover->date_approved = date("Y-m-d H:i:s");
                     $requestApprover->save();
 
                     if ($request->hasFile('file'))
                     {
                         $modified_file = $request->file('file');
-                        $name = time().'_'.$modified_file->getClientOriginalName();
-                        $modified_file->move(public_path('attachment'),$name);
-                        $attachment = '/attachment/'.$name;
-
-                        $changeRequest->file = $attachment;
+                        $name = time() . '_' . $modified_file->getClientOriginalName();
+                        $modified_file->move(public_path('attachment'), $name);
+                        $changeRequest->file = '/attachment/' . $name;
                     }
-                    $changeRequest->level = $changeRequest->level+1;
+
+                    $changeRequest->level = $changeRequest->level + 1;
                     $changeRequest->save();
+
+                    $comment = "<b>Update status: </b><span>" . $request->old_status . " &#x2192; " . $request->action . "</span> <br> Remarks : " . $request->remarks . "<br> ";
+                    $histories = new History;
+                    $histories->change_request_id = $changeRequest->id;
+                    $histories->comment = $comment;
+                    $histories->user_id = auth()->user()->id;
+                    $histories->save();
+
+                    DB::commit();
+
+                    try {
+                        $user = User::where('id', $changeRequest->user_id)->first();
+                        Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
+                    } catch (\Throwable $e) {
+                        Log::warning("Approval mail failed (non-critical): " . $e->getMessage());
+                    }
+
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Successfully Approved'
+                    ]);
                 }
-                
-                $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
-                $histories = new History;
-                $histories->change_request_id = $changeRequest->id;
-                $histories->comment = $comment;
-                $histories->user_id = auth()->user()->id;
-                $histories->save();
-
-                $user = User::where('id',$changeRequest->user_id)->first();
-                Mail::to($user)->send(new ApprovedRequestEmail($changeRequest));
-                
-                DB::commit();
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Successfully Approved'
-                ]);
             }
-            elseif($request->action == "Returned")
+            elseif ($request->action == "Returned")
             {
                 $changeRequest->status = "Returned";
-                // $changeRequest->level = 1;
-                $changeRequest->save(); 
+                $changeRequest->save();
 
-                $comment = "<b>Update status: </b><span>".$request->old_status." &#x2192; ".$request->action."</span> <br> Remarks : ".$request->remarks."<br> ";
+                $comment = "<b>Update status: </b><span>" . $request->old_status . " &#x2192; " . $request->action . "</span> <br> Remarks : " . $request->remarks . "<br> ";
+
                 $comments = new Comment;
                 $comments->change_request_id = $changeRequest->id;
                 $comments->comment = $comment;
@@ -1444,17 +1473,23 @@ class RequestController extends Controller
                 $history->user_id = auth()->user()->id;
                 $history->save();
 
-                $user = User::where('id',$changeRequest->user_id)->first();
-                Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
                 DB::commit();
+
+                try {
+                    $user = User::where('id', $changeRequest->user_id)->first();
+                    Mail::to($user)->send(new ReturnedRequestEmail($changeRequest));
+                } catch (\Throwable $e) {
+                    Log::warning("Return mail failed (non-critical): " . $e->getMessage());
+                }
 
                 Alert::success('Successfully Returned')->persistent('Dismiss');
                 return redirect('/for-approval');
             }
+
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error("There is an error in action of change request: ". $e->getMessage());
-            
+            Log::error("There is an error in action of change request: " . $e->getMessage());
+
             Alert::error('There is an error in approval')->persistent('Dismiss');
             return redirect("/for-approval");
         }

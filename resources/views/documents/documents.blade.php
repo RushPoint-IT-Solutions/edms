@@ -78,7 +78,7 @@
                     <i class="ri-share-line"></i>
                     Share Selected
                 </button>
-                @if(canDelete('documents'))
+                @if(canDelete('personal.delete_folder'))
                 <button class="bulk-delete-btn" id="bulkDeleteBtn">
                     <i class="ri-delete-bin-line"></i>
                     Delete Selected

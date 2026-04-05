@@ -263,8 +263,8 @@ class DocumentController extends Controller
             }
         }
 
-        $canEdit = canEdit('documents');
-        $canDelete = canDelete('documents');
+        $canEdit = canEdit('personal.edit_folder');
+        $canDelete = canDelete('personal.delete_folder');
 
         $gridHtml = '';
         foreach ($allFolders as $folder) {
@@ -1196,10 +1196,6 @@ class DocumentController extends Controller
 
     public function addFolder(Request $request)
     {
-        if (!canCreate('documents')) {
-            abort(403, 'Unauthorized');
-        }
-
         // dd($request->all());
         $folder = new DocumentFolder;
         $folder->name = $request->name;
