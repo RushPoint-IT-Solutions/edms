@@ -26,8 +26,8 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                    <button type="button" class="btn btn-sm btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-sm btn-primary mt-2">Submit</button>
                 </div>
             </form>
         </div>

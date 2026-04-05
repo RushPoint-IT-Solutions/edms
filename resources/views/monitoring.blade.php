@@ -210,8 +210,8 @@
                 <div id="dashboardSignError" class="text-danger small mt-2 d-none">Incorrect password. Please try again.</div>
             </div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary mt-2" id="dashboardSignConfirm">
+                <button type="button" class="btn btn-sm btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-primary mt-2" id="dashboardSignConfirm">
                     <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
                 </button>
             </div>
