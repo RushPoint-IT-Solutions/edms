@@ -198,7 +198,7 @@
 </div>
 
 <div class="modal fade" id="dashboardSignModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header border-bottom">
                 <h5 class="modal-title"><i class="ri-lock-line me-2 mb-2"></i>Confirm Password</h5>

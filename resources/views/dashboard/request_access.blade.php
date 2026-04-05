@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header border-bottom">
                 <h5 class="modal-title mb-2">
-                    <i class="ri ri-lock-line fs-7 text-muted me-2"></i>
+                    <i class="ri-lock-line me-2 mb-2"></i>
                     Request access
                 </h5>
                 <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
