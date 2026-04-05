@@ -297,6 +297,10 @@ class MonitoringController extends Controller
                     $q2->whereNotNull('publish_at')
                         ->where('publish_at', '<=', now());
                 });
+            })
+            ->where(function ($q) {
+                $q->whereNull('display_until')
+                ->orWhere('display_until', '>=', now());
             });
 
         if ($raw) {
@@ -377,6 +381,9 @@ class MonitoringController extends Controller
                     'office_name' => $officeName,
                     'is_restricted' => $isRestricted,
                     'access_departments' => $accessDeptList,
+                    'display_until' => $document->display_until
+                        ? \Carbon\Carbon::parse($document->display_until)->format('M d, Y')
+                        : null,
                 ];
             })->filter()->values();
 

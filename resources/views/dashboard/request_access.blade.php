@@ -1,4 +1,4 @@
-<div class="modal" id="requestAccess{{ $private_document->id }}">
+<div class="modal fade" id="requestAccess{{ $private_document->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom">
@@ -8,7 +8,7 @@
                 </h5>
                 <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ url("request_access/".$private_document->id) }}" method="post" onsubmit="show()">
+            <form action="{{ url("request_access/".$private_document->id) }}" method="post">
                 @csrf
 
                 <input type="hidden" name="user_id" value="{{ $private_document->user_id }}">

@@ -1618,7 +1618,9 @@
                                                         ->where('status', 'Pending')
                                                         ->count();
 
-                            $accessRequestsCount = \App\DocumentRequestAccess::where('status', 'Pending')->count(); 
+                            $accessRequestsCount = \App\DocumentRequestAccess::where('user_id', auth()->id())
+                                                        ->where('status', 'Pending')
+                                                        ->count(); 
 
                             $totalForApprovalCount = $docApprovalsCount + $accessRequestsCount;
                         @endphp

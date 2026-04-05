@@ -283,7 +283,7 @@ class HomeController extends Controller
         $request->validate([
             'user_id' => 'numeric',
             'reason' => 'string|required',
-            'date' => 'required|date'
+            'date' => 'nullable|date'
         ]);
 
         $document_request_access = DocumentRequestAccess::where("change_request_id", $id)->where("status", 0)->first();
@@ -425,8 +425,8 @@ class HomeController extends Controller
                                     </div>
                                 </div>
                                 <div class="modal-footer border-0 border-top pt-0">
-                                    <button type="button" class="btn btn-light mt-2" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-success mt-2 px-4"><i class="ri-check-line me-1"></i> Confirm Approve</button>
+                                    <button type="button" class="btn btn-sm btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-sm btn-primary mt-3 px-4"><i class="ri-check-line me-1"></i> Confirm Approve</button>
                                 </div>
                             </form>
                         </div>

@@ -228,7 +228,7 @@
             </div>
             <div class="modal-body" id="vatBody"></div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -482,7 +482,7 @@ function loadPrivateDocs() {
             const accessBadge = doc.has_valid_access
                 ? (doc.access_expiry
                     ? `<span class="priv-status-badge" style="--bc:#d1fae5;--tc:#065f46;"><i class="ri-calendar-check-line"></i> Until ${doc.access_expiry}</span>`
-                    : `<span class="priv-status-badge" style="--bc:#d1fae5;--tc:#065f46;"><i class="ri-infinity-line"></i> Indefinite Access</span>`)
+                    : `<span class="priv-status-badge" style="--bc:#d1fae5;--tc:#065f46;"><i class="ri-infinity-line"></i> Access</span>`)
                 : doc.has_pending_request
                 ? `<span class="priv-status-badge" style="--bc:#fff3e0;--tc:#92400e;"><i class="ri-time-line"></i> Awaiting Approval</span>`
                 : `<span class="priv-status-badge" style="--bc:#f1f3f5;--tc:#6c757d;"><i class="ri-lock-line"></i> No Access — Click to Request</span>`;
@@ -511,7 +511,6 @@ function loadPrivateDocs() {
                     <div class="flex-grow-1 overflow-hidden">
                         <h6 ${titleStyle}>${doc.title}</h6>
                         <div class="mt-1">${accessBadge}</div>
-                        <small class="text-muted d-block text-truncate mt-1" title="${doc.control_code}">${doc.control_code}</small>
                         <small class="text-muted d-block text-truncate">Owner: ${doc.owner_name}</small>
                     </div>
                     <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1"
@@ -598,6 +597,14 @@ function loadPublicDocs() {
                 ).join(' ')
                 : `<span class="badge bg-success-subtle text-success" style="font-size:0.62rem;">All Users</span>`;
 
+            const expiryBadge = doc.display_until
+                ? `<span class="priv-status-badge ms-1" style="--bc:#fef9c3;--tc:#854d0e;">
+                       <i class="ri-calendar-close-line"></i> Until ${doc.display_until}
+                   </span>`
+                : `<span class="priv-status-badge ms-1" style="--bc:#d1fae5;--tc:#065f46;">
+                       <i class="ri-infinity-line"></i> Indefinite
+                   </span>`;
+
             return `
             <li class="list-group-item px-2 py-2 priv-item pub-item"
                 style="border-left: 4px solid #3b82f6; border-radius: 6px; margin-bottom: 4px; cursor: ${cursor};"
@@ -612,8 +619,12 @@ function loadPublicDocs() {
                     </div>
                     <div class="flex-grow-1 overflow-hidden">
                         <h6 class="fs-14 mb-0 text-truncate fw-semibold text-dark">${doc.title}</h6>
-                        <div class="mt-1">
-                            <span class="priv-status-badge" style="--bc:#dbeafe;--tc:#1e40af;"><i class="ri-global-line"></i> Public</span>
+                        <div class="mt-1 d-flex flex-wrap gap-1">
+                            <span class="priv-status-badge" style="--bc:#dbeafe;--tc:#1e40af;">
+                                <i class="ri-global-line"></i> Public
+                            </span>
+                            ${expiryBadge}
+                            ${officeBadge}
                         </div>
                         <small class="text-muted d-block text-truncate mt-1">${doc.control_code}</small>
                     </div>

@@ -309,9 +309,19 @@ class RequestController extends Controller
                     : null,
             ])->values()->toJson();
 
-            $isPublished = $cr->document && $cr->document->public;
-            $publishLabel = $isPublished ? 'Re-publish / Update' : 'Publish Document';
-            $publishIcon  = $isPublished ? 'ri-refresh-line' : 'ri-send-plane-line';
+            $isPublished  = !is_null($cr->published_at) || (!is_null($cr->publish_at) && $cr->publish_at <= now());
+            $isScheduled  = !is_null($cr->publish_at) && $cr->publish_at > now();
+
+            if ($isPublished) {
+                $publishLabel = 'Published';
+                $publishIcon  = 'ri-checkbox-circle-line';
+            } elseif ($isScheduled) {
+                $publishLabel = 'Scheduled — ' . \Carbon\Carbon::parse($cr->publish_at)->format('M d, Y');
+                $publishIcon  = 'ri-calendar-check-line';
+            } else {
+                $publishLabel = 'Publish Document';
+                $publishIcon  = 'ri-send-plane-line';
+            }
             
             // $publishBtn = '';
             // if ($cr->status === 'Approved' && $cr->category === 'Public') {
@@ -375,17 +385,36 @@ class RequestController extends Controller
 
             if (canEdit('files.publish')) {
                 if ($cr->status === 'Approved' && $cr->category === 'Public') {
-                    $actions .= '
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item text-success publish-doc-btn" href="#"
-                            data-change-request-id="'.$cr->id.'"
-                            data-document-id="'.($cr->document_id ?? '').'"
-                            data-doc-title="'.e($cr->title).'"
-                            data-is-published="'.($isPublished ? '1' : '0').'">
-                            <i class="'.$publishIcon.' me-2"></i> '.$publishLabel.'
-                        </a>
-                    </li>';
+
+                    if ($isPublished) {
+                        $actions .= '
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <span class="dropdown-item text-success disabled" style="opacity:0.7;cursor:default;">
+                                <i class="' . $publishIcon . ' me-2"></i>' . $publishLabel . '
+                            </span>
+                        </li>';
+                    } elseif ($isScheduled) {
+                        $actions .= '
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <span class="dropdown-item text-warning disabled" style="opacity:0.7;cursor:default;">
+                                <i class="' . $publishIcon . ' me-2"></i>' . $publishLabel . '
+                            </span>
+                        </li>';
+                    } else {
+                        $actions .= '
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-success publish-doc-btn" href="#"
+                                data-change-request-id="' . $cr->id . '"
+                                data-document-id="' . ($cr->document_id ?? '') . '"
+                                data-doc-title="' . e($cr->title) . '"
+                                data-is-published="0">
+                                <i class="' . $publishIcon . ' me-2"></i>' . $publishLabel . '
+                            </a>
+                        </li>';
+                    }
                 }
             }
 
