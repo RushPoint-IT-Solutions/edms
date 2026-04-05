@@ -14,9 +14,11 @@
       <div class="nav-icon"><i class="ri-map-pin-line"></i></div>
       <div class="nav-label">Campus</div>
       <div class="nav-count">Manage campuses</div>
+      @if(canCreate('system_configuration.campus_create'))
       <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#newCampusModal">
         <i class="fa fa-plus"></i> New Campus
       </button>
+      @endif
     </div>
   </div>
   
@@ -25,9 +27,11 @@
       <div class="nav-icon"><i class="ri-community-line"></i></div>
       <div class="nav-label">Offices</div>
       <div class="nav-count">Manage offices</div>
+      @if(canCreate('system_configuration.office_create'))
       <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#new_department">
         <i class="fa fa-plus"></i> New Office
       </button>
+      @endif
     </div>
   </div>
   
@@ -47,9 +51,11 @@
       <div class="nav-icon"><i class="ri-file-text-line"></i></div>
       <div class="nav-label">Document Types</div>
       <div class="nav-count">Manage document types</div>
+      @if(canCreate('system_configuration.document_type_create'))
       <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#addDocumentTypeModal">
         <i class="fa fa-plus"></i> Add Type
       </button>
+      @endif
     </div>
   </div>
 
@@ -58,9 +64,11 @@
       <div class="nav-icon"><i class="ri-map-pin-line"></i></div>
       <div class="nav-label">Tags</div>
       <div class="nav-count">Manage tags</div>
+      @if(canCreate('system_configuration.tags_create'))
       <button class="btn btn-primary btn-sm mt-2 nav-card-btn" data-bs-toggle="modal" data-bs-target="#newTagModal">
         <i class="fa fa-plus"></i> New Tag
       </button>
+      @endif
     </div>
   </div>
   

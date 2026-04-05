@@ -128,9 +128,11 @@
                 @else
                 <h4 class="mb-0">My files</h4>
                 @endif
+                @if(canCreate('files.create'))
                 <a href="{{ route('documents.create') }}" class="btn btn-first btn-sm">
                     <i class="ri-file-add-line me-2"></i>New Request Document
                 </a>
+                @endif
             </div>
 
             <div class="card-body">

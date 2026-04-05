@@ -1,4 +1,4 @@
-@extends('layouts.header')
+{{-- @extends('layouts.header')
 
 @section('content')
 <div class="row mb-4">
@@ -30,7 +30,6 @@
                             <th class="text-center" width="80">Edit</th>
                             <th class="text-center" width="80">Delete</th>
                         </tr>
-                        {{-- All toggle row --}}
                         <tr class="table-secondary">
                             <td><strong>All</strong></td>
                             <td class="text-center">
@@ -118,9 +117,9 @@
     </div>
 </div>
 
-@endsection
+@endsection --}}
 
-@section('js')
+{{-- @section('js')
 <script src="{{ asset('js/ajaxRequest.js') }}"></script>
 <script>
 $(document).ready(function () {
@@ -190,4 +189,4 @@ $(document).ready(function () {
     // });
 });
 </script>
-@endsection
+@endsection --}}

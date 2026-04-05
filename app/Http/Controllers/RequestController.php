@@ -313,48 +313,59 @@ class RequestController extends Controller
             $publishLabel = $isPublished ? 'Re-publish / Update' : 'Publish Document';
             $publishIcon  = $isPublished ? 'ri-refresh-line' : 'ri-send-plane-line';
             
-            $publishBtn = '';
-            if ($cr->status === 'Approved' && $cr->category === 'Public') {
-                $publishBtn = '
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item text-success publish-doc-btn" href="#"
-                        data-change-request-id="'.$cr->id.'"
-                        data-document-id="'.($cr->document_id ?? '').'"
-                        data-doc-title="'.e($cr->title).'"
-                        data-is-published="'.($isPublished ? '1' : '0').'">
-                        <i class="'.$publishIcon.' me-2"></i> '.$publishLabel.'
-                    </a>
-                </li>';
-            }
+            // $publishBtn = '';
+            // if ($cr->status === 'Approved' && $cr->category === 'Public') {
+            //     $publishBtn = '
+            //     <li><hr class="dropdown-divider"></li>
+            //     <li>
+            //         <a class="dropdown-item text-success publish-doc-btn" href="#"
+            //             data-change-request-id="'.$cr->id.'"
+            //             data-document-id="'.($cr->document_id ?? '').'"
+            //             data-doc-title="'.e($cr->title).'"
+            //             data-is-published="'.($isPublished ? '1' : '0').'">
+            //             <i class="'.$publishIcon.' me-2"></i> '.$publishLabel.'
+            //         </a>
+            //     </li>';
+            // }
 
-            $resubmitBtn = '';
-            if ($cr->status === 'Returned' && (auth()->user()->role === 'Administrator' || $cr->user_id === auth()->id())) {
-                $resubmitBtn = '
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item text-warning" href="' . url('change-request/' . $cr->id . '/resubmit') . '">
-                        <i class="ri-edit-2-line me-2"></i> Resubmit Document
-                    </a>
-                </li>';
-            }
+            // $resubmitBtn = '';
+            // if ($cr->status === 'Returned' && (auth()->user()->role === 'Administrator' || $cr->user_id === auth()->id())) {
+            //     $resubmitBtn = '
+            //     <li><hr class="dropdown-divider"></li>
+            //     <li>
+            //         <a class="dropdown-item text-warning" href="' . url('change-request/' . $cr->id . '/resubmit') . '">
+            //             <i class="ri-edit-2-line me-2"></i> Resubmit Document
+            //         </a>
+            //     </li>';
+            // }
 
             $actions = '<div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
                     <i class="ri-more-2-fill"></i>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu">';
+
+            if(canView('files.view_status')) {
+                $actions .= '
                     <li>
                         <a class="dropdown-item" href="'.url('change-request/'.$cr->id).'">
                             <i class="ri-information-line me-2"></i> View Status
                         </a>
                     </li>
+                ';
+            }
+            if (canView('files.view_request')) {
+                $actions .= '
                     <li>
                         <a class="dropdown-item" href="'.url('change-request/view-change-request/'.$cr->id).'">
                             <i class="ri-eye-line me-2"></i> View Request
                         </a>
                     </li>
-                    '.($cr->status === 'For Revision' ? '
+                ';
+            }
+
+            if ($cr->status === "For Revision") {
+                $actions .= '
                     <li>
                         <a class="dropdown-item view-revision-status-btn" href="#"
                             data-doc-id="'.$docId.'"
@@ -367,11 +378,40 @@ class RequestController extends Controller
                             data-approvers-json=\''.htmlspecialchars($approversJson, ENT_QUOTES, 'UTF-8').'\'>
                             <i class="ri-git-branch-line me-2"></i> Revision Status
                         </a>
-                    </li>' : '').'
-                    '.$publishBtn.'
-                    '.$resubmitBtn.'
-                </ul>
-            </div>';
+                    </li>
+                ';
+            }
+
+            if (canEdit('files.publish')) {
+                if ($cr->status === 'Approved' && $cr->category === 'Public') {
+                    $actions .= '
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-success publish-doc-btn" href="#"
+                            data-change-request-id="'.$cr->id.'"
+                            data-document-id="'.($cr->document_id ?? '').'"
+                            data-doc-title="'.e($cr->title).'"
+                            data-is-published="'.($isPublished ? '1' : '0').'">
+                            <i class="'.$publishIcon.' me-2"></i> '.$publishLabel.'
+                        </a>
+                    </li>';
+                }
+            }
+
+            if ($cr->status === 'Returned' && (auth()->user()->role === 'Administrator' || $cr->user_id === auth()->id())) {
+                $actions .= '
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-warning" href="' . url('change-request/' . $cr->id . '/resubmit') . '">
+                        <i class="ri-edit-2-line me-2"></i> Resubmit Document
+                    </a>
+                </li>';
+            }
+
+            $actions .= "
+                    </ul>
+                </div>
+            ";       
 
             $privacy = $cr->departments->pluck('name')->implode(', ') ?: $cr->privacy;
             $category = '<div class="fw-semibold">' . e($cr->category) . '</div>';

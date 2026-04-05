@@ -53,30 +53,44 @@ class SystemConfigurationController extends Controller
         $totalFiltered = $query->count();
         $items = $query->orderBy('name')->skip($start)->take($length)->get();
         $data = [];
+
+        $actions = "";
         foreach ($items as $campus) {
+            $actions .= '
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">';
+                        if(canEdit('system_configuration.campus_edit')) {
+                            $actions .= '
+                                <li>
+                                    <button class="dropdown-item edit-campus"
+                                        data-id="' . $campus->id . '"
+                                        data-name="' . e($campus->name) . '">
+                                        <i class="ri-pencil-line me-2"></i>Edit
+                                    </button>
+                                </li>
+                            ';
+                        }
+                        if (canDelete('system_configuration.campus_delete')) {
+                            $actions .= '
+                                <li>
+                                    <button class="dropdown-item text-danger delete-campus"
+                                        data-id="' . $campus->id . '"
+                                        data-name="' . e($campus->name) . '">
+                                        <i class="ri-delete-bin-line me-2"></i>Delete
+                                    </button>
+                                </li>
+                            ';
+                        }
+            $actions .= '
+                    </ul>
+                </div>
+            '; 
+
             $data[] = [
-                'action' => '
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <button class="dropdown-item edit-campus"
-                                    data-id="' . $campus->id . '"
-                                    data-name="' . e($campus->name) . '">
-                                    <i class="ri-pencil-line me-2"></i>Edit
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item text-danger delete-campus"
-                                    data-id="' . $campus->id . '"
-                                    data-name="' . e($campus->name) . '">
-                                    <i class="ri-delete-bin-line me-2"></i>Delete
-                                </button>
-                            </li>
-                        </ul>
-                    </div>',
+                'action' => $actions,
                 'name' => '<strong>' . e($campus->name) . '</strong>',
             ];
         }
@@ -113,6 +127,7 @@ class SystemConfigurationController extends Controller
         $items = $query->orderBy('name')->skip($start)->take($length)->get();
 
         $data = [];
+        $actions = "";
         foreach ($items as $department) {
             $depHead = optional($department->dep_head)->name ?? '<span class="text-muted">-</span>';
 
@@ -121,19 +136,28 @@ class SystemConfigurationController extends Controller
                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
                         <i class="ri-more-2-fill"></i>
                     </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment' . $department->id . '">
-                                <i class="ri-pencil-line me-2"></i>Edit
-                            </button>
-                        </li>
-                        <li>
-                            <button class="dropdown-item text-danger delete-department"
-                                data-id="' . $department->id . '"
-                                data-name="' . e($department->name) . '">
-                                <i class="ri-delete-bin-line me-2"></i>Delete
-                            </button>
-                        </li>
+                    <ul class="dropdown-menu">';
+                    if(canEdit("system_configuration.office_edit")) {
+                        $actions .= '
+                            <li>
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDepartment' . $department->id . '">
+                                    <i class="ri-pencil-line me-2"></i>Edit
+                                </button>
+                            </li>
+                        ';
+                    }
+                    if (canDelete("system_configuration.office_delete")) {
+                        $actions .= '
+                            <li>
+                                <button class="dropdown-item text-danger delete-department"
+                                    data-id="' . $department->id . '"
+                                    data-name="' . e($department->name) . '">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete
+                                </button>
+                            </li>
+                        ';
+                    }
+            $actions .= '
                     </ul>
                 </div>';
 
@@ -153,79 +177,79 @@ class SystemConfigurationController extends Controller
         ]);
     }
 
-    public function getTeamsData(Request $request)
-    {
-        $draw = $request->get('draw');
-        $start = $request->get('start');
-        $length = $request->get('length');
-        $search = $request->get('search')['value'] ?? '';
-        $statusFilter = $request->get('status_filter');
+    // public function getTeamsData(Request $request)
+    // {
+    //     $draw = $request->get('draw');
+    //     $start = $request->get('start');
+    //     $length = $request->get('length');
+    //     $search = $request->get('search')['value'] ?? '';
+    //     $statusFilter = $request->get('status_filter');
 
-        $query = Team::with(['creator', 'department']);
+    //     $query = Team::with(['creator', 'department']);
 
-        $totalRecords = (clone $query)->count();
+    //     $totalRecords = (clone $query)->count();
 
-        if (!empty($statusFilter)) {
-            $query->where('status', $statusFilter === 'Active' ? 1 : 0);
-        }
+    //     if (!empty($statusFilter)) {
+    //         $query->where('status', $statusFilter === 'Active' ? 1 : 0);
+    //     }
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                  ->orWhereHas('creator', function ($q2) use ($search) {
-                      $q2->where('name', 'like', "%$search%");
-                  });
-            });
-        }
+    //     if (!empty($search)) {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('name', 'like', "%$search%")
+    //               ->orWhereHas('creator', function ($q2) use ($search) {
+    //                   $q2->where('name', 'like', "%$search%");
+    //               });
+    //         });
+    //     }
 
-        $totalFiltered = $query->count();
-        $items = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
+    //     $totalFiltered = $query->count();
+    //     $items = $query->orderBy('id', 'desc')->skip($start)->take($length)->get();
 
-        $data = [];
-        foreach ($items as $team) {
-            $createdBy = $team->creator
-                ? $team->creator->name . '<br><small class="text-muted">' . $team->created_at->format('M d, Y') . '</small>'
-                : 'Unknown';
+    //     $data = [];
+    //     foreach ($items as $team) {
+    //         $createdBy = $team->creator
+    //             ? $team->creator->name . '<br><small class="text-muted">' . $team->created_at->format('M d, Y') . '</small>'
+    //             : 'Unknown';
 
-            $department = optional($team->department)->name ?? '<span class="text-muted">-</span>';
+    //         $department = optional($team->department)->name ?? '<span class="text-muted">-</span>';
 
-            $actions = '
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                        <i class="ri-more-2-fill"></i>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam' . $team->id . '">
-                                <i class="ri-pencil-line me-2"></i>Edit
-                            </button>
-                        </li>
-                        <li>
-                            <button class="dropdown-item text-danger delete-team"
-                                data-id="' . $team->id . '"
-                                data-name="' . e($team->name) . '">
-                                <i class="ri-delete-bin-line me-2"></i>Delete
-                            </button>
-                        </li>
-                    </ul>
-                </div>';
+    //         $actions = '
+    //             <div class="dropdown">
+    //                 <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+    //                     <i class="ri-more-2-fill"></i>
+    //                 </button>
+    //                 <ul class="dropdown-menu">
+    //                     <li>
+    //                         <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTeam' . $team->id . '">
+    //                             <i class="ri-pencil-line me-2"></i>Edit
+    //                         </button>
+    //                     </li>
+    //                     <li>
+    //                         <button class="dropdown-item text-danger delete-team"
+    //                             data-id="' . $team->id . '"
+    //                             data-name="' . e($team->name) . '">
+    //                             <i class="ri-delete-bin-line me-2"></i>Delete
+    //                         </button>
+    //                     </li>
+    //                 </ul>
+    //             </div>';
 
-            $data[] = [
-                'action' => $actions,
-                'name' => '<strong>' . $team->name . '</strong>',
-                'created_by' => $createdBy,
-                'department' => $department,
-                'campus' => $team->campus,
-            ];
-        }
+    //         $data[] = [
+    //             'action' => $actions,
+    //             'name' => '<strong>' . $team->name . '</strong>',
+    //             'created_by' => $createdBy,
+    //             'department' => $department,
+    //             'campus' => $team->campus,
+    //         ];
+    //     }
 
-        return response()->json([
-            'draw' => intval($draw),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalFiltered,
-            'data' => $data,
-        ]);
-    }
+    //     return response()->json([
+    //         'draw' => intval($draw),
+    //         'recordsTotal' => $totalRecords,
+    //         'recordsFiltered' => $totalFiltered,
+    //         'data' => $data,
+    //     ]);
+    // }
 
     public function getDocumentTypesData(Request $request)
     {
@@ -249,28 +273,38 @@ class SystemConfigurationController extends Controller
         $items = $query->orderBy('name')->skip($start)->take($length)->get();
 
         $data = [];
+        $actions = "";
         foreach ($items as $docType) {
             $actions = '
                 <div class="dropdown">
                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
                         <i class="ri-more-2-fill"></i>
                     </button>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <button class="dropdown-item edit-document-type"
-                                data-id="' . $docType->id . '"
-                                data-name="' . e($docType->name) . '"
-                                data-category="' . e($docType->category) . '">
-                                <i class="ri-pencil-line me-2"></i>Edit
-                            </button>
-                        </li>
-                        <li>
-                            <button class="dropdown-item text-danger delete-document-type"
-                                data-id="' . $docType->id . '"
-                                data-name="' . e($docType->name) . '">
-                                <i class="ri-delete-bin-line me-2"></i>Delete
-                            </button>
-                        </li>
+                    <ul class="dropdown-menu">';
+                    if(canEdit("system_configuration.document_type_edit")) {
+                        $actions.= '
+                            <li>
+                                <button class="dropdown-item edit-document-type"
+                                    data-id="' . $docType->id . '"
+                                    data-name="' . e($docType->name) . '"
+                                    data-category="' . e($docType->category) . '">
+                                    <i class="ri-pencil-line me-2"></i>Edit
+                                </button>
+                            </li>
+                        ';
+                    }
+                    if(canDelete("system_configuration.document_type_delete")) {
+                        $actions .= '
+                            <li>
+                                <button class="dropdown-item text-danger delete-document-type"
+                                    data-id="' . $docType->id . '"
+                                    data-name="' . e($docType->name) . '">
+                                    <i class="ri-delete-bin-line me-2"></i>Delete
+                                </button>
+                            </li>
+                        ';
+                    }
+            $actions .= '
                     </ul>
                 </div>';
 
@@ -362,14 +396,16 @@ class SystemConfigurationController extends Controller
         $totalFiltered = $query->count();
         $items = $query->orderBy('name')->skip($start)->take($length)->get();
         $data = [];
+        $actions = "";
         foreach ($items as $tags) {
-            $data[] = [
-                'action' => '
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
-                        <ul class="dropdown-menu">
+            $actions .= '
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">';
+                    if(canEdit("system_configuration.tags_edit")) {
+                        $actions .= '
                             <li>
                                 <button class="dropdown-item edit-tags"
                                     data-id="' . $tags->id . '"
@@ -377,6 +413,10 @@ class SystemConfigurationController extends Controller
                                     <i class="ri-pencil-line me-2"></i>Edit
                                 </button>
                             </li>
+                        ';
+                    }
+                    if(canDelete("system_configuration.tags_delete")) {
+                        $actions .= '
                             <li>
                                 <button class="dropdown-item text-danger delete-tags"
                                     data-id="' . $tags->id . '"
@@ -384,8 +424,14 @@ class SystemConfigurationController extends Controller
                                     <i class="ri-delete-bin-line me-2"></i>Delete
                                 </button>
                             </li>
-                        </ul>
-                    </div>',
+                        ';
+                    }
+            $actions .= '
+                    </ul>
+                </div>';
+
+            $data[] = [
+                'action' => $actions,
                 'name' => '<strong>' . e($tags->name) . '</strong>',
                 'created_by' => '<strong>' . e($tags->user->name) . '</strong>',
             ];

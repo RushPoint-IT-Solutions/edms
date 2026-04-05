@@ -201,52 +201,69 @@ class PermitController extends Controller
                 ? '<a href="' . url($permit->file) . '" target="_blank"><i class="ri-file-line"></i></a>'
                 : '—';
 
-            $data[] = [
-                'action' => '
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                            <i class="ri-more-2-fill"></i>
-                        </button>
-                        <ul class="dropdown-menu">
+            $actions = '';
+
+            $actions = '
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                        <i class="ri-more-2-fill"></i>
+                    </button>
+                    <ul class="dropdown-menu">';
+            
+                if(canEdit('permits_and_license.upload')) {
+                    $actions .= '
                             <li>
                                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#upload' . $permit->id . '">
                                     <i class="ri-upload-line me-2"></i>Upload
                                 </a>
                             </li>
-                            <!-- <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change' . $permit->id . '">
-                                    <i class="ri-user-line me-2"></i>Transfer Department
-                                </a>
-                            </li> -->
-                            <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType' . $permit->id . '">
-                                    <i class="ri-edit-line me-2"></i>Change Types
-                                </a>
-                            </li>
-                            <!-- @if($permit->status == null)
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="{{ url(\'inactive-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
-                                        @csrf
-                                        <button type="button" class="dropdown-item text-danger inactiveBtn">
-                                            <i class="ri-delete-bin-line me-2"></i>Inactive Permits
-                                        </button>
-                                    </form>
-                                </li>
-                            @endif -->
-                            <!-- @if($permit->status == "Inactive")
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="{{ url(\'activate-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
-                                        @csrf
-                                        <button type="button" class="dropdown-item text-success activatePermitsBtn">
-                                            <i class="ri-check-line me-2"></i>Activate Permits
-                                        </button>
-                                    </form>
-                                </li>
-                            @endif -->
-                        </ul>
-                    </div>',
+                    ';
+                }
+
+                if(canEdit('permits_and_license.change_type')) {
+                    $actions .= '
+                        <li>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeType' . $permit->id . '">
+                                <i class="ri-edit-line me-2"></i>Change Types
+                            </a>
+                        </li>
+                    ';
+                }
+
+                    // <!-- <li>
+                    //     <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#change' . $permit->id . '">
+                    //         <i class="ri-user-line me-2"></i>Transfer Department
+                    //     </a>
+                    // </li> -->
+                    // <!-- @if($permit->status == null)
+                    //     <li><hr class="dropdown-divider"></li>
+                    //     <li>
+                    //         <form method="POST" action="{{ url(\'inactive-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
+                    //             @csrf
+                    //             <button type="button" class="dropdown-item text-danger inactiveBtn">
+                    //                 <i class="ri-delete-bin-line me-2"></i>Inactive Permits
+                    //             </button>
+                    //         </form>
+                    //     </li>
+                    // @endif -->
+                    // <!-- @if($permit->status == "Inactive")
+                    //     <li><hr class="dropdown-divider"></li>
+                    //     <li>
+                    //         <form method="POST" action="{{ url(\'activate-permits/\' . $permit->id) }}" style="display:inline-block;width:100%;">
+                    //             @csrf
+                    //             <button type="button" class="dropdown-item text-success activatePermitsBtn">
+                    //                 <i class="ri-check-line me-2"></i>Activate Permits
+                    //             </button>
+                    //         </form>
+                    //     </li>
+                    // @endif -->
+            $actions.= '
+                    </ul>
+                </div>
+            ';
+
+            $data[] = [
+                'action' => $actions,
                 'title' => e($permit->title),
                 'description' => e($permit->description),
                 // 'company' => optional($permit->company)->name ?? '—',

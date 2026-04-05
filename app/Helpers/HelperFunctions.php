@@ -110,28 +110,24 @@ function canEdit($permission)
     return false;
 }
 
-function canApprove($permissionKey)
+// function canApprove($permissionKey)
+// {
+//     if (!auth()->check()) return false;
+
+//     $role = auth()->user()->role ?? 'User';
+
+//     $permission = RolePermission::where('role', $role)
+//         ->where('permission_key', $permissionKey)
+//         ->first();
+
+//     return $permission && $permission->can_approve === 'on';
+// }
+
+function canDelete($permission)
 {
-    if (!auth()->check()) return false;
+    if (auth()->user()->can($permission)) {
+        return true;
+    };
 
-    $role = auth()->user()->role ?? 'User';
-
-    $permission = RolePermission::where('role', $role)
-        ->where('permission_key', $permissionKey)
-        ->first();
-
-    return $permission && $permission->can_approve === 'on';
-}
-
-function canDelete($permissionKey)
-{
-    if (!auth()->check()) return false;
-
-    $role = auth()->user()->role ?? 'User';
-
-    $permission = RolePermission::where('role', $role)
-        ->where('permission_key', $permissionKey)
-        ->first();
-
-    return $permission && $permission->can_delete === 'on';
+    return false;
 }

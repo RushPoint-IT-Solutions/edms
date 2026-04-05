@@ -20,21 +20,29 @@
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-end align-items-center py-3 gap-1">
         <div class="dropdown">
+            @if(canCreate('personal.upload_file') || canCreate('personal.new_folder') || canCreate('personal.share_with_others'))
             <button type="button" class="btn btn-first btn-sm" data-bs-toggle="dropdown">
                 <i class="ri-add-line"></i> New
             </button>
+            @endif
             <div class="dropdown-menu dropdown-menu-end">
+                @if(canCreate('personal.upload_file'))
                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadDocument">
                     <i class="ri-upload-2-line me-2"></i>Upload file
                 </a>
+                @endif
+                @if(canCreate('personal.new_folder'))
                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#createFolderModal">
                     <i class="ri-folder-add-line me-2"></i>New folder
                 </a>
+                @endif
             </div>
         </div>
+        @if(canCreate('personal.share_with_others'))
         <a type="button" class="btn btn-second btn-sm" data-bs-toggle="modal" data-bs-target="#share">
             <i class="ri-user-add-line"></i> Share with others
         </a>
+        @endif
     </div>
     <div class="card-body">
 

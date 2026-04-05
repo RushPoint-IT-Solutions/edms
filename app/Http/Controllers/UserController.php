@@ -304,7 +304,7 @@ class UserController extends Controller
             $permissions[$control->Module][$control->Action] = $control->id;
         }
 
-        return view("settings.access_control.index",
+        return view("access_control.index",
             array(
                 'user' => $user,
                 'permissions' => $permissions
