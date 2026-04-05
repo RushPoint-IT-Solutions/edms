@@ -24,22 +24,14 @@
         @foreach ($permissions as $module => $action)
             @php
                 $module_name = str_replace('_', ' ', strtoupper($module));
-                // $checkView = $user->hasPermissionTo($action['view']);
-                // if (isset($action['create'])) {
-                //     $checkCreate = $user->hasPermissionTo($action['create']);
-                // }
-                // if(isset($action['edit'])) {
-                //     $checkEdit   = $user->hasPermissionTo($action['edit']);
-                // }
-                // $checkDelete = $user->hasPermissionTo($action['delete']);
             @endphp
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <p class="card-title m-0"> {{ $module_name }} <small class="text-gray">Permission</small></p>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                            <label class="form-check-label" for="flexSwitchCheckDefault">Select all</label>
+                            <input class="form-check-input" type="checkbox" role="switch" id="selectAll{{ $module_name }}" onchange="checkAll('{{ $module_name }}', this)">
+                            <label class="form-check-label" for="selectAll">Select all</label>
                         </div>
                     </div>
                     <div class="card-body">
@@ -77,6 +69,17 @@
 @section('js')
 <script src="{{ asset('js/ajaxRequest.js') }}"></script>
 <script>
+function checkAll(moduleName, element)  {
+    var el = $(element).prop("checked")
+
+    if (el) {
+        $(element).closest('.card').find("[name='permission[]']").prop("checked", true)
+    }
+    else {
+        $(element).closest('.card').find("[name='permission[]']").prop("checked", false)
+    }
+}
+
 $(document).ready(function () {
     $("#accessControlForm").on("submit", function (e) {
         e.preventDefault();
@@ -102,34 +105,30 @@ $(document).ready(function () {
         });
     });
 
-    $("#readAll").on("change", function () {
-        $(".read-check").prop("checked", $(this).is(":checked"));
-    });
+    // $("#createAll").on("change", function () {
+    //     $(".create-check").prop("checked", $(this).is(":checked"));
+    // });
+    // $("#updateAll").on("change", function () {
+    //     $(".update-check").prop("checked", $(this).is(":checked"));
+    // });
+    // $("#deleteAll").on("change", function () {
+    //     $(".delete-check").prop("checked", $(this).is(":checked"));
+    // });
 
-    $("#createAll").on("change", function () {
-        $(".create-check").prop("checked", $(this).is(":checked"));
-    });
-    $("#updateAll").on("change", function () {
-        $(".update-check").prop("checked", $(this).is(":checked"));
-    });
-    $("#deleteAll").on("change", function () {
-        $(".delete-check").prop("checked", $(this).is(":checked"));
-    });
+    // function syncAllToggle(checkClass, allId) {
+    //     var total   = $(checkClass).length;
+    //     var checked = $(checkClass + ':checked').length;
+    //     $(allId).prop('checked', total > 0 && total === checked);
+    // }
 
-    function syncAllToggle(checkClass, allId) {
-        var total   = $(checkClass).length;
-        var checked = $(checkClass + ':checked').length;
-        $(allId).prop('checked', total > 0 && total === checked);
-    }
-
-    syncAllToggle('.read-check',   '#readAll');
+    // syncAllToggle('.read-check',   '#readAll');
     // syncAllToggle('.create-check', '#createAll');
     // syncAllToggle('.update-check', '#updateAll');
     // syncAllToggle('.delete-check', '#deleteAll');
 
-    $(document).on('change', '.read-check', function () { 
-        syncAllToggle('.read-check',   '#readAll');   
-    });
+    // $(document).on('change', '.read-check', function () { 
+    //     syncAllToggle('.read-check',   '#readAll');   
+    // });
 
     // $(document).on('change', '.create-check', function () { 
     //     syncAllToggle('.create-check', '#createAll'); 
