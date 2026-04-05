@@ -17,4 +17,9 @@ class ShareDocument extends Model
     {
         return $this->belongsTo(Document::class);
     }
+
+    public function sharedBy()
+    {
+        return $this->belongsTo(User::class, 'shared_by');
+    }
 }

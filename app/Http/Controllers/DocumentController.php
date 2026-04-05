@@ -1908,6 +1908,15 @@ class DocumentController extends Controller
         return response()->json($share_access);
     }
 
+    public function markSharedSeen()
+    {
+        ShareDocument::where('user_id', auth()->id())
+            ->whereNull('seen_at')
+            ->update(['seen_at' => now()]);
+    
+        return response()->json(['success' => true]);
+    }
+
     public function sharedWithMe()
     {
         if (!canView('share_with_me.view')) {

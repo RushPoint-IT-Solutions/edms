@@ -8,6 +8,7 @@ use App\Office;
 use App\Department;
 use App\Mail\PublishDocumentEmail;
 use App\User;
+use App\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,11 @@ class PublishDocumentController extends Controller
                         Mail::to($user)->send(new PublishDocumentEmail($cr));
                     }
                 }
+                UserNotification::firstOrCreate([
+                    'user_id' => $cr->user_id,
+                    'type' => 'published',
+                    'change_request_id' => $cr->id,
+                ]);
 
                 DB::commit();
 
@@ -85,6 +91,11 @@ class PublishDocumentController extends Controller
                         Mail::to($user)->later($cr->publish_at, new PublishDocumentEmail($cr));
                     }
                 }
+                UserNotification::firstOrCreate([
+                    'user_id' => $cr->user_id,
+                    'type' => 'published',
+                    'change_request_id' => $cr->id,
+                ]);
 
                 DB::commit();
 

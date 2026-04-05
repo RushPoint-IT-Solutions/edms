@@ -92,6 +92,8 @@
 
 <div id="modalsContainer"></div>
 
+@include('users.access_control_modal')
+
 @include('users.new_account')
 @include('users.edit_user')
 @include('users.changepassword')
@@ -409,6 +411,107 @@ $(document).ready(function () {
     // });
 
     $('.cat').chosen({ width: "100%" });
+});
+
+var currentAcUserId = null;
+
+$(document).on('click', '[id^="accessControlBtn"]', function (e) {
+    e.preventDefault();
+    var userId = $(this).data('user-id');
+    var userName = $(this).data('user-name');
+    var userRole = $(this).data('user-role');
+
+    currentAcUserId = userId;
+    $('#acModalTitle').text(userName || 'Access Control');
+    $('#acModalRole').text(userRole || '');
+    $('#acModalBody').html(`
+        <div class="text-center py-5">
+            <i class="ri-loader-4-line fs-1 text-muted spin-anim"></i>
+            <p class="text-muted mt-2">Loading permissions...</p>
+        </div>
+    `);
+    $('#accessControlModal').modal('show');
+
+    $.get('{{ url("/users/access-control") }}/' + userId + '/json', function (res) {
+        renderAcModal(res.permissions, res.userPermissions);
+    });
+});
+
+function renderAcModal(permissions, userPermissions) {
+    var html = '<div class="row g-3">';
+    $.each(permissions, function (module, actions) {
+        var modLabel = module.replace(/_/g, ' ').toUpperCase();
+        var safeId = 'acMod_' + module.replace(/\W/g, '_');
+        html += `
+        <div class="col-lg-6">
+            <div class="card border">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                    <small class="fw-semibold text-uppercase text-muted">${modLabel}</small>
+                    <div class="form-check form-check-inline mb-0">
+                        <input class="form-check-input" type="checkbox" id="selectAll_${safeId}"
+                            onchange="acToggleAll('${safeId}', this)">
+                        <label class="form-check-label small text-muted" for="selectAll_${safeId}">Select all</label>
+                    </div>
+                </div>
+                <div class="card-body" id="${safeId}">
+                    <div class="row g-2">`;
+
+        $.each(actions, function (action, id) {
+            var checked = userPermissions.indexOf(id) !== -1;
+            var label = action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            html += `
+                        <div class="col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="permission[]"
+                                    value="${id}" id="perm_${id}" ${checked ? 'checked' : ''}
+                                    onchange="acSyncAll('${safeId}')">
+                                <label class="form-check-label small" for="perm_${id}">${label}</label>
+                            </div>
+                        </div>`;
+        });
+
+        html += `</div></div></div></div>`;
+    });
+    html += '</div>';
+    $('#acModalBody').html(html);
+
+    $('[id^="selectAll_"]').each(function () {
+        var safeId = $(this).attr('id').replace('selectAll_', '');
+        acSyncAll(safeId);
+    });
+}
+
+window.acToggleAll = function (safeId, el) {
+    $('#' + safeId + ' [name="permission[]"]').each(function () {
+        $(this).prop('checked', el.checked);
+        $(this).closest('.perm-chip').toggleClass('checked', el.checked);
+    });
+};
+
+window.acSyncAll = function (safeId) {
+    var total = $('#' + safeId + ' [name="permission[]"]').length;
+    var checked = $('#' + safeId + ' [name="permission[]"]:checked').length;
+    $('#selectAll_' + safeId).prop('checked', total > 0 && total === checked);
+    $('#selectAll_' + safeId).prop('indeterminate', checked > 0 && checked < total);
+};
+
+$('#acSaveBtn').on('click', function () {
+    if (!currentAcUserId) return;
+    var btn = $(this);
+    var perms = $('#acModalBody [name="permission[]"]:checked').map(function () { return $(this).val(); }).get();
+
+    btn.prop('disabled', true).html('<i class="ri-loader-4-line me-1 spin-anim"></i> Saving...');
+    ajaxRequest({
+        type: 'POST',
+        url: '{{ url("/users/access-control/update") }}',
+        data: { user_id: currentAcUserId, permission: perms, _token: '{{ csrf_token() }}' },
+        success: function (res) {
+            swal('Saved!', res.message, 'success');
+        },
+        complete: function () {
+            btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i> Save Access');
+        }
+    });
 });
 </script>
 @endsection

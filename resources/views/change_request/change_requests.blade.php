@@ -230,7 +230,10 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom">
-                <h5 class="modal-title mb-2" id="publishDocModalLabel">Publish Document</h5>
+                <h5 class="modal-title mb-2" id="publishDocModalLabel">
+                    <i class="ri-file-line me-1"></i>
+                    Publish Document
+                </h5>
                 <button type="button" class="btn-close mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
@@ -262,7 +265,7 @@
 
             <div class="modal-footer border-top">
                 <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success mt-2" id="publishConfirmBtn" onclick="submitPublish()">
+                <button type="button" class="btn btn-primary mt-2" id="publishConfirmBtn" onclick="submitPublish()">
                     <i class="ri-send-plane-line me-1"></i>
                     <span id="publishBtnLabel">Publish Now</span>
                 </button>

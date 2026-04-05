@@ -198,7 +198,7 @@
 </div>
 
 <div class="modal fade" id="dashboardSignModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header border-bottom">
                 <h5 class="modal-title"><i class="ri-lock-line me-2 mb-2"></i>Confirm Password</h5>
@@ -210,8 +210,8 @@
                 <div id="dashboardSignError" class="text-danger small mt-2 d-none">Incorrect password. Please try again.</div>
             </div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary mt-2" id="dashboardSignConfirm">
+                <button type="button" class="btn btn-sm btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-primary mt-2" id="dashboardSignConfirm">
                     <i class="ri-quill-pen-line me-1"></i>Confirm & Sign
                 </button>
             </div>
@@ -228,8 +228,7 @@
             </div>
             <div class="modal-body" id="vatBody"></div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-danger mt-2" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success mt-2" data-bs-dismiss="modal">Okay</button>
+                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

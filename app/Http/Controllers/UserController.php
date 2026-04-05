@@ -117,10 +117,13 @@ class UserController extends Controller
                     }
                     if(canView('access_control.view')) {
                         $actions .= '<li>
-                                        <a href="' . url('/users/access-control/'.$user->id) . '" class="dropdown-item" id="accessControlBtn'.$user->id.'">
-                                            <i class="ri-user-settings-line"></i> Access Control
-                                        </a>
-                                    </li>';
+                            <button class="dropdown-item" id="accessControlBtn'.$user->id.'"
+                                data-user-id="'.$user->id.'"
+                                data-user-name="'.e($user->name).'"
+                                data-user-role="'.e($user->role).'">
+                                <i class="ri-user-settings-line me-2"></i> Access Control
+                            </button>
+                        </li>';
                     }
                     if(canEdit('users.edit')) {
                         $actions .= '<li><button class="dropdown-item edit" type="button" id="editUserBtn">
@@ -157,6 +160,29 @@ class UserController extends Controller
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalFiltered,
             'data' => $data
+        ]);
+    }
+
+    public function accessControlJson(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $access_control = Permission::select(
+            "id", "name",
+            DB::raw("SUBSTRING_INDEX(name,'.',1) as Module"),
+            DB::raw("SUBSTRING_INDEX(name,'.',-1) as Action"),
+        )->orderBy('order_by', 'asc')->get();
+
+        $permissions = [];
+        foreach ($access_control as $control) {
+            $permissions[$control->Module][$control->Action] = $control->id;
+        }
+
+        $userPermissions = $user->permissions->pluck('id')->toArray();
+
+        return response()->json([
+            'permissions' => $permissions,
+            'userPermissions' => $userPermissions,
         ]);
     }
 

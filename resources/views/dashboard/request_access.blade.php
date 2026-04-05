@@ -2,7 +2,10 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-bottom">
-                <h6 class="modal-title mb-2">Request access</h6>
+                <h5 class="modal-title mb-2">
+                    <i class="ri-lock-line me-2 mb-2"></i>
+                    Request access
+                </h5>
                 <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url("request_access/".$private_document->id) }}" method="post" onsubmit="show()">
@@ -23,8 +26,8 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-danger mt-2" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-success mt-2">Save</button>
+                    <button type="button" class="btn btn-sm btn-secondary mt-2" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-sm btn-primary mt-2">Submit</button>
                 </div>
             </form>
         </div>
