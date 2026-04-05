@@ -354,28 +354,53 @@
                 <div class="card-body">
                     <div id="approvers-wrapper">
                         @foreach($change_request->approvers->sortBy('level') as $key => $approver)
-                        <div class="approver-row mb-2 d-flex align-items-center gap-2" data-old-level="{{ $loop->iteration }}">
-                            <span class="approver-level badge bg-primary">{{ $loop->iteration }}</span>
-                            <select name="approvers[]" class="form-select approver-select chosen-select-{{ $loop->iteration }} approver-select-wrap">
-                                <option value="">-- Select Signatories --</option>
-                                @foreach($approvers as $user)
-                                    <option value="{{ $user->id }}" @if($user->id == $approver->user_id) selected @endif>
-                                        {{ $user->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <select name="approver_roles[]" class="form-select approver-role-select">
-                                <option value="For Signature" @if($approver->request_type == 'For Signature') selected @endif>For Signature</option>
-                                <option value="For Receiving" @if($approver->request_type == 'For Receiving') selected @endif>For Receiving</option>
-                            </select>
-                            <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="{{ $loop->iteration }}"
-                                @if($approver->request_type == 'For Receiving') style="display:none;" @endif>
-                                <i class="ri-add-circle-line"></i>
-                            </button>
-                            <button type="button" class="btn btn-danger btn-sm remove-approver">
-                                <i class="ri-delete-bin-2-line"></i>
-                            </button>
-                        </div>
+                            @php $isApproved = $approver->status === 'Approved'; @endphp
+                            <div class="approver-row mb-2 d-flex align-items-center gap-2" data-old-level="{{ $loop->iteration }}">
+                                <span class="approver-level badge bg-primary">{{ $loop->iteration }}</span>
+
+                                @if($isApproved)
+                                    <input type="hidden" name="approvers[]" value="{{ $approver->user_id }}">
+                                    <input type="text" class="form-control approver-select-wrap"
+                                        value="{{ $approver->user->name ?? '' }}"
+                                        disabled style="background:#f0fff4;border-color:#198754;color:#198754;font-weight:600;">
+                                @else
+                                    <select name="approvers[]" class="form-select approver-select chosen-select-{{ $loop->iteration }} approver-select-wrap">
+                                        <option value="">-- Select Signatories --</option>
+                                        @foreach($approvers as $user)
+                                            <option value="{{ $user->id }}" @if($user->id == $approver->user_id) selected @endif>
+                                                {{ $user->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @endif
+
+                                @if($isApproved)
+                                    <input type="hidden" name="approver_roles[]" value="{{ $approver->request_type }}">
+                                    <input type="text" class="form-control approver-role-select"
+                                        value="{{ $approver->request_type }}"
+                                        disabled style="background:#f0fff4;border-color:#198754;color:#198754;">
+                                @else
+                                    <select name="approver_roles[]" class="form-select approver-role-select">
+                                        <option value="For Signature" @if($approver->request_type == 'For Signature') selected @endif>For Signature</option>
+                                        <option value="For Receiving" @if($approver->request_type == 'For Receiving') selected @endif>For Receiving</option>
+                                    </select>
+                                @endif
+
+                                <button type="button" class="btn btn-success btn-sm place-signature-btn" data-level="{{ $loop->iteration }}"
+                                    @if($isApproved || $approver->request_type == 'For Receiving') style="display:none;" @endif>
+                                    <i class="ri-add-circle-line"></i>
+                                </button>
+
+                                @if($isApproved)
+                                    <span class="badge bg-success d-flex align-items-center gap-1 px-2 py-2" style="font-size:0.78rem;white-space:nowrap;">
+                                        <i class="ri-checkbox-circle-fill"></i> Approved
+                                    </span>
+                                @else
+                                    <button type="button" class="btn btn-danger btn-sm remove-approver">
+                                        <i class="ri-delete-bin-2-line"></i>
+                                    </button>
+                                @endif
+                            </div>
                         @endforeach
 
                         @if($change_request->approvers->count() == 0)
@@ -700,17 +725,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function restoreSignatureBoxes() {
         const canvases = pdfContainer.querySelectorAll('canvas.pdf-page');
+        const approverStatuses = @json(
+            $change_request->approvers->mapWithKeys(fn($a) => [$a->user_id => $a->status])
+        );
 
         existingSignaturePositions.forEach(pos => {
             let level = null;
+            let approverRow = null;
+
             document.querySelectorAll('.approver-row').forEach(row => {
                 const userSelect = row.querySelector('[name="approvers[]"]');
                 if (userSelect && String(userSelect.value) === String(pos.user_id)) {
                     level = row.querySelector('.place-signature-btn').dataset.level;
+                    approverRow = row;
                 }
             });
 
             if (!level) return;
+
+            if (approverStatuses[pos.user_id] === 'Approved') {
+                if (approverRow) {
+                    const btn = approverRow.querySelector('.place-signature-btn');
+                    if (btn) btn.style.display = 'none';
+                }
+                return;
+            }
 
             let cumulativeTop = 0;
             for (let i = 0; i < canvases.length; i++) {
