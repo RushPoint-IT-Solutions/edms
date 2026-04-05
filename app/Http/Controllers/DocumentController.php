@@ -263,8 +263,8 @@ class DocumentController extends Controller
             }
         }
 
-        $canEdit = canEdit('documents');
-        $canDelete = canDelete('documents');
+        $canEdit = canEdit('personal.edit_folder');
+        $canDelete = canDelete('personal.delete_folder');
 
         $gridHtml = '';
         foreach ($allFolders as $folder) {
