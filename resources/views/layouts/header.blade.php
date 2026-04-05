@@ -1220,12 +1220,14 @@
                             $unreadPendingApproval = getUnreadPendingApproval();
                             $unreadCommentNotifications = getUnreadCommentNotifications();
                             $unreadPublishedNotifs = getUnreadPublishedNotifications();
+                            $unreadSharedDocNotifs = getUnreadSharedDocumentNotifications();
 
                             $totalNotifCount = $unreadDueDateAlerts->count()
                                             + $unreadDraftRequests->count()
                                             + $unreadPendingApproval->count()
                                             + $unreadCommentNotifications->count()
-                                            + $unreadPublishedNotifs->count();
+                                            + $unreadPublishedNotifs->count()
+                                            + $unreadSharedDocNotifs->count();
 
                             $allNotifications = collect();
 
@@ -1243,6 +1245,9 @@
                             }
                             foreach ($unreadPublishedNotifs as $notif) {
                                 $allNotifications->push(['type' => 'published', 'data' => $notif, 'sort_date' => $notif->created_at]);
+                            }
+                            foreach ($unreadSharedDocNotifs as $notif) {
+                                $allNotifications->push(['type' => 'shared_document', 'data' => $notif, 'sort_date' => $notif->created_at]);
                             }
 
                             $allNotifications = $allNotifications->sortByDesc('sort_date');
@@ -1311,183 +1316,151 @@
                                                 $isOverdue = $item->is_overdue;
                                                 $dueDate = \Carbon\Carbon::parse($item->due_date);
                                             @endphp
-                                            <div class="notification-item"
-                                                style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-                                                onmouseover="this.style.background='#fafafa'"
-                                                onmouseout="this.style.background='#fff'">
+                                            <div class="notification-item" style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
                                                 <div class="d-flex align-items-start gap-3">
-                                                    <div style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-                                                                background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};">
-                                                        <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}"
-                                                        style="font-size:1rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }};"></i>
+                                                    <div style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};">
+                                                        <i class="{{ $isOverdue ? 'bx bx-alarm-exclamation' : 'bx bx-time' }}" style="font-size:1rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }};"></i>
                                                     </div>
                                                     <div class="flex-grow-1" style="min-width:0;">
                                                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                                            <a href="{{ url('change-request/for_approval/' . $item->id) }}"
-                                                            class="notification-link stretched-link text-decoration-none"
-                                                            data-type="due_date"
-                                                            data-id="{{ $item->id }}"
-                                                            style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                            <a href="{{ url('change-request/for_approval/' . $item->id) }}" class="notification-link stretched-link text-decoration-none" data-type="due_date" data-id="{{ $item->id }}" style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
                                                                 DOC-{{ date('Y', strtotime($item->created_at)) }}-{{ str_pad($item->id, 3, '0', STR_PAD_LEFT) }}
                                                             </a>
-                                                            <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; white-space:nowrap; flex-shrink:0;
-                                                                        background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }};
-                                                                        color: {{ $isOverdue ? '#dc2626' : '#d97706' }};">
+                                                            <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; white-space:nowrap; flex-shrink:0; background: {{ $isOverdue ? '#fee2e2' : '#fef9c3' }}; color: {{ $isOverdue ? '#dc2626' : '#d97706' }};">
                                                                 <i class="mdi mdi-calendar-clock"></i>
                                                                 {{ $isOverdue ? 'Overdue' : 'Due Soon' }}
                                                             </span>
                                                         </div>
-                                                        <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                                                            {{ $item->title }}
-                                                        </p>
+                                                        <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">{{ $item->title }}</p>
                                                         <p class="mb-0" style="font-size:0.68rem; color:{{ $isOverdue ? '#dc2626' : '#d97706' }}; font-weight:500;">
                                                             <i class="mdi mdi-calendar-clock"></i>
                                                             {{ $isOverdue ? 'Overdue since ' . $dueDate->format('M d, Y') : 'Due ' . $dueDate->diffForHumans() }}
                                                         </p>
                                                     </div>
-                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                                                        <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-                                                    </div>
+                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;"><i class="bx bx-chevron-right" style="font-size:1rem;"></i></div>
                                                 </div>
                                             </div>
 
                                             @elseif($type === 'draft')
-                                            <div class="notification-item"
-                                                style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-                                                onmouseover="this.style.background='#fafafa'"
-                                                onmouseout="this.style.background='#fff'">
+                                            <div class="notification-item" style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
                                                 <div class="d-flex align-items-start gap-3">
                                                     <div style="width:36px; height:36px; border-radius:50%; background:#e0f2fe; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                                         <i class="bx bx-file" style="font-size:1rem; color:#0284c7;"></i>
                                                     </div>
                                                     <div class="flex-grow-1" style="min-width:0;">
                                                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                                            <a href="{{ url('documents/create/' . $item->id) }}"
-                                                            class="notification-link stretched-link text-decoration-none"
-                                                            data-type="draft"
-                                                            data-id="{{ $item->id }}"
-                                                            style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                            <a href="{{ url('documents/create/' . $item->id) }}" class="notification-link stretched-link text-decoration-none" data-type="draft" data-id="{{ $item->id }}" style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
                                                                 DOC-{{ date('Y', strtotime($item->created_at)) }}-{{ str_pad($item->id, '3', 0, STR_PAD_LEFT) }}
                                                             </a>
                                                             <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#e0f2fe; color:#0284c7; white-space:nowrap; flex-shrink:0;">
                                                                 <i class="mdi mdi-pencil"></i> Draft
                                                             </span>
                                                         </div>
-                                                        <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                                                            {{ $item->title }}
-                                                        </p>
+                                                        <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">{{ $item->title }}</p>
                                                     </div>
-                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                                                        <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-                                                    </div>
+                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;"><i class="bx bx-chevron-right" style="font-size:1rem;"></i></div>
                                                 </div>
                                             </div>
 
                                             @elseif($type === 'pending_approval')
                                             @php $req = $item->change_request; @endphp
-                                            <div class="notification-item"
-                                                style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-                                                onmouseover="this.style.background='#fafafa'"
-                                                onmouseout="this.style.background='#fff'">
+                                            <div class="notification-item" style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
                                                 <div class="d-flex align-items-start gap-3">
-                                                    <div class="d-flex align-items-center justify-content-center"
-                                                        style="width:36px; height:36px; border-radius:50%; flex-shrink:0; border:2px solid #f0f0f0; background:#f8fafc;">
+                                                    <div class="d-flex align-items-center justify-content-center" style="width:36px; height:36px; border-radius:50%; flex-shrink:0; border:2px solid #f0f0f0; background:#f8fafc;">
                                                         <i class="bx bx-file" style="font-size:18px; color:#1CA7A6;"></i>
                                                     </div>
                                                     <div class="flex-grow-1" style="min-width:0;">
                                                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                                            <a href="{{ url('change-request/for_approval/' . $req->id) }}"
-                                                            class="notification-link stretched-link text-decoration-none"
-                                                            data-type="pending_approval"
-                                                            data-id="{{ $req->id }}"
-                                                            style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                            <a href="{{ url('change-request/for_approval/' . $req->id) }}" class="notification-link stretched-link text-decoration-none" data-type="pending_approval" data-id="{{ $req->id }}" style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
                                                                 DOC-{{ str_pad($req->id, 3, '0', STR_PAD_LEFT) }}
                                                             </a>
                                                             <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#cfe2ff; color:#0d6efd; white-space:nowrap; flex-shrink:0;">
                                                                 <i class="mdi mdi-clock-check-outline"></i> Pending Approval
                                                             </span>
                                                         </div>
-                                                        <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                                                            {{ $req->title }}
-                                                        </p>
+                                                        <p class="mb-1 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">{{ $req->title }}</p>
                                                         <p class="mb-0" style="font-size:0.68rem; color:#9ca3af;">
-                                                            <i class="mdi mdi-clock-outline"></i>
-                                                            {{ $item->created_at->diffForHumans() }}
+                                                            <i class="mdi mdi-clock-outline"></i> {{ $item->created_at->diffForHumans() }}
                                                         </p>
                                                     </div>
-                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                                                        <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-                                                    </div>
+                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;"><i class="bx bx-chevron-right" style="font-size:1rem;"></i></div>
                                                 </div>
                                             </div>
 
                                             @elseif($type === 'comment')
                                             @php $cr = $item->change_request; @endphp
                                             @if($cr)
-                                            <div class="notification-item"
-                                                style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-                                                onmouseover="this.style.background='#fafafa'"
-                                                onmouseout="this.style.background='#fff'">
+                                            <div class="notification-item" style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
                                                 <div class="d-flex align-items-start gap-3">
                                                     <div style="width:36px; height:36px; border-radius:50%; background:#f3e8ff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                                         <i class="bx bx-comment-detail" style="font-size:1rem; color:#7c3aed;"></i>
                                                     </div>
                                                     <div class="flex-grow-1" style="min-width:0;">
                                                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                                            <a href="{{ url('change-request/for_approval/' . $cr->id) }}"
-                                                            class="notification-link stretched-link text-decoration-none"
-                                                            data-type="comment"
-                                                            data-id="{{ $cr->id }}"
-                                                            style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                            <a href="{{ url('change-request/for_approval/' . $cr->id) }}" class="notification-link stretched-link text-decoration-none" data-type="comment" data-id="{{ $cr->id }}" style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
                                                                 DOC-{{ date('Y', strtotime($cr->created_at)) }}-{{ str_pad($cr->id, 3, '0', STR_PAD_LEFT) }}
                                                             </a>
                                                             <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#f3e8ff; color:#7c3aed; white-space:nowrap; flex-shrink:0;">
                                                                 <i class="mdi mdi-comment-text-outline"></i> New Comment
                                                             </span>
                                                         </div>
-                                                        <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                                                            {{ $cr->title }}
-                                                        </p>
+                                                        <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">{{ $cr->title }}</p>
                                                     </div>
-                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                                                        <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-                                                    </div>
+                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;"><i class="bx bx-chevron-right" style="font-size:1rem;"></i></div>
                                                 </div>
                                             </div>
                                             @endif
 
                                             @elseif($type === 'published')
                                             @php $cr = $item->change_request; @endphp
-                                            <div class="notification-item"
-                                                style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;"
-                                                onmouseover="this.style.background='#fafafa'"
-                                                onmouseout="this.style.background='#fff'">
+                                            @if($cr)
+                                            <div class="notification-item" style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
                                                 <div class="d-flex align-items-start gap-3">
                                                     <div style="width:36px; height:36px; border-radius:50%; background:#dcfce7; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                                         <i class="bx bx-file-blank" style="font-size:1rem; color:#16a34a;"></i>
                                                     </div>
                                                     <div class="flex-grow-1" style="min-width:0;">
                                                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                                            <a href="{{ url('monitoring') }}"
-                                                            class="notification-link stretched-link text-decoration-none"
-                                                            data-type="published"
-                                                            data-id="{{ $cr->id }}"
-                                                            style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                            <a href="{{ url('monitoring') }}" class="notification-link stretched-link text-decoration-none" data-type="published" data-id="{{ $cr->id }}" style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
                                                                 DOC-{{ date('Y', strtotime($cr->created_at)) }}-{{ str_pad($cr->id, 3, '0', STR_PAD_LEFT) }}
                                                             </a>
                                                             <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#dcfce7; color:#16a34a; white-space:nowrap; flex-shrink:0;">
                                                                 <i class="mdi mdi-check-circle-outline"></i> Published
                                                             </span>
                                                         </div>
-                                                        <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">
-                                                            {{ $cr->title }}
-                                                        </p>
+                                                        <p class="mb-0 text-truncate" style="font-size:0.75rem; color:#6c757d; max-width:210px;">{{ $cr->title }}</p>
                                                     </div>
-                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;">
-                                                        <i class="bx bx-chevron-right" style="font-size:1rem;"></i>
-                                                    </div>
+                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;"><i class="bx bx-chevron-right" style="font-size:1rem;"></i></div>
                                                 </div>
                                             </div>
+                                            @endif
+
+                                            @elseif($type === 'shared_document')
+                                            @php $doc = $item->document; $sharedBy = $item->sharedBy; @endphp
+                                            @if($doc)
+                                            <div class="notification-item" style="padding: 10px 14px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
+                                                <div class="d-flex align-items-start gap-3">
+                                                    <div style="width:36px; height:36px; border-radius:50%; background:#e0f7fa; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                                        <i class="bx bx-share-alt" style="font-size:1rem; color:#0097a7;"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1" style="min-width:0;">
+                                                        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                                            <a href="{{ url('shared-with-me') }}" class="notification-link stretched-link text-decoration-none" data-type="shared_document" data-id="{{ $doc->id }}" style="font-size:0.8rem; font-weight:600; color:#1a1a2e;">
+                                                                {{ $doc->title }}
+                                                            </a>
+                                                            <span style="font-size:0.62rem; font-weight:600; padding:1px 6px; border-radius:20px; background:#e0f7fa; color:#0097a7; white-space:nowrap; flex-shrink:0;">
+                                                                <i class="mdi mdi-share-variant"></i> Shared
+                                                            </span>
+                                                        </div>
+                                                        <p class="mb-0" style="font-size:0.75rem; color:#6c757d;">
+                                                            Shared by <strong>{{ $sharedBy->name ?? 'Someone' }}</strong>
+                                                        </p>
+                                                    </div>
+                                                    <div style="flex-shrink:0; color:#dee2e6; margin-top:2px;"><i class="bx bx-chevron-right" style="font-size:1rem;"></i></div>
+                                                </div>
+                                            </div>
+                                            @endif
+
                                             @endif
 
                                         @empty

@@ -94,6 +94,17 @@ function getUnreadPublishedNotifications()
         ->filter(fn($n) => $n->change_request !== null);
 }
 
+function getUnreadSharedDocumentNotifications()
+{
+    return \App\ShareDocument::with(['document', 'sharedBy'])
+        ->where('user_id', auth()->id())
+        ->where('shared_by', '!=', auth()->id())
+        ->whereNull('notified_at')
+        ->latest()
+        ->get()
+        ->filter(fn($s) => $s->document !== null);
+}
+
 function canView($permission)
 {
     if (auth()->user()->can($permission)) {

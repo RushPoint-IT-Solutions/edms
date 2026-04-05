@@ -815,4 +815,13 @@ function leaveShare(btn) {
     });
 }
 </script>
+<script>
+fetch('{{ url("/shared-with-me/mark-seen") }}', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+    }
+});
+</script>
 @endsection

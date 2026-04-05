@@ -1908,6 +1908,15 @@ class DocumentController extends Controller
         return response()->json($share_access);
     }
 
+    public function markSharedSeen()
+    {
+        ShareDocument::where('user_id', auth()->id())
+            ->whereNull('seen_at')
+            ->update(['seen_at' => now()]);
+    
+        return response()->json(['success' => true]);
+    }
+
     public function sharedWithMe()
     {
         if (!canView('share_with_me.view')) {
@@ -1915,10 +1924,6 @@ class DocumentController extends Controller
         }
 
         $userId = auth()->id();
-
-        ShareDocument::where('user_id', $userId)
-            ->whereNull('seen_at')
-            ->update(['seen_at' => now()]);
 
         $sharedDocIds = ShareDocument::where('user_id', $userId)
             ->pluck('document_id')

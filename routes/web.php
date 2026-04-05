@@ -65,14 +65,21 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('/next-control-code', 'DocumentController@previewNextControlCode');
         });
 
-        Route::get('/shared-with-me', 'DocumentController@sharedWithMe')->name('shared-with-me');
-        Route::get('/shared-with-others', 'DocumentController@sharedWithOthers')->name('shared-with-others');
+        Route::prefix('shared-with-me')->group(function() {
+            Route::get('/', 'DocumentController@sharedWithMe')->name('shared-with-me');
+            Route::post('/mark-seen', 'DocumentController@markSharedSeen');
+            Route::get('/folder/{id}', 'DocumentController@sharedWithMeFolderView')->name('shared-with-me.folder');
+        });
+
+        Route::prefix('shared-with-others')->group(function() {
+            Route::get('/', 'DocumentController@sharedWithOthers')->name('shared-with-others');
+            Route::get('/shared-with-others/folder/{id}', 'DocumentController@sharedWithOthersFolderView')->name('shared-with-others.folder');
+        });
+        
         Route::post('/documents/revoke-access', 'DocumentController@revokeAccess')->name('documents.revoke-access');
         Route::post('/documents/revoke-folder-access', 'DocumentController@revokeFolderAccess')->name('documents.revoke-folder-access');
         Route::post('/documents/leave-share', 'DocumentController@leaveShare')->name('documents.leave-share');
         Route::post('/documents/leave-share-folder', 'DocumentController@leaveShareFolder')->name('documents.leave-share-folder');
-        Route::get('/shared-with-me/folder/{id}', 'DocumentController@sharedWithMeFolderView')->name('shared-with-me.folder');
-        Route::get('/shared-with-others/folder/{id}', 'DocumentController@sharedWithOthersFolderView')->name('shared-with-others.folder');
         Route::get('/documents/share-activity', 'DocumentController@shareActivity');
 
         Route::post('test-bulk', function() {

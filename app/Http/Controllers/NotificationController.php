@@ -6,15 +6,31 @@ use Illuminate\Http\Request;
 use App\ChangeRequest;
 use App\RequestApprover;
 use App\UserNotification;
+use App\ShareDocument;
 
 class NotificationController extends Controller
 {
     public function markRead(Request $request)
     {
         $request->validate([
-            'type' => 'required|string|in:due_date,draft,pending_approval,comment,published', // ADDED published
+            'type' => 'required|string|in:due_date,draft,pending_approval,comment,published,shared_document',
             'change_request_id' => 'required|integer',
         ]);
+
+        if ($request->type === 'shared_document') {
+            ShareDocument::where('user_id', auth()->id())
+                ->where('document_id', $request->change_request_id)
+                ->whereNull('notified_at')
+                ->update(['notified_at' => now()]);
+
+            return response()->json(['success' => true, 'is_new_read' => true]);
+        }
+
+        $userId = auth()->id();
+
+        ShareDocument::where('user_id', $userId)
+            ->whereNull('notified_at')
+            ->update(['notified_at' => now()]);
 
         $notification = UserNotification::firstOrCreate(
             [
@@ -40,15 +56,26 @@ class NotificationController extends Controller
     public function markAllRead(Request $request)
     {
         $request->validate([
-            'type' => 'required|string|in:due_date,draft,pending_approval,comment,published,bell,all',
+            'type' => 'required|string|in:due_date,draft,pending_approval,comment,published,bell,all,shared_document',
         ]);
 
         $userId = auth()->id();
         $type   = $request->type;
 
+        if ($type === 'shared_document') {
+            ShareDocument::where('user_id', $userId)
+                ->whereNull('seen_at')
+                ->update(['seen_at' => now()]);
+
+            return response()->json(['success' => true]);
+        }
+
         switch ($type) {
             case 'all':
                 $types = ['due_date', 'draft', 'pending_approval', 'comment', 'published'];
+                ShareDocument::where('user_id', $userId)
+                    ->whereNull('seen_at')
+                    ->update(['seen_at' => now()]);
                 break;
             case 'bell':
                 $types = ['due_date', 'draft', 'comment', 'published'];
