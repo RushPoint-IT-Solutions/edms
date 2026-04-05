@@ -612,42 +612,43 @@ class RequestController extends Controller
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>';
-                if ($myApprover && $myApprover->request_type == "For Signature") {
-                    $action .= '
-                        <li>
-                            <a class="dropdown-item ' . $disabledClass . '" 
-                                href="#"
-                                ' . ($isMyTurn ? 'onclick="openSignModal(' . $cr->id . ')"' : '') . '
-                                ' . $disabledAttr . '
-                                title="' . (!$isMyTurn ? 'Not your turn yet' : 'Sign this document') . '">
-                                <i class="ri-quill-pen-line me-2"></i>Sign Document
-                            </a>
-                        </li>
-                    ';
-                }
-                else {
-                    $action .= '
-                        <li>
-                            <a href="javascript:void(0)" class="dropdown-item">
-                                <i class="ri-upload-line"></i>
-                                Upload Document
-                            </a>
-                        </li>
-                    ';
-                }
-                    $action .= '
+                    if ($myApprover && $myApprover->request_type == "For Signature") {
+                        $action .= '
                             <li>
-                                <a class="dropdown-item ' . $disabledClass . '"
+                                <a class="dropdown-item ' . $disabledClass . '" 
                                     href="#"
-                                    ' . ($isMyTurn ? 'onclick="openReturnModal(' . $cr->id . ')"' : '') . '
+                                    ' . ($isMyTurn ? 'onclick="openSignModal(' . $cr->id . ')"' : '') . '
                                     ' . $disabledAttr . '
-                                    title="' . (!$isMyTurn ? 'Not your turn yet' : 'Return this document') . '">
-                                    <i class="ri-arrow-go-back-line me-2 text-danger"></i>Return Document
+                                    title="' . (!$isMyTurn ? 'Not your turn yet' : 'Sign this document') . '">
+                                    <i class="ri-quill-pen-line me-2"></i>Sign Document
                                 </a>
                             </li>
-                        </ul>
-                    </div>
-                    ';
+                        ';
+                    } elseif ($myApprover && $myApprover->request_type == "For Receiving") {
+                        $action .= '
+                            <li>
+                                <a href="javascript:void(0)" 
+                                    class="dropdown-item ' . $disabledClass . '"
+                                    ' . $disabledAttr . '
+                                    title="' . (!$isMyTurn ? 'Not your turn yet' : 'Upload document') . '">
+                                    <i class="ri-upload-line me-2"></i>Upload Document
+                                </a>
+                            </li>
+                        ';
+                    }
+                    if ($myApprover && $myApprover->request_type == "For Signature") {
+                        $action .= '
+                                <li>
+                                    <a class="dropdown-item ' . $disabledClass . '"
+                                        href="#"
+                                        ' . ($isMyTurn ? 'onclick="openReturnModal(' . $cr->id . ')"' : '') . '
+                                        ' . $disabledAttr . '
+                                        title="' . (!$isMyTurn ? 'Not your turn yet' : 'Return this document') . '">
+                                        <i class="ri-arrow-go-back-line me-2 text-danger"></i>Return Document
+                                    </a>
+                                </li>
+                        ';
+                    }
 
             $data[] = [
                 'action' => $action,
