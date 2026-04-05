@@ -482,7 +482,7 @@ function loadPrivateDocs() {
             const accessBadge = doc.has_valid_access
                 ? (doc.access_expiry
                     ? `<span class="priv-status-badge" style="--bc:#d1fae5;--tc:#065f46;"><i class="ri-calendar-check-line"></i> Until ${doc.access_expiry}</span>`
-                    : `<span class="priv-status-badge" style="--bc:#d1fae5;--tc:#065f46;"><i class="ri-infinity-line"></i> Indefinite Access</span>`)
+                    : `<span class="priv-status-badge" style="--bc:#d1fae5;--tc:#065f46;"><i class="ri-infinity-line"></i> Access</span>`)
                 : doc.has_pending_request
                 ? `<span class="priv-status-badge" style="--bc:#fff3e0;--tc:#92400e;"><i class="ri-time-line"></i> Awaiting Approval</span>`
                 : `<span class="priv-status-badge" style="--bc:#f1f3f5;--tc:#6c757d;"><i class="ri-lock-line"></i> No Access — Click to Request</span>`;
@@ -511,7 +511,6 @@ function loadPrivateDocs() {
                     <div class="flex-grow-1 overflow-hidden">
                         <h6 ${titleStyle}>${doc.title}</h6>
                         <div class="mt-1">${accessBadge}</div>
-                        <small class="text-muted d-block text-truncate mt-1" title="${doc.control_code}">${doc.control_code}</small>
                         <small class="text-muted d-block text-truncate">Owner: ${doc.owner_name}</small>
                     </div>
                     <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1"
