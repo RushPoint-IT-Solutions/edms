@@ -1916,6 +1916,10 @@ class DocumentController extends Controller
 
         $userId = auth()->id();
 
+        ShareDocument::where('user_id', $userId)
+            ->whereNull('seen_at')
+            ->update(['seen_at' => now()]);
+
         $sharedDocIds = ShareDocument::where('user_id', $userId)
             ->pluck('document_id')
             ->toArray();

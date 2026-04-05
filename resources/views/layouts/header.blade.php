@@ -1697,6 +1697,10 @@
                         @if(canView('personal.view') || canView('share_with_me.view') || canView('share_with_others.view'))
                         @php
                             $docsActive = Request::is('documents*') || Request::is('shared-with-me*') || Request::is('shared-with-others*');
+
+                            $unreadSharedWithMeCount = \App\ShareDocument::where('user_id', auth()->id())
+                                ->whereNull('seen_at')
+                                ->count();
                         @endphp
                         <li class="nav-item {{ $docsActive ? 'active' : '' }}">
                             <a class="nav-link menu-link {{ $docsActive ? '' : 'collapsed' }}"
@@ -1704,7 +1708,13 @@
                             aria-expanded="{{ $docsActive ? 'true' : 'false' }}"
                             aria-controls="sidebarDocuments">
                                 <i class="ri-folder-2-line"></i>
-                                <span data-key="t-documents">Documents</span>
+                                <span data-key="t-documents">Documents
+                                    @if($unreadSharedWithMeCount > 0)
+                                        <span class="badge bg-warning rounded-pill float-end  ms-5">
+                                            {{ $unreadSharedWithMeCount }}
+                                        </span>
+                                    @endif
+                                </span>
                             </a>
                             <div class="menu-dropdown collapse {{ $docsActive ? 'show' : '' }}" id="sidebarDocuments">
                                 <ul class="nav nav-sm flex-column">
@@ -1723,6 +1733,11 @@
                                         class="nav-link {{ Request::is('shared-with-me*') ? 'active' : '' }}"
                                         data-key="t-shared-with-me">
                                             Shared with Me
+                                            @if($unreadSharedWithMeCount > 0)
+                                                <span class="badge bg-warning rounded-pill float-end">
+                                                    {{ $unreadSharedWithMeCount }}
+                                                </span>
+                                            @endif
                                         </a>
                                     </li>
                                     @endif
