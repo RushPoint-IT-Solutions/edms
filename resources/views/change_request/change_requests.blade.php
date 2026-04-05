@@ -264,8 +264,8 @@
             </div>
 
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary mt-2" id="publishConfirmBtn" onclick="submitPublish()">
+                <button type="button" class="btn btn-sm btn-secondary mt-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-primary mt-2" id="publishConfirmBtn" onclick="submitPublish()">
                     <i class="ri-send-plane-line me-1"></i>
                     <span id="publishBtnLabel">Publish Now</span>
                 </button>
