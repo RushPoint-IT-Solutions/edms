@@ -1196,10 +1196,6 @@ class DocumentController extends Controller
 
     public function addFolder(Request $request)
     {
-        if (!canCreate('documents')) {
-            abort(403, 'Unauthorized');
-        }
-
         // dd($request->all());
         $folder = new DocumentFolder;
         $folder->name = $request->name;
