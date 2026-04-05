@@ -616,10 +616,11 @@
 
         if (rev.file) {
             var prevFile = baseline ? baseline.file : null;
-            var fileChanged = isNewest && prevFile !== null && rev.file !== prevFile;  // ← only show "new file" if isNewest
+            var fileChanged = isNewest && prevFile !== null && rev.file !== prevFile;
+            var fileUrl = '{{ url("/") }}' + '/' + rev.file.replace(/^\/+/, '');
             html += '<div class="mt-2 pt-2 border-top">';
             html += '<div class="text-muted mb-1" style="font-size:0.75rem;text-transform:uppercase;">File</div>';
-            html += '<a href="/' + escHtml(rev.file.replace(/^\//, '')) + '" target="_blank" class="btn btn-outline-danger btn-sm">';
+            html += '<a href="' + escHtml(fileUrl) + '" target="_blank" class="btn btn-outline-danger btn-sm">';
             html += '<i class="ri-file-pdf-line me-1"></i>View PDF';
             if (fileChanged) html += ' <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">new file</span>';
             html += '</a></div>';
