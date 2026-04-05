@@ -345,15 +345,6 @@ class RequestController extends Controller
                 </button>
                 <ul class="dropdown-menu">';
 
-            if(canView('files.view_status')) {
-                $actions .= '
-                    <li>
-                        <a class="dropdown-item" href="'.url('change-request/'.$cr->id).'">
-                            <i class="ri-information-line me-2"></i> View Status
-                        </a>
-                    </li>
-                ';
-            }
             if (canView('files.view_request')) {
                 $actions .= '
                     <li>
