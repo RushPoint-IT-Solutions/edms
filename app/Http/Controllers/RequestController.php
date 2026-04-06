@@ -669,7 +669,7 @@ class RequestController extends Controller
                                     ' . ($isMyTurn ? 'onclick="openUploadModal(' . $cr->id . ')"' : '') . '
                                     ' . $disabledAttr . '
                                     title="' . (!$isMyTurn ? 'Not your turn yet' : 'Upload document') . '">
-                                    <i class="ri-upload-line me-2"></i>Upload Document
+                                    <i class="ri-upload-line me-2"></i>Receive Document
                                 </a>
                             </li>
                         ';
