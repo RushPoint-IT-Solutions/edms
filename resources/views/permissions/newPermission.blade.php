@@ -8,7 +8,7 @@
             <form autocomplete="off" method="POST" action="{{ url('/permission/store') }}" onsubmit="show()">
                 @csrf
                 <div class="modal-body">
-                    <label class="form-label form-label-sm">Name</label>
+                    <label class="form-label form-label-sm">Role</label>
                     <input type="text" name="name" class="form-control form-control-sm @if($errors->has('name')) is-invalid @endif">
                     @if($errors->has('name'))
                         <span class="invalid-feedback">{{ $errors->first('name') }}</span>
