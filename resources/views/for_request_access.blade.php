@@ -58,6 +58,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Actions</th>
+                                <th>Doc ID</th>
                                 <th>Requested By</th>
                                 <th>Department</th>
                                 <th>Title</th>
@@ -100,6 +101,7 @@ $(document).ready(function () {
         },
         columns: [
             { data: 'action', orderable: false, searchable: false },
+            { data: 'doc_id', orderable: false, searchable: false },
             { data: 'requested_by', name: 'requestor.name' },
             { data: 'department',   orderable: false, searchable: false },
             { data: 'title', orderable: false, searchable: false },

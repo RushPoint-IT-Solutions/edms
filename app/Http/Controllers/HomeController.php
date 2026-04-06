@@ -463,6 +463,9 @@ class HomeController extends Controller
 
             $data[] = [
                 'action' => $action,
+                'doc_id' => $access->changeRequest
+                        ? '<span class="ref-badge">DOC-' . date('Y', strtotime($access->changeRequest->created_at)) . '-' . str_pad($access->changeRequest->id, 3, '0', STR_PAD_LEFT) . '</span>'
+                        : '—',
                 'requested_by' => e(optional($access->requestor)->name ?? '—'),
                 'department' => $department,
                 'title' => e(optional($access->changeRequest)->title ?? '—'),
