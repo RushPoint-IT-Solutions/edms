@@ -58,11 +58,11 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Actions</th>
-                                <th>Requested By</th>
-                                <th>Department</th>
+                                <th>Doc ID</th>
                                 <th>Title</th>
-                                <th>Date</th>
+                                <th>Requested By</th>
                                 <th>Reason</th>
+                                <th>Date</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -100,11 +100,11 @@ $(document).ready(function () {
         },
         columns: [
             { data: 'action', orderable: false, searchable: false },
+            { data: 'doc_id', orderable: false, searchable: false },
+            { data: 'title', orderable: false, searchable: false },
             { data: 'requested_by', name: 'requestor.name' },
-            { data: 'department',   orderable: false, searchable: false },
-            { data: 'title', name: 'document.title' },
-            { data: 'date', name: 'request_date' },
             { data: 'reason', name: 'reason' },
+            { data: 'date', name: 'request_date' },
             { data: 'status', orderable: false, searchable: false },
         ],
         pageLength: 25,

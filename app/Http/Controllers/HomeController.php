@@ -329,7 +329,7 @@ class HomeController extends Controller
         $search = $request->get('search')['value'] ?? '';
         $statusFilter = $request->get('status_filter');
 
-        $query = DocumentRequestAccess::with(['document', 'requestor.department'])
+        $query = DocumentRequestAccess::with(['changeRequest.user.department', 'requestor.department'])
             ->where('user_id', auth()->id());
 
         $totalRecords = (clone $query)->count();
@@ -343,7 +343,7 @@ class HomeController extends Controller
                 $q->whereHas('requestor', function ($q2) use ($search) {
                     $q2->where('name', 'like', "%$search%");
                 })
-                ->orWhereHas('document', function ($q3) use ($search) {
+                ->orWhereHas('changeRequest', function ($q3) use ($search) {
                     $q3->where('title', 'like', "%$search%");
                 })
                 ->orWhere('reason', 'like', "%$search%");
@@ -393,11 +393,11 @@ class HomeController extends Controller
             $modalHtml = '';
             if ($access->status == 0) {
                 $requestorName = e(optional($access->requestor)->name ?? '—');
-                $docTitle      = e(optional($access->document)->title ?? '—');
-                $approveUrl    = url('request_access_approved/' . $access->id);
-                $declineUrl    = url('request_access_declined/' . $access->id);
-                $csrfToken     = csrf_token();
-                $today         = date('Y-m-d');
+                $docTitle = e(optional($access->changeRequest)->title ?? '—');
+                $approveUrl = url('request_access_approved/' . $access->id);
+                $declineUrl = url('request_access_declined/' . $access->id);
+                $csrfToken = csrf_token();
+                $today = date('Y-m-d');
 
                 $modalHtml = '
                 <div class="modal fade" id="approveModal' . $access->id . '" tabindex="-1" aria-hidden="true">
@@ -462,24 +462,38 @@ class HomeController extends Controller
             }
 
             $data[] = [
-                'action'       => $action,
-                'requested_by' => e(optional($access->requestor)->name ?? '—'),
-                'department'   => $department,
-                'title'        => e(optional($access->document)->title ?? '—'),
-                'date'         => $access->request_date
+                'action' => $action,
+                'doc_id' => $access->changeRequest
+                        ? '<span class="ref-badge">DOC-' . date('Y', strtotime($access->changeRequest->created_at)) . '-' . str_pad($access->changeRequest->id, 3, '0', STR_PAD_LEFT) . '</span>'
+                        : '—',
+                'requested_by' => '
+                            <div class="fw-semibold">' . e(optional($access->requestor)->name ?? '—') . '</div>
+                            <small class="text-muted">
+                                <i class="ri-building-line me-1"></i>' . e(optional(optional($access->requestor)->department)->name ?? '—') . '
+                            </small>
+                        ',
+                        'department' => $department,
+                'title' => '
+                            <div class="fw-semibold">' . e(optional($access->changeRequest)->title ?? '—') . '</div>
+                            <small class="text-muted">
+                                <i class="ri-user-line me-1"></i>' . e(optional(optional($access->changeRequest)->user)->name ?? '—') . ' &mdash;
+                                <i class="ri-building-line me-1"></i>' . e(optional(optional(optional($access->changeRequest)->user)->department)->name ?? '—') . '
+                            </small>
+                        ',
+                'date' => $access->request_date
                                     ? \Carbon\Carbon::parse($access->request_date)->format('M d, Y')
                                     : '—',
-                'reason'       => e($access->reason),
-                'status'       => $statusBadge,
-                'modal_html'   => $modalHtml,
+                'reason' => e($access->reason),
+                'status' => $statusBadge,
+                'modal_html' => $modalHtml,
             ];
         }
 
         return response()->json([
-            'draw'            => intval($draw),
-            'recordsTotal'    => $totalRecords,
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalFiltered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 

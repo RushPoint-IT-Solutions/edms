@@ -686,6 +686,7 @@ class RequestController extends Controller
                 'date' => $cr->created_at ? $cr->created_at->format('M d, Y') : '-',
                 'title' => e($cr->title),
                 'requested_by' => $cr->user->name ?? 'N/A',
+                'office' => '<div class="fw-semibold">' . e(optional($cr->user->department)->name ?? '—') . '</div>',
                 // 'type' => optional($cr->document_type)->name ?? '-',
                 'revision_count' => $cr->revision_count > 0
                         ? '<span class="badge bg-info text-white">Rev. ' . $cr->revision_count . '</span>'

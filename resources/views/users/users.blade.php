@@ -438,29 +438,84 @@ $(document).on('click', '[id^="accessControlBtn"]', function (e) {
 });
 
 function renderAcModal(permissions, userPermissions) {
-    var html = '<div class="row g-3">';
+    var groupOrder = [
+        { key: 'dashboard', label: 'Dashboard', icon: 'ri-dashboard-2-line' },
+        { key: 'monitoring', label: 'Monitoring', icon: 'ri-bar-chart-box-line' },
+        { key: 'files', label: 'My Files', icon: 'ri-edit-line' },
+        { key: 'document_approvals',label: 'Document Approvals',  icon: 'ri-checkbox-line' },
+        { key: 'access_request', label: 'Access Requests', icon: 'ri-key-line' },
+        { key: 'personal', label: 'Personal Documents', icon: 'ri-folder-2-line' },
+        { key: 'share_with_me', label: 'Shared with Me', icon: 'ri-folder-received-line' },
+        { key: 'share_with_others', label: 'Shared with Others',  icon: 'ri-share-line' },
+        { key: 'permits_and_license', label: 'Permits & Licenses', icon: 'ri-file-shield-line' },
+        { key: 'approver_stamp', label: 'Approver Stamp', icon: 'mdi mdi-stamper' },
+        { key: 'users', label: 'Users', icon: 'ri-group-line' },
+        { key: 'roles', label: 'Roles', icon: 'ri-shield-check-line' },
+        { key: 'system_configuration', label: 'System Configuration', icon: 'ri-settings-3-line' },
+        { key: 'reports', label: 'Reports', icon: 'mdi mdi-file-chart' },
+    ];
+
+    var serverGroups = {};
     $.each(permissions, function (module, actions) {
-        var modLabel = module.replace(/_/g, ' ').toUpperCase();
+        serverGroups[module] = { actions: actions };
+    });
+
+    var orderedKeys = [];
+    $.each(groupOrder, function (_, g) {
+        if (serverGroups[g.key]) orderedKeys.push(g.key);
+    });
+    $.each(serverGroups, function (key) {
+        if (orderedKeys.indexOf(key) === -1) orderedKeys.push(key);
+    });
+
+    var iconMap = {};
+    $.each(groupOrder, function (_, g) { iconMap[g.key] = g.icon; });
+
+    var labelMap = {};
+    $.each(groupOrder, function (_, g) { labelMap[g.key] = g.label; });
+
+    var html = '<div class="ac-groups">';
+
+    $.each(orderedKeys, function (idx, module) {
+        var actions = serverGroups[module].actions;
+        var modLabel = labelMap[module] || module.replace(/_/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+        var icon = iconMap[module] || 'ri-settings-line';
         var safeId = 'acMod_' + module.replace(/\W/g, '_');
+        var collapseId = 'acCollapse_' + module.replace(/\W/g, '_');
+
+        var hasChecked = false;
+        $.each(actions, function (action, id) {
+            if (userPermissions.indexOf(id) !== -1) hasChecked = true;
+        });
+
         html += `
-        <div class="col-lg-6">
-            <div class="card border">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
-                    <small class="fw-semibold text-uppercase text-muted">${modLabel}</small>
-                    <div class="form-check form-check-inline mb-0">
-                        <input class="form-check-input" type="checkbox" id="selectAll_${safeId}"
-                            onchange="acToggleAll('${safeId}', this)">
-                        <label class="form-check-label small text-muted" for="selectAll_${safeId}">Select all</label>
-                    </div>
+        <div class="ac-group mb-2">
+            <button class="ac-group-header w-100 d-flex align-items-center gap-2 px-3 py-2 border-0 bg-transparent text-start"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#${collapseId}"
+                    aria-expanded="${hasChecked ? 'true' : 'false'}"
+                    aria-controls="${collapseId}">
+                <i class="${icon} fs-5 text-muted ac-group-icon"></i>
+                <span class="fw-semibold small flex-grow-1" style="color: var(--bs-body-color);">${modLabel}</span>
+                <span class="ac-checked-count badge bg-light text-muted me-1 small" id="badge_${safeId}"></span>
+                <div class="form-check form-check-inline mb-0 me-1" onclick="event.stopPropagation()">
+                    <input class="form-check-input" type="checkbox" id="selectAll_${safeId}"
+                        onchange="acToggleAll('${safeId}', this)">
+                    <label class="form-check-label small text-muted" for="selectAll_${safeId}">All</label>
                 </div>
-                <div class="card-body" id="${safeId}">
+                <i class="ri-arrow-down-s-line ac-chevron text-muted fs-5"></i>
+            </button>
+
+            <div class="collapse ${hasChecked ? 'show' : ''}" id="${collapseId}">
+                <div class="px-3 pb-3 pt-1" id="${safeId}">
                     <div class="row g-2">`;
 
         $.each(actions, function (action, id) {
             var checked = userPermissions.indexOf(id) !== -1;
-            var label = action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            var label   = action.replace(/_/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
             html += `
-                        <div class="col-6">
+                        <div class="col-6 col-md-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="permission[]"
                                     value="${id}" id="perm_${id}" ${checked ? 'checked' : ''}
@@ -470,13 +525,32 @@ function renderAcModal(permissions, userPermissions) {
                         </div>`;
         });
 
-        html += `</div></div></div></div>`;
+        html += `   </div>
+                </div>
+            </div>
+        </div>`;
     });
+
     html += '</div>';
+
+    if (!document.getElementById('ac-group-styles')) {
+        var style = document.createElement('style');
+        style.id  = 'ac-group-styles';
+        style.textContent = `
+            .ac-group { border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; }
+            .ac-group-header { border-radius: 8px; transition: background .15s; cursor: pointer; }
+            .ac-group-header:hover { background: #f8f9fa !important; }
+            .ac-group-header[aria-expanded="true"] { background: #f8f9fa !important; border-bottom: 1px solid #e9ecef; border-radius: 8px 8px 0 0; }
+            .ac-chevron { transition: transform .2s ease; flex-shrink: 0; }
+            .ac-group-header[aria-expanded="true"] .ac-chevron { transform: rotate(180deg); }
+        `;
+        document.head.appendChild(style);
+    }
+
     $('#acModalBody').html(html);
 
-    $('[id^="selectAll_"]').each(function () {
-        var safeId = $(this).attr('id').replace('selectAll_', '');
+    $.each(orderedKeys, function (_, module) {
+        var safeId = 'acMod_' + module.replace(/\W/g, '_');
         acSyncAll(safeId);
     });
 }
@@ -491,8 +565,16 @@ window.acToggleAll = function (safeId, el) {
 window.acSyncAll = function (safeId) {
     var total = $('#' + safeId + ' [name="permission[]"]').length;
     var checked = $('#' + safeId + ' [name="permission[]"]:checked').length;
+
     $('#selectAll_' + safeId).prop('checked', total > 0 && total === checked);
     $('#selectAll_' + safeId).prop('indeterminate', checked > 0 && checked < total);
+
+    var badge = $('#badge_' + safeId);
+    if (checked > 0) {
+        badge.text(checked + '/' + total).removeClass('bg-light text-muted').addClass('bg-primary text-white');
+    } else {
+        badge.text('').removeClass('bg-primary text-white').addClass('bg-light text-muted');
+    }
 };
 
 $('#acSaveBtn').on('click', function () {
