@@ -102,7 +102,7 @@ $(document).ready(function () {
             { data: 'action', orderable: false, searchable: false },
             { data: 'requested_by', name: 'requestor.name' },
             { data: 'department',   orderable: false, searchable: false },
-            { data: 'title', name: 'document.title' },
+            { data: 'title', orderable: false, searchable: false },
             { data: 'date', name: 'request_date' },
             { data: 'reason', name: 'reason' },
             { data: 'status', orderable: false, searchable: false },

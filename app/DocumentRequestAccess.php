@@ -15,4 +15,9 @@ class DocumentRequestAccess extends Model
     {
         return $this->belongsTo(Document::class, 'document_id');
     }
+
+    public function changeRequest()
+    {
+        return $this->belongsTo(ChangeRequest::class, 'change_request_id');
+    }
 }
