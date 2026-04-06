@@ -329,7 +329,7 @@ class HomeController extends Controller
         $search = $request->get('search')['value'] ?? '';
         $statusFilter = $request->get('status_filter');
 
-        $query = DocumentRequestAccess::with(['changeRequest', 'requestor.department'])
+        $query = DocumentRequestAccess::with(['changeRequest.user.department', 'requestor.department'])
             ->where('user_id', auth()->id());
 
         $totalRecords = (clone $query)->count();
@@ -466,9 +466,20 @@ class HomeController extends Controller
                 'doc_id' => $access->changeRequest
                         ? '<span class="ref-badge">DOC-' . date('Y', strtotime($access->changeRequest->created_at)) . '-' . str_pad($access->changeRequest->id, 3, '0', STR_PAD_LEFT) . '</span>'
                         : '—',
-                'requested_by' => e(optional($access->requestor)->name ?? '—'),
-                'department' => $department,
-                'title' => e(optional($access->changeRequest)->title ?? '—'),
+                'requested_by' => '
+                            <div class="fw-semibold">' . e(optional($access->requestor)->name ?? '—') . '</div>
+                            <small class="text-muted">
+                                <i class="ri-building-line me-1"></i>' . e(optional(optional($access->requestor)->department)->name ?? '—') . '
+                            </small>
+                        ',
+                        'department' => $department,
+                'title' => '
+                            <div class="fw-semibold">' . e(optional($access->changeRequest)->title ?? '—') . '</div>
+                            <small class="text-muted">
+                                <i class="ri-user-line me-1"></i>' . e(optional(optional($access->changeRequest)->user)->name ?? '—') . ' &mdash;
+                                <i class="ri-building-line me-1"></i>' . e(optional(optional(optional($access->changeRequest)->user)->department)->name ?? '—') . '
+                            </small>
+                        ',
                 'date' => $access->request_date
                                     ? \Carbon\Carbon::parse($access->request_date)->format('M d, Y')
                                     : '—',
