@@ -1,29 +1,22 @@
-<div class="modal fade" id="newPermission" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="newPermission" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content">
-            <div class="modal-header p-3">
-                <h5 class="modal-title" id="newModalLabel">Add new permission</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" id="addFolderBtn-close" aria-label="Close"></button>
+            <div class="modal-header border-bottom">
+                <h6 class="modal-title fw-semibold mb-2">Add Permission</h6>
+                <button type="button" class="btn-close mb-2" data-bs-dismiss="modal"></button>
             </div>
             <form autocomplete="off" method="POST" action="{{ url('/permission/store') }}" onsubmit="show()">
                 @csrf
-
                 <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <label for="" class="form-label">Name</label>
-                            <input type="text" name="name" class="form-control @if($errors->has('name')) is-invalid @endif">
-                            @if($errors->has('name'))
-                            <span class="invalid-feedback">{{ $errors->first('name') }}</span>
-                            @endif
-                        </div>
-                    </div>
+                    <label class="form-label form-label-sm">Role</label>
+                    <input type="text" name="name" class="form-control form-control-sm @if($errors->has('name')) is-invalid @endif">
+                    @if($errors->has('name'))
+                        <span class="invalid-feedback">{{ $errors->first('name') }}</span>
+                    @endif
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-light" type="button" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button class="btn btn-primary" type="submit">Submit</button>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-sm btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-sm btn-primary mt-3">Submit</button>
                 </div>
             </form>
         </div>
