@@ -12,7 +12,7 @@
                 <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body p-4" id="acModalBody">
+            <div class="modal-body p-3" id="acModalBody">
                 <div class="text-center py-5">
                     <div class="spinner-border text-secondary" role="status"></div>
                     <p class="text-muted mt-2">Loading permissions...</p>
