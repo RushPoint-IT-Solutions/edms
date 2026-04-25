@@ -5,6 +5,7 @@ use App\CopyApprover;
 use App\PreAssessmentApprover;
 use App\RequestApprover;
 use App\RolePermission;
+use App\User;
 use App\UserNotification;
 
 
@@ -152,4 +153,17 @@ function canDelete($permission)
     };
 
     return false;
+}
+
+function events() {
+    return [
+        'created',
+        'updated'
+    ];
+}
+
+function getActiveUser() {
+    $users = User::whereNull("status")->get();
+
+    return $users;
 }

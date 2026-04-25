@@ -584,36 +584,25 @@
                                 <thead>
                                     <tr>
                                         <th>DICR #</th>
-                                        <th>Type of Request</th>
+                                        <th>Type of request</th>
                                         <th>Requested Date</th>
                                         <th>Requestor</th>
-                                        {{-- <th>Department</th> --}}
-                                        <th>Proposed Effective Date</th>
+                                        <th>Office</th>
                                         <th>Type of Document</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($document->change_requests as $change_req)
                                         <tr>
-                                            <td>DICR-{{str_pad($change_req->id, 5, '0', STR_PAD_LEFT)}}</td>
-                                            <td>{{$change_req->request_type}}</td>
+                                            <td>DOC-{{ date("Y") }}-{{str_pad($change_req->id, 3, '0', STR_PAD_LEFT)}}</td>
+                                            <td>{{$change_req->type}}</td>
                                             <td>{{date('M d Y',strtotime($change_req->created_at))}}</td>
                                             <td>{{$change_req->user->name ?? 'N/A'}}</td>
-                                            {{-- <td>{{$change_req->department->name}}</td> --}}
-                                            <td>{{date('M d, Y',strtotime($change_req->effective_date))}}</td>
-                                            <td>{{$change_req->type_of_document}}</td>
+                                            <td>{{$change_req->department->name ?? ''}}</td>
                                             <td>
-                                                @if($change_req->status == "Pending")
-                                                    <span class='label-modern warning'>
-                                                @elseif($change_req->status ==  "Approved")
-                                                    <span class='label-modern info'>
-                                                @elseif($change_req->status ==  "Declined")
-                                                    <span class='label-modern danger'>
-                                                @else
-                                                    <span class='label-modern success'>
-                                                @endif
-                                                {{$change_req->status}}</span>
+                                                @foreach ($document->document_type_list as $docType)
+                                                    {{ $docType->document_type->name }} <br>
+                                                @endforeach
                                             </td>
                                         </tr>
                                     @endforeach

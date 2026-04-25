@@ -298,7 +298,10 @@ Route::group(['middleware' => 'auth'], function () {
         // Route::post('edit-dco/{id}','DcoController@update')->name('settings');
     
     
-        // Route::get('/logs', 'AuditController@index')->name('reports');
+        Route::get('/logs', 'AuditController@index')->name('reports');
+        Route::get("logs-data", "AuditController@data")->name('logs-data');
+        Route::get('get-events', 'AuditController@getEvents');
+        Route::get('get-active-users', 'AuditController@getActiveUsers');
         // Route::get('copy-reports','CopyController@copyReports')->name('reports');
         // Route::get('dicr-reports','RequestController@changeReports')->name('reports');
         // Route::get('dco-reports','RequestController@docReports')->name('reports');

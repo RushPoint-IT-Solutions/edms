@@ -1873,6 +1873,10 @@
                                         <a href="{{ url('system-configuration') }}" class="nav-link {{ Request::is('system-configuration*') ? 'active' : '' }}" data-key="t-system-configuration">System Configuration</a>
                                     </li>
                                     @endif
+
+                                    <li class="nav-item">
+                                        <a href="{{url('/logs')}}" class="nav-link {{ Route::current()->getName() == 'logs' ? 'active' : '' }}" data-key="t-logs">Activity Logs</a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
