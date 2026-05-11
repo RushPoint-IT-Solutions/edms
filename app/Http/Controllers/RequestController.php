@@ -275,6 +275,10 @@ class RequestController extends Controller
                 $user = $approver->user;
                 if (!$user) continue;
 
+                $displayStatus = ($approver->status === 'Approved' && $approver->request_type === 'For Receiving')
+                    ? 'Acknowledged'
+                    : $approver->status;
+                    
                 switch ($approver->status) {
                     case 'Approved': $icon='ri-checkbox-circle-fill'; $color='#198754'; $badgeClass='bg-success'; break;
                     case 'Pending': $icon='ri-time-line'; $color='#e67e22'; $badgeClass='bg-warning text-dark'; break;
@@ -288,7 +292,7 @@ class RequestController extends Controller
                     <div class="d-flex align-items-center gap-1" style="flex-wrap:nowrap;">
                         <i class="'.$icon.'" style="color:'.$color.';font-size:0.9rem;flex-shrink:0;"></i>
                         <span style="font-size:0.78rem;font-weight:600;color:#212529;flex-shrink:0;">'.e($user->name).'</span>
-                        <span class="badge '.$badgeClass.'" style="font-size:0.65rem;flex-shrink:0;">'.e($approver->status).'</span>
+                        <span class="badge '.$badgeClass.'" style="font-size:0.65rem;flex-shrink:0;">'.e($displayStatus).'</span>
                     </div>
                 </div>';
 
@@ -569,6 +573,10 @@ class RequestController extends Controller
                 $user = $approver->user;
                 if (!$user) continue;
 
+                $displayStatus = ($approver->status === 'Approved' && $approver->request_type === 'For Receiving')
+                    ? 'Acknowledged'
+                    : $approver->status;
+                    
                 switch ($approver->status) {
                     case 'Approved':
                         $icon       = 'ri-checkbox-circle-fill';
@@ -610,7 +618,7 @@ class RequestController extends Controller
                             . e($user->name) .
                         '</span> -
                         <span class="badge ' . $badgeClass . '" style="font-size:0.65rem; flex-shrink:0;">'
-                            . e($approver->status) .
+                            . e($displayStatus) .
                         '</span>
                         ' . '
                     </div>
@@ -661,7 +669,7 @@ class RequestController extends Controller
                                     ' . ($isMyTurn ? 'onclick="openUploadModal(' . $cr->id . ')"' : '') . '
                                     ' . $disabledAttr . '
                                     title="' . (!$isMyTurn ? 'Not your turn yet' : 'Upload document') . '">
-                                    <i class="ri-upload-line me-2"></i>Upload Document
+                                    <i class="ri-upload-line me-2"></i>Receive Document
                                 </a>
                             </li>
                         ';
