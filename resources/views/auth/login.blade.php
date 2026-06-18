@@ -2,13 +2,20 @@
 
 @section('content')
 <style>
-    .login-container {
-        display: flex;
-        height: 100vh;
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    .login-wrapper {
+        min-height: 100vh;
         width: 100%;
+        display: flex;
+        align-items: stretch;
         font-family: 'Montserrat', sans-serif;
     }
-    
+
     .login-left {
         flex: 1;
         background: #ffffff;
@@ -16,96 +23,90 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 40px;
-    }
-    
-    .login-right {
-        flex: 1;
-        background: linear-gradient(135deg, #6b1a1a 0%, #4a0e0e 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 40px;
-        color: white;
-        border-top-left-radius: 50px;
-        border-bottom-left-radius: 50px;
+        padding: clamp(24px, 5vw, 60px) clamp(20px, 4vw, 50px);
+        min-width: 0;
     }
 
-    
-    .right-logo-placeholder {
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.1);
+    .logo-marsu {
+        width: clamp(70px, 12vw, 100px);
+        height: clamp(70px, 12vw, 100px);
         border-radius: 50%;
+        overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: clamp(12px, 2.5vw, 20px);
+    }
+
+    .logo-marsu img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .welcome-title {
+        font-size: clamp(22px, 4vw, 36px);
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
         text-align: center;
     }
-    
-    .welcome-title {
-        font-size: 36px;
-        font-weight: 600;
-        margin-bottom: 25px;
-        color: #333;
-    }
-    
+
     .welcome-subtitle {
-        font-size: 14px;
+        font-size: clamp(12px, 1.5vw, 14px);
         color: #666;
-        margin-bottom: 40px;
+        margin-bottom: clamp(20px, 4vw, 40px);
+        text-align: center;
     }
-    
+
     .login-form {
         width: 100%;
-        max-width: 350px;
+        max-width: 360px;
     }
-    
+
     .form-input {
         width: 100%;
-        padding: 12px 20px;
+        padding: 11px 18px;
         border: 2px solid #e0e0e0;
         border-radius: 8px;
-        margin-bottom: 15px;
+        margin-bottom: 14px;
         font-size: 14px;
         transition: border-color 0.3s;
-        box-sizing: border-box;
         font-family: 'Montserrat', sans-serif;
+        background: #fff;
+        color: #333;
     }
-    
+
     .form-input:focus {
         outline: none;
         border-color: #6b1a1a;
     }
-    
+
     .form-input.is-invalid {
         border-color: #dc3545;
     }
-    
+
     .invalid-feedback {
         color: #dc3545;
         font-size: 12px;
-        margin-top: -15px;
-        margin-bottom: 15px;
+        margin-top: -10px;
+        margin-bottom: 12px;
         display: block;
     }
-    
+
     .forgot-password {
         font-size: 13px;
         color: #333;
         text-decoration: none;
-        margin-bottom: 15px;
+        margin-bottom: 14px;
         display: inline-block;
     }
-    
+
     .forgot-password:hover {
         text-decoration: underline;
         color: #6b1a1a;
     }
-    
+
     .btn-signin {
         width: 100%;
         padding: 12px;
@@ -117,9 +118,10 @@
         font-weight: 600;
         cursor: pointer;
         transition: background 0.3s;
-        margin-bottom: 15px;
+        margin-bottom: 14px;
+        font-family: 'Montserrat', sans-serif;
     }
-    
+
     .btn-signin:hover {
         background: #4a0e0e;
     }
@@ -128,7 +130,7 @@
         display: flex;
         align-items: center;
         text-align: center;
-        margin: 15px 0;
+        margin: 12px 0;
         color: #666;
         font-size: 13px;
     }
@@ -141,13 +143,13 @@
     }
 
     .divider span {
-        padding: 0 15px;
+        padding: 0 14px;
         font-weight: 500;
     }
 
     .btn-google {
         width: 100%;
-        padding: 12px 20px;
+        padding: 11px 18px;
         background: white;
         color: #333;
         border: 2px solid #e0e0e0;
@@ -161,12 +163,13 @@
         justify-content: center;
         gap: 10px;
         text-decoration: none;
+        font-family: 'Montserrat', sans-serif;
     }
 
     .btn-google:hover {
         background: #f8f8f8;
         border-color: #d0d0d0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         text-decoration: none;
         color: #333;
     }
@@ -174,126 +177,168 @@
     .google-icon {
         width: 20px;
         height: 20px;
+        flex-shrink: 0;
     }
-    
-    .system-title {
-        font-size: 32px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin-bottom: 25px;
-    }
-    
-    .system-subtitle {
-        font-size: 32px;
-        font-weight: 700;
-        margin-top: -20px;
-        margin-bottom: 45px;
-    }
-    
-    .signup-text {
-        font-size: 20px;
-        margin-bottom: 15px;
-        font-weight: 300 !important;
+
+    .login-right {
+        flex: 1;
+        background: linear-gradient(135deg, #6b1a1a 0%, #4a0e0e 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: clamp(24px, 5vw, 60px) clamp(20px, 4vw, 50px);
+        color: white;
+        border-top-left-radius: 50px;
+        border-bottom-left-radius: 50px;
+        min-width: 0;
         text-align: center;
     }
-    
-    .btn-signup {
-        padding: 12px 60px;
-        background: white;
-        color: #6b1a1a;
-        border: none;
-        border-radius: 15px;
-        font-size: 16px;
+
+    .right-logo-placeholder {
+        width: clamp(80px, 14vw, 120px);
+        height: clamp(80px, 14vw, 120px);
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: clamp(16px, 3vw, 28px);
+        overflow: hidden;
+    }
+
+    .right-logo-placeholder img {
+        width: 90%;
+        height: 90%;
+        object-fit: contain;
+    }
+
+    .system-title {
+        font-size: clamp(24px, 4.5vw, 36px);
+        font-weight: 700;
+        letter-spacing: 3px;
+        margin-bottom: 6px;
+    }
+
+    .system-subtitle {
+        font-size: clamp(16px, 2.8vw, 28px);
         font-weight: 600;
-        cursor: pointer;
-        transition: background 0.3s;
-        text-decoration: none;
-        display: inline-block;
+        margin-bottom: clamp(16px, 3vw, 28px);
     }
-    
-    .btn-signup:hover {
-        background: #f0f0f0;
-        color: #6b1a1a;
-        text-decoration: none;
+
+    .signup-text {
+        font-size: clamp(13px, 1.8vw, 18px);
+        margin-bottom: 0;
+        font-weight: 300;
+        line-height: 1.7;
+        opacity: 0.9;
     }
-    
-    @media (max-width: 768px) {
-        .login-container {
+
+    @media (max-width: 900px) {
+        .login-right {
+            border-top-left-radius: 35px;
+            border-bottom-left-radius: 35px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .login-wrapper {
             flex-direction: column;
         }
-        
+
         .login-right {
             order: -1;
-            min-height: 300px;
+            border-radius: 0 0 40px 40px;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            padding: 36px 24px;
+            min-height: 260px;
         }
-        
+
+        .login-left {
+            padding: 32px 24px 40px;
+        }
+
+        .login-form {
+            max-width: 100%;
+        }
+
         .system-title {
-            font-size: 32px;
+            font-size: 28px;
         }
-        
+
         .system-subtitle {
-            font-size: 20px;
+            font-size: 16px;
+        }
+
+        .signup-text {
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .login-right {
+            padding: 28px 16px;
+        }
+
+        .login-left {
+            padding: 24px 16px 32px;
         }
     }
 </style>
 
-<div class="login-container">
+<div class="login-wrapper">
     <div class="login-left">
-        <div class="right-logo-placeholder">
-            <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
+        <div class="logo-marsu">
+            <img src="{{ asset('assets/images/marsu-logo.png') }}" alt="MarSU Logo">
         </div>
-        
-        <h1 class="welcome-title">Welcome Back !!</h1>
+
+        <h1 class="welcome-title">Welcome Back!!</h1>
         <p class="welcome-subtitle">Please enter your credentials to log in</p>
-        
+
         <form method="POST" action="{{ route('login') }}" class="login-form">
             @csrf
-            
-            <input 
-                id="email" 
-                type="email" 
-                class="form-input{{ $errors->has('email') ? ' is-invalid' : '' }}" 
-                name="email" 
-                value="{{ old('email') }}" 
-                placeholder="Username"
-                required 
+
+            <input
+                id="email"
+                type="email"
+                class="form-input{{ $errors->has('email') ? ' is-invalid' : '' }}"
+                name="email"
+                value="{{ old('email') }}"
+                placeholder="Email Address"
+                required
                 autofocus
             >
-            
             @if ($errors->has('email'))
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $errors->first('email') }}</strong>
                 </span>
             @endif
-            
-            <input 
-                id="password" 
-                type="password" 
-                class="form-input{{ $errors->has('password') ? ' is-invalid' : '' }}" 
-                name="password" 
+
+            <input
+                id="password"
+                type="password"
+                class="form-input{{ $errors->has('password') ? ' is-invalid' : '' }}"
+                name="password"
                 placeholder="Password"
                 required
             >
-            
             @if ($errors->has('password'))
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $errors->first('password') }}</strong>
                 </span>
             @endif
-            
+
             @if (Route::has('password.request'))
                 <a class="forgot-password" href="{{ route('password.request') }}">
                     Forgot password?
                 </a>
             @endif
-            
-            <button type="submit" class="btn-signin">
-                SIGN IN
-            </button>
 
-            <div class="divider">
-                <span>Sign In with</span>
-            </div>
+            <button type="submit" class="btn-signin">SIGN IN</button>
+
+            <div class="divider"><span>Sign In with</span></div>
 
             <a href="{{ url('auth/google') }}" class="btn-google">
                 <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -306,16 +351,20 @@
             </a>
         </form>
     </div>
-    
+
     <div class="login-right">
         <div class="right-logo-placeholder">
-            <img src="{{asset('assets/images/marsu-logo.png')}}" alt="" height="120">
+            <img src="{{ asset('assets/images/marsu-logo.png') }}" alt="MarSU Logo">
         </div>
-        
+
         <h2 class="system-title">MARSU</h2>
         <h3 class="system-subtitle">Document Management System</h3>
-        
-        <p class="signup-text">"Your secure hub for managing <br> and accessing MARSU <br> documents"</p>
+
+        <p class="signup-text">
+            "Your secure hub for managing<br>
+            and accessing MARSU<br>
+            documents"
+        </p>
     </div>
 </div>
 @endsection
