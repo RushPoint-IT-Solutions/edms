@@ -27,7 +27,7 @@ class AddApprovalFieldsToDocumentRequestAccessesTable extends Migration
      */
     public function down(): void
     {
-        Schema::table('document_request_access', function (Blueprint $table) {
+        Schema::table('document_request_accesses', function (Blueprint $table) {
             $table->dropColumn(['approve_notes', 'access_until', 'decline_reason']);
         });
     }
