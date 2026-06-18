@@ -13,6 +13,9 @@ class CreateJobsTable extends Migration
      */
     public function up()
     {
+        // Superseded by the full EDMS schema migration dated 2026_05_05.
+        return;
+
         Schema::create('jobs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('queue')->index();
@@ -31,6 +34,8 @@ class CreateJobsTable extends Migration
      */
     public function down()
     {
+        return;
+
         Schema::dropIfExists('jobs');
     }
 }

@@ -13,6 +13,9 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
+        // Superseded by the full EDMS schema migration dated 2026_05_05.
+        return;
+
         Schema::create('password_resets', function (Blueprint $table) {
             $table->string('email')->index();
             $table->string('token');
@@ -27,6 +30,8 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
+        return;
+
         Schema::dropIfExists('password_resets');
     }
 }

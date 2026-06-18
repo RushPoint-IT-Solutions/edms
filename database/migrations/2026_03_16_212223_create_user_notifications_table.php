@@ -13,6 +13,9 @@ class CreateUserNotificationsTable extends Migration
      */
     public function up()
     {
+        // Superseded by the full EDMS schema migration dated 2026_05_05.
+        return;
+
         Schema::create('user_notifications', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('user_id');
@@ -32,6 +35,8 @@ class CreateUserNotificationsTable extends Migration
      */
     public function down()
     {
+        return;
+
         Schema::dropIfExists('user_notifications');
     }
 }

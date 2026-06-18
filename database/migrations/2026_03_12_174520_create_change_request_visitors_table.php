@@ -13,6 +13,9 @@ class CreateChangeRequestVisitorsTable extends Migration
      */
     public function up()
     {
+        // Superseded by the full EDMS schema migration dated 2026_05_05.
+        return;
+
         Schema::create('private_docs_visitors', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('change_request_id');
@@ -28,6 +31,8 @@ class CreateChangeRequestVisitorsTable extends Migration
      */
     public function down()
     {
+        return;
+
         Schema::dropIfExists('change_request_visitors');
     }
 }

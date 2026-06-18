@@ -13,6 +13,9 @@ class CreateAuditsTable extends Migration
      */
     public function up()
     {
+        // Superseded by the full EDMS schema migration dated 2026_05_05.
+        return;
+
         Schema::create('audits', function (Blueprint $table) {
             $table->increments('id');
             $table->string('user_type')->nullable();
@@ -38,6 +41,8 @@ class CreateAuditsTable extends Migration
      */
     public function down()
     {
+        return;
+
         Schema::drop('audits');
     }
 }

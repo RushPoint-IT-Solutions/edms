@@ -13,6 +13,9 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
+        // Superseded by the full EDMS schema migration dated 2026_05_05.
+        return;
+
         Schema::create('users', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
@@ -31,6 +34,8 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
+        return;
+
         Schema::dropIfExists('users');
     }
 }

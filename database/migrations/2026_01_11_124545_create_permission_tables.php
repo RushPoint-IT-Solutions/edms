@@ -13,6 +13,9 @@ class CreatePermissionTables extends Migration
      */
     public function up()
     {
+        // Superseded by the full EDMS schema migration dated 2026_05_05.
+        return;
+
         $tableNames = config('permission.table_names');
         $columnNames = config('permission.column_names');
 
@@ -91,6 +94,8 @@ class CreatePermissionTables extends Migration
      */
     public function down()
     {
+        return;
+
         $tableNames = config('permission.table_names');
 
         Schema::drop($tableNames['role_has_permissions']);
