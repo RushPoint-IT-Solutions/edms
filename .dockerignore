@@ -1,0 +1,16 @@
+.git
+.github
+node_modules
+npm-debug.log
+yarn-error.log
+.env
+.env.*
+!.env.docker.example
+vendor
+storage/logs/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+public/hot
+.phpunit.result.cache
+docker/mysql

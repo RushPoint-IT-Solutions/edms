@@ -1,0 +1,76 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: edms-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - edms-vendor:/var/www/html/vendor
+      - edms-storage:/var/www/html/storage
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DOCKER_DB_DATABASE:-dms}
+      DB_USERNAME: ${DOCKER_DB_USERNAME:-edms}
+      DB_PASSWORD: ${DOCKER_DB_PASSWORD:-secret}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - edms
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: edms-nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - ./:/var/www/html:ro
+      - edms-storage:/var/www/html/storage:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - edms
+
+  mysql:
+    image: mysql:8.0
+    container_name: edms-mysql
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    environment:
+      MYSQL_DATABASE: ${DOCKER_DB_DATABASE:-dms}
+      MYSQL_USER: ${DOCKER_DB_USERNAME:-edms}
+      MYSQL_PASSWORD: ${DOCKER_DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DOCKER_DB_ROOT_PASSWORD:-rootsecret}
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - edms-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DOCKER_DB_ROOT_PASSWORD:-rootsecret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - edms
+
+networks:
+  edms:
+    driver: bridge
+
+volumes:
+  edms-mysql:
+  edms-vendor:
+  edms-storage:
