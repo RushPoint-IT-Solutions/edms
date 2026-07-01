@@ -12,5 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         // $this->call(UsersTableSeeder::class);
+        require_once database_path('seeds/EdmsAccountsAndRolesSeeder.php');
+        $this->call(EdmsAccountsAndRolesSeeder::class);
     }
 }
